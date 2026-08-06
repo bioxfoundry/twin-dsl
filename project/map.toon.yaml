@@ -1,18 +1,21 @@
-# twin-dsl | 79f 1560L | yml:1,json:30,yaml:2,shell:2,xml:2,typescript:29,python:1,javascript:3,proto:7 | 2026-08-06
-# generated in 0.01s
+# twin-dsl | 119f 5544L | json:44,yaml:4,shell:2,xml:2,typescript:41,python:1,javascript:7,proto:12,yml:1,txt:2 | 2026-08-06
+# generated in 0.02s
 # producer: code2llm | artifact: map.toon.yaml | schema: 1
-# stats: 191 func | 0 cls | 79 mod | CC̄=4.6 | critical:15 | cycles:0
-# alerts[5]: fan-out BiofoundryRuntime.build=38; fan-out runResearcherDemo=29; fan-out main=27; fan-out DqlCrawler.crawl=26; CC DqlCrawler.crawl=25
-# hotspots[5]: BiofoundryRuntime.build fan=38; runResearcherDemo fan=29; main fan=27; DqlCrawler.crawl fan=26; runDemo fan=24
-# evolution: CC̄ 4.6→4.6 (flat 0.0)
+# stats: 556 func | 0 cls | 119 mod | CC̄=4.1 | critical:31 | cycles:0
+# alerts[5]: CC main=58; CC LivingProjectRuntime.iterateWithLease=57; fan-out LivingProjectRuntime.iterateWithLease=55; fan-out main=55; CC validateProject=47
+# hotspots[5]: main fan=55; LivingProjectRuntime.iterateWithLease fan=55; BiofoundryRuntime.build fan=38; runResearcherDemo fan=29; DqlCrawler.crawl fan=26
+# evolution: CC̄ 4.6→4.1 (improved -0.5)
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[79]:
+M[119]:
   Makefile,21
-  PACKAGE_MANIFEST.json,35
+  PACKAGE_MANIFEST.json,30
   buf.yaml,7
   deploy/docling/Dockerfile,5
   deploy/docling/server.py,12
-  docker-compose.yml,22
+  deploy/runtime/Dockerfile,8
+  docker-compose.yml,52
+  examples/autonomy/code-change-plan.example.json,12
+  examples/autonomy/signed-mutation-grant.example.json,17
   examples/biofoundry/biofoundry.config.json,48
   examples/biofoundry/customer-docs/equipment-spec.json,9
   examples/biofoundry/manager-guidelines/manager-policy.json,6
@@ -20,8 +23,11 @@ M[79]:
   examples/biofoundry/web-fixtures-map.json,5
   examples/biofoundry/web-fixtures/sitemap.xml,5
   examples/nl-to-dsl/dql.fixture.json,1
+  examples/nl-to-dsl/improvement.fixture.json,1
   examples/nl-to-dsl/intent.fixture.json,11
   examples/nl-to-dsl/math.fixture.json,1
+  examples/nl-to-dsl/observation.fixture.json,1
+  examples/nl-to-dsl/project.fixture.json,1
   examples/nl-to-dsl/query.fixture.json,1
   examples/nl-to-dsl/resource.fixture.json,15
   examples/nl-to-dsl/scene.fixture.json,11
@@ -31,41 +37,64 @@ M[79]:
   examples/researcher/web-fixtures/sitemap.xml,6
   examples/t2c.intent.fixture.json,4
   nlp2uri.yaml,8
-  package.json,27
+  package.json,32
+  planfile.yaml,84
+  prefact.yaml,94
   project.sh,60
+  proto/subactor/autonomy/v1/autonomy.proto,19
   proto/subactor/common/v1/common.proto,5
   proto/subactor/dsl/v1/dsl.proto,9
+  proto/subactor/iteration/v1/iteration.proto,12
+  proto/subactor/iteration/v2/iteration.proto,15
+  proto/subactor/observation/v1/observation.proto,5
+  proto/subactor/project/v1/project.proto,22
   proto/subactor/query/v1/query.proto,11
   proto/subactor/research/v1/research.proto,6
   proto/subactor/resource/v1/resource.proto,5
   proto/subactor/scene/v1/scene.proto,8
   proto/subactor/twin/v1/twin.proto,6
   schemas/biofoundry-config.schema.json,5
+  schemas/development-evidence.schema.json,70
   schemas/dql-crawl.schema.json,23
-  schemas/dsl-generation-result.schema.json,5
+  schemas/dsl-generation-result.schema.json,97
+  schemas/improvement.schema.json,96
+  schemas/living-failure.schema.json,56
+  schemas/living-iteration.schema.json,121
   schemas/math.schema.json,11
+  schemas/mutation-proposal-receipt.schema.json,77
+  schemas/observation.schema.json,13
+  schemas/project.schema.json,172
   schemas/query-result.schema.json,14
   schemas/query.schema.json,12
   schemas/resource-plan.schema.json,11
   schemas/resource.schema.json,12
   schemas/scene.schema.json,11
+  schemas/signed-mutation-grant.schema.json,44
   schemas/tree.schema.json,10
   schemas/twin-build-receipt.schema.json,66
   schemas/twin.schema.json,12
-  scripts/check-proto-contracts.mjs,3
+  scripts/check-compose.mjs,22
+  scripts/check-proto-contracts.mjs,19
+  scripts/demo-autonomy.mjs,20
+  scripts/demo-living-project.mjs,4
+  scripts/demo-mutation.mjs,87
   scripts/demo-realtime-biofoundry.mjs,2
   scripts/run-nl-dsl-examples.mjs,5
   src/adapters/clickhouse.ts,17
   src/adapters/document-converter.ts,15
-  src/adapters/todo2code.ts,23
-  src/cli/main.ts,29
+  src/adapters/todo2code.ts,122
+  src/adapters/twin-probes.ts,149
+  src/cli/main.ts,81
   src/core/canonical.ts,10
-  src/core/types.ts,219
+  src/core/types.ts,423
   src/core/uri.ts,8
   src/dsl/dql.ts,41
+  src/dsl/improvement.ts,73
   src/dsl/intent.ts,4
   src/dsl/math.ts,53
+  src/dsl/observation.ts,46
   src/dsl/parser-util.ts,16
+  src/dsl/project.ts,55
   src/dsl/query.ts,61
   src/dsl/resource.ts,3
   src/dsl/scene.ts,3
@@ -73,20 +102,132 @@ M[79]:
   src/dsl/twin.ts,4
   src/ingestion/archive.ts,11
   src/ingestion/scanner.ts,25
-  src/llm/dsl-schemas.ts,38
+  src/llm/dsl-schemas.ts,44
   src/llm/nl-dsl-compiler.ts,42
   src/llm/openrouter.ts,77
+  src/project/wizard.ts,351
   src/research/crawler.ts,47
   src/research/researcher.ts,23
+  src/runtime/autonomy.ts,233
   src/runtime/biofoundry.ts,73
   src/runtime/event-store.ts,13
+  src/runtime/isolated-worktree.ts,116
+  src/runtime/living-project.ts,458
+  src/runtime/living-watcher.ts,57
+  src/runtime/mutation-grant.ts,348
+  src/runtime/mutation-pipeline.ts,308
   src/runtime/pipeline.ts,2
   src/runtime/query-runtime.ts,17
   src/runtime/realtime-watcher.ts,13
+  src/runtime/service-check.ts,43
   src/scene/openusd.ts,15
   tree.sh,1
   tsconfig.json,15
+  verification/dist-smoke.txt,146
+  verification/final-results.json,26
+  verification/yaml-smoke.txt,3
 D:
+  src/cli/main.ts:
+    i: ../adapters/todo2code.js,../adapters/twin-probes.js,../core/types.js,../dsl/dql.js,../dsl/project.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../project/wizard.js,../research/crawler.js,../research/researcher.js,../runtime/biofoundry.js,../runtime/living-project.js,../runtime/living-watcher.js,../runtime/mutation-grant.js,../runtime/mutation-pipeline.js,../runtime/pipeline.js,../runtime/realtime-watcher.js,../runtime/service-check.js,node:fs/promises,node:path
+    e: json,save,main,t2c,issued,result,project,base,receipt,project,base,grantPath,receipt,adapter
+    json()
+    save()
+    main()
+    t2c()
+    issued()
+    result()
+    project()
+    base()
+    receipt()
+    project()
+    base()
+    grantPath()
+    receipt()
+    adapter()
+  src/runtime/living-project.ts:
+    i: ../adapters/todo2code.js,../core/canonical.js,../dsl/dql.js,../dsl/improvement.js,../dsl/math.js,../dsl/observation.js,../dsl/project.js,../dsl/scene.js,../dsl/twin.js,../ingestion/scanner.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../research/crawler.js,../scene/openusd.js,node:crypto,node:fs/promises,node:path
+    e: LivingProjectRuntime,readJson,readOptional,writeJson,sourceSnapshot,resourceDiff,oldMap,newMap,groupTree,byRole,role,parseObservationValue,observationsFromResources,index,rawText,fenced,text,row,observedAt,subjectUri,reasoning,roles,researchUris,managerUris,runtimeUris,researchPresent,developmentPresent,developmentAccepted,runtimePresent,conceptualTwin,conceptualScene,twinUri,fixtureFetcher,map,relative,fallbackAudit
+    LivingProjectRuntime: load(-1),text(-1),iterate(-1),absolute(-1),project(-1),lease(-1),iterateWithLease(-1),startedAt(-1),traceId(-1),base(-1),projectConfigHash(-1),scanned(-1),plan(-1),crawler(-1),web(-1),resources(-1),researchHash(-1),previousResources(-1),diff(-1),previous(-1),developmentRoot(-1),developmentOut(-1),intentUri(-1),developmentEvidence(-1),developmentFingerprint(-1),observation(-1),observationHash(-1),stableKey(-1),iterationsLastHour(-1),rateLimitAvailable(-1),grantPresent(-1),tree(-1),authoritativeMath(-1),deterministicTwin(-1),deterministicScene(-1),mathGeneration(-1),mergedMath(-1),math(-1),twinGeneration(-1),twin(-1),deterministicSceneForTwin(-1),sceneGeneration(-1),scene(-1),allowed(-1),publish(-1),researchPresent(-1),runtimePresent(-1),improvement(-1),candidate(-1),current(-1),developmentEvidenceUri(-1),treeUri(-1),mathUri(-1),observationUri(-1),twinUri(-1),sceneUri(-1),improvementUri(-1),iterationId(-1),idempotencyKey(-1),iterationUri(-1),feedbackPath(-1),feedbackUri(-1),recordFailure(-1),message(-1),errorCode(-1)
+    readJson()
+    readOptional()
+    writeJson()
+    sourceSnapshot()
+    resourceDiff()
+    oldMap()
+    newMap()
+    groupTree()
+    byRole()
+    role()
+    parseObservationValue()
+    observationsFromResources()
+    index()
+    rawText()
+    fenced()
+    text()
+    row()
+    observedAt()
+    subjectUri()
+    reasoning()
+    roles()
+    researchUris()
+    managerUris()
+    runtimeUris()
+    researchPresent()
+    developmentPresent()
+    developmentAccepted()
+    runtimePresent()
+    conceptualTwin()
+    conceptualScene()
+    twinUri()
+    fixtureFetcher()
+    map()
+    relative()
+    fallbackAudit()
+  src/dsl/project.ts:
+    i: ../core/types.js,./parser-util.js
+    e: bool,parseProjectDsl,xs,renderProjectDsl,validateProject,dev
+    bool()
+    parseProjectDsl()
+    xs()
+    renderProjectDsl()
+    validateProject()
+    dev()
+  src/dsl/improvement.ts:
+    i: ../core/types.js,./parser-util.js
+    e: bool,parseImprovementDsl,input,header,raw,match,renderImprovementDsl,validateImprovement,document,ids,action
+    bool()
+    parseImprovementDsl()
+    input()
+    header()
+    raw()
+    match()
+    renderImprovementDsl()
+    validateImprovement()
+    document()
+    ids()
+    action()
+  src/dsl/observation.ts:
+    i: ../core/types.js,./parser-util.js
+    e: parseValue,v,csv,parseObservationDsl,xs,i,renderObservationDsl,validateObservation,seen
+    parseValue()
+    v()
+    csv()
+    parseObservationDsl()
+    xs()
+    i()
+    renderObservationDsl()
+    validateObservation()
+    seen()
+  src/scene/openusd.ts:
+    i: ../core/types.js,../dsl/twin.js
+    e: ident,q,vec,primitive,renderOpenUsd,components,sceneDiff
+    ident()
+    q()
+    vec()
+    primitive()
+    renderOpenUsd()
+    components()
+    sceneDiff()
   src/research/crawler.ts:
     i: ../core/types.js,../dsl/resource.js,node:dns/promises,node:net
     e: CrawledPage,CrawlResult,DqlCrawler,privateIp,p,assertPublic,decode,locations,isSitemapIndex,glob,allowedPath,stripTags,first,htmlToMarkdown,title,robotsDisallow,robotAllowed,score,fetchText
@@ -109,16 +250,6 @@ D:
     robotAllowed()
     score()
     fetchText()
-  src/scene/openusd.ts:
-    i: ../core/types.js,../dsl/twin.js
-    e: ident,q,vec,primitive,renderOpenUsd,components,sceneDiff
-    ident()
-    q()
-    vec()
-    primitive()
-    renderOpenUsd()
-    components()
-    sceneDiff()
   src/dsl/dql.ts:
     i: ../core/types.js,./parser-util.js
     e: positiveInt,parseDql,xs,renderDql
@@ -145,6 +276,64 @@ D:
     buildScene()
     readPrevious()
     writeJson()
+  src/runtime/autonomy.ts:
+    i: ../core/canonical.js,../dsl/improvement.js,node:crypto,node:fs/promises,node:path
+    e: DevelopmentAnalysisInput,ProjectLease,object,array,diagnosticSeverity,item,manifestStatus,item,status,summarizeDevelopment,graphObject,records,relations,diagnostics,blocking,status,declaredFingerprint,graphFingerprint,AUTHORITY_BINDINGS,AUTHORITY_EXPRESSIONS,mergeAuthorityMath,proposalBindings,authoritativeBindings,expected,actual,expected,actual,extraBindings,extraExpressions,flattenComponents,validateTwinGrounding,allowedUris,ids,validateSceneGrounding,components,allowedAssets,expectedTwinUri,paths,buildImprovementPlan,add,mutationGrantPresent,verified,recentIterationCount,directory,threshold,count,receipt,acquireProjectLease,leaseDirectory,acquire,code,stale,leaseId,appendJsonLine,handle
+    DevelopmentAnalysisInput:
+    ProjectLease:
+    object()
+    array()
+    diagnosticSeverity()
+    item()
+    manifestStatus()
+    item()
+    status()
+    summarizeDevelopment()
+    graphObject()
+    records()
+    relations()
+    diagnostics()
+    blocking()
+    status()
+    declaredFingerprint()
+    graphFingerprint()
+    AUTHORITY_BINDINGS()
+    AUTHORITY_EXPRESSIONS()
+    mergeAuthorityMath()
+    proposalBindings()
+    authoritativeBindings()
+    expected()
+    actual()
+    expected()
+    actual()
+    extraBindings()
+    extraExpressions()
+    flattenComponents()
+    validateTwinGrounding()
+    allowedUris()
+    ids()
+    validateSceneGrounding()
+    components()
+    allowedAssets()
+    expectedTwinUri()
+    paths()
+    buildImprovementPlan()
+    add()
+    mutationGrantPresent()
+    verified()
+    recentIterationCount()
+    directory()
+    threshold()
+    count()
+    receipt()
+    acquireProjectLease()
+    leaseDirectory()
+    acquire()
+    code()
+    stale()
+    leaseId()
+    appendJsonLine()
+    handle()
   src/llm/openrouter.ts:
     i: ../core/types.js
     e: OpenRouterConfig,StructuredOutput,OpenRouterStructuredClient,envInt,envBool,openRouterConfigFromEnv,sleep,contentText
@@ -156,6 +345,15 @@ D:
     openRouterConfigFromEnv()
     sleep()
     contentText()
+  src/adapters/todo2code.ts:
+    i: ../core/types.js,../dsl/intent.js,node:child_process,node:fs/promises,node:os,node:path
+    e: Todo2CodePipelineOptions,Todo2CodeAnalysis,Todo2CodeAdapter,run,processHandle,optionalJson
+    Todo2CodePipelineOptions:
+    Todo2CodeAnalysis:
+    Todo2CodeAdapter: available(-1),loadFixture(-1),extract(-1),readLatestAnalysis(-1),latest(-1),runBase(-1),manifest(-1),manifestObject(-1),graph(-1),diagnostics(-1),readLatestGraph(-1),extractNl(-1),directory(-1),input(-1),out(-1),raw(-1),proposeSourcePatch(-1),cwd(-1),applySourcePatch(-1),cwd(-1)
+    run()
+    processHandle()
+    optionalJson()
   src/llm/nl-dsl-compiler.ts:
     i: ../adapters/todo2code.js,../core/canonical.js,../core/types.js,./dsl-schemas.js,./openrouter.js
     e: CompileNlOptions,NlDslCompiler
@@ -181,13 +379,6 @@ D:
     renderMathDsl()
     val()
     ex()
-  src/cli/main.ts:
-    i: ../adapters/todo2code.js,../core/types.js,../dsl/dql.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../research/crawler.js,../research/researcher.js,../runtime/biofoundry.js,../runtime/pipeline.js,../runtime/realtime-watcher.js,node:fs/promises,node:path
-    e: json,save,main,t2c
-    json()
-    save()
-    main()
-    t2c()
   src/ingestion/scanner.ts:
     i: ../adapters/document-converter.js,../core/types.js,../dsl/resource.js,./archive.js,node:fs/promises,node:path
     e: ScanSource,ScanResult,TEXT_EXT,walk,textFromBuffer,scanSources
@@ -197,6 +388,87 @@ D:
     walk()
     textFromBuffer()
     scanSources()
+  src/runtime/service-check.ts:
+    i: ../adapters/clickhouse.js
+    e: ExternalServiceCheck,timed,started,checkExternalServices,clickhouseUrl,doclingUrl,timeoutMs,result,parsed,result,response,text
+    ExternalServiceCheck:
+    timed()
+    started()
+    checkExternalServices()
+    clickhouseUrl()
+    doclingUrl()
+    timeoutMs()
+    result()
+    parsed()
+    result()
+    response()
+    text()
+  src/runtime/mutation-pipeline.ts:
+    i: ../adapters/todo2code.js,../core/canonical.js,./autonomy.js,./isolated-worktree.js,node:crypto,node:fs/promises,node:path
+    e: MutationProposeInput,MutationApplyInput,object,planHashOf,data,loadPlan,resolveGrant,proposeCodeMutation,startedAt,proposalId,outDir,plan,planHash,grantResult,adapter,patchOut,planFile,completedAt,message,applyCodeMutation,plan,planHash,grantResult,jtiDir,consumed,adapter,workspace,applyId,receiptPath,completedAt
+    MutationProposeInput:
+    MutationApplyInput:
+    object()
+    planHashOf()
+    data()
+    loadPlan()
+    resolveGrant()
+    proposeCodeMutation()
+    startedAt()
+    proposalId()
+    outDir()
+    plan()
+    planHash()
+    grantResult()
+    adapter()
+    patchOut()
+    planFile()
+    completedAt()
+    message()
+    applyCodeMutation()
+    plan()
+    planHash()
+    grantResult()
+    jtiDir()
+    consumed()
+    adapter()
+    workspace()
+    applyId()
+    receiptPath()
+    completedAt()
+  src/adapters/twin-probes.ts:
+    i: ../core/canonical.js,node:child_process,node:fs/promises,node:path
+    e: ProbeViolation,ProbeResult,AutonomCycle,ProbeEvidenceSummary,TwinProbesAdapter,object,validateAutonomCycle,data,result,summarizeProbeCycle,watched,healthy,unhealthy,unevaluable,cycleHash,cycleUri,run,child
+    ProbeViolation:
+    ProbeResult:
+    AutonomCycle:
+    ProbeEvidenceSummary:
+    TwinProbesAdapter: available(-1),loadCycle(-1),cycle(-1),run(-1),out(-1),writeSummary(-1)
+    object()
+    validateAutonomCycle()
+    data()
+    result()
+    summarizeProbeCycle()
+    watched()
+    healthy()
+    unhealthy()
+    unevaluable()
+    cycleHash()
+    cycleUri()
+    run()
+    child()
+  src/llm/dsl-schemas.ts:
+    i: ../core/types.js,../dsl/dql.js,../dsl/improvement.js,../dsl/math.js,../dsl/observation.js,../dsl/project.js,../dsl/query.js,../dsl/scene.js,../dsl/tree.js,../dsl/twin.js
+    e: obj,exact,strings,textDsl,validateResourcePlan,component,validateTwinEnvelope,validateSceneEnvelope,generationContract
+    obj()
+    exact()
+    strings()
+    textDsl()
+    validateResourcePlan()
+    component()
+    validateTwinEnvelope()
+    validateSceneEnvelope()
+    generationContract()
   src/dsl/query.ts:
     i: ../core/canonical.js,../core/types.js,../core/uri.js,./parser-util.js
     e: parseQueryDsl,xs,id,match,renderQueryDsl
@@ -209,18 +481,53 @@ D:
     i: ../core/types.js
     e: validateScene
     validateScene()
-  src/llm/dsl-schemas.ts:
-    i: ../core/types.js,../dsl/dql.js,../dsl/math.js,../dsl/query.js,../dsl/scene.js,../dsl/tree.js,../dsl/twin.js
-    e: obj,exact,strings,textDsl,validateResourcePlan,component,validateTwinEnvelope,validateSceneEnvelope,generationContract
-    obj()
-    exact()
-    strings()
-    textDsl()
-    validateResourcePlan()
-    component()
-    validateTwinEnvelope()
-    validateSceneEnvelope()
-    generationContract()
+  src/runtime/mutation-grant.ts:
+    i: ../core/canonical.js,../core/types.js,node:crypto,node:fs/promises,node:path
+    e: IssueMutationGrantInput,DEFAULT_TTL_SECONDS,MAX_TTL_SECONDS,CLOCK_SKEW_SECONDS,b64url,b64urlJson,parseB64urlJson,resolveMutationGrantSecrets,primary,next,canonicalGrantClaims,signingPayload,signHs256,safeEqualBuf,issueMutationGrant,env,now,secrets,ttl,risk,iatMs,expMs,claims,sig,verifyMutationGrantToken,env,now,secrets,raw,parts,header,claims,expMs,verifyMutationGrantDocument,data,verified,consumeMutationGrantJti,path,expMs,handle,loadAndVerifyMutationGrant,path,data,writeMutationGrant
+    IssueMutationGrantInput:
+    DEFAULT_TTL_SECONDS()
+    MAX_TTL_SECONDS()
+    CLOCK_SKEW_SECONDS()
+    b64url()
+    b64urlJson()
+    parseB64urlJson()
+    resolveMutationGrantSecrets()
+    primary()
+    next()
+    canonicalGrantClaims()
+    signingPayload()
+    signHs256()
+    safeEqualBuf()
+    issueMutationGrant()
+    env()
+    now()
+    secrets()
+    ttl()
+    risk()
+    iatMs()
+    expMs()
+    claims()
+    sig()
+    verifyMutationGrantToken()
+    env()
+    now()
+    secrets()
+    raw()
+    parts()
+    header()
+    claims()
+    expMs()
+    verifyMutationGrantDocument()
+    data()
+    verified()
+    consumeMutationGrantJti()
+    path()
+    expMs()
+    handle()
+    loadAndVerifyMutationGrant()
+    path()
+    data()
+    writeMutationGrant()
   src/adapters/document-converter.ts:
     i: node:fs/promises,node:path
     e: ConvertedDocument,DocumentConverter,DeterministicMarkdownConverter,DoclingHttpAdapter,CompositeDocumentConverter
@@ -237,6 +544,53 @@ D:
     i: ../core/types.js,./biofoundry.js
     e: RealtimeTwinWatcher
     RealtimeTwinWatcher: runOnce(-1),start(-1),tick(-1),stop(-1)
+  src/project/wizard.ts:
+    i: ../core/canonical.js,../core/types.js,../dsl/project.js,node:fs/promises,node:path,node:url
+    e: CreateProjectOptions,slug,normalized,basePort,exists,text,compose,ciWorkflow,releaseWorkflow,readme,vendorRuntime,here,root,vendor,source,createLivingProject,id,projectDir,profile,port,managerIntent,addProjectSource,absoluteConfig,base,document,sourcePath,projectPath,relativeCandidate,relativePath,addProjectWebsite,absoluteConfig,base,document,parsed,verifyLivingProject,absolute,base,document,path,ok,ok,t2cAvailable,fixtureAvailable,providerOk
+    CreateProjectOptions:
+    slug()
+    normalized()
+    basePort()
+    exists()
+    text()
+    compose()
+    ciWorkflow()
+    releaseWorkflow()
+    readme()
+    vendorRuntime()
+    here()
+    root()
+    vendor()
+    source()
+    createLivingProject()
+    id()
+    projectDir()
+    profile()
+    port()
+    managerIntent()
+    addProjectSource()
+    absoluteConfig()
+    base()
+    document()
+    sourcePath()
+    projectPath()
+    relativeCandidate()
+    relativePath()
+    addProjectWebsite()
+    absoluteConfig()
+    base()
+    document()
+    parsed()
+    verifyLivingProject()
+    absolute()
+    base()
+    document()
+    path()
+    ok()
+    ok()
+    t2cAvailable()
+    fixtureAvailable()
+    providerOk()
   src/research/researcher.ts:
     i: ../adapters/clickhouse.js,../core/canonical.js,../dsl/dql.js,../dsl/math.js,../dsl/query.js,../dsl/tree.js,../ingestion/scanner.js,../runtime/event-store.js,../runtime/query-runtime.js,./crawler.js,node:fs/promises,node:path
     e: fixtureFetch,runResearcherDemo,local,snapshot,source,math
@@ -256,6 +610,10 @@ D:
     match()
     renderTreeDsl()
     walk()
+  src/runtime/living-watcher.ts:
+    i: ../core/types.js,./living-project.js
+    e: LivingProjectWatcher
+    LivingProjectWatcher: runOnce(-1),maxRetryMs(-1),schedule(-1),tick(-1),result(-1),schedule(-1),project(-1),failureExponent(-1),retryAfterMs(-1),failure(-1),schedule(-1),stop(-1)
   src/ingestion/archive.ts:
     i: node:child_process,node:util
     e: ArchiveEntry,execFileAsync,limit,safePath,readZip,maxFiles
@@ -271,6 +629,15 @@ D:
     visit()
     validateTwin()
     flattenTwin()
+  scripts/check-proto-contracts.mjs:
+    i: node:fs/promises,node:path
+    e: walk,checkMessageFields,stripped,numbers,field,files
+    walk()
+    checkMessageFields()
+    stripped()
+    numbers()
+    field()
+    files()
   src/core/canonical.ts:
     i: node:crypto
     e: norm,canonicalJson,sha256,contentUri
@@ -287,11 +654,31 @@ D:
     e: validateT2cIntent,intentUri
     validateT2cIntent()
     intentUri()
-  src/adapters/todo2code.ts:
-    i: ../core/types.js,../dsl/intent.js,node:child_process,node:fs/promises,node:os,node:path
-    e: Todo2CodeAdapter,run
-    Todo2CodeAdapter: available(-1),loadFixture(-1),extract(-1),extractNl(-1),dir(-1),input(-1),mapped(-1),raw(-1)
+  scripts/check-compose.mjs:
+    i: node:fs/promises
+    e: text,secretLine,value
+    text()
+    secretLine()
+    value()
+  src/runtime/isolated-worktree.ts:
+    i: ../core/canonical.js,node:child_process,node:crypto,node:fs/promises,node:os,node:path
+    e: IsolatedWorkspace,run,child,isGitToplevel,inside,top,createIsolatedWorkspace,root,label,parent,token,workPath,add,fallback,name,readIsolationMarker
+    IsolatedWorkspace:
     run()
+    child()
+    isGitToplevel()
+    inside()
+    top()
+    createIsolatedWorkspace()
+    root()
+    label()
+    parent()
+    token()
+    workPath()
+    add()
+    fallback()
+    name()
+    readIsolationMarker()
   src/core/uri.ts:
     e: assertProcessUri,assertResourceUri,isImmutableResourceUri
     assertProcessUri()
@@ -314,10 +701,14 @@ D:
     i: ../core/canonical.js,../core/types.js
     e: resourceFromText
     resourceFromText()
-  scripts/check-proto-contracts.mjs:
-    e: walk,files
-    walk()
-    files()
+  scripts/demo-mutation.mjs:
+    i: ../dist/src/adapters/twin-probes.js,../dist/src/runtime/mutation-grant.js,../dist/src/runtime/mutation-pipeline.js,node:fs/promises,node:path
+    e: issued,verified,proposed,cycle,probeSummary
+    issued()
+    verified()
+    proposed()
+    cycle()
+    probeSummary()
   src/adapters/clickhouse.ts:
     i: ../core/types.js
     e: IndexedChunk,SearchProjection,InMemorySearchProjection,ClickHouseHttpProjection
@@ -333,17 +724,25 @@ D:
     i: node:fs/promises
     e: tmp
     tmp()
+  scripts/demo-autonomy.mjs:
+    i: ../dist/src/dsl/math.js,../dist/src/dsl/project.js,../dist/src/project/wizard.js,../dist/src/runtime/autonomy.js,../dist/src/runtime/living-project.js,node:fs/promises,node:path
+    e: created,runtime,baseline,config,blocked,authoritative,tampered,merged,failure
+    created()
+    runtime()
+    baseline()
+    config()
+    blocked()
+    authoritative()
+    tampered()
+    merged()
+    failure()
   Makefile:
-  docker-compose.yml:
-  PACKAGE_MANIFEST.json:
   tsconfig.json:
   nlp2uri.yaml:
   tree.sh:
   buf.yaml:
-  package.json:
-  schemas/dsl-generation-result.schema.json:
+  project.sh:
   schemas/resource.schema.json:
-  schemas/resource-plan.schema.json:
   schemas/biofoundry-config.schema.json:
   schemas/math.schema.json:
   schemas/scene.schema.json:
@@ -370,8 +769,34 @@ D:
   examples/nl-to-dsl/query.fixture.json:
   examples/nl-to-dsl/twin.fixture.json:
   examples/nl-to-dsl/dql.fixture.json:
+  deploy/docling/Dockerfile:
+  proto/subactor/twin/v1/twin.proto:
+  proto/subactor/research/v1/research.proto:
+  proto/subactor/scene/v1/scene.proto:
+  proto/subactor/resource/v1/resource.proto:
+  proto/subactor/common/v1/common.proto:
+  docker-compose.yml:
+  PACKAGE_MANIFEST.json:
+  planfile.yaml:
+  schemas/resource-plan.schema.json:
+  schemas/observation.schema.json:
+  prefact.yaml:
+  schemas/living-iteration.schema.json:
+  package.json:
+  schemas/dsl-generation-result.schema.json:
+  schemas/signed-mutation-grant.schema.json:
+  schemas/living-failure.schema.json:
+  schemas/project.schema.json:
+  schemas/improvement.schema.json:
+  examples/autonomy/signed-mutation-grant.example.json:
+  examples/nl-to-dsl/observation.fixture.json:
+  schemas/mutation-proposal-receipt.schema.json:
+  examples/nl-to-dsl/project.fixture.json:
+  examples/autonomy/code-change-plan.example.json:
+  schemas/development-evidence.schema.json:
+  examples/nl-to-dsl/improvement.fixture.json:
   src/core/types.ts:
-    e: SourceAnchor,ResourceRecord,ResourcePlan,IntentRecord,QueryFilter,QueryContract,DqlCrawlPlan,TreeNode,TreeDocument,Rational,MathBinding,MathDocument,TwinComponent,TwinDocument,SceneBinding,SceneDocument,EvidenceReference,QueryResultEnvelope,GenerationAudit,DslGenerationResult,DomainEvent,ResourceDiff,TwinBuildReceipt
+    e: SourceAnchor,ResourceRecord,ResourcePlan,IntentRecord,QueryFilter,QueryContract,DqlCrawlPlan,TreeNode,TreeDocument,Rational,MathBinding,MathDocument,TwinComponent,TwinDocument,SceneBinding,SceneDocument,ObservationRecord,ObservationDocument,DevelopmentEvidenceSummary,ImprovementAction,ImprovementPlan,LivingSourceSpec,LivingProjectDocument,EvidenceReference,QueryResultEnvelope,GenerationAudit,DslGenerationResult,DomainEvent,ResourceDiff,TwinBuildReceipt,LivingIterationReceipt,LivingFailureReceipt,SignedMutationGrant,MutationProposalReceipt
     SourceAnchor:
     ResourceRecord:
     ResourcePlan:
@@ -388,6 +813,13 @@ D:
     TwinDocument:
     SceneBinding:
     SceneDocument:
+    ObservationRecord:
+    ObservationDocument:
+    DevelopmentEvidenceSummary:
+    ImprovementAction:
+    ImprovementPlan:
+    LivingSourceSpec:
+    LivingProjectDocument:
     EvidenceReference:
     QueryResultEnvelope:
     GenerationAudit:
@@ -395,14 +827,22 @@ D:
     DomainEvent:
     ResourceDiff:
     TwinBuildReceipt:
-  deploy/docling/Dockerfile:
+    LivingIterationReceipt:
+    LivingFailureReceipt:
+    SignedMutationGrant:
+    MutationProposalReceipt:
+  verification/yaml-smoke.txt:
+  verification/final-results.json:
+  verification/dist-smoke.txt:
+  scripts/demo-living-project.mjs:
+    i: ../dist/src/project/wizard.js,../dist/src/runtime/living-project.js,node:fs/promises
+  deploy/runtime/Dockerfile:
   scripts/run-nl-dsl-examples.mjs:
     i: ../dist/src/llm/nl-dsl-compiler.js,node:fs/promises
   proto/subactor/query/v1/query.proto:
-  proto/subactor/twin/v1/twin.proto:
-  proto/subactor/research/v1/research.proto:
-  proto/subactor/scene/v1/scene.proto:
-  proto/subactor/resource/v1/resource.proto:
-  proto/subactor/common/v1/common.proto:
+  proto/subactor/iteration/v2/iteration.proto:
+  proto/subactor/iteration/v1/iteration.proto:
+  proto/subactor/project/v1/project.proto:
   proto/subactor/dsl/v1/dsl.proto:
-  project.sh:
+  proto/subactor/autonomy/v1/autonomy.proto:
+  proto/subactor/observation/v1/observation.proto:

@@ -1,5 +1,7 @@
 # Autonomy model
 
+Session event chronicle (planned vs executed vs still autonomous): [`EVENT_HISTORY_AUTONOMY.md`](EVENT_HISTORY_AUTONOMY.md).
+
 ## Closed loop
 
 ```text

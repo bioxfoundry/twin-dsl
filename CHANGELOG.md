@@ -1,5 +1,28 @@
 # Changelog
 
+## [Unreleased] - 2026-08-06
+
+### Fixed
+- Fix ast-sorted-imports issues (ticket-6c18b3f3)
+- Fix ast-missing-return-type issues (ticket-bd7400cb)
+- Fix ruff-sorted-imports issues (ticket-5c4314df)
+- Fix smart-return-type issues (ticket-0f970abe)
+- Fix import-optimization issues (ticket-4893092b)
+
+## 0.5.1 — 2026-08-06
+
+### Added
+
+- Biofoundry **concept twin bridge** (`src/runtime/biofoundry-concept.ts`): profile `biofoundry` emits 8 semantic zones with stable `twin://biofoundry/...` IDs and placeholder geometry (ChatGPT concept v0.1 layout);
+- readiness analysis: `ConceptScenePublishAllowed`, `PhysicalTwinReady`, `OperationalTwinReady`;
+- treeDSL combines semantic layers + knowledge-source index;
+- scene OpenUSD root `/Biofoundry` with 8-zone positions (60×36 m envelope, geometry explicitly placeholder);
+- tests for concept twin/scene/readiness.
+
+### Integration
+
+- Connects living-runtime loop with `biofoundry-digital-twin-concept-v0.1` (GLB/USDA/DSL) so docs update the Biofoundry scene, not only abstract knowledge cubes.
+
 ## 0.5.0 — 2026-08-06
 
 ### Added

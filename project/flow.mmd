@@ -1,16 +1,23 @@
 flowchart TD
-%% generated in 0.00s
+%% generated in 0.01s
 
     %% Entry points (blue)
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph CLI
+        deploy__docling__server__health["health"]
+        deploy__docling__server__convert["convert"]
         src__cli__main__json["json"]
         src__cli__main__save["save"]
         src__cli__main__main["main"]
         src__cli__main__t2c["t2c"]
-        deploy__docling__server__health["health"]
-        deploy__docling__server__convert["convert"]
+        src__cli__main__issued["issued"]
+        src__cli__main__result["result"]
+        src__cli__main__project["project"]
+        src__cli__main__base["base"]
+        src__cli__main__receipt["receipt"]
+        src__cli__main__grantPath["grantPath"]
+        src__cli__main__adapter["adapter"]
     end
 
     subgraph Core
@@ -29,7 +36,7 @@ flowchart TD
         src__research__crawler__DqlCrawler__crawl["crawl"]
         src__research__crawler__DqlCrawler__robots["robots"]
         src__research__researcher__runResearcherDemo["runResearcherDemo"]
-        ...["+113 more"]
+        ...["+395 more"]
     end
 
-    class src__core__uri__assertProcessUri,src__core__uri__assertResourceUri,src__core__uri__isImmutableResourceUri,src__core__canonical__contentUri,src__cli__main__json,src__cli__main__save,src__cli__main__main,src__cli__main__t2c,src__research__crawler__p,src__research__crawler__assertPublic entry
+    class src__core__uri__assertProcessUri,src__core__uri__assertResourceUri,src__core__uri__isImmutableResourceUri,src__core__canonical__contentUri,src__research__crawler__p,src__research__crawler__assertPublic,src__research__crawler__title,src__research__crawler__DqlCrawler__crawl,src__research__crawler__DqlCrawler__robots,src__research__researcher__runResearcherDemo entry

@@ -1,136 +1,287 @@
 flowchart LR
-%% generated in 0.00s
+%% generated in 0.01s
     subgraph scripts__check_proto_contracts
         scripts__check_proto_contracts__files["files"]
-        scripts__check_proto_contracts__walk["walk"]
+        scripts__check_proto_contracts__checkMessageFields["checkMessageFields"]
     end
     subgraph src__adapters
+        src__adapters__todo2code__Todo2CodeAdapter__proposeSourcePatch["proposeSourcePatch"]
         src__adapters__clickhouse__ClickHouseHttpProjection__query["query"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__all["all"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__upsert["upsert"]
         src__adapters__todo2code__Todo2CodeAdapter__extract["extract"]
-        src__adapters__todo2code__Todo2CodeAdapter__extractNl["extractNl"]
-        src__adapters__todo2code__Todo2CodeAdapter__dir["dir"]
+        src__adapters__twin_probes__TwinProbesAdapter__available["available"]
+        src__adapters__twin_probes__data["data"]
+        src__adapters__twin_probes__TwinProbesAdapter__run["run"]
+        src__adapters__todo2code__Todo2CodeAdapter__directory["directory"]
+        src__adapters__todo2code__Todo2CodeAdapter__out["out"]
         src__adapters__todo2code__Todo2CodeAdapter__available["available"]
-        src__adapters__todo2code__Todo2CodeAdapter__input["input"]
+        src__adapters__todo2code__Todo2CodeAdapter__readLatestAnalysis["readLatestAnalysis"]
+        src__adapters__todo2code__Todo2CodeAdapter__extractNl["extractNl"]
         src__adapters__clickhouse__ClickHouseHttpProjection__search["search"]
-        src__adapters__todo2code__Todo2CodeAdapter__mapped["mapped"]
+        src__adapters__twin_probes__object["object"]
+        src__adapters__todo2code__optionalJson["optionalJson"]
+        src__adapters__todo2code__Todo2CodeAdapter__cwd["cwd"]
         src__adapters__clickhouse__InMemorySearchProjection__sqlString["sqlString"]
+        src__adapters__todo2code__Todo2CodeAdapter__readLatestGraph["readLatestGraph"]
+        src__adapters__todo2code__Todo2CodeAdapter__applySourcePatch["applySourcePatch"]
+        src__adapters__twin_probes__summarizeProbeCycle["summarizeProbeCycle"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__upsert["upsert"]
+        src__adapters__twin_probes__validateAutonomCycle["validateAutonomCycle"]
         src__adapters__todo2code__run["run"]
+        src__adapters__todo2code__Todo2CodeAdapter__latest["latest"]
+        src__adapters__twin_probes__TwinProbesAdapter__cycle["cycle"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__all["all"]
+        src__adapters__todo2code__Todo2CodeAdapter__input["input"]
+        src__adapters__twin_probes__TwinProbesAdapter__loadCycle["loadCycle"]
+    end
+    subgraph src__cli
+        src__cli__main__base["base"]
+        src__cli__main__receipt["receipt"]
+        src__cli__main__json["json"]
+        src__cli__main__grantPath["grantPath"]
+        src__cli__main__result["result"]
+        src__cli__main__project["project"]
     end
     subgraph src__core
-        src__core__canonical__sha256["sha256"]
-        src__core__canonical__canonicalJson["canonicalJson"]
         src__core__canonical__norm["norm"]
+        src__core__canonical__sha256["sha256"]
         src__core__canonical__contentUri["contentUri"]
+        src__core__canonical__canonicalJson["canonicalJson"]
     end
     subgraph src__dsl
-        src__dsl__math__val["val"]
-        src__dsl__math__parseMathDsl["parseMathDsl"]
-        src__dsl__query__xs["xs"]
-        src__dsl__parser_util__unquote["unquote"]
-        src__dsl__query__parseQueryDsl["parseQueryDsl"]
-        src__dsl__dql__positiveInt["positiveInt"]
-        src__dsl__math__ex["ex"]
-        src__dsl__parser_util__list["list"]
-        src__dsl__tree__parseTreeDsl["parseTreeDsl"]
-        src__dsl__math__m["m"]
-        src__dsl__query__match["match"]
-        src__dsl__math__evaluateMath["evaluateMath"]
-        src__dsl__tree__match["match"]
-        src__dsl__math__expr["expr"]
-        src__dsl__math__numeric["numeric"]
-        src__dsl__math__truth["truth"]
-        src__dsl__math__renderMathDsl["renderMathDsl"]
-        src__dsl__query__id["id"]
-        src__dsl__tree__walk["walk"]
-        src__dsl__math__env["env"]
-        src__dsl__twin__validateTwin["validateTwin"]
         src__dsl__math__ev["ev"]
+        src__dsl__improvement__bool["bool"]
         src__dsl__math__value["value"]
-        src__dsl__tree__renderTreeDsl["renderTreeDsl"]
-        src__dsl__math__e["e"]
-        src__dsl__math__rational["rational"]
+        src__dsl__math__evaluateMath["evaluateMath"]
+        src__dsl__project__renderProjectDsl["renderProjectDsl"]
+        src__dsl__tree__parseTreeDsl["parseTreeDsl"]
+        src__dsl__math__numeric["numeric"]
+        src__dsl__parser_util__list["list"]
+        src__dsl__query__xs["xs"]
+        src__dsl__math__ex["ex"]
+        src__dsl__query__parseQueryDsl["parseQueryDsl"]
+        src__dsl__improvement__raw["raw"]
+        src__dsl__improvement__match["match"]
+        src__dsl__math__renderMathDsl["renderMathDsl"]
         src__dsl__dql__parseDql["parseDql"]
+        src__dsl__math__env["env"]
         src__dsl__twin__visit["visit"]
+        src__dsl__math__rational["rational"]
+        src__dsl__math__m["m"]
+        src__dsl__query__id["id"]
+        src__dsl__tree__renderTreeDsl["renderTreeDsl"]
+        src__dsl__observation__validateObservation["validateObservation"]
+        src__dsl__improvement__parseImprovementDsl["parseImprovementDsl"]
+        src__dsl__math__expr["expr"]
+        src__dsl__twin__validateTwin["validateTwin"]
+        src__dsl__parser_util__unquote["unquote"]
+        src__dsl__math__truth["truth"]
+        src__dsl__math__e["e"]
+        src__dsl__tree__match["match"]
+        src__dsl__dql__positiveInt["positiveInt"]
+        src__dsl__improvement__renderImprovementDsl["renderImprovementDsl"]
+        src__dsl__observation__renderObservationDsl["renderObservationDsl"]
+        src__dsl__project__validateProject["validateProject"]
+        src__dsl__math__parseMathDsl["parseMathDsl"]
+        src__dsl__tree__walk["walk"]
+        src__dsl__improvement__validateImprovement["validateImprovement"]
+        src__dsl__query__match["match"]
+        src__dsl__math__val["val"]
     end
     subgraph src__ingestion
-        src__ingestion__archive__execFileAsync["execFileAsync"]
-        src__ingestion__archive__readZip["readZip"]
-        src__ingestion__scanner__walk["walk"]
-        src__ingestion__scanner__scanSources["scanSources"]
         src__ingestion__archive__maxFiles["maxFiles"]
-        src__ingestion__archive__safePath["safePath"]
+        src__ingestion__archive__execFileAsync["execFileAsync"]
+        src__ingestion__scanner__walk["walk"]
+        src__ingestion__archive__readZip["readZip"]
         src__ingestion__archive__limit["limit"]
+        src__ingestion__archive__safePath["safePath"]
+        src__ingestion__scanner__scanSources["scanSources"]
     end
     subgraph src__llm
-        src__llm__openrouter__envBool["envBool"]
-        src__llm__dsl_schemas__strings["strings"]
-        src__llm__dsl_schemas__validateSceneEnvelope["validateSceneEnvelope"]
-        src__llm__openrouter__envInt["envInt"]
-        src__llm__openrouter__OpenRouterStructuredClient__controller["controller"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__contract["contract"]
-        src__llm__openrouter__contentText["contentText"]
-        src__llm__openrouter__OpenRouterStructuredClient__started["started"]
-        src__llm__dsl_schemas__validateResourcePlan["validateResourcePlan"]
-        src__llm__dsl_schemas__validateTwinEnvelope["validateTwinEnvelope"]
-        src__llm__dsl_schemas__exact["exact"]
-        src__llm__openrouter__OpenRouterStructuredClient__configured["configured"]
-        src__llm__openrouter__OpenRouterStructuredClient__generate["generate"]
-        src__llm__openrouter__sleep["sleep"]
-        src__llm__openrouter__openRouterConfigFromEnv["openRouterConfigFromEnv"]
-        src__llm__openrouter__OpenRouterStructuredClient__request["request"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__compile["compile"]
-        src__llm__dsl_schemas__textDsl["textDsl"]
-        src__llm__openrouter__OpenRouterStructuredClient__message["message"]
-        src__llm__dsl_schemas__generationContract["generationContract"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__started["started"]
-        src__llm__dsl_schemas__obj["obj"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__deterministic["deterministic"]
         src__llm__openrouter__OpenRouterStructuredClient__text["text"]
-        src__llm__openrouter__OpenRouterStructuredClient__envelope["envelope"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__started["started"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__compile["compile"]
         src__llm__dsl_schemas__component["component"]
+        src__llm__openrouter__OpenRouterStructuredClient__envelope["envelope"]
+        src__llm__openrouter__openRouterConfigFromEnv["openRouterConfigFromEnv"]
+        src__llm__openrouter__OpenRouterStructuredClient__controller["controller"]
+        src__llm__dsl_schemas__validateTwinEnvelope["validateTwinEnvelope"]
+        src__llm__openrouter__OpenRouterStructuredClient__message["message"]
+        src__llm__openrouter__contentText["contentText"]
+        src__llm__dsl_schemas__textDsl["textDsl"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__deterministic["deterministic"]
+        src__llm__openrouter__OpenRouterStructuredClient__generate["generate"]
+        src__llm__dsl_schemas__validateResourcePlan["validateResourcePlan"]
+        src__llm__dsl_schemas__exact["exact"]
+        src__llm__openrouter__OpenRouterStructuredClient__request["request"]
+        src__llm__dsl_schemas__obj["obj"]
+        src__llm__openrouter__envBool["envBool"]
+        src__llm__openrouter__envInt["envInt"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__contract["contract"]
+        src__llm__openrouter__OpenRouterStructuredClient__configured["configured"]
+        src__llm__dsl_schemas__strings["strings"]
+        src__llm__dsl_schemas__generationContract["generationContract"]
+        src__llm__openrouter__sleep["sleep"]
+        src__llm__dsl_schemas__validateSceneEnvelope["validateSceneEnvelope"]
+        src__llm__openrouter__OpenRouterStructuredClient__started["started"]
+    end
+    subgraph src__project
+        src__project__wizard__port["port"]
+        src__project__wizard__text["text"]
+        src__project__wizard__vendorRuntime["vendorRuntime"]
+        src__project__wizard__createLivingProject["createLivingProject"]
+        src__project__wizard__verifyLivingProject["verifyLivingProject"]
+        src__project__wizard__source["source"]
+        src__project__wizard__slug["slug"]
+        src__project__wizard__sourcePath["sourcePath"]
+        src__project__wizard__projectDir["projectDir"]
+        src__project__wizard__profile["profile"]
+        src__project__wizard__addProjectSource["addProjectSource"]
+        src__project__wizard__id["id"]
+        src__project__wizard__exists["exists"]
+        src__project__wizard__basePort["basePort"]
     end
     subgraph src__research
+        src__research__crawler__assertPublic["assertPublic"]
         src__research__crawler__allowedPath["allowedPath"]
-        src__research__crawler__stripTags["stripTags"]
         src__research__crawler__DqlCrawler__robots["robots"]
-        src__research__crawler__decode["decode"]
-        src__research__crawler__fetchText["fetchText"]
-        src__research__crawler__privateIp["privateIp"]
+        src__research__crawler__robotsDisallow["robotsDisallow"]
+        src__research__crawler__stripTags["stripTags"]
+        src__research__crawler__DqlCrawler__crawl["crawl"]
+        src__research__crawler__htmlToMarkdown["htmlToMarkdown"]
+        src__research__researcher__fixtureFetch["fixtureFetch"]
         src__research__crawler__p["p"]
         src__research__crawler__glob["glob"]
-        src__research__researcher__runResearcherDemo["runResearcherDemo"]
-        src__research__researcher__fixtureFetch["fixtureFetch"]
         src__research__crawler__locations["locations"]
-        src__research__crawler__DqlCrawler__crawl["crawl"]
+        src__research__researcher__runResearcherDemo["runResearcherDemo"]
+        src__research__crawler__privateIp["privateIp"]
+        src__research__crawler__fetchText["fetchText"]
+        src__research__crawler__decode["decode"]
         src__research__crawler__first["first"]
-        src__research__crawler__htmlToMarkdown["htmlToMarkdown"]
-        src__research__crawler__assertPublic["assertPublic"]
-        src__research__crawler__robotsDisallow["robotsDisallow"]
     end
     subgraph src__runtime
-        src__runtime__biofoundry__BiofoundryRuntime__policyResource["policyResource"]
-        src__runtime__biofoundry__writeJson["writeJson"]
+        src__runtime__mutation_grant__b64urlJson["b64urlJson"]
+        src__runtime__living_project__managerUris["managerUris"]
+        src__runtime__living_project__researchUris["researchUris"]
+        src__runtime__mutation_pipeline__proposeCodeMutation["proposeCodeMutation"]
+        src__runtime__living_project__LivingProjectRuntime__scanned["scanned"]
+        src__runtime__living_project__resourceDiff["resourceDiff"]
+        src__runtime__service_check__checkExternalServices["checkExternalServices"]
+        src__runtime__living_project__LivingProjectRuntime__iterate["iterate"]
+        src__runtime__living_project__LivingProjectRuntime__projectConfigHash["projectConfigHash"]
         src__runtime__biofoundry__BiofoundryRuntime__allowed["allowed"]
-        src__runtime__biofoundry__buildMath["buildMath"]
-        src__runtime__realtime_watcher__RealtimeTwinWatcher__start["start"]
-        src__runtime__biofoundry__BiofoundryRuntime__candidate["candidate"]
-        src__runtime__biofoundry__BiofoundryRuntime__policyPath["policyPath"]
+        src__runtime__living_watcher__LivingProjectWatcher__project["project"]
+        src__runtime__mutation_pipeline__plan["plan"]
         src__runtime__realtime_watcher__RealtimeTwinWatcher__tick["tick"]
-        src__runtime__biofoundry__buildTwin["buildTwin"]
-        src__runtime__biofoundry__BiofoundryRuntime__policy["policy"]
-        src__runtime__biofoundry__BiofoundryRuntime__changes["changes"]
-        src__runtime__biofoundry__buildScene["buildScene"]
-        src__runtime__realtime_watcher__RealtimeTwinWatcher__runOnce["runOnce"]
-        src__runtime__biofoundry__diff["diff"]
+        src__runtime__mutation_grant__sig["sig"]
+        src__runtime__isolated_worktree__run["run"]
+        src__runtime__mutation_pipeline__planHash["planHash"]
+        src__runtime__autonomy__leaseDirectory["leaseDirectory"]
+        src__runtime__living_project__LivingProjectRuntime__researchPresent["researchPresent"]
+        src__runtime__realtime_watcher__RealtimeTwinWatcher__start["start"]
+        src__runtime__autonomy__summarizeDevelopment["summarizeDevelopment"]
+        src__runtime__biofoundry__BiofoundryRuntime__policyResource["policyResource"]
+        src__runtime__mutation_pipeline__loadPlan["loadPlan"]
+        src__runtime__autonomy__allowedUris["allowedUris"]
         src__runtime__biofoundry__buildTree["buildTree"]
+        src__runtime__biofoundry__BiofoundryRuntime__policy["policy"]
+        src__runtime__autonomy__diagnosticSeverity["diagnosticSeverity"]
+        src__runtime__autonomy__flattenComponents["flattenComponents"]
+        src__runtime__living_project__map["map"]
+        src__runtime__living_project__LivingProjectRuntime__feedbackUri["feedbackUri"]
+        src__runtime__living_project__runtimePresent["runtimePresent"]
+        src__runtime__living_project__developmentPresent["developmentPresent"]
+        src__runtime__mutation_pipeline__grantResult["grantResult"]
+        src__runtime__autonomy__acquireProjectLease["acquireProjectLease"]
+        src__runtime__living_project__LivingProjectRuntime__text["text"]
+        src__runtime__service_check__timed["timed"]
+        src__runtime__living_project__LivingProjectRuntime__startedAt["startedAt"]
+        src__runtime__mutation_grant__verified["verified"]
+        src__runtime__living_project__fixtureFetcher["fixtureFetcher"]
+        src__runtime__autonomy__validateSceneGrounding["validateSceneGrounding"]
+        src__runtime__living_project__LivingProjectRuntime__traceId["traceId"]
+        src__runtime__autonomy__array["array"]
+        src__runtime__autonomy__validateTwinGrounding["validateTwinGrounding"]
+        src__runtime__living_project__writeJson["writeJson"]
+        src__runtime__living_watcher__LivingProjectWatcher__maxRetryMs["maxRetryMs"]
+        src__runtime__living_project__LivingProjectRuntime__base["base"]
+        src__runtime__living_project__LivingProjectRuntime__rateLimitAvailable["rateLimitAvailable"]
+        src__runtime__living_watcher__LivingProjectWatcher__retryAfterMs["retryAfterMs"]
+        src__runtime__living_watcher__LivingProjectWatcher__failureExponent["failureExponent"]
+        src__runtime__living_project__LivingProjectRuntime__iterationUri["iterationUri"]
+        src__runtime__autonomy__acquire["acquire"]
+        src__runtime__living_project__LivingProjectRuntime__recordFailure["recordFailure"]
+        src__runtime__service_check__clickhouseUrl["clickhouseUrl"]
+        src__runtime__living_project__sourceSnapshot["sourceSnapshot"]
+        src__runtime__living_project__LivingProjectRuntime__improvement["improvement"]
+        src__runtime__living_watcher__LivingProjectWatcher__tick["tick"]
+        src__runtime__living_watcher__LivingProjectWatcher__stop["stop"]
+        src__runtime__biofoundry__buildMath["buildMath"]
+        src__runtime__mutation_pipeline__object["object"]
+        src__runtime__mutation_pipeline__applyCodeMutation["applyCodeMutation"]
+        src__runtime__living_project__LivingProjectRuntime__load["load"]
+        src__runtime__service_check__result["result"]
+        src__runtime__living_project__LivingProjectRuntime__runtimePresent["runtimePresent"]
+        src__runtime__mutation_grant__canonicalGrantClaims["canonicalGrantClaims"]
+        src__runtime__autonomy__ids["ids"]
+        src__runtime__living_project__LivingProjectRuntime__lease["lease"]
+        src__runtime__living_project__LivingProjectRuntime__publish["publish"]
+        src__runtime__realtime_watcher__RealtimeTwinWatcher__runOnce["runOnce"]
+        src__runtime__biofoundry__BiofoundryRuntime__candidate["candidate"]
+        src__runtime__mutation_grant__b64url["b64url"]
+        src__runtime__mutation_grant__signingPayload["signingPayload"]
+        src__runtime__living_project__LivingProjectRuntime__iterateWithLease["iterateWithLease"]
+        src__runtime__living_project__twinUri["twinUri"]
+        src__runtime__living_project__developmentAccepted["developmentAccepted"]
+        src__runtime__living_project__LivingProjectRuntime__iterationsLastHour["iterationsLastHour"]
+        src__runtime__autonomy__buildImprovementPlan["buildImprovementPlan"]
+        src__runtime__living_project__LivingProjectRuntime__allowed["allowed"]
+        src__runtime__living_watcher__LivingProjectWatcher__runOnce["runOnce"]
+        src__runtime__mutation_grant__verifyMutationGrantDocument["verifyMutationGrantDocument"]
+        src__runtime__autonomy__expectedTwinUri["expectedTwinUri"]
+        src__runtime__biofoundry__writeJson["writeJson"]
+        src__runtime__mutation_grant__iatMs["iatMs"]
+        src__runtime__autonomy__object["object"]
+        src__runtime__autonomy__paths["paths"]
+        src__runtime__mutation_grant__verifyMutationGrantToken["verifyMutationGrantToken"]
+        src__runtime__living_project__researchPresent["researchPresent"]
+        src__runtime__living_project__LivingProjectRuntime__crawler["crawler"]
+        src__runtime__living_watcher__LivingProjectWatcher__failure["failure"]
+        src__runtime__biofoundry__buildScene["buildScene"]
+        src__runtime__autonomy__allowedAssets["allowedAssets"]
+        src__runtime__living_project__roles["roles"]
+        src__runtime__service_check__doclingUrl["doclingUrl"]
+        src__runtime__living_project__LivingProjectRuntime__plan["plan"]
+        src__runtime__autonomy__components["components"]
+        src__runtime__living_project__LivingProjectRuntime__tree["tree"]
+        src__runtime__living_project__reasoning["reasoning"]
+        src__runtime__isolated_worktree__isGitToplevel["isGitToplevel"]
+        src__runtime__living_project__oldMap["oldMap"]
+        src__runtime__biofoundry__diff["diff"]
+        src__runtime__biofoundry__BiofoundryRuntime__changes["changes"]
+        src__runtime__service_check__text["text"]
+        src__runtime__living_project__conceptualTwin["conceptualTwin"]
+        src__runtime__living_project__LivingProjectRuntime__grantPresent["grantPresent"]
+        src__runtime__isolated_worktree__add["add"]
+        src__runtime__mutation_pipeline__planHashOf["planHashOf"]
+        src__runtime__service_check__timeoutMs["timeoutMs"]
+        src__runtime__living_watcher__LivingProjectWatcher__schedule["schedule"]
+        src__runtime__biofoundry__BiofoundryRuntime__policyPath["policyPath"]
+        src__runtime__autonomy__manifestStatus["manifestStatus"]
+        src__runtime__living_project__runtimeUris["runtimeUris"]
+        src__runtime__living_project__newMap["newMap"]
+        src__runtime__autonomy__add["add"]
+        src__runtime__mutation_grant__data["data"]
+        src__runtime__living_project__conceptualScene["conceptualScene"]
+        src__runtime__living_project__LivingProjectRuntime__authoritativeMath["authoritativeMath"]
+        src__runtime__living_project__LivingProjectRuntime__candidate["candidate"]
+        src__runtime__mutation_grant__path["path"]
+        src__runtime__biofoundry__buildTwin["buildTwin"]
+        src__runtime__mutation_pipeline__resolveGrant["resolveGrant"]
     end
     subgraph src__scene
-        src__scene__openusd__ident["ident"]
-        src__scene__openusd__primitive["primitive"]
         src__scene__openusd__components["components"]
         src__scene__openusd__renderOpenUsd["renderOpenUsd"]
+        src__scene__openusd__ident["ident"]
     end
     src__core__canonical__canonicalJson --> src__core__canonical__norm
     src__core__canonical__sha256 --> src__core__canonical__canonicalJson
@@ -177,43 +328,18 @@ flowchart LR
     src__llm__openrouter__OpenRouterStructuredClient__controller --> src__llm__openrouter__contentText
     src__llm__openrouter__OpenRouterStructuredClient__envelope --> src__llm__openrouter__contentText
     src__llm__openrouter__OpenRouterStructuredClient__message --> src__llm__openrouter__contentText
-    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__obj
-    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__exact
-    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__obj
-    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__exact
-    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__strings
-    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__obj
-    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__exact
-    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__strings
-    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__obj
-    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__exact
-    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__obj
-    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__exact
-    src__llm__dsl_schemas__generationContract --> src__llm__dsl_schemas__textDsl
     src__llm__nl_dsl_compiler__NlDslCompiler__compile --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
     src__llm__nl_dsl_compiler__NlDslCompiler__started --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
     src__llm__nl_dsl_compiler__NlDslCompiler__contract --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
-    src__scene__openusd__renderOpenUsd --> src__scene__openusd__ident
-    src__scene__openusd__renderOpenUsd --> src__scene__openusd__primitive
-    src__scene__openusd__components --> src__scene__openusd__ident
-    src__scene__openusd__components --> src__scene__openusd__primitive
     src__adapters__clickhouse__ClickHouseHttpProjection__upsert --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__search --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__search --> src__adapters__clickhouse__InMemorySearchProjection__sqlString
     src__adapters__clickhouse__ClickHouseHttpProjection__all --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__all --> src__adapters__clickhouse__InMemorySearchProjection__sqlString
-    src__adapters__todo2code__Todo2CodeAdapter__extract --> src__adapters__todo2code__Todo2CodeAdapter__available
-    src__adapters__todo2code__Todo2CodeAdapter__extract --> src__adapters__todo2code__run
-    src__adapters__todo2code__Todo2CodeAdapter__extractNl --> src__adapters__todo2code__Todo2CodeAdapter__available
-    src__adapters__todo2code__Todo2CodeAdapter__extractNl --> src__adapters__todo2code__run
-    src__adapters__todo2code__Todo2CodeAdapter__dir --> src__adapters__todo2code__run
-    src__adapters__todo2code__Todo2CodeAdapter__input --> src__adapters__todo2code__run
-    src__adapters__todo2code__Todo2CodeAdapter__mapped --> src__adapters__todo2code__run
     src__ingestion__archive__readZip --> src__ingestion__archive__limit
     src__ingestion__archive__readZip --> src__ingestion__archive__execFileAsync
     src__ingestion__archive__readZip --> src__ingestion__archive__safePath
     src__ingestion__archive__maxFiles --> src__ingestion__archive__execFileAsync
-    src__ingestion__scanner__scanSources --> src__ingestion__scanner__walk
     src__dsl__parser_util__list --> src__dsl__parser_util__unquote
     src__dsl__query__parseQueryDsl --> src__dsl__query__match
     src__dsl__query__xs --> src__dsl__query__match
@@ -238,4 +364,170 @@ flowchart LR
     src__dsl__tree__parseTreeDsl --> src__dsl__tree__match
     src__dsl__tree__renderTreeDsl --> src__dsl__tree__walk
     src__dsl__dql__parseDql --> src__dsl__dql__positiveInt
-    scripts__check_proto_contracts__files --> scripts__check_proto_contracts__walk
+    src__ingestion__scanner__scanSources --> src__ingestion__scanner__walk
+    src__runtime__living_watcher__LivingProjectWatcher__maxRetryMs --> src__runtime__living_watcher__LivingProjectWatcher__tick
+    src__runtime__living_watcher__LivingProjectWatcher__schedule --> src__runtime__living_watcher__LivingProjectWatcher__stop
+    src__runtime__living_watcher__LivingProjectWatcher__tick --> src__runtime__living_watcher__LivingProjectWatcher__schedule
+    src__runtime__living_watcher__LivingProjectWatcher__tick --> src__runtime__living_watcher__LivingProjectWatcher__runOnce
+    src__runtime__living_watcher__LivingProjectWatcher__project --> src__runtime__living_watcher__LivingProjectWatcher__stop
+    src__runtime__living_watcher__LivingProjectWatcher__failureExponent --> src__runtime__living_watcher__LivingProjectWatcher__stop
+    src__runtime__living_watcher__LivingProjectWatcher__retryAfterMs --> src__runtime__living_watcher__LivingProjectWatcher__stop
+    src__runtime__living_watcher__LivingProjectWatcher__failure --> src__runtime__living_watcher__LivingProjectWatcher__stop
+    src__cli__main__result --> src__cli__main__json
+    src__cli__main__project --> src__cli__main__json
+    src__cli__main__base --> src__cli__main__json
+    src__cli__main__receipt --> src__cli__main__json
+    src__cli__main__grantPath --> src__cli__main__json
+    src__dsl__improvement__parseImprovementDsl --> src__dsl__improvement__match
+    src__dsl__improvement__raw --> src__dsl__improvement__match
+    src__dsl__improvement__raw --> src__dsl__improvement__bool
+    src__dsl__improvement__renderImprovementDsl --> src__dsl__improvement__validateImprovement
+    src__runtime__mutation_grant__b64urlJson --> src__runtime__mutation_grant__b64url
+    src__runtime__mutation_grant__signingPayload --> src__runtime__mutation_grant__canonicalGrantClaims
+    src__runtime__mutation_grant__iatMs --> src__runtime__mutation_grant__canonicalGrantClaims
+    src__runtime__mutation_grant__sig --> src__runtime__mutation_grant__b64url
+    src__runtime__mutation_grant__data --> src__runtime__mutation_grant__verifyMutationGrantDocument
+    src__runtime__mutation_grant__verified --> src__runtime__mutation_grant__verifyMutationGrantToken
+    src__runtime__mutation_grant__path --> src__runtime__mutation_grant__verifyMutationGrantDocument
+    src__runtime__service_check__checkExternalServices --> src__runtime__service_check__timed
+    src__runtime__service_check__clickhouseUrl --> src__runtime__service_check__timed
+    src__runtime__service_check__doclingUrl --> src__runtime__service_check__timed
+    src__runtime__service_check__timeoutMs --> src__runtime__service_check__timed
+    src__runtime__service_check__result --> src__runtime__service_check__timed
+    src__runtime__service_check__result --> src__runtime__service_check__text
+    src__dsl__observation__renderObservationDsl --> src__dsl__observation__validateObservation
+    scripts__check_proto_contracts__files --> scripts__check_proto_contracts__checkMessageFields
+    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__strings
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__strings
+    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__generationContract --> src__llm__dsl_schemas__textDsl
+    src__scene__openusd__renderOpenUsd --> src__scene__openusd__ident
+    src__scene__openusd__components --> src__scene__openusd__ident
+    src__runtime__mutation_pipeline__planHashOf --> src__runtime__mutation_pipeline__object
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__loadPlan
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__planHashOf
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__plan --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__planHash --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__grantResult --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__loadPlan
+    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__planHashOf
+    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__resolveGrant
+    src__adapters__todo2code__Todo2CodeAdapter__extract --> src__adapters__todo2code__Todo2CodeAdapter__available
+    src__adapters__todo2code__Todo2CodeAdapter__extract --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__extract --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__readLatestAnalysis --> src__adapters__todo2code__optionalJson
+    src__adapters__todo2code__Todo2CodeAdapter__latest --> src__adapters__todo2code__optionalJson
+    src__adapters__todo2code__Todo2CodeAdapter__readLatestGraph --> src__adapters__todo2code__Todo2CodeAdapter__readLatestAnalysis
+    src__adapters__todo2code__Todo2CodeAdapter__extractNl --> src__adapters__todo2code__Todo2CodeAdapter__available
+    src__adapters__todo2code__Todo2CodeAdapter__extractNl --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__extractNl --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__directory --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__directory --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__input --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__input --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__out --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__out --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__proposeSourcePatch --> src__adapters__todo2code__Todo2CodeAdapter__available
+    src__adapters__todo2code__Todo2CodeAdapter__proposeSourcePatch --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__proposeSourcePatch --> src__adapters__todo2code__run
+    src__adapters__todo2code__Todo2CodeAdapter__applySourcePatch --> src__adapters__todo2code__Todo2CodeAdapter__available
+    src__adapters__todo2code__Todo2CodeAdapter__applySourcePatch --> src__adapters__todo2code__Todo2CodeAdapter__cwd
+    src__adapters__todo2code__Todo2CodeAdapter__applySourcePatch --> src__adapters__todo2code__run
+    src__dsl__project__renderProjectDsl --> src__dsl__project__validateProject
+    src__adapters__twin_probes__validateAutonomCycle --> src__adapters__twin_probes__object
+    src__adapters__twin_probes__data --> src__adapters__twin_probes__object
+    src__adapters__twin_probes__TwinProbesAdapter__loadCycle --> src__adapters__twin_probes__validateAutonomCycle
+    src__adapters__twin_probes__TwinProbesAdapter__loadCycle --> src__adapters__twin_probes__summarizeProbeCycle
+    src__adapters__twin_probes__TwinProbesAdapter__cycle --> src__adapters__twin_probes__summarizeProbeCycle
+    src__adapters__twin_probes__TwinProbesAdapter__run --> src__adapters__twin_probes__TwinProbesAdapter__available
+    src__adapters__twin_probes__TwinProbesAdapter__run --> src__adapters__twin_probes__TwinProbesAdapter__loadCycle
+    src__runtime__isolated_worktree__isGitToplevel --> src__runtime__isolated_worktree__run
+    src__runtime__isolated_worktree__add --> src__runtime__isolated_worktree__run
+    src__runtime__autonomy__diagnosticSeverity --> src__runtime__autonomy__object
+    src__runtime__autonomy__manifestStatus --> src__runtime__autonomy__object
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__object
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__array
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__diagnosticSeverity
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__manifestStatus
+    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__add
+    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__add
+    src__runtime__autonomy__ids --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__ids --> src__runtime__autonomy__add
+    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__add
+    src__runtime__autonomy__components --> src__runtime__autonomy__add
+    src__runtime__autonomy__allowedAssets --> src__runtime__autonomy__add
+    src__runtime__autonomy__expectedTwinUri --> src__runtime__autonomy__add
+    src__runtime__autonomy__paths --> src__runtime__autonomy__add
+    src__runtime__autonomy__buildImprovementPlan --> src__runtime__autonomy__add
+    src__runtime__autonomy__acquireProjectLease --> src__runtime__autonomy__acquire
+    src__runtime__autonomy__leaseDirectory --> src__runtime__autonomy__acquire
+    src__project__wizard__vendorRuntime --> src__project__wizard__exists
+    src__project__wizard__vendorRuntime --> src__project__wizard__text
+    src__project__wizard__source --> src__project__wizard__exists
+    src__project__wizard__createLivingProject --> src__project__wizard__slug
+    src__project__wizard__createLivingProject --> src__project__wizard__basePort
+    src__project__wizard__createLivingProject --> src__project__wizard__exists
+    src__project__wizard__createLivingProject --> src__project__wizard__text
+    src__project__wizard__id --> src__project__wizard__exists
+    src__project__wizard__projectDir --> src__project__wizard__exists
+    src__project__wizard__profile --> src__project__wizard__exists
+    src__project__wizard__port --> src__project__wizard__exists
+    src__project__wizard__addProjectSource --> src__project__wizard__exists
+    src__project__wizard__sourcePath --> src__project__wizard__exists
+    src__project__wizard__verifyLivingProject --> src__project__wizard__exists
+    src__runtime__living_project__sourceSnapshot --> src__runtime__living_project__map
+    src__runtime__living_project__resourceDiff --> src__runtime__living_project__map
+    src__runtime__living_project__oldMap --> src__runtime__living_project__map
+    src__runtime__living_project__newMap --> src__runtime__living_project__map
+    src__runtime__living_project__reasoning --> src__runtime__living_project__map
+    src__runtime__living_project__roles --> src__runtime__living_project__map
+    src__runtime__living_project__researchUris --> src__runtime__living_project__map
+    src__runtime__living_project__managerUris --> src__runtime__living_project__map
+    src__runtime__living_project__runtimeUris --> src__runtime__living_project__map
+    src__runtime__living_project__researchPresent --> src__runtime__living_project__map
+    src__runtime__living_project__developmentPresent --> src__runtime__living_project__map
+    src__runtime__living_project__developmentAccepted --> src__runtime__living_project__map
+    src__runtime__living_project__runtimePresent --> src__runtime__living_project__map
+    src__runtime__living_project__conceptualTwin --> src__runtime__living_project__map
+    src__runtime__living_project__conceptualScene --> src__runtime__living_project__map
+    src__runtime__living_project__twinUri --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__text --> src__runtime__living_project__LivingProjectRuntime__iterate
+    src__runtime__living_project__LivingProjectRuntime__iterate --> src__runtime__living_project__LivingProjectRuntime__load
+    src__runtime__living_project__LivingProjectRuntime__iterate --> src__runtime__living_project__LivingProjectRuntime__iterateWithLease
+    src__runtime__living_project__LivingProjectRuntime__lease --> src__runtime__living_project__LivingProjectRuntime__iterateWithLease
+    src__runtime__living_project__LivingProjectRuntime__iterateWithLease --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__startedAt --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__traceId --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__base --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__projectConfigHash --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__scanned --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__plan --> src__runtime__living_project__fixtureFetcher
+    src__runtime__living_project__LivingProjectRuntime__crawler --> src__runtime__living_project__fixtureFetcher
+    src__runtime__living_project__LivingProjectRuntime__iterationsLastHour --> src__runtime__living_project__reasoning
+    src__runtime__living_project__LivingProjectRuntime__rateLimitAvailable --> src__runtime__living_project__reasoning
+    src__runtime__living_project__LivingProjectRuntime__grantPresent --> src__runtime__living_project__reasoning
+    src__runtime__living_project__LivingProjectRuntime__tree --> src__runtime__living_project__reasoning
+    src__runtime__living_project__LivingProjectRuntime__authoritativeMath --> src__runtime__living_project__reasoning
+    src__runtime__living_project__LivingProjectRuntime__allowed --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__publish --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__researchPresent --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__runtimePresent --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__improvement --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__candidate --> src__runtime__living_project__writeJson
+    src__runtime__living_project__LivingProjectRuntime__iterationUri --> src__runtime__living_project__map
+    src__runtime__living_project__LivingProjectRuntime__feedbackUri --> src__runtime__living_project__writeJson
+    src__runtime__living_project__LivingProjectRuntime__recordFailure --> src__runtime__living_project__LivingProjectRuntime__load
+    src__runtime__living_project__LivingProjectRuntime__recordFailure --> src__runtime__living_project__writeJson

@@ -1,55 +1,55 @@
-# code2llm/evolution | 188 func | 29f | 2026-08-06
+# code2llm/evolution | 532 func | 41f | 2026-08-06
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
-  [1] !  SPLIT-FUNC      BiofoundryRuntime.build  CC=20  fan=38
+  [1] !! SPLIT-FUNC      main  CC=58  fan=55
+      WHY: CC=58 exceeds 15
+      EFFORT: ~1h  IMPACT: 3190
+
+  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=57  fan=55
+      WHY: CC=57 exceeds 15
+      EFFORT: ~1h  IMPACT: 3135
+
+  [3] !! SPLIT-FUNC      parseProjectDsl  CC=46  fan=20
+      WHY: CC=46 exceeds 15
+      EFFORT: ~1h  IMPACT: 920
+
+  [4] !  SPLIT-FUNC      BiofoundryRuntime.build  CC=20  fan=38
       WHY: CC=20 exceeds 15
       EFFORT: ~1h  IMPACT: 760
 
-  [2] !! SPLIT-FUNC      DqlCrawler.crawl  CC=25  fan=26
+  [5] !! SPLIT-FUNC      DqlCrawler.crawl  CC=25  fan=26
       WHY: CC=25 exceeds 15
       EFFORT: ~1h  IMPACT: 650
 
-  [3] !  SPLIT-FUNC      main  CC=16  fan=27
-      WHY: CC=16 exceeds 15
-      EFFORT: ~1h  IMPACT: 432
+  [6] !! SPLIT-FUNC      renderOpenUsd  CC=26  fan=17
+      WHY: CC=26 exceeds 15
+      EFFORT: ~1h  IMPACT: 442
 
-  [4] !! SPLIT-FUNC      renderOpenUsd  CC=25  fan=16
+  [7] !! SPLIT-FUNC      components  CC=26  fan=17
+      WHY: CC=26 exceeds 15
+      EFFORT: ~1h  IMPACT: 442
+
+  [8] !! SPLIT-FUNC      validateProject  CC=47  fan=8
+      WHY: CC=47 exceeds 15
+      EFFORT: ~1h  IMPACT: 376
+
+  [9] !! SPLIT-FUNC      parseObservationDsl  CC=25  fan=15
       WHY: CC=25 exceeds 15
-      EFFORT: ~1h  IMPACT: 400
+      EFFORT: ~1h  IMPACT: 375
 
-  [5] !! SPLIT-FUNC      components  CC=25  fan=16
-      WHY: CC=25 exceeds 15
-      EFFORT: ~1h  IMPACT: 400
-
-  [6] !  SPLIT-FUNC      scanSources  CC=15  fan=21
+  [10] !  SPLIT-FUNC      proposeCodeMutation  CC=15  fan=23
       WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 315
-
-  [7] !  SPLIT-FUNC      parseDql  CC=22  fan=13
-      WHY: CC=22 exceeds 15
-      EFFORT: ~1h  IMPACT: 286
-
-  [8] !  SPLIT-FUNC      OpenRouterStructuredClient.request  CC=19  fan=14
-      WHY: CC=19 exceeds 15
-      EFFORT: ~1h  IMPACT: 266
-
-  [9] !  SPLIT-FUNC      OpenRouterStructuredClient.controller  CC=19  fan=11
-      WHY: CC=19 exceeds 15
-      EFFORT: ~1h  IMPACT: 209
-
-  [10] !  SPLIT-FUNC      evaluateMath  CC=17  fan=12
-      WHY: CC=17 exceeds 15
-      EFFORT: ~1h  IMPACT: 204
+      EFFORT: ~1h  IMPACT: 345
 
 
 RISKS[0]: none
 
 METRICS-TARGET:
-  CC̄:          4.6 → ≤3.2
-  max-CC:      25 → ≤12
+  CC̄:          4.2 → ≤2.9
+  max-CC:      58 → ≤20
   god-modules: 0 → 0
-  high-CC(≥15): 15 → ≤7
+  high-CC(≥15): 31 → ≤15
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -77,4 +77,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=4.6 → now CC̄=4.6
+  prev CC̄=4.6 → now CC̄=4.2

@@ -1,8 +1,110 @@
 source: code2llm
-# generated in 0.02s
+# generated in 0.04s
 schema: code2llm.planfile_tickets.v1
 project_root: /home/tom/github/bioxfoundry/twin-dsl
 tickets:
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.cli.main.main (CC=58)'
+  description: 'code2llm reports `src.cli.main.main` at `src/cli/main.ts:24` with
+    cyclomatic complexity 58 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/cli/main.ts
+  dedupe_key: code2llm:cc:src/cli/main.ts:src.cli.main.main
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.improvement.validateImprovement (CC=29)'
+  description: 'code2llm reports `src.dsl.improvement.validateImprovement` at `src/dsl/improvement.ts:57`
+    with cyclomatic complexity 29 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/improvement.ts
+  dedupe_key: code2llm:cc:src/dsl/improvement.ts:src.dsl.improvement.validateImprovement
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.observation.parseObservationDsl (CC=25)'
+  description: 'code2llm reports `src.dsl.observation.parseObservationDsl` at `src/dsl/observation.ts:12`
+    with cyclomatic complexity 25 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/observation.ts
+  dedupe_key: code2llm:cc:src/dsl/observation.ts:src.dsl.observation.parseObservationDsl
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.observation.validateObservation (CC=28)'
+  description: 'code2llm reports `src.dsl.observation.validateObservation` at `src/dsl/observation.ts:40`
+    with cyclomatic complexity 28 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/observation.ts
+  dedupe_key: code2llm:cc:src/dsl/observation.ts:src.dsl.observation.validateObservation
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.project.parseProjectDsl (CC=46)'
+  description: 'code2llm reports `src.dsl.project.parseProjectDsl` at `src/dsl/project.ts:6`
+    with cyclomatic complexity 46 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/project.ts
+  dedupe_key: code2llm:cc:src/dsl/project.ts:src.dsl.project.parseProjectDsl
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.project.validateProject (CC=47)'
+  description: 'code2llm reports `src.dsl.project.validateProject` at `src/dsl/project.ts:49`
+    with cyclomatic complexity 47 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/project.ts
+  dedupe_key: code2llm:cc:src/dsl/project.ts:src.dsl.project.validateProject
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.research.crawler.DqlCrawler.crawl (CC=25)'
   description: 'code2llm reports `src.research.crawler.DqlCrawler.crawl` at `src/research/crawler.ts:39`
@@ -21,9 +123,27 @@ tickets:
   - src/research/crawler.ts
   dedupe_key: code2llm:cc:src/research/crawler.ts:src.research.crawler.DqlCrawler.crawl
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: src.scene.openusd.components (CC=25)'
+  title: 'Reduce cyclomatic complexity: src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+    (CC=57)'
+  description: 'code2llm reports `src.runtime.living-project.LivingProjectRuntime.iterateWithLease`
+    at `src/runtime/living-project.ts:220` with cyclomatic complexity 57 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: high
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: code2llm:cc:src/runtime/living-project.ts:src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.scene.openusd.components (CC=26)'
   description: 'code2llm reports `src.scene.openusd.components` at `src/scene/openusd.ts:8`
-    with cyclomatic complexity 25 (limit 15).
+    with cyclomatic complexity 26 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -38,9 +158,9 @@ tickets:
   - src/scene/openusd.ts
   dedupe_key: code2llm:cc:src/scene/openusd.ts:src.scene.openusd.components
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: src.scene.openusd.renderOpenUsd (CC=25)'
+  title: 'Reduce cyclomatic complexity: src.scene.openusd.renderOpenUsd (CC=26)'
   description: 'code2llm reports `src.scene.openusd.renderOpenUsd` at `src/scene/openusd.ts:7`
-    with cyclomatic complexity 25 (limit 15).
+    with cyclomatic complexity 26 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -55,9 +175,10 @@ tickets:
   - src/scene/openusd.ts
   dedupe_key: code2llm:cc:src/scene/openusd.ts:src.scene.openusd.renderOpenUsd
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: src.cli.main.main (CC=16)'
-  description: 'code2llm reports `src.cli.main.main` at `src/cli/main.ts:16` with
-    cyclomatic complexity 16 (limit 15).
+  title: 'Reduce cyclomatic complexity: src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis
+    (CC=19)'
+  description: 'code2llm reports `src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis`
+    at `src/adapters/todo2code.ts:59` with cyclomatic complexity 19 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -69,8 +190,26 @@ tickets:
   - complexity
   - refactor
   files:
-  - src/cli/main.ts
-  dedupe_key: code2llm:cc:src/cli/main.ts:src.cli.main.main
+  - src/adapters/todo2code.ts
+  dedupe_key: code2llm:cc:src/adapters/todo2code.ts:src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.adapters.twin-probes.validateAutonomCycle
+    (CC=15)'
+  description: 'code2llm reports `src.adapters.twin-probes.validateAutonomCycle` at
+    `src/adapters/twin-probes.ts:56` with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/adapters/twin-probes.ts
+  dedupe_key: code2llm:cc:src/adapters/twin-probes.ts:src.adapters.twin-probes.validateAutonomCycle
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.dsl.dql.parseDql (CC=22)'
   description: 'code2llm reports `src.dsl.dql.parseDql` at `src/dsl/dql.ts:5` with
@@ -88,6 +227,23 @@ tickets:
   files:
   - src/dsl/dql.ts
   dedupe_key: code2llm:cc:src/dsl/dql.ts:src.dsl.dql.parseDql
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.improvement.ids (CC=16)'
+  description: 'code2llm reports `src.dsl.improvement.ids` at `src/dsl/improvement.ts:63`
+    with cyclomatic complexity 16 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/improvement.ts
+  dedupe_key: code2llm:cc:src/dsl/improvement.ts:src.dsl.improvement.ids
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.dsl.math.env (CC=16)'
   description: 'code2llm reports `src.dsl.math.env` at `src/dsl/math.ts:33` with cyclomatic
@@ -156,6 +312,23 @@ tickets:
   files:
   - src/dsl/math.ts
   dedupe_key: code2llm:cc:src/dsl/math.ts:src.dsl.math.renderMathDsl
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.dsl.observation.seen (CC=18)'
+  description: 'code2llm reports `src.dsl.observation.seen` at `src/dsl/observation.ts:44`
+    with cyclomatic complexity 18 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/dsl/observation.ts
+  dedupe_key: code2llm:cc:src/dsl/observation.ts:src.dsl.observation.seen
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.ingestion.scanner.scanSources (CC=15)'
   description: 'code2llm reports `src.ingestion.scanner.scanSources` at `src/ingestion/scanner.ts:13`
@@ -245,6 +418,24 @@ tickets:
   - src/research/crawler.ts
   dedupe_key: code2llm:cc:src/research/crawler.ts:src.research.crawler.privateIp
 - signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.autonomy.summarizeDevelopment
+    (CC=20)'
+  description: 'code2llm reports `src.runtime.autonomy.summarizeDevelopment` at `src/runtime/autonomy.ts:42`
+    with cyclomatic complexity 20 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: code2llm:cc:src/runtime/autonomy.ts:src.runtime.autonomy.summarizeDevelopment
+- signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.runtime.biofoundry.BiofoundryRuntime.build
     (CC=20)'
   description: 'code2llm reports `src.runtime.biofoundry.BiofoundryRuntime.build`
@@ -262,6 +453,248 @@ tickets:
   files:
   - src/runtime/biofoundry.ts
   dedupe_key: code2llm:cc:src/runtime/biofoundry.ts:src.runtime.biofoundry.BiofoundryRuntime.build
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.living-project.LivingProjectRuntime.iterationUri
+    (CC=17)'
+  description: 'code2llm reports `src.runtime.living-project.LivingProjectRuntime.iterationUri`
+    at `src/runtime/living-project.ts:351` with cyclomatic complexity 17 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: code2llm:cc:src/runtime/living-project.ts:src.runtime.living-project.LivingProjectRuntime.iterationUri
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.living-project.index (CC=15)'
+  description: 'code2llm reports `src.runtime.living-project.index` at `src/runtime/living-project.ts:91`
+    with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: code2llm:cc:src/runtime/living-project.ts:src.runtime.living-project.index
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.living-project.observationsFromResources
+    (CC=15)'
+  description: 'code2llm reports `src.runtime.living-project.observationsFromResources`
+    at `src/runtime/living-project.ts:89` with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: code2llm:cc:src/runtime/living-project.ts:src.runtime.living-project.observationsFromResources
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.mutation-pipeline.proposeCodeMutation
+    (CC=15)'
+  description: 'code2llm reports `src.runtime.mutation-pipeline.proposeCodeMutation`
+    at `src/runtime/mutation-pipeline.ts:81` with cyclomatic complexity 15 (limit
+    15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/mutation-pipeline.ts
+  dedupe_key: code2llm:cc:src/runtime/mutation-pipeline.ts:src.runtime.mutation-pipeline.proposeCodeMutation
+- signal: code2llm_cc
+  title: 'Reduce cyclomatic complexity: src.runtime.service-check.checkExternalServices
+    (CC=15)'
+  description: 'code2llm reports `src.runtime.service-check.checkExternalServices`
+    at `src/runtime/service-check.ts:16` with cyclomatic complexity 15 (limit 15).
+
+
+    Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
+    code2llm after the change and keep tests green.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - complexity
+  - refactor
+  files:
+  - src/runtime/service-check.ts
+  dedupe_key: code2llm:cc:src/runtime/service-check.ts:src.runtime.service-check.checkExternalServices
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: acquire'
+  description: 'code2llm reports `God Function: acquire` in `src/runtime/autonomy.ts:207`.
+
+
+    Function ''acquire'' is oversized: CC=5, fan-out=11, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/autonomy.ts:207:God Function:
+    acquire'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: acquireProjectLease'
+  description: 'code2llm reports `God Function: acquireProjectLease` in `src/runtime/autonomy.ts:205`.
+
+
+    Function ''acquireProjectLease'' is oversized: CC=5, fan-out=13, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/autonomy.ts:205:God Function:
+    acquireProjectLease'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: addProjectSource'
+  description: 'code2llm reports `God Function: addProjectSource` in `src/project/wizard.ts:279`.
+
+
+    Function ''addProjectSource'' is oversized: CC=7, fan-out=24, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:279:God Function:
+    addProjectSource'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: addProjectWebsite'
+  description: 'code2llm reports `God Function: addProjectWebsite` in `src/project/wizard.ts:302`.
+
+
+    Function ''addProjectWebsite'' is oversized: CC=3, fan-out=14, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:302:God Function:
+    addProjectWebsite'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: applyCodeMutation'
+  description: 'code2llm reports `God Function: applyCodeMutation` in `src/runtime/mutation-pipeline.ts:233`.
+
+
+    Function ''applyCodeMutation'' is oversized: CC=13, fan-out=22, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/mutation-pipeline.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/mutation-pipeline.ts:233:God
+    Function: applyCodeMutation'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: applyId'
+  description: 'code2llm reports `God Function: applyId` in `src/runtime/mutation-pipeline.ts:254`.
+
+
+    Function ''applyId'' is oversized: CC=5, fan-out=12, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/mutation-pipeline.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/mutation-pipeline.ts:254:God
+    Function: applyId'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: buildImprovementPlan'
+  description: 'code2llm reports `God Function: buildImprovementPlan` in `src/runtime/autonomy.ts:139`.
+
+
+    Function ''buildImprovementPlan'' is oversized: CC=13, fan-out=9, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/autonomy.ts:139:God Function:
+    buildImprovementPlan'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: consumeMutationGrantJti'
+  description: 'code2llm reports `God Function: consumeMutationGrantJti` in `src/runtime/mutation-grant.ts:295`.
+
+
+    Function ''consumeMutationGrantJti'' is oversized: CC=6, fan-out=12, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/mutation-grant.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/mutation-grant.ts:295:God Function:
+    consumeMutationGrantJti'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: convert'
   description: 'code2llm reports `God Function: convert` in `src/adapters/document-converter.ts:10`.
@@ -282,11 +715,11 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:src/adapters/document-converter.ts:10:God
     Function: convert'
 - signal: code2llm_smell_god_function
-  title: 'Address code smell: God Function: dir'
-  description: 'code2llm reports `God Function: dir` in `src/adapters/todo2code.ts:16`.
+  title: 'Address code smell: God Function: createLivingProject'
+  description: 'code2llm reports `God Function: createLivingProject` in `src/project/wizard.ts:212`.
 
 
-    Function ''dir'' is oversized: CC=3, fan-out=11, mutations=0.
+    Function ''createLivingProject'' is oversized: CC=7, fan-out=17, mutations=0.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -297,9 +730,9 @@ tickets:
   - code-smell
   - god-function
   files:
-  - src/adapters/todo2code.ts
-  dedupe_key: 'code2llm:smell:god_function:src/adapters/todo2code.ts:16:God Function:
-    dir'
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:212:God Function:
+    createLivingProject'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: ex'
   description: 'code2llm reports `God Function: ex` in `src/dsl/math.ts:51`.
@@ -357,10 +790,10 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:src/dsl/math.ts:11:God Function: expr'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: extractNl'
-  description: 'code2llm reports `God Function: extractNl` in `src/adapters/todo2code.ts:14`.
+  description: 'code2llm reports `God Function: extractNl` in `src/adapters/todo2code.ts:79`.
 
 
-    Function ''extractNl'' is oversized: CC=4, fan-out=13, mutations=0.
+    Function ''extractNl'' is oversized: CC=4, fan-out=14, mutations=0.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -372,8 +805,27 @@ tickets:
   - god-function
   files:
   - src/adapters/todo2code.ts
-  dedupe_key: 'code2llm:smell:god_function:src/adapters/todo2code.ts:14:God Function:
+  dedupe_key: 'code2llm:smell:god_function:src/adapters/todo2code.ts:79:God Function:
     extractNl'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: generationContract'
+  description: 'code2llm reports `God Function: generationContract` in `src/llm/dsl-schemas.ts:32`.
+
+
+    Function ''generationContract'' is oversized: CC=14, fan-out=2, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/llm/dsl-schemas.ts
+  dedupe_key: 'code2llm:smell:god_function:src/llm/dsl-schemas.ts:32:God Function:
+    generationContract'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: htmlToMarkdown'
   description: 'code2llm reports `God Function: htmlToMarkdown` in `src/research/crawler.ts:23`.
@@ -393,6 +845,44 @@ tickets:
   - src/research/crawler.ts
   dedupe_key: 'code2llm:smell:god_function:src/research/crawler.ts:23:God Function:
     htmlToMarkdown'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: leaseDirectory'
+  description: 'code2llm reports `God Function: leaseDirectory` in `src/runtime/autonomy.ts:206`.
+
+
+    Function ''leaseDirectory'' is oversized: CC=5, fan-out=12, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/autonomy.ts:206:God Function:
+    leaseDirectory'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: parseImprovementDsl'
+  description: 'code2llm reports `God Function: parseImprovementDsl` in `src/dsl/improvement.ts:12`.
+
+
+    Function ''parseImprovementDsl'' is oversized: CC=14, fan-out=12, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/dsl/improvement.ts
+  dedupe_key: 'code2llm:smell:god_function:src/dsl/improvement.ts:12:God Function:
+    parseImprovementDsl'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: parseQueryDsl'
   description: 'code2llm reports `God Function: parseQueryDsl` in `src/dsl/query.ts:6`.
@@ -429,6 +919,63 @@ tickets:
   files:
   - src/dsl/tree.ts
   dedupe_key: 'code2llm:smell:god_function:src/dsl/tree.ts:4:God Function: parseTreeDsl'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: projectPath'
+  description: 'code2llm reports `God Function: projectPath` in `src/project/wizard.ts:285`.
+
+
+    Function ''projectPath'' is oversized: CC=3, fan-out=14, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:285:God Function:
+    projectPath'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: recordFailure'
+  description: 'code2llm reports `God Function: recordFailure` in `src/runtime/living-project.ts:433`.
+
+
+    Function ''recordFailure'' is oversized: CC=4, fan-out=11, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/living-project.ts:433:God Function:
+    recordFailure'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: relativeCandidate'
+  description: 'code2llm reports `God Function: relativeCandidate` in `src/project/wizard.ts:286`.
+
+
+    Function ''relativeCandidate'' is oversized: CC=3, fan-out=14, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:286:God Function:
+    relativeCandidate'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: runDemo'
   description: 'code2llm reports `God Function: runDemo` in `src/runtime/pipeline.ts:2`.
@@ -509,7 +1056,7 @@ tickets:
   description: 'code2llm reports `God Module: src.core.types` in `src/core/types.ts:1`.
 
 
-    Module ''src.core.types'' is too large (0 functions, 23 classes). Consider splitting
+    Module ''src.core.types'' is too large (0 functions, 34 classes). Consider splitting
     into sub-modules.
 
 
@@ -523,5 +1070,83 @@ tickets:
   files:
   - src/core/types.ts
   dedupe_key: 'code2llm:smell:god_function:src/core/types.ts:1:God Module: src.core.types'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: src.project.wizard'
+  description: 'code2llm reports `God Module: src.project.wizard` in `src/project/wizard.ts:1`.
+
+
+    Module ''src.project.wizard'' is too large (43 functions, 1 classes). Consider
+    splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/project/wizard.ts
+  dedupe_key: 'code2llm:smell:god_function:src/project/wizard.ts:1:God Module: src.project.wizard'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: src.runtime.autonomy'
+  description: 'code2llm reports `God Module: src.runtime.autonomy` in `src/runtime/autonomy.ts:1`.
+
+
+    Module ''src.runtime.autonomy'' is too large (53 functions, 2 classes). Consider
+    splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/autonomy.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/autonomy.ts:1:God Module: src.runtime.autonomy'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: src.runtime.living-project'
+  description: 'code2llm reports `God Module: src.runtime.living-project` in `src/runtime/living-project.ts:1`.
+
+
+    Module ''src.runtime.living-project'' is too large (100 functions, 1 classes).
+    Consider splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/living-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/living-project.ts:1:God Module:
+    src.runtime.living-project'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Module: src.runtime.mutation-grant'
+  description: 'code2llm reports `God Module: src.runtime.mutation-grant` in `src/runtime/mutation-grant.ts:1`.
+
+
+    Module ''src.runtime.mutation-grant'' is too large (43 functions, 1 classes).
+    Consider splitting into sub-modules.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/runtime/mutation-grant.ts
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/mutation-grant.ts:1:God Module:
+    src.runtime.mutation-grant'
 applied: []
 skipped: []

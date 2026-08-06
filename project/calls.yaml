@@ -1,590 +1,16 @@
 project: /home/tom/github/bioxfoundry/twin-dsl
 generated_from: code2llm call graph analysis
 stats:
-  total_nodes: 114
-  total_edges: 107
-  modules_count: 20
+  total_nodes: 261
+  total_edges: 248
+  modules_count: 33
 nodes:
-  src.adapters.clickhouse.ClickHouseHttpProjection.query:
-    name: query
-    module: src.adapters.clickhouse
-    line: 13
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 3
-  src.ingestion.archive.execFileAsync:
-    name: execFileAsync
-    module: src.ingestion.archive
-    line: 3
-    cyclomatic_complexity: 1
-    calls_out: 0
-    calls_in: 2
-  src.llm.openrouter.envBool:
-    name: envBool
-    module: src.llm.openrouter
-    line: 21
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 1
-  src.llm.dsl-schemas.strings:
-    name: strings
-    module: src.llm.dsl-schemas
-    line: 21
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 2
-  src.dsl.math.val:
-    name: val
-    module: src.dsl.math
-    line: 50
-    cyclomatic_complexity: 4
-    calls_out: 1
-    calls_in: 2
-  src.research.crawler.allowedPath:
-    name: allowedPath
-    module: src.research.crawler
-    line: 20
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 1
-  src.scene.openusd.ident:
-    name: ident
-    module: src.scene.openusd
-    line: 3
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 2
-  src.adapters.clickhouse.ClickHouseHttpProjection.all:
-    name: all
-    module: src.adapters.clickhouse
-    line: 16
-    cyclomatic_complexity: 1
-    calls_out: 6
-    calls_in: 0
-  src.adapters.clickhouse.ClickHouseHttpProjection.upsert:
-    name: upsert
-    module: src.adapters.clickhouse
-    line: 14
-    cyclomatic_complexity: 2
-    calls_out: 2
-    calls_in: 0
-  src.ingestion.archive.readZip:
-    name: readZip
-    module: src.ingestion.archive
-    line: 7
-    cyclomatic_complexity: 7
-    calls_out: 8
-    calls_in: 0
-  scripts.check-proto-contracts.files:
-    name: files
-    module: scripts.check-proto-contracts
-    line: 3
-    cyclomatic_complexity: 3
-    calls_out: 8
-    calls_in: 0
-  src.research.crawler.stripTags:
-    name: stripTags
-    module: src.research.crawler
-    line: 21
-    cyclomatic_complexity: 1
-    calls_out: 3
-    calls_in: 2
-  src.dsl.math.parseMathDsl:
-    name: parseMathDsl
-    module: src.dsl.math
-    line: 20
-    cyclomatic_complexity: 9
-    calls_out: 8
-    calls_in: 0
-  src.research.crawler.DqlCrawler.robots:
-    name: robots
-    module: src.research.crawler
-    line: 42
-    cyclomatic_complexity: 7
+  src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch:
+    name: proposeSourcePatch
+    module: src.adapters.todo2code
+    line: 98
+    cyclomatic_complexity: 5
     calls_out: 7
-    calls_in: 0
-  src.runtime.biofoundry.BiofoundryRuntime.policyResource:
-    name: policyResource
-    module: src.runtime.biofoundry
-    line: 61
-    cyclomatic_complexity: 1
-    calls_out: 6
-    calls_in: 0
-  src.dsl.query.xs:
-    name: xs
-    module: src.dsl.query
-    line: 7
-    cyclomatic_complexity: 11
-    calls_out: 8
-    calls_in: 0
-  src.runtime.biofoundry.writeJson:
-    name: writeJson
-    module: src.runtime.biofoundry
-    line: 48
-    cyclomatic_complexity: 1
-    calls_out: 4
-    calls_in: 3
-  src.llm.dsl-schemas.validateSceneEnvelope:
-    name: validateSceneEnvelope
-    module: src.llm.dsl-schemas
-    line: 27
-    cyclomatic_complexity: 8
-    calls_out: 8
-    calls_in: 0
-  src.research.crawler.decode:
-    name: decode
-    module: src.research.crawler
-    line: 16
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 3
-  src.scene.openusd.primitive:
-    name: primitive
-    module: src.scene.openusd
-    line: 6
-    cyclomatic_complexity: 5
-    calls_out: 0
-    calls_in: 2
-  src.runtime.biofoundry.BiofoundryRuntime.allowed:
-    name: allowed
-    module: src.runtime.biofoundry
-    line: 67
-    cyclomatic_complexity: 1
-    calls_out: 5
-    calls_in: 0
-  src.adapters.todo2code.Todo2CodeAdapter.extract:
-    name: extract
-    module: src.adapters.todo2code
-    line: 13
-    cyclomatic_complexity: 2
-    calls_out: 3
-    calls_in: 0
-  src.dsl.parser-util.unquote:
-    name: unquote
-    module: src.dsl.parser-util
-    line: 4
-    cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 1
-  src.llm.openrouter.envInt:
-    name: envInt
-    module: src.llm.openrouter
-    line: 20
-    cyclomatic_complexity: 3
-    calls_out: 3
-    calls_in: 1
-  src.research.crawler.fetchText:
-    name: fetchText
-    module: src.research.crawler
-    line: 35
-    cyclomatic_complexity: 6
-    calls_out: 7
-    calls_in: 1
-  src.runtime.biofoundry.buildMath:
-    name: buildMath
-    module: src.runtime.biofoundry
-    line: 35
-    cyclomatic_complexity: 1
-    calls_out: 0
-    calls_in: 4
-  src.dsl.query.parseQueryDsl:
-    name: parseQueryDsl
-    module: src.dsl.query
-    line: 6
-    cyclomatic_complexity: 13
-    calls_out: 14
-    calls_in: 0
-  src.llm.openrouter.OpenRouterStructuredClient.controller:
-    name: controller
-    module: src.llm.openrouter
-    line: 58
-    cyclomatic_complexity: 19
-    calls_out: 11
-    calls_in: 0
-  src.research.crawler.privateIp:
-    name: privateIp
-    module: src.research.crawler
-    line: 10
-    cyclomatic_complexity: 15
-    calls_out: 4
-    calls_in: 2
-  src.dsl.dql.positiveInt:
-    name: positiveInt
-    module: src.dsl.dql
-    line: 4
-    cyclomatic_complexity: 4
-    calls_out: 3
-    calls_in: 1
-  src.ingestion.scanner.walk:
-    name: walk
-    module: src.ingestion.scanner
-    line: 11
-    cyclomatic_complexity: 6
-    calls_out: 7
-    calls_in: 1
-  src.adapters.todo2code.Todo2CodeAdapter.extractNl:
-    name: extractNl
-    module: src.adapters.todo2code
-    line: 14
-    cyclomatic_complexity: 4
-    calls_out: 13
-    calls_in: 0
-  src.research.crawler.p:
-    name: p
-    module: src.research.crawler
-    line: 13
-    cyclomatic_complexity: 6
-    calls_out: 6
-    calls_in: 0
-  src.llm.nl-dsl-compiler.NlDslCompiler.contract:
-    name: contract
-    module: src.llm.nl-dsl-compiler
-    line: 24
-    cyclomatic_complexity: 6
-    calls_out: 6
-    calls_in: 0
-  src.research.crawler.glob:
-    name: glob
-    module: src.research.crawler
-    line: 19
-    cyclomatic_complexity: 1
-    calls_out: 3
-    calls_in: 1
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.start:
-    name: start
-    module: src.runtime.realtime-watcher
-    line: 7
-    cyclomatic_complexity: 10
-    calls_out: 8
-    calls_in: 0
-  src.llm.openrouter.contentText:
-    name: contentText
-    module: src.llm.openrouter
-    line: 36
-    cyclomatic_complexity: 7
-    calls_out: 5
-    calls_in: 4
-  src.dsl.math.ex:
-    name: ex
-    module: src.dsl.math
-    line: 51
-    cyclomatic_complexity: 13
-    calls_out: 8
-    calls_in: 1
-  src.core.canonical.sha256:
-    name: sha256
-    module: src.core.canonical
-    line: 9
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 1
-  src.llm.openrouter.OpenRouterStructuredClient.started:
-    name: started
-    module: src.llm.openrouter
-    line: 48
-    cyclomatic_complexity: 7
-    calls_out: 5
-    calls_in: 0
-  src.llm.dsl-schemas.validateResourcePlan:
-    name: validateResourcePlan
-    module: src.llm.dsl-schemas
-    line: 24
-    cyclomatic_complexity: 10
-    calls_out: 8
-    calls_in: 0
-  src.runtime.biofoundry.BiofoundryRuntime.candidate:
-    name: candidate
-    module: src.runtime.biofoundry
-    line: 68
-    cyclomatic_complexity: 1
-    calls_out: 5
-    calls_in: 0
-  src.llm.dsl-schemas.validateTwinEnvelope:
-    name: validateTwinEnvelope
-    module: src.llm.dsl-schemas
-    line: 26
-    cyclomatic_complexity: 2
-    calls_out: 5
-    calls_in: 0
-  src.dsl.parser-util.list:
-    name: list
-    module: src.dsl.parser-util
-    line: 8
-    cyclomatic_complexity: 2
-    calls_out: 5
-    calls_in: 0
-  src.runtime.biofoundry.BiofoundryRuntime.policyPath:
-    name: policyPath
-    module: src.runtime.biofoundry
-    line: 59
-    cyclomatic_complexity: 1
-    calls_out: 6
-    calls_in: 0
-  src.llm.dsl-schemas.exact:
-    name: exact
-    module: src.llm.dsl-schemas
-    line: 20
-    cyclomatic_complexity: 5
-    calls_out: 3
-    calls_in: 5
-  src.dsl.tree.parseTreeDsl:
-    name: parseTreeDsl
-    module: src.dsl.tree
-    line: 4
-    cyclomatic_complexity: 8
-    calls_out: 11
-    calls_in: 0
-  src.dsl.math.m:
-    name: m
-    module: src.dsl.math
-    line: 24
-    cyclomatic_complexity: 3
-    calls_out: 3
-    calls_in: 0
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.tick:
-    name: tick
-    module: src.runtime.realtime-watcher
-    line: 9
-    cyclomatic_complexity: 8
-    calls_out: 4
-    calls_in: 1
-  src.runtime.biofoundry.buildTwin:
-    name: buildTwin
-    module: src.runtime.biofoundry
-    line: 45
-    cyclomatic_complexity: 3
-    calls_out: 3
-    calls_in: 4
-  src.llm.openrouter.OpenRouterStructuredClient.configured:
-    name: configured
-    module: src.llm.openrouter
-    line: 44
-    cyclomatic_complexity: 1
-    calls_out: 0
-    calls_in: 1
-  src.research.researcher.runResearcherDemo:
-    name: runResearcherDemo
-    module: src.research.researcher
-    line: 15
-    cyclomatic_complexity: 9
-    calls_out: 29
-    calls_in: 0
-  src.ingestion.scanner.scanSources:
-    name: scanSources
-    module: src.ingestion.scanner
-    line: 13
-    cyclomatic_complexity: 15
-    calls_out: 21
-    calls_in: 0
-  src.dsl.query.match:
-    name: match
-    module: src.dsl.query
-    line: 28
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 3
-  src.dsl.math.evaluateMath:
-    name: evaluateMath
-    module: src.dsl.math
-    line: 32
-    cyclomatic_complexity: 17
-    calls_out: 12
-    calls_in: 0
-  src.dsl.tree.match:
-    name: match
-    module: src.dsl.tree
-    line: 13
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 1
-  src.llm.openrouter.OpenRouterStructuredClient.generate:
-    name: generate
-    module: src.llm.openrouter
-    line: 46
-    cyclomatic_complexity: 11
-    calls_out: 8
-    calls_in: 0
-  src.dsl.math.expr:
-    name: expr
-    module: src.dsl.math
-    line: 11
-    cyclomatic_complexity: 13
-    calls_out: 11
-    calls_in: 1
-  src.dsl.math.numeric:
-    name: numeric
-    module: src.dsl.math
-    line: 31
-    cyclomatic_complexity: 5
-    calls_out: 2
-    calls_in: 3
-  src.dsl.math.truth:
-    name: truth
-    module: src.dsl.math
-    line: 30
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 3
-  src.dsl.math.renderMathDsl:
-    name: renderMathDsl
-    module: src.dsl.math
-    line: 49
-    cyclomatic_complexity: 18
-    calls_out: 11
-    calls_in: 0
-  src.ingestion.archive.maxFiles:
-    name: maxFiles
-    module: src.ingestion.archive
-    line: 8
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 0
-  src.dsl.query.id:
-    name: id
-    module: src.dsl.query
-    line: 9
-    cyclomatic_complexity: 11
-    calls_out: 8
-    calls_in: 0
-  src.research.researcher.fixtureFetch:
-    name: fixtureFetch
-    module: src.research.researcher
-    line: 14
-    cyclomatic_complexity: 3
-    calls_out: 5
-    calls_in: 1
-  src.llm.openrouter.sleep:
-    name: sleep
-    module: src.llm.openrouter
-    line: 35
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 2
-  src.llm.openrouter.openRouterConfigFromEnv:
-    name: openRouterConfigFromEnv
-    module: src.llm.openrouter
-    line: 22
-    cyclomatic_complexity: 6
-    calls_out: 3
-    calls_in: 0
-  src.adapters.todo2code.Todo2CodeAdapter.dir:
-    name: dir
-    module: src.adapters.todo2code
-    line: 16
-    cyclomatic_complexity: 3
-    calls_out: 11
-    calls_in: 0
-  src.llm.openrouter.OpenRouterStructuredClient.request:
-    name: request
-    module: src.llm.openrouter
-    line: 57
-    cyclomatic_complexity: 19
-    calls_out: 14
-    calls_in: 2
-  src.llm.nl-dsl-compiler.NlDslCompiler.compile:
-    name: compile
-    module: src.llm.nl-dsl-compiler
-    line: 16
-    cyclomatic_complexity: 18
-    calls_out: 9
-    calls_in: 0
-  src.llm.dsl-schemas.textDsl:
-    name: textDsl
-    module: src.llm.dsl-schemas
-    line: 22
-    cyclomatic_complexity: 2
-    calls_out: 4
-    calls_in: 1
-  src.llm.openrouter.OpenRouterStructuredClient.message:
-    name: message
-    module: src.llm.openrouter
-    line: 69
-    cyclomatic_complexity: 5
-    calls_out: 3
-    calls_in: 0
-  src.runtime.biofoundry.BiofoundryRuntime.policy:
-    name: policy
-    module: src.runtime.biofoundry
-    line: 60
-    cyclomatic_complexity: 1
-    calls_out: 6
-    calls_in: 0
-  src.ingestion.archive.safePath:
-    name: safePath
-    module: src.ingestion.archive
-    line: 6
-    cyclomatic_complexity: 5
-    calls_out: 3
-    calls_in: 1
-  src.dsl.tree.walk:
-    name: walk
-    module: src.dsl.tree
-    line: 35
-    cyclomatic_complexity: 1
-    calls_out: 3
-    calls_in: 1
-  src.llm.dsl-schemas.generationContract:
-    name: generationContract
-    module: src.llm.dsl-schemas
-    line: 29
-    cyclomatic_complexity: 11
-    calls_out: 2
-    calls_in: 0
-  src.llm.nl-dsl-compiler.NlDslCompiler.started:
-    name: started
-    module: src.llm.nl-dsl-compiler
-    line: 17
-    cyclomatic_complexity: 12
-    calls_out: 6
-    calls_in: 0
-  src.core.canonical.canonicalJson:
-    name: canonicalJson
-    module: src.core.canonical
-    line: 8
-    cyclomatic_complexity: 1
-    calls_out: 2
-    calls_in: 1
-  src.runtime.biofoundry.BiofoundryRuntime.changes:
-    name: changes
-    module: src.runtime.biofoundry
-    line: 58
-    cyclomatic_complexity: 4
-    calls_out: 1
-    calls_in: 0
-  src.dsl.math.env:
-    name: env
-    module: src.dsl.math
-    line: 33
-    cyclomatic_complexity: 16
-    calls_out: 10
-    calls_in: 0
-  src.scene.openusd.components:
-    name: components
-    module: src.scene.openusd
-    line: 8
-    cyclomatic_complexity: 25
-    calls_out: 16
-    calls_in: 0
-  src.adapters.todo2code.Todo2CodeAdapter.available:
-    name: available
-    module: src.adapters.todo2code
-    line: 11
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 2
-  src.llm.dsl-schemas.obj:
-    name: obj
-    module: src.llm.dsl-schemas
-    line: 19
-    cyclomatic_complexity: 4
-    calls_out: 2
-    calls_in: 5
-  src.dsl.twin.validateTwin:
-    name: validateTwin
-    module: src.dsl.twin
-    line: 3
-    cyclomatic_complexity: 6
-    calls_out: 4
     calls_in: 0
   src.dsl.math.ev:
     name: ev
@@ -593,117 +19,110 @@ nodes:
     cyclomatic_complexity: 16
     calls_out: 9
     calls_in: 3
-  src.llm.nl-dsl-compiler.NlDslCompiler.deterministic:
-    name: deterministic
-    module: src.llm.nl-dsl-compiler
-    line: 37
-    cyclomatic_complexity: 3
-    calls_out: 6
-    calls_in: 3
-  src.research.crawler.locations:
-    name: locations
-    module: src.research.crawler
-    line: 17
-    cyclomatic_complexity: 2
-    calls_out: 5
-    calls_in: 1
-  src.research.crawler.DqlCrawler.crawl:
-    name: crawl
-    module: src.research.crawler
-    line: 39
-    cyclomatic_complexity: 25
-    calls_out: 26
-    calls_in: 0
-  src.research.crawler.first:
-    name: first
-    module: src.research.crawler
-    line: 22
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 1
-  src.runtime.biofoundry.buildScene:
-    name: buildScene
-    module: src.runtime.biofoundry
-    line: 46
-    cyclomatic_complexity: 5
-    calls_out: 4
-    calls_in: 4
-  src.scene.openusd.renderOpenUsd:
-    name: renderOpenUsd
-    module: src.scene.openusd
-    line: 7
-    cyclomatic_complexity: 25
-    calls_out: 16
-    calls_in: 0
-  src.dsl.math.value:
-    name: value
-    module: src.dsl.math
-    line: 5
-    cyclomatic_complexity: 6
-    calls_out: 4
-    calls_in: 3
-  src.adapters.todo2code.Todo2CodeAdapter.input:
-    name: input
-    module: src.adapters.todo2code
-    line: 17
-    cyclomatic_complexity: 1
-    calls_out: 1
-    calls_in: 0
-  src.ingestion.archive.limit:
-    name: limit
-    module: src.ingestion.archive
-    line: 5
-    cyclomatic_complexity: 3
-    calls_out: 2
-    calls_in: 1
-  src.adapters.clickhouse.ClickHouseHttpProjection.search:
-    name: search
+  src.adapters.clickhouse.ClickHouseHttpProjection.query:
+    name: query
     module: src.adapters.clickhouse
-    line: 15
-    cyclomatic_complexity: 1
-    calls_out: 7
-    calls_in: 0
-  src.core.canonical.norm:
-    name: norm
-    module: src.core.canonical
-    line: 2
-    cyclomatic_complexity: 5
-    calls_out: 7
-    calls_in: 1
-  src.research.crawler.htmlToMarkdown:
-    name: htmlToMarkdown
-    module: src.research.crawler
-    line: 23
-    cyclomatic_complexity: 5
-    calls_out: 14
-    calls_in: 1
-  src.dsl.tree.renderTreeDsl:
-    name: renderTreeDsl
-    module: src.dsl.tree
-    line: 33
-    cyclomatic_complexity: 1
-    calls_out: 5
-    calls_in: 0
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce:
-    name: runOnce
-    module: src.runtime.realtime-watcher
-    line: 6
+    line: 13
     cyclomatic_complexity: 2
-    calls_out: 2
-    calls_in: 2
-  src.dsl.math.e:
-    name: e
-    module: src.dsl.math
-    line: 47
-    cyclomatic_complexity: 2
-    calls_out: 2
+    calls_out: 4
+    calls_in: 3
+  src.project.wizard.port:
+    name: port
+    module: src.project.wizard
+    line: 216
+    cyclomatic_complexity: 3
+    calls_out: 3
     calls_in: 0
-  src.adapters.todo2code.Todo2CodeAdapter.mapped:
-    name: mapped
-    module: src.adapters.todo2code
-    line: 18
+  src.ingestion.archive.maxFiles:
+    name: maxFiles
+    module: src.ingestion.archive
+    line: 8
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  src.runtime.mutation-grant.b64urlJson:
+    name: b64urlJson
+    module: src.runtime.mutation-grant
+    line: 61
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-project.managerUris:
+    name: managerUris
+    module: src.runtime.living-project
+    line: 117
     cyclomatic_complexity: 1
     calls_out: 1
+    calls_in: 0
+  src.runtime.living-project.researchUris:
+    name: researchUris
+    module: src.runtime.living-project
+    line: 116
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.extract:
+    name: extract
+    module: src.adapters.todo2code
+    line: 48
+    cyclomatic_complexity: 8
+    calls_out: 7
+    calls_in: 0
+  src.runtime.mutation-pipeline.proposeCodeMutation:
+    name: proposeCodeMutation
+    module: src.runtime.mutation-pipeline
+    line: 81
+    cyclomatic_complexity: 15
+    calls_out: 23
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.scanned:
+    name: scanned
+    module: src.runtime.living-project
+    line: 225
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.adapters.twin-probes.TwinProbesAdapter.available:
+    name: available
+    module: src.adapters.twin-probes
+    line: 118
+    cyclomatic_complexity: 3
+    calls_out: 1
+    calls_in: 1
+  src.adapters.twin-probes.data:
+    name: data
+    module: src.adapters.twin-probes
+    line: 57
+    cyclomatic_complexity: 9
+    calls_out: 6
+    calls_in: 0
+  src.runtime.living-project.resourceDiff:
+    name: resourceDiff
+    module: src.runtime.living-project
+    line: 56
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 1
+  src.runtime.service-check.checkExternalServices:
+    name: checkExternalServices
+    module: src.runtime.service-check
+    line: 16
+    cyclomatic_complexity: 15
+    calls_out: 14
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.iterate:
+    name: iterate
+    module: src.runtime.living-project
+    line: 211
+    cyclomatic_complexity: 2
+    calls_out: 7
+    calls_in: 1
+  src.adapters.twin-probes.TwinProbesAdapter.run:
+    name: run
+    module: src.adapters.twin-probes
+    line: 133
+    cyclomatic_complexity: 11
+    calls_out: 10
     calls_in: 0
   src.llm.openrouter.OpenRouterStructuredClient.text:
     name: text
@@ -712,31 +131,52 @@ nodes:
     cyclomatic_complexity: 2
     calls_out: 2
     calls_in: 2
-  src.dsl.math.rational:
-    name: rational
-    module: src.dsl.math
-    line: 4
-    cyclomatic_complexity: 2
-    calls_out: 1
-    calls_in: 1
-  scripts.check-proto-contracts.walk:
-    name: walk
-    module: scripts.check-proto-contracts
-    line: 2
+  src.adapters.todo2code.Todo2CodeAdapter.directory:
+    name: directory
+    module: src.adapters.todo2code
+    line: 81
     cyclomatic_complexity: 3
-    calls_out: 4
-    calls_in: 1
-  src.runtime.biofoundry.diff:
-    name: diff
+    calls_out: 10
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.projectConfigHash:
+    name: projectConfigHash
+    module: src.runtime.living-project
+    line: 224
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.allowed:
+    name: allowed
     module: src.runtime.biofoundry
-    line: 32
-    cyclomatic_complexity: 2
+    line: 67
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.llm.nl-dsl-compiler.NlDslCompiler.started:
+    name: started
+    module: src.llm.nl-dsl-compiler
+    line: 17
+    cyclomatic_complexity: 12
     calls_out: 6
+    calls_in: 0
+  src.dsl.improvement.bool:
+    name: bool
+    module: src.dsl.improvement
+    line: 6
+    cyclomatic_complexity: 3
+    calls_out: 1
     calls_in: 2
-  src.core.canonical.contentUri:
-    name: contentUri
-    module: src.core.canonical
-    line: 10
+  src.dsl.math.value:
+    name: value
+    module: src.dsl.math
+    line: 5
+    cyclomatic_complexity: 6
+    calls_out: 4
+    calls_in: 3
+  src.runtime.living-watcher.LivingProjectWatcher.project:
+    name: project
+    module: src.runtime.living-watcher
+    line: 42
     cyclomatic_complexity: 1
     calls_out: 1
     calls_in: 0
@@ -747,33 +187,166 @@ nodes:
     cyclomatic_complexity: 6
     calls_out: 6
     calls_in: 0
-  src.adapters.clickhouse.InMemorySearchProjection.sqlString:
-    name: sqlString
-    module: src.adapters.clickhouse
-    line: 10
+  src.runtime.mutation-pipeline.plan:
+    name: plan
+    module: src.runtime.mutation-pipeline
+    line: 238
     cyclomatic_complexity: 1
     calls_out: 1
-    calls_in: 2
-  src.dsl.dql.parseDql:
-    name: parseDql
-    module: src.dsl.dql
-    line: 5
-    cyclomatic_complexity: 22
-    calls_out: 13
     calls_in: 0
-  src.dsl.twin.visit:
-    name: visit
-    module: src.dsl.twin
-    line: 2
-    cyclomatic_complexity: 7
+  src.project.wizard.text:
+    name: text
+    module: src.project.wizard
+    line: 18
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 3
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.tick:
+    name: tick
+    module: src.runtime.realtime-watcher
+    line: 9
+    cyclomatic_complexity: 8
     calls_out: 4
     calls_in: 1
-  src.llm.openrouter.OpenRouterStructuredClient.envelope:
-    name: envelope
-    module: src.llm.openrouter
-    line: 68
-    cyclomatic_complexity: 5
+  src.dsl.math.evaluateMath:
+    name: evaluateMath
+    module: src.dsl.math
+    line: 32
+    cyclomatic_complexity: 17
+    calls_out: 12
+    calls_in: 0
+  src.research.crawler.allowedPath:
+    name: allowedPath
+    module: src.research.crawler
+    line: 20
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.cli.main.base:
+    name: base
+    module: src.cli.main
+    line: 66
+    cyclomatic_complexity: 2
     calls_out: 3
+    calls_in: 0
+  src.runtime.mutation-grant.sig:
+    name: sig
+    module: src.runtime.mutation-grant
+    line: 152
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.project.wizard.vendorRuntime:
+    name: vendorRuntime
+    module: src.project.wizard
+    line: 190
+    cyclomatic_complexity: 3
+    calls_out: 9
+    calls_in: 1
+  src.llm.nl-dsl-compiler.NlDslCompiler.compile:
+    name: compile
+    module: src.llm.nl-dsl-compiler
+    line: 16
+    cyclomatic_complexity: 18
+    calls_out: 9
+    calls_in: 0
+  src.runtime.isolated-worktree.run:
+    name: run
+    module: src.runtime.isolated-worktree
+    line: 21
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 2
+  src.runtime.mutation-pipeline.planHash:
+    name: planHash
+    module: src.runtime.mutation-pipeline
+    line: 239
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.autonomy.leaseDirectory:
+    name: leaseDirectory
+    module: src.runtime.autonomy
+    line: 206
+    cyclomatic_complexity: 5
+    calls_out: 12
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.researchPresent:
+    name: researchPresent
+    module: src.runtime.living-project
+    line: 312
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 0
+  src.project.wizard.createLivingProject:
+    name: createLivingProject
+    module: src.project.wizard
+    line: 212
+    cyclomatic_complexity: 7
+    calls_out: 17
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.out:
+    name: out
+    module: src.adapters.todo2code
+    line: 84
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.dsl.project.renderProjectDsl:
+    name: renderProjectDsl
+    module: src.dsl.project
+    line: 42
+    cyclomatic_complexity: 11
+    calls_out: 6
+    calls_in: 0
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.start:
+    name: start
+    module: src.runtime.realtime-watcher
+    line: 7
+    cyclomatic_complexity: 10
+    calls_out: 8
+    calls_in: 0
+  src.runtime.autonomy.summarizeDevelopment:
+    name: summarizeDevelopment
+    module: src.runtime.autonomy
+    line: 42
+    cyclomatic_complexity: 20
+    calls_out: 10
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource:
+    name: policyResource
+    module: src.runtime.biofoundry
+    line: 61
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.runtime.mutation-pipeline.loadPlan:
+    name: loadPlan
+    module: src.runtime.mutation-pipeline
+    line: 61
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 2
+  src.runtime.autonomy.allowedUris:
+    name: allowedUris
+    module: src.runtime.autonomy
+    line: 116
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 0
+  src.research.crawler.DqlCrawler.robots:
+    name: robots
+    module: src.research.crawler
+    line: 42
+    cyclomatic_complexity: 7
+    calls_out: 7
+    calls_in: 0
+  src.dsl.tree.parseTreeDsl:
+    name: parseTreeDsl
+    module: src.dsl.tree
+    line: 4
+    cyclomatic_complexity: 8
+    calls_out: 11
     calls_in: 0
   src.runtime.biofoundry.buildTree:
     name: buildTree
@@ -782,6 +355,27 @@ nodes:
     cyclomatic_complexity: 6
     calls_out: 7
     calls_in: 4
+  src.llm.dsl-schemas.component:
+    name: component
+    module: src.llm.dsl-schemas
+    line: 28
+    cyclomatic_complexity: 4
+    calls_out: 6
+    calls_in: 0
+  src.dsl.math.numeric:
+    name: numeric
+    module: src.dsl.math
+    line: 31
+    cyclomatic_complexity: 5
+    calls_out: 2
+    calls_in: 3
+  src.dsl.parser-util.list:
+    name: list
+    module: src.dsl.parser-util
+    line: 8
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
   src.research.crawler.robotsDisallow:
     name: robotsDisallow
     module: src.research.crawler
@@ -789,19 +383,1454 @@ nodes:
     cyclomatic_complexity: 8
     calls_out: 7
     calls_in: 2
-  src.llm.dsl-schemas.component:
-    name: component
+  src.runtime.biofoundry.BiofoundryRuntime.policy:
+    name: policy
+    module: src.runtime.biofoundry
+    line: 60
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.research.crawler.stripTags:
+    name: stripTags
+    module: src.research.crawler
+    line: 21
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 2
+  src.dsl.query.xs:
+    name: xs
+    module: src.dsl.query
+    line: 7
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.dsl.math.ex:
+    name: ex
+    module: src.dsl.math
+    line: 51
+    cyclomatic_complexity: 13
+    calls_out: 8
+    calls_in: 1
+  src.scene.openusd.components:
+    name: components
+    module: src.scene.openusd
+    line: 8
+    cyclomatic_complexity: 26
+    calls_out: 17
+    calls_in: 0
+  src.dsl.query.parseQueryDsl:
+    name: parseQueryDsl
+    module: src.dsl.query
+    line: 6
+    cyclomatic_complexity: 13
+    calls_out: 14
+    calls_in: 0
+  src.dsl.improvement.raw:
+    name: raw
+    module: src.dsl.improvement
+    line: 26
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.available:
+    name: available
+    module: src.adapters.todo2code
+    line: 38
+    cyclomatic_complexity: 3
+    calls_out: 1
+    calls_in: 4
+  src.llm.openrouter.OpenRouterStructuredClient.envelope:
+    name: envelope
+    module: src.llm.openrouter
+    line: 68
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 0
+  src.runtime.autonomy.diagnosticSeverity:
+    name: diagnosticSeverity
+    module: src.runtime.autonomy
+    line: 32
+    cyclomatic_complexity: 7
+    calls_out: 3
+    calls_in: 1
+  src.runtime.autonomy.flattenComponents:
+    name: flattenComponents
+    module: src.runtime.autonomy
+    line: 111
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 4
+  src.runtime.living-project.map:
+    name: map
+    module: src.runtime.living-project
+    line: 192
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 28
+  src.runtime.living-project.LivingProjectRuntime.feedbackUri:
+    name: feedbackUri
+    module: src.runtime.living-project
+    line: 407
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  src.runtime.living-project.runtimePresent:
+    name: runtimePresent
+    module: src.runtime.living-project
+    line: 122
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.project.wizard.verifyLivingProject:
+    name: verifyLivingProject
+    module: src.project.wizard
+    line: 332
+    cyclomatic_complexity: 10
+    calls_out: 9
+    calls_in: 0
+  src.dsl.improvement.match:
+    name: match
+    module: src.dsl.improvement
+    line: 32
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 2
+  src.runtime.living-project.developmentPresent:
+    name: developmentPresent
+    module: src.runtime.living-project
+    line: 120
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.project.wizard.source:
+    name: source
+    module: src.project.wizard
+    line: 196
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.runtime.mutation-pipeline.grantResult:
+    name: grantResult
+    module: src.runtime.mutation-pipeline
+    line: 240
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.autonomy.acquireProjectLease:
+    name: acquireProjectLease
+    module: src.runtime.autonomy
+    line: 205
+    cyclomatic_complexity: 5
+    calls_out: 13
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.text:
+    name: text
+    module: src.runtime.living-project
+    line: 207
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.service-check.timed:
+    name: timed
+    module: src.runtime.service-check
+    line: 11
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 5
+  src.runtime.living-project.LivingProjectRuntime.startedAt:
+    name: startedAt
+    module: src.runtime.living-project
+    line: 221
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.runtime.mutation-grant.verified:
+    name: verified
+    module: src.runtime.mutation-grant
+    line: 258
+    cyclomatic_complexity: 5
+    calls_out: 1
+    calls_in: 0
+  src.llm.openrouter.openRouterConfigFromEnv:
+    name: openRouterConfigFromEnv
+    module: src.llm.openrouter
+    line: 22
+    cyclomatic_complexity: 6
+    calls_out: 3
+    calls_in: 0
+  src.project.wizard.slug:
+    name: slug
+    module: src.project.wizard
+    line: 11
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 1
+  src.runtime.living-project.fixtureFetcher:
+    name: fixtureFetcher
+    module: src.runtime.living-project
+    line: 191
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 3
+  src.dsl.math.renderMathDsl:
+    name: renderMathDsl
+    module: src.dsl.math
+    line: 49
+    cyclomatic_complexity: 18
+    calls_out: 11
+    calls_in: 0
+  src.runtime.autonomy.validateSceneGrounding:
+    name: validateSceneGrounding
+    module: src.runtime.autonomy
+    line: 124
+    cyclomatic_complexity: 9
+    calls_out: 8
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.controller:
+    name: controller
+    module: src.llm.openrouter
+    line: 58
+    cyclomatic_complexity: 19
+    calls_out: 11
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.traceId:
+    name: traceId
+    module: src.runtime.living-project
+    line: 222
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.llm.dsl-schemas.validateTwinEnvelope:
+    name: validateTwinEnvelope
+    module: src.llm.dsl-schemas
+    line: 29
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis:
+    name: readLatestAnalysis
+    module: src.adapters.todo2code
+    line: 59
+    cyclomatic_complexity: 19
+    calls_out: 4
+    calls_in: 1
+  src.runtime.autonomy.array:
+    name: array
+    module: src.runtime.autonomy
+    line: 31
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  src.ingestion.archive.execFileAsync:
+    name: execFileAsync
+    module: src.ingestion.archive
+    line: 3
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 2
+  src.runtime.autonomy.validateTwinGrounding:
+    name: validateTwinGrounding
+    module: src.runtime.autonomy
+    line: 114
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 0
+  src.dsl.dql.parseDql:
+    name: parseDql
+    module: src.dsl.dql
+    line: 5
+    cyclomatic_complexity: 22
+    calls_out: 13
+    calls_in: 0
+  src.runtime.living-project.writeJson:
+    name: writeJson
+    module: src.runtime.living-project
+    line: 52
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 4
+  src.runtime.living-watcher.LivingProjectWatcher.maxRetryMs:
+    name: maxRetryMs
+    module: src.runtime.living-watcher
+    line: 27
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.base:
+    name: base
+    module: src.runtime.living-project
+    line: 223
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.core.canonical.norm:
+    name: norm
+    module: src.core.canonical
+    line: 2
+    cyclomatic_complexity: 5
+    calls_out: 7
+    calls_in: 1
+  src.runtime.living-project.LivingProjectRuntime.rateLimitAvailable:
+    name: rateLimitAvailable
+    module: src.runtime.living-project
+    line: 271
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.living-watcher.LivingProjectWatcher.retryAfterMs:
+    name: retryAfterMs
+    module: src.runtime.living-watcher
+    line: 44
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.dsl.math.env:
+    name: env
+    module: src.dsl.math
+    line: 33
+    cyclomatic_complexity: 16
+    calls_out: 10
+    calls_in: 0
+  src.core.canonical.sha256:
+    name: sha256
+    module: src.core.canonical
+    line: 9
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 1
+  src.runtime.living-watcher.LivingProjectWatcher.failureExponent:
+    name: failureExponent
+    module: src.runtime.living-watcher
+    line: 43
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.dsl.twin.visit:
+    name: visit
+    module: src.dsl.twin
+    line: 2
+    cyclomatic_complexity: 7
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.message:
+    name: message
+    module: src.llm.openrouter
+    line: 69
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.extractNl:
+    name: extractNl
+    module: src.adapters.todo2code
+    line: 79
+    cyclomatic_complexity: 4
+    calls_out: 14
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.iterationUri:
+    name: iterationUri
+    module: src.runtime.living-project
+    line: 351
+    cyclomatic_complexity: 17
+    calls_out: 3
+    calls_in: 0
+  src.llm.openrouter.contentText:
+    name: contentText
+    module: src.llm.openrouter
+    line: 36
+    cyclomatic_complexity: 7
+    calls_out: 5
+    calls_in: 4
+  src.runtime.autonomy.acquire:
+    name: acquire
+    module: src.runtime.autonomy
+    line: 207
+    cyclomatic_complexity: 5
+    calls_out: 11
+    calls_in: 2
+  src.llm.dsl-schemas.textDsl:
+    name: textDsl
     module: src.llm.dsl-schemas
     line: 25
-    cyclomatic_complexity: 4
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 1
+  src.adapters.clickhouse.ClickHouseHttpProjection.search:
+    name: search
+    module: src.adapters.clickhouse
+    line: 15
+    cyclomatic_complexity: 1
+    calls_out: 7
+    calls_in: 0
+  src.scene.openusd.renderOpenUsd:
+    name: renderOpenUsd
+    module: src.scene.openusd
+    line: 7
+    cyclomatic_complexity: 26
+    calls_out: 17
+    calls_in: 0
+  src.project.wizard.sourcePath:
+    name: sourcePath
+    module: src.project.wizard
+    line: 283
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.llm.nl-dsl-compiler.NlDslCompiler.deterministic:
+    name: deterministic
+    module: src.llm.nl-dsl-compiler
+    line: 37
+    cyclomatic_complexity: 3
     calls_out: 6
+    calls_in: 3
+  src.adapters.twin-probes.object:
+    name: object
+    module: src.adapters.twin-probes
+    line: 52
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 2
+  src.adapters.todo2code.optionalJson:
+    name: optionalJson
+    module: src.adapters.todo2code
+    line: 30
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 2
+  src.runtime.living-project.LivingProjectRuntime.recordFailure:
+    name: recordFailure
+    module: src.runtime.living-project
+    line: 433
+    cyclomatic_complexity: 4
+    calls_out: 11
+    calls_in: 0
+  src.research.crawler.DqlCrawler.crawl:
+    name: crawl
+    module: src.research.crawler
+    line: 39
+    cyclomatic_complexity: 25
+    calls_out: 26
+    calls_in: 0
+  src.runtime.service-check.clickhouseUrl:
+    name: clickhouseUrl
+    module: src.runtime.service-check
+    line: 17
+    cyclomatic_complexity: 4
+    calls_out: 7
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.cwd:
+    name: cwd
+    module: src.adapters.todo2code
+    line: 112
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 7
+  src.research.crawler.htmlToMarkdown:
+    name: htmlToMarkdown
+    module: src.research.crawler
+    line: 23
+    cyclomatic_complexity: 5
+    calls_out: 14
+    calls_in: 1
+  src.adapters.clickhouse.InMemorySearchProjection.sqlString:
+    name: sqlString
+    module: src.adapters.clickhouse
+    line: 10
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 2
+  src.ingestion.scanner.walk:
+    name: walk
+    module: src.ingestion.scanner
+    line: 11
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 1
+  src.runtime.living-project.sourceSnapshot:
+    name: sourceSnapshot
+    module: src.runtime.living-project
+    line: 53
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.generate:
+    name: generate
+    module: src.llm.openrouter
+    line: 46
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.improvement:
+    name: improvement
+    module: src.runtime.living-project
+    line: 314
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 0
+  src.llm.dsl-schemas.validateResourcePlan:
+    name: validateResourcePlan
+    module: src.llm.dsl-schemas
+    line: 27
+    cyclomatic_complexity: 10
+    calls_out: 8
+    calls_in: 0
+  src.runtime.living-watcher.LivingProjectWatcher.tick:
+    name: tick
+    module: src.runtime.living-watcher
+    line: 32
+    cyclomatic_complexity: 8
+    calls_out: 8
+    calls_in: 1
+  src.runtime.living-watcher.LivingProjectWatcher.stop:
+    name: stop
+    module: src.runtime.living-watcher
+    line: 53
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 5
+  src.dsl.math.rational:
+    name: rational
+    module: src.dsl.math
+    line: 4
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  src.runtime.biofoundry.buildMath:
+    name: buildMath
+    module: src.runtime.biofoundry
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 4
+  src.dsl.math.m:
+    name: m
+    module: src.dsl.math
+    line: 24
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 0
+  src.cli.main.receipt:
+    name: receipt
+    module: src.cli.main
+    line: 69
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.runtime.mutation-pipeline.object:
+    name: object
+    module: src.runtime.mutation-pipeline
+    line: 50
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 1
+  src.runtime.mutation-pipeline.applyCodeMutation:
+    name: applyCodeMutation
+    module: src.runtime.mutation-pipeline
+    line: 233
+    cyclomatic_complexity: 13
+    calls_out: 22
+    calls_in: 0
+  src.project.wizard.projectDir:
+    name: projectDir
+    module: src.project.wizard
+    line: 214
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.load:
+    name: load
+    module: src.runtime.living-project
+    line: 206
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 2
+  src.dsl.query.id:
+    name: id
+    module: src.dsl.query
+    line: 9
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.runtime.service-check.result:
+    name: result
+    module: src.runtime.service-check
+    line: 31
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 0
+  src.llm.dsl-schemas.exact:
+    name: exact
+    module: src.llm.dsl-schemas
+    line: 23
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 5
+  src.adapters.todo2code.Todo2CodeAdapter.readLatestGraph:
+    name: readLatestGraph
+    module: src.adapters.todo2code
+    line: 75
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch:
+    name: applySourcePatch
+    module: src.adapters.todo2code
+    line: 109
+    cyclomatic_complexity: 11
+    calls_out: 9
+    calls_in: 0
+  src.project.wizard.profile:
+    name: profile
+    module: src.project.wizard
+    line: 215
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.runtimePresent:
+    name: runtimePresent
+    module: src.runtime.living-project
+    line: 313
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.request:
+    name: request
+    module: src.llm.openrouter
+    line: 57
+    cyclomatic_complexity: 19
+    calls_out: 14
+    calls_in: 2
+  src.llm.dsl-schemas.obj:
+    name: obj
+    module: src.llm.dsl-schemas
+    line: 22
+    cyclomatic_complexity: 4
+    calls_out: 2
+    calls_in: 5
+  src.adapters.twin-probes.summarizeProbeCycle:
+    name: summarizeProbeCycle
+    module: src.adapters.twin-probes
+    line: 72
+    cyclomatic_complexity: 7
+    calls_out: 7
+    calls_in: 2
+  src.dsl.tree.renderTreeDsl:
+    name: renderTreeDsl
+    module: src.dsl.tree
+    line: 33
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.runtime.mutation-grant.canonicalGrantClaims:
+    name: canonicalGrantClaims
+    module: src.runtime.mutation-grant
+    line: 92
+    cyclomatic_complexity: 3
+    calls_out: 1
+    calls_in: 2
+  src.adapters.clickhouse.ClickHouseHttpProjection.upsert:
+    name: upsert
+    module: src.adapters.clickhouse
+    line: 14
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.dsl.observation.validateObservation:
+    name: validateObservation
+    module: src.dsl.observation
+    line: 40
+    cyclomatic_complexity: 28
+    calls_out: 11
+    calls_in: 2
+  src.runtime.autonomy.ids:
+    name: ids
+    module: src.runtime.autonomy
+    line: 117
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.lease:
+    name: lease
+    module: src.runtime.living-project
+    line: 215
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  src.project.wizard.addProjectSource:
+    name: addProjectSource
+    module: src.project.wizard
+    line: 279
+    cyclomatic_complexity: 7
+    calls_out: 24
+    calls_in: 0
+  src.research.researcher.fixtureFetch:
+    name: fixtureFetch
+    module: src.research.researcher
+    line: 14
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 1
+  src.adapters.twin-probes.validateAutonomCycle:
+    name: validateAutonomCycle
+    module: src.adapters.twin-probes
+    line: 56
+    cyclomatic_complexity: 15
+    calls_out: 6
+    calls_in: 1
+  src.runtime.living-project.LivingProjectRuntime.publish:
+    name: publish
+    module: src.runtime.living-project
+    line: 307
+    cyclomatic_complexity: 3
+    calls_out: 2
     calls_in: 0
   src.adapters.todo2code.run:
     name: run
     module: src.adapters.todo2code
-    line: 8
+    line: 21
     cyclomatic_complexity: 2
     calls_out: 7
+    calls_in: 7
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce:
+    name: runOnce
+    module: src.runtime.realtime-watcher
+    line: 6
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 2
+  src.runtime.biofoundry.BiofoundryRuntime.candidate:
+    name: candidate
+    module: src.runtime.biofoundry
+    line: 68
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.runtime.mutation-grant.b64url:
+    name: b64url
+    module: src.runtime.mutation-grant
+    line: 58
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 2
+  src.project.wizard.id:
+    name: id
+    module: src.project.wizard
+    line: 213
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 0
+  src.research.crawler.p:
+    name: p
+    module: src.research.crawler
+    line: 13
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 0
+  src.runtime.mutation-grant.signingPayload:
+    name: signingPayload
+    module: src.runtime.mutation-grant
+    line: 98
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  src.project.wizard.exists:
+    name: exists
+    module: src.project.wizard
+    line: 17
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 10
+  src.dsl.improvement.parseImprovementDsl:
+    name: parseImprovementDsl
+    module: src.dsl.improvement
+    line: 12
+    cyclomatic_complexity: 14
+    calls_out: 12
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.iterateWithLease:
+    name: iterateWithLease
+    module: src.runtime.living-project
+    line: 220
+    cyclomatic_complexity: 57
+    calls_out: 55
+    calls_in: 2
+  src.runtime.living-project.twinUri:
+    name: twinUri
+    module: src.runtime.living-project
+    line: 174
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 0
+  src.research.crawler.glob:
+    name: glob
+    module: src.research.crawler
+    line: 19
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 1
+  src.cli.main.json:
+    name: json
+    module: src.cli.main
+    line: 22
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 6
+  src.dsl.math.expr:
+    name: expr
+    module: src.dsl.math
+    line: 11
+    cyclomatic_complexity: 13
+    calls_out: 11
+    calls_in: 1
+  src.adapters.todo2code.Todo2CodeAdapter.latest:
+    name: latest
+    module: src.adapters.todo2code
+    line: 62
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.runtime.living-project.developmentAccepted:
+    name: developmentAccepted
+    module: src.runtime.living-project
+    line: 121
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.adapters.twin-probes.TwinProbesAdapter.cycle:
+    name: cycle
+    module: src.adapters.twin-probes
+    line: 129
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.iterationsLastHour:
+    name: iterationsLastHour
+    module: src.runtime.living-project
+    line: 270
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.scene.openusd.ident:
+    name: ident
+    module: src.scene.openusd
+    line: 3
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 2
+  src.runtime.autonomy.buildImprovementPlan:
+    name: buildImprovementPlan
+    module: src.runtime.autonomy
+    line: 139
+    cyclomatic_complexity: 13
+    calls_out: 9
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.allowed:
+    name: allowed
+    module: src.runtime.living-project
+    line: 306
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 0
+  src.dsl.twin.validateTwin:
+    name: validateTwin
+    module: src.dsl.twin
+    line: 3
+    cyclomatic_complexity: 6
+    calls_out: 4
+    calls_in: 0
+  src.runtime.living-watcher.LivingProjectWatcher.runOnce:
+    name: runOnce
+    module: src.runtime.living-watcher
+    line: 12
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 1
+  src.dsl.parser-util.unquote:
+    name: unquote
+    module: src.dsl.parser-util
+    line: 4
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.envBool:
+    name: envBool
+    module: src.llm.openrouter
+    line: 21
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  src.llm.openrouter.envInt:
+    name: envInt
+    module: src.llm.openrouter
+    line: 20
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 1
+  src.runtime.mutation-grant.verifyMutationGrantDocument:
+    name: verifyMutationGrantDocument
+    module: src.runtime.mutation-grant
+    line: 239
+    cyclomatic_complexity: 8
+    calls_out: 0
+    calls_in: 2
+  src.runtime.autonomy.expectedTwinUri:
+    name: expectedTwinUri
+    module: src.runtime.autonomy
+    line: 128
+    cyclomatic_complexity: 8
+    calls_out: 4
+    calls_in: 0
+  src.llm.nl-dsl-compiler.NlDslCompiler.contract:
+    name: contract
+    module: src.llm.nl-dsl-compiler
+    line: 24
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 0
+  src.runtime.biofoundry.writeJson:
+    name: writeJson
+    module: src.runtime.biofoundry
+    line: 48
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 3
+  src.runtime.mutation-grant.iatMs:
+    name: iatMs
+    module: src.runtime.mutation-grant
+    line: 139
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 0
+  scripts.check-proto-contracts.files:
+    name: files
+    module: scripts.check-proto-contracts
+    line: 17
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 0
+  src.dsl.math.truth:
+    name: truth
+    module: src.dsl.math
+    line: 30
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 3
+  src.dsl.math.e:
+    name: e
+    module: src.dsl.math
+    line: 47
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.research.crawler.locations:
+    name: locations
+    module: src.research.crawler
+    line: 17
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 1
+  src.adapters.clickhouse.ClickHouseHttpProjection.all:
+    name: all
+    module: src.adapters.clickhouse
+    line: 16
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.ingestion.archive.readZip:
+    name: readZip
+    module: src.ingestion.archive
+    line: 7
+    cyclomatic_complexity: 7
+    calls_out: 8
+    calls_in: 0
+  src.dsl.tree.match:
+    name: match
+    module: src.dsl.tree
+    line: 13
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  src.runtime.autonomy.object:
+    name: object
+    module: src.runtime.autonomy
+    line: 28
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 3
+  src.runtime.autonomy.paths:
+    name: paths
+    module: src.runtime.autonomy
+    line: 129
+    cyclomatic_complexity: 8
+    calls_out: 4
+    calls_in: 0
+  src.dsl.dql.positiveInt:
+    name: positiveInt
+    module: src.dsl.dql
+    line: 4
+    cyclomatic_complexity: 4
+    calls_out: 3
+    calls_in: 1
+  src.runtime.mutation-grant.verifyMutationGrantToken:
+    name: verifyMutationGrantToken
+    module: src.runtime.mutation-grant
+    line: 174
+    cyclomatic_complexity: 8
+    calls_out: 0
+    calls_in: 1
+  src.runtime.living-project.researchPresent:
+    name: researchPresent
+    module: src.runtime.living-project
+    line: 119
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.cli.main.grantPath:
+    name: grantPath
+    module: src.cli.main
+    line: 67
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.dsl.improvement.renderImprovementDsl:
+    name: renderImprovementDsl
+    module: src.dsl.improvement
+    line: 42
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 0
+  src.research.researcher.runResearcherDemo:
+    name: runResearcherDemo
+    module: src.research.researcher
+    line: 15
+    cyclomatic_complexity: 9
+    calls_out: 29
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.configured:
+    name: configured
+    module: src.llm.openrouter
+    line: 44
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 1
+  src.cli.main.result:
+    name: result
+    module: src.cli.main
+    line: 51
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.crawler:
+    name: crawler
+    module: src.runtime.living-project
+    line: 228
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-watcher.LivingProjectWatcher.failure:
+    name: failure
+    module: src.runtime.living-watcher
+    line: 45
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.biofoundry.buildScene:
+    name: buildScene
+    module: src.runtime.biofoundry
+    line: 46
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 4
+  src.adapters.todo2code.Todo2CodeAdapter.input:
+    name: input
+    module: src.adapters.todo2code
+    line: 83
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.cli.main.project:
+    name: project
+    module: src.cli.main
+    line: 65
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.runtime.autonomy.allowedAssets:
+    name: allowedAssets
+    module: src.runtime.autonomy
+    line: 127
+    cyclomatic_complexity: 8
+    calls_out: 4
+    calls_in: 0
+  src.dsl.observation.renderObservationDsl:
+    name: renderObservationDsl
+    module: src.dsl.observation
+    line: 35
+    cyclomatic_complexity: 4
+    calls_out: 4
+    calls_in: 0
+  src.ingestion.archive.limit:
+    name: limit
+    module: src.ingestion.archive
+    line: 5
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.runtime.living-project.roles:
+    name: roles
+    module: src.runtime.living-project
+    line: 115
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.service-check.doclingUrl:
+    name: doclingUrl
+    module: src.runtime.service-check
+    line: 18
+    cyclomatic_complexity: 4
+    calls_out: 7
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.plan:
+    name: plan
+    module: src.runtime.living-project
+    line: 227
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 0
+  src.project.wizard.basePort:
+    name: basePort
+    module: src.project.wizard
+    line: 16
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  src.runtime.autonomy.components:
+    name: components
+    module: src.runtime.autonomy
+    line: 126
+    cyclomatic_complexity: 8
+    calls_out: 4
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.tree:
+    name: tree
+    module: src.runtime.living-project
+    line: 273
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.dsl.project.validateProject:
+    name: validateProject
+    module: src.dsl.project
+    line: 49
+    cyclomatic_complexity: 47
+    calls_out: 8
+    calls_in: 2
+  src.runtime.living-project.reasoning:
+    name: reasoning
+    module: src.runtime.living-project
+    line: 113
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 6
+  src.runtime.isolated-worktree.isGitToplevel:
+    name: isGitToplevel
+    module: src.runtime.isolated-worktree
+    line: 34
+    cyclomatic_complexity: 4
+    calls_out: 3
+    calls_in: 0
+  src.runtime.living-project.oldMap:
+    name: oldMap
+    module: src.runtime.living-project
+    line: 57
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  src.llm.dsl-schemas.strings:
+    name: strings
+    module: src.llm.dsl-schemas
+    line: 24
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 2
+  src.runtime.biofoundry.diff:
+    name: diff
+    module: src.runtime.biofoundry
+    line: 32
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 2
+  src.runtime.biofoundry.BiofoundryRuntime.changes:
+    name: changes
+    module: src.runtime.biofoundry
+    line: 58
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 0
+  src.dsl.math.parseMathDsl:
+    name: parseMathDsl
+    module: src.dsl.math
+    line: 20
+    cyclomatic_complexity: 9
+    calls_out: 8
+    calls_in: 0
+  src.runtime.service-check.text:
+    name: text
+    module: src.runtime.service-check
+    line: 33
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 2
+  src.llm.dsl-schemas.generationContract:
+    name: generationContract
+    module: src.llm.dsl-schemas
+    line: 32
+    cyclomatic_complexity: 14
+    calls_out: 2
+    calls_in: 0
+  src.dsl.tree.walk:
+    name: walk
+    module: src.dsl.tree
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 1
+  src.runtime.living-project.conceptualTwin:
+    name: conceptualTwin
+    module: src.runtime.living-project
+    line: 158
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 1
+  src.runtime.living-project.LivingProjectRuntime.grantPresent:
+    name: grantPresent
+    module: src.runtime.living-project
+    line: 272
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.isolated-worktree.add:
+    name: add
+    module: src.runtime.isolated-worktree
+    line: 55
+    cyclomatic_complexity: 5
+    calls_out: 5
+    calls_in: 0
+  src.runtime.mutation-pipeline.planHashOf:
+    name: planHashOf
+    module: src.runtime.mutation-pipeline
+    line: 54
+    cyclomatic_complexity: 7
+    calls_out: 4
+    calls_in: 2
+  src.research.crawler.privateIp:
+    name: privateIp
+    module: src.research.crawler
+    line: 10
+    cyclomatic_complexity: 15
+    calls_out: 4
+    calls_in: 2
+  src.llm.openrouter.sleep:
+    name: sleep
+    module: src.llm.openrouter
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 2
+  src.ingestion.archive.safePath:
+    name: safePath
+    module: src.ingestion.archive
+    line: 6
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 1
+  src.runtime.service-check.timeoutMs:
+    name: timeoutMs
+    module: src.runtime.service-check
+    line: 19
+    cyclomatic_complexity: 4
+    calls_out: 7
+    calls_in: 0
+  src.runtime.living-watcher.LivingProjectWatcher.schedule:
+    name: schedule
+    module: src.runtime.living-watcher
+    line: 47
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  src.ingestion.scanner.scanSources:
+    name: scanSources
+    module: src.ingestion.scanner
+    line: 13
+    cyclomatic_complexity: 15
+    calls_out: 21
+    calls_in: 0
+  src.llm.dsl-schemas.validateSceneEnvelope:
+    name: validateSceneEnvelope
+    module: src.llm.dsl-schemas
+    line: 30
+    cyclomatic_complexity: 8
+    calls_out: 8
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath:
+    name: policyPath
+    module: src.runtime.biofoundry
+    line: 59
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  scripts.check-proto-contracts.checkMessageFields:
+    name: checkMessageFields
+    module: scripts.check-proto-contracts
+    line: 4
+    cyclomatic_complexity: 5
+    calls_out: 8
+    calls_in: 1
+  src.runtime.autonomy.manifestStatus:
+    name: manifestStatus
+    module: src.runtime.autonomy
+    line: 36
+    cyclomatic_complexity: 3
+    calls_out: 1
+    calls_in: 1
+  src.core.canonical.contentUri:
+    name: contentUri
+    module: src.core.canonical
+    line: 10
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.dsl.improvement.validateImprovement:
+    name: validateImprovement
+    module: src.dsl.improvement
+    line: 57
+    cyclomatic_complexity: 29
+    calls_out: 7
+    calls_in: 2
+  src.llm.openrouter.OpenRouterStructuredClient.started:
+    name: started
+    module: src.llm.openrouter
+    line: 48
+    cyclomatic_complexity: 7
+    calls_out: 5
+    calls_in: 0
+  src.core.canonical.canonicalJson:
+    name: canonicalJson
+    module: src.core.canonical
+    line: 8
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 1
+  src.adapters.twin-probes.TwinProbesAdapter.loadCycle:
+    name: loadCycle
+    module: src.adapters.twin-probes
+    line: 128
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 1
+  src.runtime.living-project.runtimeUris:
+    name: runtimeUris
+    module: src.runtime.living-project
+    line: 118
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.living-project.newMap:
+    name: newMap
+    module: src.runtime.living-project
+    line: 58
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  src.runtime.autonomy.add:
+    name: add
+    module: src.runtime.autonomy
+    line: 151
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 9
+  src.runtime.mutation-grant.data:
+    name: data
+    module: src.runtime.mutation-grant
+    line: 331
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.research.crawler.fetchText:
+    name: fetchText
+    module: src.research.crawler
+    line: 35
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 1
+  src.runtime.living-project.conceptualScene:
+    name: conceptualScene
+    module: src.runtime.living-project
+    line: 173
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 1
+  src.dsl.query.match:
+    name: match
+    module: src.dsl.query
+    line: 28
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 3
+  src.research.crawler.decode:
+    name: decode
+    module: src.research.crawler
+    line: 16
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 3
+  src.research.crawler.first:
+    name: first
+    module: src.research.crawler
+    line: 22
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.runtime.living-project.LivingProjectRuntime.authoritativeMath:
+    name: authoritativeMath
+    module: src.runtime.living-project
+    line: 274
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.living-project.LivingProjectRuntime.candidate:
+    name: candidate
+    module: src.runtime.living-project
+    line: 316
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 0
+  src.runtime.mutation-grant.path:
+    name: path
+    module: src.runtime.mutation-grant
+    line: 330
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.runtime.biofoundry.buildTwin:
+    name: buildTwin
+    module: src.runtime.biofoundry
+    line: 45
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 4
+  src.dsl.math.val:
+    name: val
+    module: src.dsl.math
+    line: 50
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 2
+  src.runtime.mutation-pipeline.resolveGrant:
+    name: resolveGrant
+    module: src.runtime.mutation-pipeline
+    line: 67
+    cyclomatic_complexity: 2
+    calls_out: 2
     calls_in: 5
 edges:
 - caller: src.core.canonical.canonicalJson
@@ -939,45 +1968,6 @@ edges:
 - caller: src.llm.openrouter.OpenRouterStructuredClient.message
   callee: src.llm.openrouter.contentText
   call_type: resolved
-- caller: src.llm.dsl-schemas.textDsl
-  callee: src.llm.dsl-schemas.obj
-  call_type: resolved
-- caller: src.llm.dsl-schemas.textDsl
-  callee: src.llm.dsl-schemas.exact
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateResourcePlan
-  callee: src.llm.dsl-schemas.obj
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateResourcePlan
-  callee: src.llm.dsl-schemas.exact
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateResourcePlan
-  callee: src.llm.dsl-schemas.strings
-  call_type: resolved
-- caller: src.llm.dsl-schemas.component
-  callee: src.llm.dsl-schemas.obj
-  call_type: resolved
-- caller: src.llm.dsl-schemas.component
-  callee: src.llm.dsl-schemas.exact
-  call_type: resolved
-- caller: src.llm.dsl-schemas.component
-  callee: src.llm.dsl-schemas.strings
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateTwinEnvelope
-  callee: src.llm.dsl-schemas.obj
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateTwinEnvelope
-  callee: src.llm.dsl-schemas.exact
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateSceneEnvelope
-  callee: src.llm.dsl-schemas.obj
-  call_type: resolved
-- caller: src.llm.dsl-schemas.validateSceneEnvelope
-  callee: src.llm.dsl-schemas.exact
-  call_type: resolved
-- caller: src.llm.dsl-schemas.generationContract
-  callee: src.llm.dsl-schemas.textDsl
-  call_type: resolved
 - caller: src.llm.nl-dsl-compiler.NlDslCompiler.compile
   callee: src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
   call_type: resolved
@@ -986,18 +1976,6 @@ edges:
   call_type: resolved
 - caller: src.llm.nl-dsl-compiler.NlDslCompiler.contract
   callee: src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
-  call_type: resolved
-- caller: src.scene.openusd.renderOpenUsd
-  callee: src.scene.openusd.ident
-  call_type: resolved
-- caller: src.scene.openusd.renderOpenUsd
-  callee: src.scene.openusd.primitive
-  call_type: resolved
-- caller: src.scene.openusd.components
-  callee: src.scene.openusd.ident
-  call_type: resolved
-- caller: src.scene.openusd.components
-  callee: src.scene.openusd.primitive
   call_type: resolved
 - caller: src.adapters.clickhouse.ClickHouseHttpProjection.upsert
   callee: src.adapters.clickhouse.ClickHouseHttpProjection.query
@@ -1014,27 +1992,6 @@ edges:
 - caller: src.adapters.clickhouse.ClickHouseHttpProjection.all
   callee: src.adapters.clickhouse.InMemorySearchProjection.sqlString
   call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
-  callee: src.adapters.todo2code.Todo2CodeAdapter.available
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
-  callee: src.adapters.todo2code.run
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
-  callee: src.adapters.todo2code.Todo2CodeAdapter.available
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
-  callee: src.adapters.todo2code.run
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.dir
-  callee: src.adapters.todo2code.run
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.input
-  callee: src.adapters.todo2code.run
-  call_type: resolved
-- caller: src.adapters.todo2code.Todo2CodeAdapter.mapped
-  callee: src.adapters.todo2code.run
-  call_type: resolved
 - caller: src.ingestion.archive.readZip
   callee: src.ingestion.archive.limit
   call_type: resolved
@@ -1046,9 +2003,6 @@ edges:
   call_type: resolved
 - caller: src.ingestion.archive.maxFiles
   callee: src.ingestion.archive.execFileAsync
-  call_type: resolved
-- caller: src.ingestion.scanner.scanSources
-  callee: src.ingestion.scanner.walk
   call_type: resolved
 - caller: src.dsl.parser-util.list
   callee: src.dsl.parser-util.unquote
@@ -1122,13 +2076,511 @@ edges:
 - caller: src.dsl.dql.parseDql
   callee: src.dsl.dql.positiveInt
   call_type: resolved
+- caller: src.ingestion.scanner.scanSources
+  callee: src.ingestion.scanner.walk
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.maxRetryMs
+  callee: src.runtime.living-watcher.LivingProjectWatcher.tick
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.schedule
+  callee: src.runtime.living-watcher.LivingProjectWatcher.stop
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.tick
+  callee: src.runtime.living-watcher.LivingProjectWatcher.schedule
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.tick
+  callee: src.runtime.living-watcher.LivingProjectWatcher.runOnce
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.project
+  callee: src.runtime.living-watcher.LivingProjectWatcher.stop
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.failureExponent
+  callee: src.runtime.living-watcher.LivingProjectWatcher.stop
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.retryAfterMs
+  callee: src.runtime.living-watcher.LivingProjectWatcher.stop
+  call_type: resolved
+- caller: src.runtime.living-watcher.LivingProjectWatcher.failure
+  callee: src.runtime.living-watcher.LivingProjectWatcher.stop
+  call_type: resolved
+- caller: src.cli.main.result
+  callee: src.cli.main.json
+  call_type: resolved
+- caller: src.cli.main.project
+  callee: src.cli.main.json
+  call_type: resolved
+- caller: src.cli.main.base
+  callee: src.cli.main.json
+  call_type: resolved
+- caller: src.cli.main.receipt
+  callee: src.cli.main.json
+  call_type: resolved
+- caller: src.cli.main.grantPath
+  callee: src.cli.main.json
+  call_type: resolved
+- caller: src.dsl.improvement.parseImprovementDsl
+  callee: src.dsl.improvement.match
+  call_type: resolved
+- caller: src.dsl.improvement.raw
+  callee: src.dsl.improvement.match
+  call_type: resolved
+- caller: src.dsl.improvement.raw
+  callee: src.dsl.improvement.bool
+  call_type: resolved
+- caller: src.dsl.improvement.renderImprovementDsl
+  callee: src.dsl.improvement.validateImprovement
+  call_type: resolved
+- caller: src.runtime.mutation-grant.b64urlJson
+  callee: src.runtime.mutation-grant.b64url
+  call_type: resolved
+- caller: src.runtime.mutation-grant.signingPayload
+  callee: src.runtime.mutation-grant.canonicalGrantClaims
+  call_type: resolved
+- caller: src.runtime.mutation-grant.iatMs
+  callee: src.runtime.mutation-grant.canonicalGrantClaims
+  call_type: resolved
+- caller: src.runtime.mutation-grant.sig
+  callee: src.runtime.mutation-grant.b64url
+  call_type: resolved
+- caller: src.runtime.mutation-grant.data
+  callee: src.runtime.mutation-grant.verifyMutationGrantDocument
+  call_type: resolved
+- caller: src.runtime.mutation-grant.verified
+  callee: src.runtime.mutation-grant.verifyMutationGrantToken
+  call_type: resolved
+- caller: src.runtime.mutation-grant.path
+  callee: src.runtime.mutation-grant.verifyMutationGrantDocument
+  call_type: resolved
+- caller: src.runtime.service-check.checkExternalServices
+  callee: src.runtime.service-check.timed
+  call_type: resolved
+- caller: src.runtime.service-check.clickhouseUrl
+  callee: src.runtime.service-check.timed
+  call_type: resolved
+- caller: src.runtime.service-check.doclingUrl
+  callee: src.runtime.service-check.timed
+  call_type: resolved
+- caller: src.runtime.service-check.timeoutMs
+  callee: src.runtime.service-check.timed
+  call_type: resolved
+- caller: src.runtime.service-check.result
+  callee: src.runtime.service-check.timed
+  call_type: resolved
+- caller: src.runtime.service-check.result
+  callee: src.runtime.service-check.text
+  call_type: resolved
+- caller: src.dsl.observation.renderObservationDsl
+  callee: src.dsl.observation.validateObservation
+  call_type: resolved
 - caller: scripts.check-proto-contracts.files
-  callee: scripts.check-proto-contracts.walk
+  callee: scripts.check-proto-contracts.checkMessageFields
+  call_type: resolved
+- caller: src.llm.dsl-schemas.textDsl
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.textDsl
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.strings
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.strings
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateTwinEnvelope
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateTwinEnvelope
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateSceneEnvelope
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateSceneEnvelope
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.generationContract
+  callee: src.llm.dsl-schemas.textDsl
+  call_type: resolved
+- caller: src.scene.openusd.renderOpenUsd
+  callee: src.scene.openusd.ident
+  call_type: resolved
+- caller: src.scene.openusd.components
+  callee: src.scene.openusd.ident
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.planHashOf
+  callee: src.runtime.mutation-pipeline.object
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.proposeCodeMutation
+  callee: src.runtime.mutation-pipeline.loadPlan
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.proposeCodeMutation
+  callee: src.runtime.mutation-pipeline.planHashOf
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.proposeCodeMutation
+  callee: src.runtime.mutation-pipeline.resolveGrant
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.plan
+  callee: src.runtime.mutation-pipeline.resolveGrant
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.planHash
+  callee: src.runtime.mutation-pipeline.resolveGrant
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.grantResult
+  callee: src.runtime.mutation-pipeline.resolveGrant
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.applyCodeMutation
+  callee: src.runtime.mutation-pipeline.loadPlan
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.applyCodeMutation
+  callee: src.runtime.mutation-pipeline.planHashOf
+  call_type: resolved
+- caller: src.runtime.mutation-pipeline.applyCodeMutation
+  callee: src.runtime.mutation-pipeline.resolveGrant
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis
+  callee: src.adapters.todo2code.optionalJson
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.latest
+  callee: src.adapters.todo2code.optionalJson
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.readLatestGraph
+  callee: src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.directory
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.directory
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.input
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.input
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.out
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.out
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch
+  callee: src.adapters.todo2code.Todo2CodeAdapter.cwd
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.dsl.project.renderProjectDsl
+  callee: src.dsl.project.validateProject
+  call_type: resolved
+- caller: src.adapters.twin-probes.validateAutonomCycle
+  callee: src.adapters.twin-probes.object
+  call_type: resolved
+- caller: src.adapters.twin-probes.data
+  callee: src.adapters.twin-probes.object
+  call_type: resolved
+- caller: src.adapters.twin-probes.TwinProbesAdapter.loadCycle
+  callee: src.adapters.twin-probes.validateAutonomCycle
+  call_type: resolved
+- caller: src.adapters.twin-probes.TwinProbesAdapter.loadCycle
+  callee: src.adapters.twin-probes.summarizeProbeCycle
+  call_type: resolved
+- caller: src.adapters.twin-probes.TwinProbesAdapter.cycle
+  callee: src.adapters.twin-probes.summarizeProbeCycle
+  call_type: resolved
+- caller: src.adapters.twin-probes.TwinProbesAdapter.run
+  callee: src.adapters.twin-probes.TwinProbesAdapter.available
+  call_type: resolved
+- caller: src.adapters.twin-probes.TwinProbesAdapter.run
+  callee: src.adapters.twin-probes.TwinProbesAdapter.loadCycle
+  call_type: resolved
+- caller: src.runtime.isolated-worktree.isGitToplevel
+  callee: src.runtime.isolated-worktree.run
+  call_type: resolved
+- caller: src.runtime.isolated-worktree.add
+  callee: src.runtime.isolated-worktree.run
+  call_type: resolved
+- caller: src.runtime.autonomy.diagnosticSeverity
+  callee: src.runtime.autonomy.object
+  call_type: resolved
+- caller: src.runtime.autonomy.manifestStatus
+  callee: src.runtime.autonomy.object
+  call_type: resolved
+- caller: src.runtime.autonomy.summarizeDevelopment
+  callee: src.runtime.autonomy.object
+  call_type: resolved
+- caller: src.runtime.autonomy.summarizeDevelopment
+  callee: src.runtime.autonomy.array
+  call_type: resolved
+- caller: src.runtime.autonomy.summarizeDevelopment
+  callee: src.runtime.autonomy.diagnosticSeverity
+  call_type: resolved
+- caller: src.runtime.autonomy.summarizeDevelopment
+  callee: src.runtime.autonomy.manifestStatus
+  call_type: resolved
+- caller: src.runtime.autonomy.validateTwinGrounding
+  callee: src.runtime.autonomy.flattenComponents
+  call_type: resolved
+- caller: src.runtime.autonomy.validateTwinGrounding
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.allowedUris
+  callee: src.runtime.autonomy.flattenComponents
+  call_type: resolved
+- caller: src.runtime.autonomy.allowedUris
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.ids
+  callee: src.runtime.autonomy.flattenComponents
+  call_type: resolved
+- caller: src.runtime.autonomy.ids
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.validateSceneGrounding
+  callee: src.runtime.autonomy.flattenComponents
+  call_type: resolved
+- caller: src.runtime.autonomy.validateSceneGrounding
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.components
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.allowedAssets
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.expectedTwinUri
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.paths
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.buildImprovementPlan
+  callee: src.runtime.autonomy.add
+  call_type: resolved
+- caller: src.runtime.autonomy.acquireProjectLease
+  callee: src.runtime.autonomy.acquire
+  call_type: resolved
+- caller: src.runtime.autonomy.leaseDirectory
+  callee: src.runtime.autonomy.acquire
+  call_type: resolved
+- caller: src.project.wizard.vendorRuntime
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.vendorRuntime
+  callee: src.project.wizard.text
+  call_type: resolved
+- caller: src.project.wizard.source
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.createLivingProject
+  callee: src.project.wizard.slug
+  call_type: resolved
+- caller: src.project.wizard.createLivingProject
+  callee: src.project.wizard.basePort
+  call_type: resolved
+- caller: src.project.wizard.createLivingProject
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.createLivingProject
+  callee: src.project.wizard.text
+  call_type: resolved
+- caller: src.project.wizard.id
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.projectDir
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.profile
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.port
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.addProjectSource
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.sourcePath
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.project.wizard.verifyLivingProject
+  callee: src.project.wizard.exists
+  call_type: resolved
+- caller: src.runtime.living-project.sourceSnapshot
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.resourceDiff
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.oldMap
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.newMap
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.reasoning
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.roles
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.researchUris
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.managerUris
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.runtimeUris
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.researchPresent
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.developmentPresent
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.developmentAccepted
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.runtimePresent
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.conceptualTwin
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.conceptualScene
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.twinUri
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.text
+  callee: src.runtime.living-project.LivingProjectRuntime.iterate
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.iterate
+  callee: src.runtime.living-project.LivingProjectRuntime.load
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.iterate
+  callee: src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.lease
+  callee: src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.startedAt
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.traceId
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.base
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.projectConfigHash
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.scanned
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.plan
+  callee: src.runtime.living-project.fixtureFetcher
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.crawler
+  callee: src.runtime.living-project.fixtureFetcher
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.iterationsLastHour
+  callee: src.runtime.living-project.reasoning
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.rateLimitAvailable
+  callee: src.runtime.living-project.reasoning
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.grantPresent
+  callee: src.runtime.living-project.reasoning
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.tree
+  callee: src.runtime.living-project.reasoning
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.authoritativeMath
+  callee: src.runtime.living-project.reasoning
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.allowed
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.publish
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.researchPresent
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.runtimePresent
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.improvement
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.candidate
+  callee: src.runtime.living-project.writeJson
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.iterationUri
+  callee: src.runtime.living-project.map
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.feedbackUri
+  callee: src.runtime.living-project.writeJson
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.recordFailure
+  callee: src.runtime.living-project.LivingProjectRuntime.load
+  call_type: resolved
+- caller: src.runtime.living-project.LivingProjectRuntime.recordFailure
+  callee: src.runtime.living-project.writeJson
   call_type: resolved
 modules:
   scripts.check-proto-contracts:
+  - scripts.check-proto-contracts.checkMessageFields
   - scripts.check-proto-contracts.files
-  - scripts.check-proto-contracts.walk
   src.adapters.clickhouse:
   - src.adapters.clickhouse.ClickHouseHttpProjection.all
   - src.adapters.clickhouse.ClickHouseHttpProjection.query
@@ -1136,13 +2588,36 @@ modules:
   - src.adapters.clickhouse.ClickHouseHttpProjection.upsert
   - src.adapters.clickhouse.InMemorySearchProjection.sqlString
   src.adapters.todo2code:
+  - src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch
   - src.adapters.todo2code.Todo2CodeAdapter.available
-  - src.adapters.todo2code.Todo2CodeAdapter.dir
+  - src.adapters.todo2code.Todo2CodeAdapter.cwd
+  - src.adapters.todo2code.Todo2CodeAdapter.directory
   - src.adapters.todo2code.Todo2CodeAdapter.extract
   - src.adapters.todo2code.Todo2CodeAdapter.extractNl
   - src.adapters.todo2code.Todo2CodeAdapter.input
-  - src.adapters.todo2code.Todo2CodeAdapter.mapped
+  - src.adapters.todo2code.Todo2CodeAdapter.latest
+  - src.adapters.todo2code.Todo2CodeAdapter.out
+  - src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch
+  - src.adapters.todo2code.Todo2CodeAdapter.readLatestAnalysis
+  - src.adapters.todo2code.Todo2CodeAdapter.readLatestGraph
+  - src.adapters.todo2code.optionalJson
   - src.adapters.todo2code.run
+  src.adapters.twin-probes:
+  - src.adapters.twin-probes.TwinProbesAdapter.available
+  - src.adapters.twin-probes.TwinProbesAdapter.cycle
+  - src.adapters.twin-probes.TwinProbesAdapter.loadCycle
+  - src.adapters.twin-probes.TwinProbesAdapter.run
+  - src.adapters.twin-probes.data
+  - src.adapters.twin-probes.object
+  - src.adapters.twin-probes.summarizeProbeCycle
+  - src.adapters.twin-probes.validateAutonomCycle
+  src.cli.main:
+  - src.cli.main.base
+  - src.cli.main.grantPath
+  - src.cli.main.json
+  - src.cli.main.project
+  - src.cli.main.receipt
+  - src.cli.main.result
   src.core.canonical:
   - src.core.canonical.canonicalJson
   - src.core.canonical.contentUri
@@ -1151,6 +2626,13 @@ modules:
   src.dsl.dql:
   - src.dsl.dql.parseDql
   - src.dsl.dql.positiveInt
+  src.dsl.improvement:
+  - src.dsl.improvement.bool
+  - src.dsl.improvement.match
+  - src.dsl.improvement.parseImprovementDsl
+  - src.dsl.improvement.raw
+  - src.dsl.improvement.renderImprovementDsl
+  - src.dsl.improvement.validateImprovement
   src.dsl.math:
   - src.dsl.math.e
   - src.dsl.math.env
@@ -1166,9 +2648,15 @@ modules:
   - src.dsl.math.truth
   - src.dsl.math.val
   - src.dsl.math.value
+  src.dsl.observation:
+  - src.dsl.observation.renderObservationDsl
+  - src.dsl.observation.validateObservation
   src.dsl.parser-util:
   - src.dsl.parser-util.list
   - src.dsl.parser-util.unquote
+  src.dsl.project:
+  - src.dsl.project.renderProjectDsl
+  - src.dsl.project.validateProject
   src.dsl.query:
   - src.dsl.query.id
   - src.dsl.query.match
@@ -1220,6 +2708,21 @@ modules:
   - src.llm.openrouter.envInt
   - src.llm.openrouter.openRouterConfigFromEnv
   - src.llm.openrouter.sleep
+  src.project.wizard:
+  - src.project.wizard.addProjectSource
+  - src.project.wizard.basePort
+  - src.project.wizard.createLivingProject
+  - src.project.wizard.exists
+  - src.project.wizard.id
+  - src.project.wizard.port
+  - src.project.wizard.profile
+  - src.project.wizard.projectDir
+  - src.project.wizard.slug
+  - src.project.wizard.source
+  - src.project.wizard.sourcePath
+  - src.project.wizard.text
+  - src.project.wizard.vendorRuntime
+  - src.project.wizard.verifyLivingProject
   src.research.crawler:
   - src.research.crawler.DqlCrawler.crawl
   - src.research.crawler.DqlCrawler.robots
@@ -1238,6 +2741,26 @@ modules:
   src.research.researcher:
   - src.research.researcher.fixtureFetch
   - src.research.researcher.runResearcherDemo
+  src.runtime.autonomy:
+  - src.runtime.autonomy.acquire
+  - src.runtime.autonomy.acquireProjectLease
+  - src.runtime.autonomy.add
+  - src.runtime.autonomy.allowedAssets
+  - src.runtime.autonomy.allowedUris
+  - src.runtime.autonomy.array
+  - src.runtime.autonomy.buildImprovementPlan
+  - src.runtime.autonomy.components
+  - src.runtime.autonomy.diagnosticSeverity
+  - src.runtime.autonomy.expectedTwinUri
+  - src.runtime.autonomy.flattenComponents
+  - src.runtime.autonomy.ids
+  - src.runtime.autonomy.leaseDirectory
+  - src.runtime.autonomy.manifestStatus
+  - src.runtime.autonomy.object
+  - src.runtime.autonomy.paths
+  - src.runtime.autonomy.summarizeDevelopment
+  - src.runtime.autonomy.validateSceneGrounding
+  - src.runtime.autonomy.validateTwinGrounding
   src.runtime.biofoundry:
   - src.runtime.biofoundry.BiofoundryRuntime.allowed
   - src.runtime.biofoundry.BiofoundryRuntime.candidate
@@ -1251,19 +2774,129 @@ modules:
   - src.runtime.biofoundry.buildTwin
   - src.runtime.biofoundry.diff
   - src.runtime.biofoundry.writeJson
+  src.runtime.isolated-worktree:
+  - src.runtime.isolated-worktree.add
+  - src.runtime.isolated-worktree.isGitToplevel
+  - src.runtime.isolated-worktree.run
+  src.runtime.living-project:
+  - src.runtime.living-project.LivingProjectRuntime.allowed
+  - src.runtime.living-project.LivingProjectRuntime.authoritativeMath
+  - src.runtime.living-project.LivingProjectRuntime.base
+  - src.runtime.living-project.LivingProjectRuntime.candidate
+  - src.runtime.living-project.LivingProjectRuntime.crawler
+  - src.runtime.living-project.LivingProjectRuntime.feedbackUri
+  - src.runtime.living-project.LivingProjectRuntime.grantPresent
+  - src.runtime.living-project.LivingProjectRuntime.improvement
+  - src.runtime.living-project.LivingProjectRuntime.iterate
+  - src.runtime.living-project.LivingProjectRuntime.iterateWithLease
+  - src.runtime.living-project.LivingProjectRuntime.iterationUri
+  - src.runtime.living-project.LivingProjectRuntime.iterationsLastHour
+  - src.runtime.living-project.LivingProjectRuntime.lease
+  - src.runtime.living-project.LivingProjectRuntime.load
+  - src.runtime.living-project.LivingProjectRuntime.plan
+  - src.runtime.living-project.LivingProjectRuntime.projectConfigHash
+  - src.runtime.living-project.LivingProjectRuntime.publish
+  - src.runtime.living-project.LivingProjectRuntime.rateLimitAvailable
+  - src.runtime.living-project.LivingProjectRuntime.recordFailure
+  - src.runtime.living-project.LivingProjectRuntime.researchPresent
+  - src.runtime.living-project.LivingProjectRuntime.runtimePresent
+  - src.runtime.living-project.LivingProjectRuntime.scanned
+  - src.runtime.living-project.LivingProjectRuntime.startedAt
+  - src.runtime.living-project.LivingProjectRuntime.text
+  - src.runtime.living-project.LivingProjectRuntime.traceId
+  - src.runtime.living-project.LivingProjectRuntime.tree
+  - src.runtime.living-project.conceptualScene
+  - src.runtime.living-project.conceptualTwin
+  - src.runtime.living-project.developmentAccepted
+  - src.runtime.living-project.developmentPresent
+  - src.runtime.living-project.fixtureFetcher
+  - src.runtime.living-project.managerUris
+  - src.runtime.living-project.map
+  - src.runtime.living-project.newMap
+  - src.runtime.living-project.oldMap
+  - src.runtime.living-project.reasoning
+  - src.runtime.living-project.researchPresent
+  - src.runtime.living-project.researchUris
+  - src.runtime.living-project.resourceDiff
+  - src.runtime.living-project.roles
+  - src.runtime.living-project.runtimePresent
+  - src.runtime.living-project.runtimeUris
+  - src.runtime.living-project.sourceSnapshot
+  - src.runtime.living-project.twinUri
+  - src.runtime.living-project.writeJson
+  src.runtime.living-watcher:
+  - src.runtime.living-watcher.LivingProjectWatcher.failure
+  - src.runtime.living-watcher.LivingProjectWatcher.failureExponent
+  - src.runtime.living-watcher.LivingProjectWatcher.maxRetryMs
+  - src.runtime.living-watcher.LivingProjectWatcher.project
+  - src.runtime.living-watcher.LivingProjectWatcher.retryAfterMs
+  - src.runtime.living-watcher.LivingProjectWatcher.runOnce
+  - src.runtime.living-watcher.LivingProjectWatcher.schedule
+  - src.runtime.living-watcher.LivingProjectWatcher.stop
+  - src.runtime.living-watcher.LivingProjectWatcher.tick
+  src.runtime.mutation-grant:
+  - src.runtime.mutation-grant.b64url
+  - src.runtime.mutation-grant.b64urlJson
+  - src.runtime.mutation-grant.canonicalGrantClaims
+  - src.runtime.mutation-grant.data
+  - src.runtime.mutation-grant.iatMs
+  - src.runtime.mutation-grant.path
+  - src.runtime.mutation-grant.sig
+  - src.runtime.mutation-grant.signingPayload
+  - src.runtime.mutation-grant.verified
+  - src.runtime.mutation-grant.verifyMutationGrantDocument
+  - src.runtime.mutation-grant.verifyMutationGrantToken
+  src.runtime.mutation-pipeline:
+  - src.runtime.mutation-pipeline.applyCodeMutation
+  - src.runtime.mutation-pipeline.grantResult
+  - src.runtime.mutation-pipeline.loadPlan
+  - src.runtime.mutation-pipeline.object
+  - src.runtime.mutation-pipeline.plan
+  - src.runtime.mutation-pipeline.planHash
+  - src.runtime.mutation-pipeline.planHashOf
+  - src.runtime.mutation-pipeline.proposeCodeMutation
+  - src.runtime.mutation-pipeline.resolveGrant
   src.runtime.realtime-watcher:
   - src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
   - src.runtime.realtime-watcher.RealtimeTwinWatcher.start
   - src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
+  src.runtime.service-check:
+  - src.runtime.service-check.checkExternalServices
+  - src.runtime.service-check.clickhouseUrl
+  - src.runtime.service-check.doclingUrl
+  - src.runtime.service-check.result
+  - src.runtime.service-check.text
+  - src.runtime.service-check.timed
+  - src.runtime.service-check.timeoutMs
   src.scene.openusd:
   - src.scene.openusd.components
   - src.scene.openusd.ident
-  - src.scene.openusd.primitive
   - src.scene.openusd.renderOpenUsd
 entry_points:
 - deploy.docling.server.convert
 - deploy.docling.server.health
+- scripts.check-compose.secretLine
+- scripts.check-compose.text
+- scripts.check-compose.value
+- scripts.check-proto-contracts.field
 - scripts.check-proto-contracts.files
+- scripts.check-proto-contracts.numbers
+- scripts.check-proto-contracts.stripped
+- scripts.check-proto-contracts.walk
+- scripts.demo-autonomy.authoritative
+- scripts.demo-autonomy.baseline
+- scripts.demo-autonomy.blocked
+- scripts.demo-autonomy.config
+- scripts.demo-autonomy.created
+- scripts.demo-autonomy.failure
+- scripts.demo-autonomy.merged
+- scripts.demo-autonomy.runtime
+- scripts.demo-autonomy.tampered
+- scripts.demo-mutation.cycle
+- scripts.demo-mutation.issued
+- scripts.demo-mutation.probeSummary
+- scripts.demo-mutation.proposed
+- scripts.demo-mutation.verified
 - scripts.demo-realtime-biofoundry.tmp
 - src.adapters.clickhouse.ClickHouseHttpProjection.all
 - src.adapters.clickhouse.ClickHouseHttpProjection.search
@@ -1274,14 +2907,45 @@ entry_points:
 - src.adapters.document-converter.CompositeDocumentConverter.convert
 - src.adapters.document-converter.DeterministicMarkdownConverter.convert
 - src.adapters.document-converter.DoclingHttpAdapter.convert
-- src.adapters.todo2code.Todo2CodeAdapter.dir
+- src.adapters.todo2code.Todo2CodeAdapter.applySourcePatch
+- src.adapters.todo2code.Todo2CodeAdapter.diagnostics
+- src.adapters.todo2code.Todo2CodeAdapter.directory
 - src.adapters.todo2code.Todo2CodeAdapter.extract
 - src.adapters.todo2code.Todo2CodeAdapter.extractNl
+- src.adapters.todo2code.Todo2CodeAdapter.graph
 - src.adapters.todo2code.Todo2CodeAdapter.input
+- src.adapters.todo2code.Todo2CodeAdapter.latest
 - src.adapters.todo2code.Todo2CodeAdapter.loadFixture
-- src.adapters.todo2code.Todo2CodeAdapter.mapped
+- src.adapters.todo2code.Todo2CodeAdapter.manifest
+- src.adapters.todo2code.Todo2CodeAdapter.manifestObject
+- src.adapters.todo2code.Todo2CodeAdapter.out
+- src.adapters.todo2code.Todo2CodeAdapter.proposeSourcePatch
 - src.adapters.todo2code.Todo2CodeAdapter.raw
+- src.adapters.todo2code.Todo2CodeAdapter.readLatestGraph
+- src.adapters.todo2code.Todo2CodeAdapter.runBase
+- src.adapters.todo2code.processHandle
+- src.adapters.twin-probes.TwinProbesAdapter.cycle
+- src.adapters.twin-probes.TwinProbesAdapter.out
+- src.adapters.twin-probes.TwinProbesAdapter.run
+- src.adapters.twin-probes.TwinProbesAdapter.writeSummary
+- src.adapters.twin-probes.child
+- src.adapters.twin-probes.cycleHash
+- src.adapters.twin-probes.cycleUri
+- src.adapters.twin-probes.data
+- src.adapters.twin-probes.healthy
+- src.adapters.twin-probes.result
+- src.adapters.twin-probes.run
+- src.adapters.twin-probes.unevaluable
+- src.adapters.twin-probes.unhealthy
+- src.adapters.twin-probes.watched
+- src.cli.main.adapter
+- src.cli.main.base
+- src.cli.main.grantPath
+- src.cli.main.issued
 - src.cli.main.main
+- src.cli.main.project
+- src.cli.main.receipt
+- src.cli.main.result
 - src.cli.main.t2c
 - src.core.canonical.contentUri
 - src.core.uri.assertProcessUri
@@ -1290,6 +2954,14 @@ entry_points:
 - src.dsl.dql.parseDql
 - src.dsl.dql.renderDql
 - src.dsl.dql.xs
+- src.dsl.improvement.action
+- src.dsl.improvement.document
+- src.dsl.improvement.header
+- src.dsl.improvement.ids
+- src.dsl.improvement.input
+- src.dsl.improvement.parseImprovementDsl
+- src.dsl.improvement.raw
+- src.dsl.improvement.renderImprovementDsl
 - src.dsl.intent.intentUri
 - src.dsl.intent.validateT2cIntent
 - src.dsl.math.e
@@ -1301,11 +2973,21 @@ entry_points:
 - src.dsl.math.renderMathDsl
 - src.dsl.math.x
 - src.dsl.math.xs
+- src.dsl.observation.i
+- src.dsl.observation.parseObservationDsl
+- src.dsl.observation.renderObservationDsl
+- src.dsl.observation.seen
+- src.dsl.observation.v
+- src.dsl.observation.xs
 - src.dsl.parser-util.i
 - src.dsl.parser-util.kv
 - src.dsl.parser-util.lines
 - src.dsl.parser-util.list
 - src.dsl.parser-util.x
+- src.dsl.project.dev
+- src.dsl.project.parseProjectDsl
+- src.dsl.project.renderProjectDsl
+- src.dsl.project.xs
 - src.dsl.query.id
 - src.dsl.query.parseQueryDsl
 - src.dsl.query.renderQueryDsl
@@ -1344,6 +3026,34 @@ entry_points:
 - src.llm.openrouter.OpenRouterStructuredClient.started
 - src.llm.openrouter.OpenRouterStructuredClient.value
 - src.llm.openrouter.openRouterConfigFromEnv
+- src.project.wizard.absolute
+- src.project.wizard.absoluteConfig
+- src.project.wizard.addProjectSource
+- src.project.wizard.addProjectWebsite
+- src.project.wizard.base
+- src.project.wizard.createLivingProject
+- src.project.wizard.document
+- src.project.wizard.fixtureAvailable
+- src.project.wizard.here
+- src.project.wizard.id
+- src.project.wizard.managerIntent
+- src.project.wizard.normalized
+- src.project.wizard.ok
+- src.project.wizard.parsed
+- src.project.wizard.path
+- src.project.wizard.port
+- src.project.wizard.profile
+- src.project.wizard.projectDir
+- src.project.wizard.projectPath
+- src.project.wizard.providerOk
+- src.project.wizard.relativeCandidate
+- src.project.wizard.relativePath
+- src.project.wizard.root
+- src.project.wizard.source
+- src.project.wizard.sourcePath
+- src.project.wizard.t2cAvailable
+- src.project.wizard.vendor
+- src.project.wizard.verifyLivingProject
 - src.research.crawler.DqlCrawler.crawl
 - src.research.crawler.DqlCrawler.robots
 - src.research.crawler.assertPublic
@@ -1354,6 +3064,48 @@ entry_points:
 - src.research.researcher.runResearcherDemo
 - src.research.researcher.snapshot
 - src.research.researcher.source
+- src.runtime.autonomy.AUTHORITY_BINDINGS
+- src.runtime.autonomy.AUTHORITY_EXPRESSIONS
+- src.runtime.autonomy.acquireProjectLease
+- src.runtime.autonomy.actual
+- src.runtime.autonomy.allowedAssets
+- src.runtime.autonomy.allowedUris
+- src.runtime.autonomy.appendJsonLine
+- src.runtime.autonomy.authoritativeBindings
+- src.runtime.autonomy.blocking
+- src.runtime.autonomy.buildImprovementPlan
+- src.runtime.autonomy.code
+- src.runtime.autonomy.components
+- src.runtime.autonomy.count
+- src.runtime.autonomy.declaredFingerprint
+- src.runtime.autonomy.diagnostics
+- src.runtime.autonomy.directory
+- src.runtime.autonomy.expected
+- src.runtime.autonomy.expectedTwinUri
+- src.runtime.autonomy.extraBindings
+- src.runtime.autonomy.extraExpressions
+- src.runtime.autonomy.graphFingerprint
+- src.runtime.autonomy.graphObject
+- src.runtime.autonomy.handle
+- src.runtime.autonomy.ids
+- src.runtime.autonomy.item
+- src.runtime.autonomy.leaseDirectory
+- src.runtime.autonomy.leaseId
+- src.runtime.autonomy.mergeAuthorityMath
+- src.runtime.autonomy.mutationGrantPresent
+- src.runtime.autonomy.paths
+- src.runtime.autonomy.proposalBindings
+- src.runtime.autonomy.receipt
+- src.runtime.autonomy.recentIterationCount
+- src.runtime.autonomy.records
+- src.runtime.autonomy.relations
+- src.runtime.autonomy.stale
+- src.runtime.autonomy.status
+- src.runtime.autonomy.summarizeDevelopment
+- src.runtime.autonomy.threshold
+- src.runtime.autonomy.validateSceneGrounding
+- src.runtime.autonomy.validateTwinGrounding
+- src.runtime.autonomy.verified
 - src.runtime.biofoundry.BiofoundryRuntime.absoluteConfig
 - src.runtime.biofoundry.BiofoundryRuntime.allowed
 - src.runtime.biofoundry.BiofoundryRuntime.build
@@ -1373,6 +3125,160 @@ entry_points:
 - src.runtime.event-store.InMemoryEventStore.append
 - src.runtime.event-store.InMemoryEventStore.read
 - src.runtime.event-store.InMemoryEventStore.xs
+- src.runtime.isolated-worktree.add
+- src.runtime.isolated-worktree.child
+- src.runtime.isolated-worktree.createIsolatedWorkspace
+- src.runtime.isolated-worktree.fallback
+- src.runtime.isolated-worktree.inside
+- src.runtime.isolated-worktree.isGitToplevel
+- src.runtime.isolated-worktree.label
+- src.runtime.isolated-worktree.name
+- src.runtime.isolated-worktree.parent
+- src.runtime.isolated-worktree.readIsolationMarker
+- src.runtime.isolated-worktree.root
+- src.runtime.isolated-worktree.token
+- src.runtime.isolated-worktree.top
+- src.runtime.isolated-worktree.workPath
+- src.runtime.living-project.LivingProjectRuntime.absolute
+- src.runtime.living-project.LivingProjectRuntime.allowed
+- src.runtime.living-project.LivingProjectRuntime.authoritativeMath
+- src.runtime.living-project.LivingProjectRuntime.base
+- src.runtime.living-project.LivingProjectRuntime.candidate
+- src.runtime.living-project.LivingProjectRuntime.crawler
+- src.runtime.living-project.LivingProjectRuntime.current
+- src.runtime.living-project.LivingProjectRuntime.deterministicScene
+- src.runtime.living-project.LivingProjectRuntime.deterministicSceneForTwin
+- src.runtime.living-project.LivingProjectRuntime.deterministicTwin
+- src.runtime.living-project.LivingProjectRuntime.developmentEvidence
+- src.runtime.living-project.LivingProjectRuntime.developmentEvidenceUri
+- src.runtime.living-project.LivingProjectRuntime.developmentFingerprint
+- src.runtime.living-project.LivingProjectRuntime.developmentOut
+- src.runtime.living-project.LivingProjectRuntime.developmentRoot
+- src.runtime.living-project.LivingProjectRuntime.diff
+- src.runtime.living-project.LivingProjectRuntime.errorCode
+- src.runtime.living-project.LivingProjectRuntime.feedbackPath
+- src.runtime.living-project.LivingProjectRuntime.feedbackUri
+- src.runtime.living-project.LivingProjectRuntime.grantPresent
+- src.runtime.living-project.LivingProjectRuntime.idempotencyKey
+- src.runtime.living-project.LivingProjectRuntime.improvement
+- src.runtime.living-project.LivingProjectRuntime.improvementUri
+- src.runtime.living-project.LivingProjectRuntime.intentUri
+- src.runtime.living-project.LivingProjectRuntime.iterationId
+- src.runtime.living-project.LivingProjectRuntime.iterationUri
+- src.runtime.living-project.LivingProjectRuntime.iterationsLastHour
+- src.runtime.living-project.LivingProjectRuntime.lease
+- src.runtime.living-project.LivingProjectRuntime.math
+- src.runtime.living-project.LivingProjectRuntime.mathGeneration
+- src.runtime.living-project.LivingProjectRuntime.mathUri
+- src.runtime.living-project.LivingProjectRuntime.mergedMath
+- src.runtime.living-project.LivingProjectRuntime.message
+- src.runtime.living-project.LivingProjectRuntime.observation
+- src.runtime.living-project.LivingProjectRuntime.observationHash
+- src.runtime.living-project.LivingProjectRuntime.observationUri
+- src.runtime.living-project.LivingProjectRuntime.plan
+- src.runtime.living-project.LivingProjectRuntime.previous
+- src.runtime.living-project.LivingProjectRuntime.previousResources
+- src.runtime.living-project.LivingProjectRuntime.project
+- src.runtime.living-project.LivingProjectRuntime.projectConfigHash
+- src.runtime.living-project.LivingProjectRuntime.publish
+- src.runtime.living-project.LivingProjectRuntime.rateLimitAvailable
+- src.runtime.living-project.LivingProjectRuntime.recordFailure
+- src.runtime.living-project.LivingProjectRuntime.researchHash
+- src.runtime.living-project.LivingProjectRuntime.researchPresent
+- src.runtime.living-project.LivingProjectRuntime.resources
+- src.runtime.living-project.LivingProjectRuntime.runtimePresent
+- src.runtime.living-project.LivingProjectRuntime.scanned
+- src.runtime.living-project.LivingProjectRuntime.scene
+- src.runtime.living-project.LivingProjectRuntime.sceneGeneration
+- src.runtime.living-project.LivingProjectRuntime.sceneUri
+- src.runtime.living-project.LivingProjectRuntime.stableKey
+- src.runtime.living-project.LivingProjectRuntime.startedAt
+- src.runtime.living-project.LivingProjectRuntime.text
+- src.runtime.living-project.LivingProjectRuntime.traceId
+- src.runtime.living-project.LivingProjectRuntime.tree
+- src.runtime.living-project.LivingProjectRuntime.treeUri
+- src.runtime.living-project.LivingProjectRuntime.twin
+- src.runtime.living-project.LivingProjectRuntime.twinGeneration
+- src.runtime.living-project.LivingProjectRuntime.twinUri
+- src.runtime.living-project.LivingProjectRuntime.web
+- src.runtime.living-project.byRole
+- src.runtime.living-project.developmentAccepted
+- src.runtime.living-project.developmentPresent
+- src.runtime.living-project.fenced
+- src.runtime.living-project.index
+- src.runtime.living-project.managerUris
+- src.runtime.living-project.newMap
+- src.runtime.living-project.observedAt
+- src.runtime.living-project.oldMap
+- src.runtime.living-project.rawText
+- src.runtime.living-project.readOptional
+- src.runtime.living-project.relative
+- src.runtime.living-project.researchPresent
+- src.runtime.living-project.researchUris
+- src.runtime.living-project.role
+- src.runtime.living-project.roles
+- src.runtime.living-project.row
+- src.runtime.living-project.runtimePresent
+- src.runtime.living-project.runtimeUris
+- src.runtime.living-project.subjectUri
+- src.runtime.living-project.text
+- src.runtime.living-project.twinUri
+- src.runtime.living-watcher.LivingProjectWatcher.failure
+- src.runtime.living-watcher.LivingProjectWatcher.failureExponent
+- src.runtime.living-watcher.LivingProjectWatcher.maxRetryMs
+- src.runtime.living-watcher.LivingProjectWatcher.project
+- src.runtime.living-watcher.LivingProjectWatcher.result
+- src.runtime.living-watcher.LivingProjectWatcher.retryAfterMs
+- src.runtime.mutation-grant.CLOCK_SKEW_SECONDS
+- src.runtime.mutation-grant.DEFAULT_TTL_SECONDS
+- src.runtime.mutation-grant.MAX_TTL_SECONDS
+- src.runtime.mutation-grant.b64urlJson
+- src.runtime.mutation-grant.claims
+- src.runtime.mutation-grant.consumeMutationGrantJti
+- src.runtime.mutation-grant.data
+- src.runtime.mutation-grant.env
+- src.runtime.mutation-grant.expMs
+- src.runtime.mutation-grant.handle
+- src.runtime.mutation-grant.header
+- src.runtime.mutation-grant.iatMs
+- src.runtime.mutation-grant.issueMutationGrant
+- src.runtime.mutation-grant.loadAndVerifyMutationGrant
+- src.runtime.mutation-grant.next
+- src.runtime.mutation-grant.now
+- src.runtime.mutation-grant.parseB64urlJson
+- src.runtime.mutation-grant.parts
+- src.runtime.mutation-grant.path
+- src.runtime.mutation-grant.primary
+- src.runtime.mutation-grant.raw
+- src.runtime.mutation-grant.resolveMutationGrantSecrets
+- src.runtime.mutation-grant.risk
+- src.runtime.mutation-grant.safeEqualBuf
+- src.runtime.mutation-grant.secrets
+- src.runtime.mutation-grant.sig
+- src.runtime.mutation-grant.signHs256
+- src.runtime.mutation-grant.signingPayload
+- src.runtime.mutation-grant.ttl
+- src.runtime.mutation-grant.verified
+- src.runtime.mutation-grant.writeMutationGrant
+- src.runtime.mutation-pipeline.adapter
+- src.runtime.mutation-pipeline.applyCodeMutation
+- src.runtime.mutation-pipeline.applyId
+- src.runtime.mutation-pipeline.completedAt
+- src.runtime.mutation-pipeline.consumed
+- src.runtime.mutation-pipeline.data
+- src.runtime.mutation-pipeline.grantResult
+- src.runtime.mutation-pipeline.jtiDir
+- src.runtime.mutation-pipeline.message
+- src.runtime.mutation-pipeline.outDir
+- src.runtime.mutation-pipeline.patchOut
+- src.runtime.mutation-pipeline.plan
+- src.runtime.mutation-pipeline.planFile
+- src.runtime.mutation-pipeline.planHash
+- src.runtime.mutation-pipeline.proposalId
+- src.runtime.mutation-pipeline.proposeCodeMutation
+- src.runtime.mutation-pipeline.receiptPath
+- src.runtime.mutation-pipeline.startedAt
+- src.runtime.mutation-pipeline.workspace
 - src.runtime.pipeline.runDemo
 - src.runtime.query-runtime.QueryRuntime.evidence
 - src.runtime.query-runtime.QueryRuntime.execute
@@ -1380,6 +3286,14 @@ entry_points:
 - src.runtime.query-runtime.QueryRuntime.term
 - src.runtime.realtime-watcher.RealtimeTwinWatcher.start
 - src.runtime.realtime-watcher.RealtimeTwinWatcher.stop
+- src.runtime.service-check.checkExternalServices
+- src.runtime.service-check.clickhouseUrl
+- src.runtime.service-check.doclingUrl
+- src.runtime.service-check.parsed
+- src.runtime.service-check.response
+- src.runtime.service-check.result
+- src.runtime.service-check.started
+- src.runtime.service-check.timeoutMs
 - src.scene.openusd.components
 - src.scene.openusd.renderOpenUsd
 - src.scene.openusd.sceneDiff

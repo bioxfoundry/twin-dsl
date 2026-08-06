@@ -46,6 +46,12 @@ import {
   validateSceneGrounding,
   validateTwinGrounding,
 } from "./autonomy.js";
+import {
+  biofoundryConceptScene,
+  biofoundryConceptTree,
+  biofoundryConceptTwin,
+  biofoundryReadinessBindings,
+} from "./biofoundry-concept.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
@@ -64,6 +70,7 @@ function resourceDiff(previous:ResourceRecord[],current:ResourceRecord[]):Resour
   };
 }
 function groupTree(project:LivingProjectDocument,resources:ResourceRecord[]):TreeDocument {
+  if(project.profile === "biofoundry") return biofoundryConceptTree(project,resources);
   const byRole = new Map<SourceRole,TreeNode>();
   for(const resource of resources) {
     const role = resource.sourceRole??"project";
@@ -120,6 +127,7 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
   const developmentPresent = development.source !== "missing" && development.recordCount > 0;
   const developmentAccepted = development.acceptance === "accepted";
   const runtimePresent = observations.observations.length > 0;
+  const readiness = project.profile === "biofoundry" ? biofoundryReadinessBindings(resources) : {bindings:[],expressions:{}};
   return {
     schema:"subactor.math/v1",
     id:`${project.id}-iteration-gates`,
@@ -140,6 +148,7 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
       {name:"SignedMutationGrantPresent",value:grantPresent,sourceUris:managerUris},
       {name:"RateLimitAvailable",value:rateLimitAvailable,sourceUris:managerUris},
       {name:"SourceRoleCount",value:roles.size,unit:"count",sourceUris:resources.map(resource=>resource.uri)},
+      ...readiness.bindings,
     ],
     expressions:{
       ResearchGate:{kind:"or",args:[{kind:"not",arg:{kind:"ref",name:"RequireResearch"}},{kind:"ref",name:"ResearchEvidencePresent"}]},
@@ -152,15 +161,17 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
       IterationAllowed:{kind:"and",args:[{kind:"ref",name:"ManagerApproved"},{kind:"ref",name:"RateLimitAvailable"},{kind:"ref",name:"ResearchGate"},{kind:"ref",name:"DevelopmentGate"},{kind:"ref",name:"RuntimeGate"}]},
       ScenePublishAllowed:{kind:"and",args:[{kind:"ref",name:"IterationAllowed"},{kind:"ref",name:"AutoPublishScene"}]},
       RuntimeSelfModificationAllowed:{kind:"and",args:[{kind:"ref",name:"IterationAllowed"},{kind:"ref",name:"AllowRuntimeSelfModification"},{kind:"ref",name:"AutonomyModeApply"},{kind:"ref",name:"MutationGrantGate"},{kind:"ref",name:"DevelopmentAccepted"}]},
+      ...readiness.expressions,
     },
   };
 }
 function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[],observations:ObservationDocument,snapshot:string,development:DevelopmentEvidenceSummary):TwinDocument {
+  if(project.profile === "biofoundry") return biofoundryConceptTwin(project,resources,observations,snapshot,development);
   const roles = [...new Set(resources.map(resource=>resource.sourceRole??"project"))];
   return {
     schema:"subactor.twin/v1",
     id:`${project.id}-twin`,
-    kind:project.profile === "biofoundry" ? "physical" : "conceptual",
+    kind:"conceptual",
     observedAt:new Date().toISOString(),
     sourceSnapshotHash:snapshot,
     components:[
@@ -171,6 +182,7 @@ function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[]
   };
 }
 function conceptualScene(project:LivingProjectDocument,twin:TwinDocument):SceneDocument {
+  if(project.profile === "biofoundry") return biofoundryConceptScene(project,twin);
   const twinUri = contentUri("twin",twin);
   return {
     schema:"subactor.scene/v1",

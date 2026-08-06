@@ -1,52 +1,52 @@
-# twin-dsl | 191 func | 31f | 1560L | json | 2026-08-06
+# twin-dsl | 556 func | 46f | 5544L | json | 2026-08-06
 # generated in 0.00s
 
 HEALTH:
-  CC̄=4.6  critical=28 (limit:10)  dup=0  cycles=0
+  CC̄=4.1  critical=53 (limit:10)  dup=0  cycles=0
 
 ALERTS[20]:
+  !!! cc_exceeded      main = 58 (limit:15)
+  !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 57 (limit:15)
+  !!! high_fan_out     main = 55 (limit:10)
+  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 55 (limit:10)
+  !!! cc_exceeded      validateProject = 47 (limit:15)
+  !!! cc_exceeded      parseProjectDsl = 46 (limit:15)
   !!! high_fan_out     BiofoundryRuntime.build = 38 (limit:10)
+  !!! cc_exceeded      validateImprovement = 29 (limit:15)
   !!! high_fan_out     runResearcherDemo = 29 (limit:10)
-  !!! high_fan_out     main = 27 (limit:10)
-  !!! high_fan_out     DqlCrawler.crawl = 26 (limit:10)
-  !!! cc_exceeded      DqlCrawler.crawl = 25 (limit:15)
-  !!! cc_exceeded      renderOpenUsd = 25 (limit:15)
-  !!! cc_exceeded      components = 25 (limit:15)
-  !!! high_fan_out     runDemo = 24 (limit:10)
-  !!! high_fan_out     scanSources = 21 (limit:10)
-  !!  cc_exceeded      parseDql = 22 (limit:15)
+  !!! cc_exceeded      validateObservation = 28 (limit:15)
 
-MODULES[79] (top by size):
-  M[src/core/types.ts] 219L C:23 F:0 CC↑0 D:0 (typescript)
-  M[src/llm/openrouter.ts] 77L C:3 F:18 CC↑19 D:0 (typescript)
-  M[src/runtime/biofoundry.ts] 73L C:6 F:23 CC↑20 D:0 (typescript)
-  M[schemas/twin-build-receipt.schema.json] 66L C:0 F:0 CC↑0 D:0 (json)
-  M[src/dsl/query.ts] 61L C:0 F:5 CC↑13 D:0 (typescript)
-  M[project.sh] 60L C:0 F:0 CC↑0 D:0 (shell)
-  M[src/dsl/math.ts] 53L C:0 F:17 CC↑18 D:0 (typescript)
-  M[examples/biofoundry/biofoundry.config.json] 48L C:0 F:0 CC↑0 D:0 (json)
-  M[src/research/crawler.ts] 47L C:3 F:18 CC↑25 D:0 (typescript)
-  M[src/llm/nl-dsl-compiler.ts] 42L C:2 F:6 CC↑18 D:0 (typescript)
-  M[src/dsl/dql.ts] 41L C:0 F:4 CC↑22 D:0 (typescript)
-  M[src/dsl/tree.ts] 41L C:0 F:7 CC↑8 D:0 (typescript)
-  M[src/llm/dsl-schemas.ts] 38L C:0 F:9 CC↑11 D:0 (typescript)
-  M[PACKAGE_MANIFEST.json] 35L C:0 F:0 CC↑0 D:0 (json)
-  M[src/cli/main.ts] 29L C:0 F:4 CC↑16 D:0 (typescript)
-  LANGS: json:30/typescript:29/proto:7/javascript:3/other:2/yaml:2/xml:2/shell:2/python:1/yml:1
+MODULES[119] (top by size):
+  M[src/runtime/living-project.ts] 458L C:1 F:100 CC↑57 D:0 (typescript)
+  M[src/core/types.ts] 423L C:34 F:0 CC↑0 D:0 (typescript)
+  M[src/project/wizard.ts] 351L C:1 F:37 CC↑10 D:0 (typescript)
+  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:0 (typescript)
+  M[src/runtime/mutation-pipeline.ts] 308L C:2 F:23 CC↑15 D:0 (typescript)
+  M[src/runtime/autonomy.ts] 233L C:2 F:49 CC↑20 D:0 (typescript)
+  M[schemas/project.schema.json] 172L C:0 F:0 CC↑0 D:0 (json)
+  M[src/adapters/twin-probes.ts] 149L C:5 F:19 CC↑15 D:0 (typescript)
+  M[verification/dist-smoke.txt] 146L C:0 F:0 CC↑0 D:0 (txt)
+  M[src/adapters/todo2code.ts] 122L C:3 F:22 CC↑19 D:0 (typescript)
+  M[schemas/living-iteration.schema.json] 121L C:0 F:0 CC↑0 D:0 (json)
+  M[src/runtime/isolated-worktree.ts] 116L C:1 F:15 CC↑5 D:0 (typescript)
+  M[schemas/dsl-generation-result.schema.json] 97L C:0 F:0 CC↑0 D:0 (json)
+  M[schemas/improvement.schema.json] 96L C:0 F:0 CC↑0 D:0 (json)
+  M[prefact.yaml] 94L C:0 F:0 CC↑0 D:0 (yaml)
+  LANGS: json:44/typescript:41/proto:12/javascript:7/yaml:4/other:3/xml:2/shell:2/txt:2/python:1/yml:1
 
 HOTSPOTS[10]:
+  ★ main fan=55  // Orchestrates 55 calls
+  ★ LivingProjectRuntime.iterateWithLease fan=55  // Orchestrates 55 calls
   ★ BiofoundryRuntime.build fan=38  // Orchestrates 38 calls
   ★ runResearcherDemo fan=29  // Orchestrates 29 calls
-  ★ main fan=27  // Orchestrates 27 calls
   ★ DqlCrawler.crawl fan=26  // Orchestrates 26 calls
-  ★ runDemo fan=24  // Orchestrates 24 calls
 
 REFACTOR[15]:
   [1] H/L Split DqlCrawler.crawl (CC=25)
-  [2] H/L Split renderOpenUsd (CC=25)
-  [3] H/L Split components (CC=25)
-  [4] M/L Split main (CC=16)
-  [5] M/L Split privateIp (CC=15)
+  [2] H/L Split main (CC=58)
+  [3] H/L Split validateImprovement (CC=29)
+  [4] H/L Split parseObservationDsl (CC=25)
+  [5] H/L Split validateObservation (CC=28)
 
 EVOLUTION:
-  2026-08-06 CC̄=4.6 crit=28 1560L // Automated analysis
+  2026-08-06 CC̄=4.1 crit=53 5544L // Automated analysis

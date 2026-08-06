@@ -1,5 +1,7 @@
 # Subactor Digital Twin Runtime Starter 0.5.0
 
+![img.png](img.png)
+
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
 ```text
@@ -189,6 +191,12 @@ POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
 POLICY_AUTONOMY_MODE propose
 POLICY_REQUIRE_SIGNED_MUTATION_GRANT true
 ```
+
+## Historia zdarzeń (plan / wykonanie / autonomia)
+
+Pełny rejestr tego, co zaplanowano i wykonano w sesji operacyjnej oraz co działa dalej w pętli autonomicznej:
+
+- [`docs/EVENT_HISTORY_AUTONOMY.md`](docs/EVENT_HISTORY_AUTONOMY.md)
 
 ## Mutacja kodu (0.5.0)
 

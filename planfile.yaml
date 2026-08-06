@@ -82,3 +82,68 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-6c18b3f3
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bd7400cb
+    name: Fix ast-missing-return-type issues
+    description: Resolve 2 ast-missing-return-type issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-missing-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5c4314df
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0f970abe
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4893092b
+    name: Fix import-optimization issues
+    description: Resolve 4 import-optimization issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: import-optimization
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
