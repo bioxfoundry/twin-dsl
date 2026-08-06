@@ -1,0 +1,3 @@
+YAML_OK docker-compose.yml
+YAML_OK .github/workflows/ci.yml
+YAML_OK .github/workflows/release.yml

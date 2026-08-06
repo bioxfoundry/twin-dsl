@@ -1,72 +1,30 @@
 {
   "schema": "subactor.package-manifest/v1",
   "name": "@subactor/digital-twin-runtime-starter",
-  "version": "0.3.0",
-  "created_at": "2026-08-06T21:21:00+02:00",
-  "purpose": "Validated continuous Digital Twin loop from research sources through development evidence and runtime observations to typed Twin and scene artifacts.",
-  "canonical_integrations": {
-    "intent_dsl": "semcod/todo2code t2c.intent/v1 through local CLI adapter",
-    "llm": "OpenRouter chat completions with strict structured outputs",
-    "search": "ClickHouse HTTP projection with deterministic memory fallback",
-    "document_conversion": "Docling HTTP adapter with deterministic text fallback",
-    "web_research": "DQL sitemap/context crawler",
-    "scene": "OpenUSD ASCII projection",
-    "authority": "Subactor AQL/OQL/URI Process boundary"
+  "version": "0.4.0",
+  "created": "2026-08-06",
+  "fileCountBeforeManifest": 323,
+  "entrypoints": {
+    "cli": "dist/src/cli/main.js",
+    "readme": "README.md",
+    "verification": "VERIFICATION.md",
+    "compose": "docker-compose.yml"
   },
-  "dsl_kinds": [
-    "intent",
-    "resource",
-    "query",
-    "dql",
-    "tree",
-    "math",
-    "twin",
-    "scene",
-    "project",
-    "observation"
-  ],
-  "continuous_loop": [
-    "research",
-    "development",
-    "runtime_observation",
-    "math_gate",
-    "twin_projection",
-    "scene_projection",
-    "feedback"
-  ],
-  "project_wizard": {
-    "isolated_compose": true,
-    "clickhouse": true,
-    "docling": true,
-    "runtime_watcher": true,
-    "github_actions_ci": true,
-    "github_actions_release": true,
-    "default_runtime_self_modification": false
+  "verified": {
+    "typescriptStrict": true,
+    "protobufFiles": 12,
+    "nodeTests": "17/17",
+    "dslKinds": 11,
+    "examples": 7,
+    "distributionWithoutNodeModules": true,
+    "dockerDaemonExecuted": false,
+    "liveOpenRouterExecuted": false,
+    "githubPushed": false
   },
-  "verification": {
-    "typescript_strict": "pass",
-    "proto_contracts": 10,
-    "compose_contract": "pass",
-    "tests": {
-      "passed": 11,
-      "failed": 0
-    },
-    "nl_to_dsl_fixtures": 10,
-    "distributable_smoke_without_node_modules": "pass",
-    "openrouter_structured_output_mock": "pass",
-    "todo2code_executable_contract_adapter": "pass",
-    "docker_compose_yaml": "pass",
-    "github_actions_yaml": "pass",
-    "openrouter_live_call": false,
-    "real_todo2code_checkout_pipeline": false,
-    "docker_images_built_or_started": false,
-    "live_internet_crawl": false,
-    "external_cad_bim_validation": false
-  },
-  "evidence": [
-    "VERIFICATION.md",
-    "verification/verify-0.3.0.log",
-    "verification/distributable-smoke-0.3.0.log",
-    "CHECKSUMS.sha256"
+  "excluded": [
+    "node_modules",
+    "temporary run directories",
+    "private .env",
+    "secrets"
   ]
 }

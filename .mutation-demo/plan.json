@@ -1,0 +1,11 @@
+{
+  "schema": "t2c.code-change-plan/v1",
+  "id": "plan-demo",
+  "planHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "target": {
+    "paths": [
+      "index.ts"
+    ]
+  },
+  "status": "proposed"
+}

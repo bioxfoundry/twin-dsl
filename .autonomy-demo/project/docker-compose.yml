@@ -1,0 +1,61 @@
+name: ${COMPOSE_PROJECT_NAME:-autonomy-example}
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3
+    restart: unless-stopped
+    ports:
+      - "${CLICKHOUSE_HTTP_PORT:-19540}:8123"
+      - "${CLICKHOUSE_NATIVE_PORT:-19541}:9000"
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./vendor/runtime/deploy/clickhouse/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8123/ping | grep -q Ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  docling:
+    build: ./vendor/runtime/deploy/docling
+    restart: unless-stopped
+    ports:
+      - "${DOCLING_PORT:-19542}:5001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5001/health')"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+
+  runtime:
+    build: ./vendor/runtime
+    restart: unless-stopped
+    working_dir: /project
+    command: ["project-watch", "/project/project.projectdsl", "/project/.living-runtime", "${DT_LLM_MODE:-prefer-llm}"]
+    environment:
+      CLICKHOUSE_URL: http://clickhouse:8123
+      DOCLING_URL: http://docling:5001
+      DT_SEARCH_BACKEND: clickhouse
+      DT_WATCH_INTERVAL_MS: ${DT_WATCH_INTERVAL_MS:-5000}
+      DT_WATCH_MAX_RETRY_MS: ${DT_WATCH_MAX_RETRY_MS:-60000}
+      DT_LEASE_STALE_MS: ${DT_LEASE_STALE_MS:-300000}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-mistralai/codestral-2508}
+      OPENROUTER_DATA_COLLECTION: ${OPENROUTER_DATA_COLLECTION:-deny}
+      T2C_ROOT: /todo2code
+      T2C_BIN: /todo2code/dist/src/cli.js
+    volumes:
+      - ./:/project
+      - ${T2C_HOST_ROOT:-./vendor/todo2code}:/todo2code:ro
+    depends_on:
+      clickhouse:
+        condition: service_healthy
+      docling:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "/opt/runtime/dist/src/cli/main.js", "project-verify", "/project/project.projectdsl"]
+      interval: 30s
+      timeout: 20s
+      retries: 5
+
+volumes:
+  clickhouse-data:

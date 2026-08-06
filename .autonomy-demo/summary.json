@@ -1,0 +1,30 @@
+{
+  "baseline": {
+    "ok": true,
+    "iterationUri": "urn:subactor:iteration:sha256:86f43f4b33fa9ca82a09f85228f6152259509becbf031b26db06eabd58b45b03"
+  },
+  "blocked": {
+    "ok": false,
+    "development": {
+      "name": "development",
+      "status": "blocked",
+      "artifactUris": [
+        "urn:subactor:intent:sha256:aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004",
+        "urn:subactor:development-evidence:sha256:17922c3062ee5dd11f1fcaddffb2bf20b1e5c4db41f8076596e67c5060e5f6fc"
+      ],
+      "reason": "development review_required"
+    },
+    "improvementUri": "urn:subactor:improvement:sha256:2c19fed73a432dc4b5d913dbef4b46dc6bdf88c1f53847014b7f19b91b982a0a"
+  },
+  "authority": {
+    "iterationAllowed": false,
+    "warnings": [
+      "LLM_AUTHORITY_BINDING_IGNORED:ManagerApproved",
+      "LLM_AUTHORITY_EXPRESSION_IGNORED:IterationAllowed"
+    ]
+  },
+  "failure": {
+    "errorCode": "EXAMPLE_CONNECTOR_FAILURE",
+    "retryAfterMs": 1000
+  }
+}

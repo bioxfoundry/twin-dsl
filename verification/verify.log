@@ -1,0 +1,324 @@
+
+> @subactor/digital-twin-runtime-starter@0.2.0 verify
+> npm run check && npm run proto:check && npm test && npm run demo && npm run demo:nl-dsl && npm run demo:research && npm run demo:biofoundry && npm run demo:realtime
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 check
+> tsc -p tsconfig.json --noEmit
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 proto:check
+> node scripts/check-proto-contracts.mjs
+
+{"ok":true,"files":7}
+
+> @subactor/digital-twin-runtime-starter@0.2.0 test
+> npm run build && node --test dist/test/*.test.js
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+TAP version 13
+# Subtest: Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+ok 1 - Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+  ---
+  duration_ms: 184.710618
+  type: 'test'
+  ...
+# Subtest: DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+ok 2 - DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+  ---
+  duration_ms: 26.112208
+  type: 'test'
+  ...
+# Subtest: query DSL binds process, snapshot and result
+ok 3 - query DSL binds process, snapshot and result
+  ---
+  duration_ms: 12.096508
+  type: 'test'
+  ...
+# Subtest: tree DSL preserves hierarchy
+ok 4 - tree DSL preserves hierarchy
+  ---
+  duration_ms: 1.269342
+  type: 'test'
+  ...
+# Subtest: math DSL evaluates hard gate
+ok 5 - math DSL evaluates hard gate
+  ---
+  duration_ms: 1.047068
+  type: 'test'
+  ...
+# Subtest: deterministic fixtures validate NL -> every DSL boundary
+ok 6 - deterministic fixtures validate NL -> every DSL boundary
+  ---
+  duration_ms: 35.656628
+  type: 'test'
+  ...
+# Subtest: OpenRouter NL -> mathDSL uses strict structured output
+ok 7 - OpenRouter NL -> mathDSL uses strict structured output
+  ---
+  duration_ms: 34.759414
+  type: 'test'
+  ...
+# Subtest: full offline pipeline
+ok 8 - full offline pipeline
+  ---
+  duration_ms: 24.279934
+  type: 'test'
+  ...
+1..8
+# tests 8
+# suites 0
+# pass 8
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 265.50344
+
+> @subactor/digital-twin-runtime-starter@0.2.0 demo
+> npm run build && node dist/src/cli/main.js demo examples .dt-run
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+{
+  "resources": 3,
+  "snapshot": "2b3319ef3e60243c4885af7c519d65d72d9ee9749c8a2534568c38ff07025569",
+  "query": "q-autonomy-readiness",
+  "resultUri": "urn:subactor:query-result:sha256:779a06c70158d56bbcb08bd11748d132bc28b468cf334b33c644b629e4be80c7",
+  "validated": true,
+  "executable": true
+}
+
+> @subactor/digital-twin-runtime-starter@0.2.0 demo:nl-dsl
+> npm run build && node scripts/run-nl-dsl-examples.mjs
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+[
+  {
+    "kind": "intent",
+    "hash": "f0599e0b76745f5b93633150f3d1f91a74abbaddd0475ab9112454a56071b3f8",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "resource",
+    "hash": "58a00ceff1ea629cc092cde91706207f3f68914e17dd262e6b69e9faeba3c70a",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "query",
+    "hash": "7f435a160a4f21a18f2697f84dc1290be5a383a541099ef8fa510be7640a093f",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "dql",
+    "hash": "690d0671c44586f9548609781e6d1882e3ea33ff70a0a4df22e8e74121b20b45",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "tree",
+    "hash": "d7f1958a8440b198862fd373c705ef4a04c3bdee948d6758ce169e5a480bb9e4",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "math",
+    "hash": "39da813fd81cdc8b87061e760c1e40732f4c4aeb078a303e3ef01737e39e9fb8",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "twin",
+    "hash": "2f068508ad75be8f99111cea0accefe4d1066d1c0ed9dc98a251103a0ca3f930",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "scene",
+    "hash": "aa27e1dcdede33e876d5e2fe9debf3fbdb2c4f09c46e60f8c2ce54cb0260ec78",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  }
+]
+
+> @subactor/digital-twin-runtime-starter@0.2.0 demo:research
+> npm run build && rm -rf .research-run && node dist/src/cli/main.js researcher-demo examples/researcher .research-run
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+{
+  "searchBackend": "memory",
+  "localResources": 2,
+  "webPages": 2,
+  "archiveWarnings": [],
+  "webWarnings": [],
+  "sourceSnapshotHash": "85184674f56f8fedfce44bc30a2408900cca8b6da51d75e47e7ca363c86a521b",
+  "resultUri": "urn:subactor:query-result:sha256:771584e68a8578458a19b62b5ec561604825dd05ba689638ffb1afea942f3cad",
+  "validated": true,
+  "evidenceReady": true
+}
+
+> @subactor/digital-twin-runtime-starter@0.2.0 demo:biofoundry
+> npm run build && rm -rf .biofoundry-run && node dist/src/cli/main.js biofoundry-build examples/biofoundry/biofoundry.config.json .biofoundry-run deterministic
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+{
+  "schema": "subactor.twin-build-receipt/v1",
+  "runId": "80825759-ab59-4242-9861-0752d92c2333",
+  "sourceSnapshotHash": "2e04052e2af4b0cd4d13cd5c112a0b59a1e6acb7e4af2dd1f75bcd92764289c3",
+  "previousSnapshotHash": null,
+  "diff": {
+    "added": [
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/manager-guidelines/README.md",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/manager-guidelines/manager-policy.json",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/customer-docs/customer-requirements.md",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/customer-docs/equipment-spec.json",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/project-data/current-state.json",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/project-data/operations-log.md",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/archives/legacy-records.zip!/legacy/calibration.md",
+      "/mnt/data/digital-twin-runtime-starter-0.2.0/examples/biofoundry/archives/legacy-records.zip!/legacy/layout-notes.txt",
+      "https://biofoundry.example.test/docs/operational-twin"
+    ],
+    "changed": [],
+    "removed": [],
+    "unchanged": []
+  },
+  "treeUri": "urn:subactor:tree:sha256:0618e992cc30e7f0d9ce4863f69436d471f5ee4d525782b950d7406e1685db32",
+  "mathUri": "urn:subactor:math:sha256:b5cae3cc822a7601cdc906319834d5328ed171ab4af8d4192f5c62b1875b1051",
+  "twinUri": "urn:subactor:twin:sha256:71b31aa08a7150bb609c35c63a77ee2087909073a58b48f79bff24a8865211c2",
+  "sceneUri": "urn:subactor:scene:sha256:eb74e5f0047cd2883197cefa3b65e0145b39ef281bf98f8a5ed97ab3a8d15e99",
+  "validation": {
+    "ok": true,
+    "checks": [
+      "manager-approved",
+      "customer-documentation-present",
+      "project-state-present",
+      "capacity-within-limit"
+    ],
+    "failures": []
+  },
+  "generatedAt": "2026-08-06T18:54:52.044Z"
+}
+
+> @subactor/digital-twin-runtime-starter@0.2.0 demo:realtime
+> npm run build && node scripts/demo-realtime-biofoundry.mjs
+
+
+> @subactor/digital-twin-runtime-starter@0.2.0 build
+> tsc -p tsconfig.json
+
+{
+  "baseline": {
+    "sceneUri": "urn:subactor:scene:sha256:b904daf41d3db2ffd4fec6426ed2d0d47b6156b763f0f7f528bb8e9ff4e36a8f",
+    "ok": true
+  },
+  "updated": {
+    "sceneUri": "urn:subactor:scene:sha256:d9cac1f9eda150d67dc314b19c469e5deda7d7b69bba868f587ec1da9d0bbb60",
+    "ok": true,
+    "diff": {
+      "added": [],
+      "changed": [
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/project-data/current-state.json"
+      ],
+      "removed": [],
+      "unchanged": [
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/manager-guidelines/README.md",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/manager-guidelines/manager-policy.json",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/customer-docs/customer-requirements.md",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/customer-docs/equipment-spec.json",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/project-data/operations-log.md",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/archives/legacy-records.zip!/legacy/calibration.md",
+        "/tmp/biofoundry-demo-Sy6O3S/fixture/archives/legacy-records.zip!/legacy/layout-notes.txt",
+        "https://biofoundry.example.test/docs/operational-twin"
+      ]
+    }
+  },
+  "blocked": {
+    "sceneUri": "urn:subactor:scene:sha256:175e97458f9d29094c3e17f8f7954e272cfd7aff54eddc54af4d93c028cd2a53",
+    "ok": false,
+    "failures": [
+      "SceneRebuildAllowed=false"
+    ]
+  },
+  "currentScenePreservedAfterBlocked": true
+}

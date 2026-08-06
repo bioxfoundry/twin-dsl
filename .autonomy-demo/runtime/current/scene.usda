@@ -1,0 +1,114 @@
+#usda 1.0
+(
+    defaultPrim = "LivingProject"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "LivingProject" {
+    def Xform "manager_knowledge" {
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=manager-knowledge"
+        custom string subactor:componentId = "manager-knowledge"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+        custom string subactor:role = "manager"
+        custom double subactor:index = 0
+        custom double subactor:resourceCount = 1
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "customer_knowledge" {
+        double3 xformOp:translate = (3, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=customer-knowledge"
+        custom string subactor:componentId = "customer-knowledge"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7"
+        custom string subactor:role = "customer"
+        custom double subactor:index = 1
+        custom double subactor:resourceCount = 1
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "project_knowledge" {
+        double3 xformOp:translate = (6, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=project-knowledge"
+        custom string subactor:componentId = "project-knowledge"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"
+        custom string subactor:role = "project"
+        custom double subactor:index = 2
+        custom double subactor:resourceCount = 1
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "development_knowledge" {
+        double3 xformOp:translate = (9, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=development-knowledge"
+        custom string subactor:componentId = "development-knowledge"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759,urn:subactor:resource:sha256:537043bcc90c9aa7969876ee906604872475647b3f8fc55064794f3fd98f1924,urn:subactor:resource:sha256:0ba64e33e87ecbaa126af75b68fa11da8c29d9ee8c35890936d7c9cf886af7e3,urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294,urn:subactor:resource:sha256:dc4c645de2ace1eed37c22d76481467669f195f9f705b133e6ef2a1df846028b"
+        custom string subactor:role = "development"
+        custom double subactor:index = 3
+        custom double subactor:resourceCount = 5
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "runtime_knowledge" {
+        double3 xformOp:translate = (0, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=runtime-knowledge"
+        custom string subactor:componentId = "runtime-knowledge"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:d47115bd8f7b695a7d70024e7423a898c10ba77d7e7b4018e719cd929ba33a5e,urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+        custom string subactor:role = "runtime"
+        custom double subactor:index = 4
+        custom double subactor:resourceCount = 2
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "development_model" {
+        double3 xformOp:translate = (3, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=development-model"
+        custom string subactor:componentId = "development-model"
+        custom string subactor:sourceUris = "urn:subactor:intent:sha256:aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004"
+        custom string subactor:fingerprint = "aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004"
+        custom string subactor:acceptance = "accepted"
+        custom double subactor:recordCount = 2
+        custom double subactor:blockingDiagnosticCount = 0
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+    def Xform "runtime_observations" {
+        double3 xformOp:translate = (6, 3, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate"]
+        custom string subactor:twinUri = "urn:subactor:twin:sha256:9abdeb16641ddfd57731820ce59d1d0b7550b3edd3c58ad449f2fcd9c0f9d485#component=runtime-observations"
+        custom string subactor:componentId = "runtime-observations"
+        custom string subactor:sourceUris = "urn:subactor:resource:sha256:d47115bd8f7b695a7d70024e7423a898c10ba77d7e7b4018e719cd929ba33a5e,urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+        custom double subactor:count = 3
+        custom string subactor:metrics = "status,temperatureC,availability"
+        def Cube "Geometry" {
+            double size = 1
+            double3 xformOp:scale = (1, 1, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:scale"]
+        }
+    }
+}

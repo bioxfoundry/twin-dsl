@@ -7,8 +7,9 @@ import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
 import { parseProjectDsl } from "../dsl/project.js";
 import { parseObservationDsl } from "../dsl/observation.js";
+import { parseImprovementDsl } from "../dsl/improvement.js";
 
-export type GeneratedDslValue = ReturnType<typeof parseQueryDsl>|ReturnType<typeof parseDql>|ReturnType<typeof parseTreeDsl>|ReturnType<typeof parseMathDsl>|ReturnType<typeof parseProjectDsl>|ReturnType<typeof parseObservationDsl>|ResourcePlan|TwinDocument|SceneDocument;
+export type GeneratedDslValue = ReturnType<typeof parseQueryDsl>|ReturnType<typeof parseDql>|ReturnType<typeof parseTreeDsl>|ReturnType<typeof parseMathDsl>|ReturnType<typeof parseProjectDsl>|ReturnType<typeof parseObservationDsl>|ReturnType<typeof parseImprovementDsl>|ResourcePlan|TwinDocument|SceneDocument;
 
 const dslTextSchema:Record<string,unknown>={type:'object',properties:{dsl:{type:'string',minLength:8,maxLength:100000}},required:['dsl'],additionalProperties:false};
 const sourceSpec={type:'object',properties:{kind:{type:'string',enum:['directory','archive','website','git','file']},location:{type:'string',minLength:1},role:{type:'string',enum:['manager','customer','project','internet','archive','derived','runtime','development']},include:{type:'array',items:{type:'string'},uniqueItems:true},exclude:{type:'array',items:{type:'string'},uniqueItems:true}},required:['kind','location','role','include','exclude'],additionalProperties:false};
@@ -38,5 +39,6 @@ export function generationContract(kind:DslKind):{schemaName:string;schema:Recor
   case'scene':return{schemaName:'subactor_scene',schema:sceneSchema,validate:validateSceneEnvelope,instructions:'Return a scene projection bound to twin components. Prefer conceptual primitives when no verified CAD/BIM geometry exists.'};
   case'project':return{schemaName:'subactor_living_project_dsl',schema:dslTextSchema,validate:x=>textDsl(x,parseProjectDsl),instructions:'Return one projectDSL document defining sources, development workspace, observations, authority policy, iteration limits and scene format.'};
   case'observation':return{schemaName:'subactor_observation_dsl',schema:dslTextSchema,validate:x=>textDsl(x,parseObservationDsl),instructions:'Return one observationDSL document. Every runtime or environmental value must cite supplied source URIs and an observation time.'};
+  case'improvement':return{schemaName:'subactor_improvement_dsl',schema:dslTextSchema,validate:x=>textDsl(x,parseImprovementDsl),instructions:'Return one propose-only improvementDSL document. Every action must cite existing evidence URIs. Never mark an action applied or approved.'};
   case'intent':throw new Error('INTENT_USES_TODO2CODE');
 }}

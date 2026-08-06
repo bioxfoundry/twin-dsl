@@ -1,0 +1,22 @@
+[
+  {
+    "schema": "t2c.intent/v1",
+    "id": "autonomy-example-request-1",
+    "type": "request",
+    "text": "Continuously improve a validated twin without allowing LLM authority escalation.",
+    "actor": "human:manager",
+    "targetUris": [
+      "subactor://project/autonomy-example"
+    ]
+  },
+  {
+    "schema": "t2c.intent/v1",
+    "id": "autonomy-example-plan-1",
+    "type": "plan",
+    "text": "Research, develop, validate and publish the next Digital Twin projection.",
+    "actor": "agent:project-operator",
+    "targetUris": [
+      "twin://project/runtime/state/rebuild"
+    ]
+  }
+]

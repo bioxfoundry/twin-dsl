@@ -1,0 +1,17 @@
+{
+  "schema": "subactor.signed-mutation-grant/v1",
+  "projectId": "replace-with-project-id",
+  "planHash": "replace-with-reviewed-plan-sha256",
+  "artifactSha256": "replace-with-source-tree-or-patch-sha256",
+  "target": "code/",
+  "actor": "manager@example.com",
+  "riskClass": "reversible",
+  "jti": "replace-with-unique-jti",
+  "iat": "2026-08-06T00:00:00.000Z",
+  "expiresAt": "2099-01-01T00:00:00.000Z",
+  "runId": "run-example",
+  "intentPack": "subactor.digital-twin-runtime/v1",
+  "signature": "issue-with: node dist/src/cli/main.js grant-issue <projectId> <planHash> <artifactSha256> <target> <actor> grant.json",
+  "grantHash": "replace-after-issue",
+  "_comment": "Placeholders are NOT valid. Set MUTATION_GRANT_HMAC_SECRET (or APPLY_GRANT_HMAC_SECRET / TOKEN_PEPPER) and use grant-issue. Runtime verifies HS256 compact token in signature; envelope fields must match claims."
+}

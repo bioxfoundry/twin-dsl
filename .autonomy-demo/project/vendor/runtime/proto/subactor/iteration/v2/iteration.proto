@@ -1,0 +1,15 @@
+syntax = "proto3";
+package subactor.iteration.v2;
+message ResourceDiff { repeated string added=1; repeated string changed=2; repeated string removed=3; repeated string unchanged=4; }
+message Stage { string name=1; string status=2; repeated string artifact_uris=3; string reason=4; }
+message LivingIterationReceipt {
+  string project_id=1; string iteration_id=2; string trace_id=3; string idempotency_key=4; bool no_change=5;
+  string started_at=6; string completed_at=7; string project_config_hash=8; string research_snapshot_hash=9;
+  string development_fingerprint=10; string observation_snapshot_hash=11; string previous_iteration_uri=12;
+  string intent_uri=13; string development_evidence_uri=14; string tree_uri=15; string math_uri=16;
+  string observation_uri=17; string twin_uri=18; string scene_uri=19; string improvement_uri=20;
+  string iteration_uri=21; ResourceDiff diff=22; repeated string authority_warnings=23; repeated Stage stages=24;
+  bool validation_ok=25; repeated string failures=26;
+}
+message RunIterationRequest { string project_config=1; string output_directory=2; string mode=3; }
+service LivingIterationService { rpc Run(RunIterationRequest) returns (LivingIterationReceipt); }

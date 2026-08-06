@@ -6,5 +6,5 @@ import type { DslKind } from "../src/core/types.js";
 
 test('deterministic fixtures validate NL -> every DSL boundary',async()=>{
   const compiler=new NlDslCompiler(),text=await readFile('examples/nl-to-dsl/request.md','utf8');
-  for(const kind of ['intent','resource','query','dql','tree','math','twin','scene','project','observation'] as DslKind[]){const fixture=JSON.parse(await readFile(`examples/nl-to-dsl/${kind}.fixture.json`,'utf8'));const result=await compiler.compile({kind,text,mode:'deterministic',deterministicValue:fixture});assert.equal(result.kind,kind);assert.equal(result.canonicalHash.length,64);assert.equal(result.audit.effectiveMode,'deterministic');}
+  for(const kind of ['intent','resource','query','dql','tree','math','twin','scene','project','observation','improvement'] as DslKind[]){const fixture=JSON.parse(await readFile(`examples/nl-to-dsl/${kind}.fixture.json`,'utf8'));const result=await compiler.compile({kind,text,mode:'deterministic',deterministicValue:fixture});assert.equal(result.kind,kind);assert.equal(result.canonicalHash.length,64);assert.equal(result.audit.effectiveMode,'deterministic');}
 });

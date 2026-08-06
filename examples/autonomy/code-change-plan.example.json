@@ -1,0 +1,12 @@
+{
+  "schema": "t2c.code-change-plan/v1",
+  "id": "plan-fix-development-evidence",
+  "planHash": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "status": "proposed",
+  "title": "Fix development evidence acceptance path",
+  "target": {
+    "paths": ["src/runtime/autonomy.ts", "src/adapters/todo2code.ts"]
+  },
+  "rationale": "Blocking diagnostics and fixture policy must be reflected in development evidence before scene publication.",
+  "acceptance": "blocking diagnostics disappear and fixture is not accepted without POLICY_ALLOW_DEVELOPMENT_FIXTURE"
+}

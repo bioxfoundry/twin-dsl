@@ -1,0 +1,26 @@
+{
+  "schema": "subactor.verification/v1",
+  "version": "0.4.0",
+  "date": "2026-08-06",
+  "sourceVerification": {
+    "typescriptStrict": "passed",
+    "protobufFiles": 12,
+    "nodeTestsPassed": 17,
+    "nodeTestsFailed": 0,
+    "dslKinds": 11,
+    "examplesPassed": 7
+  },
+  "distributionSmoke": {
+    "nodeModulesPresent": false,
+    "testsPassed": 17,
+    "autonomyDemo": "passed",
+    "rootYaml": "passed",
+    "generatedProjectYaml": "passed"
+  },
+  "externalBoundaries": {
+    "dockerDaemon": "not available in build environment",
+    "liveOpenRouter": "not executed",
+    "canonicalTodo2codeCheckout": "not cloned due unavailable DNS",
+    "githubWritePermission": false
+  }
+}

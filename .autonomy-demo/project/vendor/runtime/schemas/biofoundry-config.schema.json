@@ -1,0 +1,5 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema","$id":"subactor.biofoundry-config/v1",
+  "type":"object","additionalProperties":false,"required":["schema","id","managerRequest","sources","policyFile","customerSpecFile","projectStateFile"],
+  "properties":{"schema":{"const":"subactor.biofoundry-config/v1"},"id":{"type":"string"},"managerRequest":{"type":"string"},"sources":{"type":"array","minItems":3,"items":{"type":"object","required":["path","role","logicalRoot"],"properties":{"path":{"type":"string"},"role":{"enum":["manager","customer","project","archive","internet"]},"logicalRoot":{"type":"string"},"labels":{"type":"array","items":{"type":"string"}}}}},"policyFile":{"type":"string"},"customerSpecFile":{"type":"string"},"projectStateFile":{"type":"string"},"webResearch":{"type":"object","required":["dqlFile"],"properties":{"dqlFile":{"type":"string"},"fixtureMapFile":{"type":"string"}}}}
+}

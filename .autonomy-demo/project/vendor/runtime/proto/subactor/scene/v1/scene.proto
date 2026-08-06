@@ -1,0 +1,8 @@
+syntax = "proto3";
+package subactor.scene.v1;
+message Vector3 { double x=1; double y=2; double z=3; }
+message SceneBinding { string twin_uri=1; string component_id=2; string scene_path=3; string primitive=4; Vector3 position=5; Vector3 size=6; map<string,string> property_map=7; string asset_uri=8; }
+message Scene { string id=1; string format=2; string source_twin_id=3; repeated SceneBinding bindings=4; }
+message BuildSceneRequest { Scene scene=1; bytes twin_json=2; string ticket_id=3; }
+message SceneArtifact { string uri=1; string sha256=2; string media_type=3; bytes content=4; }
+service SceneService { rpc Build(BuildSceneRequest) returns (SceneArtifact); }

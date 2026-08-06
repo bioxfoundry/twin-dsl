@@ -1,0 +1,18 @@
+{
+  "grant": {
+    "ok": true,
+    "jti": "Fzu28Xp4inEgus1f_ce_HQ",
+    "grantHash": "f89df33dd8e6d25610e7faa93ee0683ebd4fff36ecf277e1dc18f5dc4896a7f0"
+  },
+  "proposal": {
+    "status": "proposed",
+    "grantVerified": true,
+    "sourcePatchPath": "/home/tom/github/bioxfoundry/twin-dsl/.mutation-demo/out/mutations/d40fc803-88af-4b51-a4c2-ba5d76fc08b7.source-patch.json",
+    "workspaceKind": "directory-copy"
+  },
+  "probes": {
+    "probeCount": 1,
+    "healthy": 1,
+    "cycleUri": "urn:subactor:probe-cycle:sha256:6597bd45ec34e6fc9f0d61f74d6bcddce757245a732b7008ac471840afed1fa3"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "added": [
+    "derived-knowledge"
+  ],
+  "changed": [
+    "manager-knowledge",
+    "customer-knowledge",
+    "project-knowledge",
+    "development-knowledge",
+    "runtime-knowledge",
+    "development-model",
+    "runtime-observations"
+  ],
+  "removed": []
+}

@@ -1,0 +1,5 @@
+syntax = "proto3";
+package subactor.resource.v1;
+message Resource { string id=1; string uri=2; string logical_uri=3; string media_type=4; string sha256=5; uint64 size=6; string source_path=7; string parent_uri=8; bool derived=9; repeated string derived_from=10; string created_at=11; }
+service ResourceService { rpc Resolve(ResolveRequest) returns (Resource); }
+message ResolveRequest { string uri=1; }

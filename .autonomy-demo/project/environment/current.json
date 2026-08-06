@@ -1,0 +1,8 @@
+{
+  "observedAt": "2026-01-01T00:00:00.000Z",
+  "subjectUri": "subactor://project/autonomy-example/environment",
+  "temperatureC": 22,
+  "availability": true,
+  "severity": "info",
+  "unit": "mixed"
+}

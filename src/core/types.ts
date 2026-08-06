@@ -1,8 +1,9 @@
-export type ResultKind = "tree" | "math" | "table" | "text" | "scene" | "twin" | "observation" | "project";
+export type ResultKind = "tree" | "math" | "table" | "text" | "scene" | "twin" | "observation" | "project" | "improvement";
 export type EpistemicType = "request" | "plan" | "decision" | "message" | "report" | "result" | "claim";
 export type LlmMode = "deterministic" | "prefer-llm" | "require-llm";
-export type DslKind = "intent" | "resource" | "query" | "dql" | "tree" | "math" | "twin" | "scene" | "project" | "observation";
+export type DslKind = "intent" | "resource" | "query" | "dql" | "tree" | "math" | "twin" | "scene" | "project" | "observation" | "improvement";
 export type SourceRole = "manager" | "customer" | "project" | "internet" | "archive" | "derived" | "runtime" | "development";
+export type AutonomyMode = "observe" | "propose" | "apply";
 
 export interface SourceAnchor {
   artifactUri: string;
@@ -169,6 +170,39 @@ export interface ObservationDocument {
   observations: ObservationRecord[];
 }
 
+export interface DevelopmentEvidenceSummary {
+  schema: "subactor.development-evidence/v1";
+  source: "todo2code" | "fixture" | "missing";
+  graphFingerprint: string;
+  recordCount: number;
+  relationCount: number;
+  diagnosticCount: number;
+  blockingDiagnosticCount: number;
+  acceptance: "accepted" | "review_required" | "rejected" | "unknown";
+  manifestStatus: string | null;
+  evidenceUris: string[];
+}
+
+export interface ImprovementAction {
+  id: string;
+  kind: "research" | "development" | "runtime" | "policy" | "validation" | "deployment";
+  title: string;
+  reason: string;
+  targetUris: string[];
+  approvalRequired: boolean;
+  status: "proposed";
+}
+export interface ImprovementPlan {
+  schema: "subactor.improvement-plan/v1";
+  id: string;
+  projectId: string;
+  mode: "propose_only";
+  generatedAt: string;
+  sourceIterationUri: string | null;
+  evidenceUris: string[];
+  actions: ImprovementAction[];
+}
+
 export interface LivingSourceSpec {
   path: string;
   role: SourceRole;
@@ -202,10 +236,16 @@ export interface LivingProjectDocument {
     approved: boolean;
     requireResearch: boolean;
     requireDevelopmentEvidence: boolean;
+    requireDevelopmentAcceptance: boolean;
+    allowDevelopmentFixture: boolean;
     requireRuntimeEvidence: boolean;
     autoPublishScene: boolean;
     allowRuntimeSelfModification: boolean;
+    autonomyMode: AutonomyMode;
+    requireSignedMutationGrant: boolean;
+    mutationGrantFile?: string;
     maxIterationsPerHour: number;
+    maxConsecutiveFailures: number;
   };
   scene: {
     format: "openusd" | "gltf" | "3dtiles";
@@ -222,7 +262,7 @@ export interface QueryResultEnvelope {
   resultUri: string;
   resultHash: string;
   resultKind: ResultKind;
-  payload: TreeDocument | MathDocument | TwinDocument | SceneDocument | ObservationDocument | LivingProjectDocument | unknown;
+  payload: TreeDocument | MathDocument | TwinDocument | SceneDocument | ObservationDocument | LivingProjectDocument | ImprovementPlan | unknown;
   evidence: EvidenceReference[];
   validation: { ok: boolean; checks: {name: string; ok: boolean; message: string}[] };
   executionReceipt: { ticketId: string; processId: string; idempotencyKey: string; completedAt: string };
@@ -250,11 +290,21 @@ export interface DslGenerationResult<T = unknown> {
 }
 
 export interface DomainEvent<T=unknown> {
-  eventId: string; streamId: string; streamVersion: number; eventType: string;
-  schemaVersion: string; occurredAt: string; recordedAt: string;
-  principal: string; contractId?: string; intentId?: string;
-  correlationId: string; causationId?: string; traceId: string;
-  evidenceUris: string[]; payload: T;
+  eventId: string;
+  streamId: string;
+  streamVersion: number;
+  eventType: string;
+  schemaVersion: string;
+  occurredAt: string;
+  recordedAt: string;
+  principal: string;
+  contractId?: string;
+  intentId?: string;
+  correlationId: string;
+  causationId?: string;
+  traceId: string;
+  evidenceUris: string[];
+  payload: T;
 }
 
 export interface ResourceDiff {
@@ -279,10 +329,13 @@ export interface TwinBuildReceipt {
   generatedAt: string;
 }
 
+export type LivingStageName = "preflight" | "research" | "development" | "runtime" | "reasoning" | "twin" | "scene" | "improvement" | "feedback";
 export interface LivingIterationReceipt {
-  schema: "subactor.living-iteration/v1";
+  schema: "subactor.living-iteration/v2";
   projectId: string;
   iterationId: string;
+  traceId: string;
+  idempotencyKey: string;
   noChange: boolean;
   startedAt: string;
   completedAt: string;
@@ -292,18 +345,79 @@ export interface LivingIterationReceipt {
   observationSnapshotHash: string;
   previousIterationUri: string | null;
   intentUri: string;
+  developmentEvidenceUri: string;
   treeUri: string;
   mathUri: string;
   observationUri: string;
   twinUri: string;
   sceneUri: string;
+  improvementUri: string;
   iterationUri: string;
   diff: ResourceDiff;
+  authorityWarnings: string[];
   stages: Array<{
-    name: "research" | "development" | "runtime" | "reasoning" | "twin" | "scene" | "feedback";
+    name: LivingStageName;
     status: "succeeded" | "skipped" | "blocked" | "failed";
     artifactUris: string[];
     reason?: string;
   }>;
   validation: { ok: boolean; failures: string[] };
+}
+
+export interface LivingFailureReceipt {
+  schema: "subactor.living-failure/v1";
+  projectId: string;
+  failureId: string;
+  traceId: string;
+  occurredAt: string;
+  configPath: string;
+  outputDirectory: string;
+  consecutiveFailures: number;
+  errorCode: string;
+  message: string;
+  retryAfterMs: number;
+}
+
+/** Cryptographically signed mutation grant (HMAC-SHA256 compact token in signature). */
+export interface SignedMutationGrant {
+  schema: "subactor.signed-mutation-grant/v1";
+  projectId: string;
+  planHash: string;
+  artifactSha256: string;
+  target: string;
+  actor: string;
+  riskClass: "read_only" | "reversible" | "boundary" | "governance";
+  jti: string;
+  iat: string;
+  expiresAt: string;
+  runId: string;
+  intentPack: string;
+  /** Compact HS256 token: base64url(header).base64url(payload).base64url(sig) */
+  signature: string;
+  grantHash: string;
+}
+
+export interface MutationProposalReceipt {
+  schema: "subactor.mutation-proposal-receipt/v1";
+  proposalId: string;
+  projectId: string;
+  mode: "propose" | "apply";
+  status: "proposed" | "refused" | "failed" | "applied-isolated";
+  startedAt: string;
+  completedAt: string;
+  planHash: string;
+  grantVerified: boolean;
+  grantJti: string | null;
+  actor: string;
+  developmentRoot: string;
+  workspace: { kind: "git-worktree" | "directory-copy"; path: string; branch?: string } | null;
+  sourcePatchUri: string | null;
+  sourcePatchPath: string | null;
+  failures: string[];
+  stages: Array<{
+    name: "grant" | "isolate" | "propose-source-patch" | "apply-source-patch";
+    status: "succeeded" | "blocked" | "failed";
+    reason?: string;
+  }>;
+  proposalUri: string;
 }

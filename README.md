@@ -1,28 +1,57 @@
-# Subactor Digital Twin Runtime Starter 0.3.0
+# Subactor Digital Twin Runtime Starter 0.5.0
 
-Uruchamialny starter zamkniętej pętli:
+Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
 ```text
-research: źródła → resourceDSL/treeDSL/queryDSL/mathDSL
+research: pliki / katalogi / ZIP / WWW → resourceDSL → treeDSL/queryDSL/mathDSL
     ↓
-development: wymagania + kod + Git → todo2code t2c.intent/v1 / evidence graph
+development: wymagania + kod + Git + testy → todo2code t2c.intent/v1 + diagnostics
     ↓
-runtime: observationDSL + event log + środowisko
+runtime: observationDSL + event log + dane środowiskowe
+    ↓
+authority: deterministyczne bramki mathDSL + projectDSL + signed-grant policy
     ↓
 Digital Twin: twinDSL → sceneDSL → OpenUSD
     ↓
-feedback: zwalidowany rezultat wraca jako źródło następnej iteracji
+feedback + improvementDSL → następna iteracja researchu i developmentu
 ```
 
-To jest poprawny model zagadnienia, pod warunkiem że trzy pętle pozostają rozdzielone:
+System rozdziela trzy pętle:
 
-1. **knowledge loop** — pozyskuje i waliduje wiedzę;
-2. **development loop** — porównuje intent z kodem i testami;
-3. **execution loop** — aktualizuje Twin i artefakty dopiero po twardych bramkach.
+1. **knowledge loop** — pozyskuje, adresuje i waliduje wiedzę;
+2. **development loop** — porównuje intent z kodem, testami i Git;
+3. **execution loop** — aktualizuje Twin i artefakty dopiero po twardych bramkach runtime.
 
-`todo2code` pozostaje kanonicznym `intentDSL` dla poleceń, planów, kodu, Git, dokumentacji i diagnostyki Intent vs Reality. Subactor AQL/OQL/URI Process pozostaje granicą authority i efektów.
+`todo2code` pozostaje kanonicznym Intent Evidence DSL dla poleceń, planów, kodu, Git, dokumentacji i diagnostyki Intent vs Reality. Subactor AQL/OQL/URI Process pozostaje granicą authority i efektów. LLM może proponować DSL, ale nie definiuje bramek bezpieczeństwa i nie wywołuje executorów bezpośrednio.
 
-## Najszybszy start nowego żywego projektu
+## Co zmieniło się w 0.4.0
+
+- twarde bramki `mathDSL` są generowane przez runtime i nie mogą zostać nadpisane przez odpowiedź LLM;
+- prawdziwy `todo2code` ma pierwszeństwo przed fixture, a fixture wymaga jawnej polityki;
+- development evidence zawiera status manifestu, diagnostyki, liczbę blokad i acceptance;
+- każda zmieniona iteracja generuje propose-only `improvementDSL`;
+- Twin i Scene przechodzą walidację uziemienia w znanych URI i komponentach;
+- limit iteracji jest egzekwowany, a nie tylko deklarowany;
+- trwała dzierżawa blokuje dwie równoległe iteracje tego samego projektu;
+- watcher zapisuje failure receipt, event i dead-letter oraz stosuje bounded retry;
+- zewnętrzne źródła są kopiowane do `imports/`, dzięki czemu pozostają dostępne wewnątrz Dockera;
+- dodano rzeczywisty `service-check`: zapytanie `SELECT 1` do ClickHouse i health request do Docling;
+- naprawiono konflikt numeru pola w Protobuf iteration v1 i dodano kontrakty v2/autonomy.
+
+## Szybki start
+
+```bash
+npm install
+npm run verify
+```
+
+Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
+
+```bash
+npm run verify:dist
+```
+
+## Kreator żywego projektu
 
 ```bash
 npm run build
@@ -34,22 +63,45 @@ node dist/src/cli/main.js project-create \
 
 cd projects/customer-biofoundry
 cp .env.example .env
-docker compose up -d --build
-docker compose logs -f runtime
 ```
 
 Każdy projekt otrzymuje własne:
 
-- `project.projectdsl` i `project.json`;
+- `project.projectdsl` i projekcję JSON;
 - katalogi manager/customer/project/archive/code/logs/environment/feedback;
 - vendored, skompilowany runtime;
-- osobny `docker-compose.yml`, sieć i volume ClickHouse;
+- osobny Docker Compose, sieć i wolumen ClickHouse;
 - Docling, ClickHouse i watcher runtime;
 - CI oraz release do GHCR;
-- porty wyliczone dla projektu, aby ograniczyć konflikty;
-- append-only event log, receipts, candidate i current artifacts.
+- append-only event log, receipts, dead-letter, candidate i current artifacts;
+- skrypt bootstrapujący kanoniczny `semcod/todo2code`.
+
+Start usług:
+
+```bash
+docker compose up -d --build
+
+docker compose run --rm runtime service-check
+docker compose logs -f runtime
+```
+
+Jedna deterministyczna iteracja:
+
+```bash
+docker compose run --rm runtime \
+  project-iterate /project/project.projectdsl /project/.living-runtime deterministic
+```
+
+Tryb ciągły:
+
+```bash
+docker compose run --rm runtime \
+  project-watch /project/project.projectdsl /project/.living-runtime prefer-llm
+```
 
 ## Dodawanie dowolnego źródła
+
+Źródło spoza projektu jest kopiowane do kontrolowanego `imports/<role>/` i otrzymuje wpis proweniencji w `imports/manifest.jsonl`.
 
 ```bash
 node vendor/runtime/dist/src/cli/main.js project-add-source \
@@ -65,48 +117,22 @@ node vendor/runtime/dist/src/cli/main.js project-add-source \
   project.projectdsl runtime /var/log/device-observations
 ```
 
-Obsługiwane są pojedyncze pliki, katalogi, ZIP-y oraz DQL/sitemap dla WWW. Pliki Office/PDF/obrazy przechodzą przez Docling, a pliki tekstowe przez deterministyczny konwerter lokalny.
-
-Jedna iteracja bez watchera:
+Strona WWW przez DQL/sitemap:
 
 ```bash
-docker compose run --rm runtime \
-  project-iterate /project/project.projectdsl /project/.living-runtime deterministic
+node vendor/runtime/dist/src/cli/main.js project-add-website \
+  project.projectdsl https://docs.example.com \
+  "bioreactor, calibration, safety"
 ```
 
-## Pętla bez dalszego używania NL
+Obsługiwane są pojedyncze pliki, katalogi, ZIP-y i DQL/sitemap. Pliki Office/PDF/obrazy mogą przechodzić przez Docling, a treści tekstowe mają deterministyczny fallback lokalny.
 
-Natural language jest wyłącznie wejściem do utworzenia lub zmiany kontraktu DSL:
+## NL → wszystkie DSL
 
-```text
-NL → structured LLM → parser → canonical DSL AST → hash → review/AQL
-```
-
-Po materializacji runtime komunikuje się wyłącznie przez:
+Obsługiwane `kind`:
 
 ```text
-projectDSL
-resourceDSL
-intentDSL / t2c graph
-queryDSL + query-result
-DQL
-treeDSL
-mathDSL
-observationDSL
-twinDSL
-sceneDSL
-iteration receipts
-URI Process
-```
-
-LLM nie komunikuje się bezpośrednio z executorami. Zwraca wyłącznie propozycję typowanego DSL, która przechodzi parser, walidację domenową, hashowanie i bramki authority.
-
-## OpenRouter: NL → wszystkie DSL
-
-Obsługiwane wartości `kind`:
-
-```text
-intent resource query dql tree math twin scene project observation
+intent resource query dql tree math twin scene project observation improvement
 ```
 
 ```bash
@@ -114,74 +140,123 @@ export OPENROUTER_API_KEY="..."
 export OPENROUTER_MODEL="mistralai/codestral-2508"
 
 node dist/src/cli/main.js nl-to-dsl \
-  project request.md out/project.json require-llm
+  improvement request.md out/improvement.json require-llm
 ```
 
-- `intent` deleguje do lokalnego `todo2code`;
-- pozostałe DSL korzystają z jednego klienta OpenRouter;
-- odpowiedź używa strict JSON Schema i jest ponownie parsowana przez runtime;
-- tryby: `deterministic`, `prefer-llm`, `require-llm`.
+Tryby:
 
-## Weryfikacja
+```text
+deterministic
+prefer-llm
+require-llm
+```
+
+Granica wykonawcza:
+
+```text
+NL
+→ OpenRouter structured output
+→ parser
+→ canonical DSL AST
+→ walidacja domenowa
+→ hash
+→ projectDSL/AQL authority
+→ runtime
+```
+
+Po materializacji runtime współpracuje wyłącznie przez kontrakty DSL i URI. Natural language nie jest przekazywany do executorów.
+
+## Aktualny poziom autonomii
+
+Zaimplementowano ciągłą autonomię modelu i sceny **w obrębie zatwierdzonego `projectDSL`**:
+
+- obserwowanie i inkrementalne snapshoty;
+- development evidence z `todo2code`;
+- obserwacje środowiskowe;
+- deterministyczne bramki authority;
+- publikacja wyłącznie zielonej sceny;
+- last-known-good;
+- idempotentne `noChange`;
+- rate limiting;
+- persistent lease;
+- failure receipts i dead-letter;
+- propose-only plan doskonalenia.
+
+Samomodyfikacja źródeł runtime pozostaje wyłączona domyślnie:
+
+```text
+POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
+POLICY_AUTONOMY_MODE propose
+POLICY_REQUIRE_SIGNED_MUTATION_GRANT true
+```
+
+## Mutacja kodu (0.5.0)
+
+```bash
+export MUTATION_GRANT_HMAC_SECRET="replace-me"
+node dist/src/cli/main.js grant-issue <projectId> <planHash> <artifactSha256> code/ manager@example.com grant.json
+node dist/src/cli/main.js mutation-propose project.projectdsl plan.json .living-runtime
+```
+
+Apply jest opcjonalny, wymaga `POLICY_AUTONOMY_MODE apply`, `POLICY_ALLOW_RUNTIME_SELF_MODIFICATION true`, skonsumowanego grantu i `approval-hash`; zapisuje wyłącznie w izolowanym worktree/katalogu.
+
+Evidence z `subactor/twin-probes`:
+
+```bash
+node dist/src/cli/main.js probes-ingest cycle.json .living-runtime/candidate/probe.evidence.json
+```
+
+Pełna autonomia kodu wymaga jeszcze promocji z izolacji do drzewa głównego, canary/rollback (`autonomy-lab`), niezależnego evaluatora, trwałego event store i walidacji geometrii.
+
+## Weryfikacja 0.4.0
 
 ```bash
 npm run verify
 ```
 
-Wersja 0.3.0 sprawdza:
+Sprawdzone lokalnie:
 
 - TypeScript strict;
-- 10 kontraktów Proto;
-- 11 testów parserów i integracji;
-- NL → 10 DSL;
-- OpenRouter structured-output mock;
-- foldery, ZIP i DQL/sitemap;
+- 12 kontraktów Proto z kontrolą duplikatów numerów pól;
+- 17/17 testów Node;
+- NL → 11 DSL;
+- OpenRouter strict structured-output mock;
+- DQL sitemap/context;
+- foldery, ZIP i import ścieżek zewnętrznych;
 - Biofoundry real-time;
 - adapter procesu `todo2code`;
 - generator izolowanego projektu;
-- pełny living loop: research → development → observations → math → twin → scene → feedback;
-- no-change i blokadę publikacji po cofnięciu polityki managera;
+- pełny living loop;
+- ochrona authority przed LLM;
+- fixture policy, rate limit i persistent lease;
+- improvementDSL, failure receipts i dead-letter;
+- prawdziwe żądania testowe do mocków ClickHouse i Docling;
 - kontrakty Docker Compose i CI/CD.
 
-## Docker i CI/CD
+W środowisku przygotowania paczki nie ma binarnego Dockera ani demona. `docker compose up`, budowa obrazów i sieciowa integracja prawdziwych kontenerów nie zostały wykonane lokalnie. Workflow `Docker Integration` uruchamia tę brakującą bramę na `ubuntu-latest`, w tym `runtime service-check`.
 
-Środowisko główne:
+## Przykłady
 
 ```bash
-docker compose up -d --build
+npm run demo
+npm run demo:nl-dsl
+npm run demo:research
+npm run demo:biofoundry
+npm run demo:realtime
+npm run demo:living
+npm run demo:autonomy
 ```
 
-Projekt wygenerowany przez wizard ma własny Compose. GitHub Actions wykonuje `project-verify`, `docker compose config`, build obrazów i jedną deterministyczną iterację. Workflow release buduje obraz runtime i publikuje go do GHCR.
+Najważniejsze materiały:
 
-W środowisku, w którym przygotowano paczkę, nie było dostępnego demona Docker. Compose i workflow zostały zweryfikowane kontraktowo oraz składniowo, ale obrazy ClickHouse/Docling nie zostały tu faktycznie uruchomione. CI dostarczony w paczce wykonuje brakującą bramę na runnerze z Dockerem.
-
-## Aktualny poziom autonomii
-
-Zaimplementowano **ciągłą autonomię modelu i sceny w obrębie zatwierdzonego projectDSL**:
-
-- obserwowanie zmian;
-- inkrementalne snapshoty;
-- twarde bramki mathDSL;
-- publikacja tylko zielonej sceny;
-- ostatnia poprawna wersja;
-- feedback do następnej iteracji;
-- brak ponownego runu dla identycznego stanu.
-
-Nie zaimplementowano jeszcze bezwarunkowej autonomicznej samomodyfikacji kodu runtime. Domyślna polityka generowanych projektów ma:
-
-```text
-POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
-```
-
-Pełna autonomia kodu wymaga podpisanego AQL/OQL grant, branch/PR sandbox, source patch związany z hashem, pełnych testów, canary, rollback, limitów kosztu i niezależnego acceptance po ponownej analizie `todo2code`.
-
-## Dokumentacja
-
-- `docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md`
+- `examples/autonomy/README.md`
+- `examples/biofoundry/`
+- `examples/researcher/`
+- `examples/nl-to-dsl/`
+- `docs/AUTONOMY_MODEL.md`
+- `docs/AUTONOMY_EXAMPLES.md`
+- `docs/AUTONOMY_FINDINGS.md`
+- `docs/GITHUB_AND_CI.md`
 - `docs/PROJECT_WIZARD.md`
 - `docs/FULL_AUTONOMY_GAPS.md`
-- `docs/CI_CD.md`
-- `docs/QUICK_SOURCE_RECIPES.md`
-- `docs/REALTIME_BIOFOUNDRY.md`
-- `docs/TODO2CODE_INTEGRATION.md`
 - `VERIFICATION.md`

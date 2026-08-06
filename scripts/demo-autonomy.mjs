@@ -1,0 +1,20 @@
+import {mkdir,readFile,rm,writeFile} from 'node:fs/promises';
+import {join} from 'node:path';
+import {createLivingProject} from '../dist/src/project/wizard.js';
+import {LivingProjectRuntime} from '../dist/src/runtime/living-project.js';
+import {parseProjectDsl,renderProjectDsl} from '../dist/src/dsl/project.js';
+import {parseMathDsl,evaluateMath} from '../dist/src/dsl/math.js';
+import {mergeAuthorityMath} from '../dist/src/runtime/autonomy.js';
+
+const root='.autonomy-demo';await rm(root,{recursive:true,force:true});await mkdir(root,{recursive:true});
+const created=await createLivingProject({name:'Autonomy Example',outDir:join(root,'project'),managerIntent:'Continuously improve a validated twin without allowing LLM authority escalation.'});
+const runtime=new LivingProjectRuntime(),out=join(root,'runtime');
+const baseline=await runtime.iterate(created.configPath,out,'deterministic');
+const config=parseProjectDsl(await readFile(created.configPath,'utf8'));config.policy.allowDevelopmentFixture=false;await writeFile(created.configPath,renderProjectDsl(config));
+const blocked=await runtime.iterate(created.configPath,out,'deterministic');
+const authoritative=parseMathDsl('MATH authority\nBIND ManagerApproved = false\nBIND RateLimitAvailable = true\nEXPR IterationAllowed = AND(ManagerApproved, RateLimitAvailable)');
+const tampered=parseMathDsl('MATH proposal\nBIND ManagerApproved = true\nBIND RateLimitAvailable = true\nEXPR IterationAllowed = true');
+const merged=mergeAuthorityMath(authoritative,tampered);
+const failure=await runtime.recordFailure(created.configPath,out,new Error('EXAMPLE_CONNECTOR_FAILURE'),1,1000);
+const summary={baseline:{ok:baseline.validation.ok,iterationUri:baseline.iterationUri},blocked:{ok:blocked.validation.ok,development:blocked.stages.find(x=>x.name==='development'),improvementUri:blocked.improvementUri},authority:{iterationAllowed:evaluateMath(merged.document,'IterationAllowed'),warnings:merged.warnings},failure:{errorCode:failure.errorCode,retryAfterMs:failure.retryAfterMs}};
+await writeFile(join(root,'summary.json'),JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify(summary,null,2));

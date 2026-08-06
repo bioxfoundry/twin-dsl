@@ -1,0 +1,47 @@
+{
+  "schema": "subactor.observation/v1",
+  "id": "autonomy-example-observations",
+  "sourceSnapshotHash": "d5170a45cb49267ee13a913633dc814334c5638d4691774359d6c335d0296754",
+  "observations": [
+    {
+      "id": "obs-1",
+      "observedAt": "2026-01-01T00:00:00.000Z",
+      "subjectUri": "subactor://project/autonomy-example/runtime",
+      "metric": "status",
+      "value": "ready",
+      "severity": "info",
+      "sourceUris": [
+        "urn:subactor:resource:sha256:d47115bd8f7b695a7d70024e7423a898c10ba77d7e7b4018e719cd929ba33a5e"
+      ],
+      "labels": [
+        "bootstrap"
+      ]
+    },
+    {
+      "id": "obs-2",
+      "observedAt": "2026-01-01T00:00:00.000Z",
+      "subjectUri": "subactor://project/autonomy-example/environment",
+      "metric": "temperatureC",
+      "value": 22,
+      "unit": "mixed",
+      "severity": "info",
+      "sourceUris": [
+        "urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+      ],
+      "labels": []
+    },
+    {
+      "id": "obs-3",
+      "observedAt": "2026-01-01T00:00:00.000Z",
+      "subjectUri": "subactor://project/autonomy-example/environment",
+      "metric": "availability",
+      "value": true,
+      "unit": "mixed",
+      "severity": "info",
+      "sourceUris": [
+        "urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+      ],
+      "labels": []
+    }
+  ]
+}

@@ -1,0 +1,282 @@
+{
+  "schema": "subactor.math/v1",
+  "id": "autonomy-example-iteration-gates",
+  "bindings": [
+    {
+      "name": "ManagerApproved",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "ResearchEvidencePresent",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305",
+        "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7",
+        "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"
+      ]
+    },
+    {
+      "name": "DevelopmentEvidencePresent",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:intent:sha256:aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004"
+      ]
+    },
+    {
+      "name": "DevelopmentAccepted",
+      "value": false,
+      "sourceUris": [
+        "urn:subactor:intent:sha256:aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004"
+      ]
+    },
+    {
+      "name": "RuntimeEvidencePresent",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:d47115bd8f7b695a7d70024e7423a898c10ba77d7e7b4018e719cd929ba33a5e",
+        "urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+      ]
+    },
+    {
+      "name": "RequireResearch",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "RequireDevelopment",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "RequireDevelopmentAcceptance",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "RequireRuntime",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "AutoPublishScene",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "AllowRuntimeSelfModification",
+      "value": false,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "AutonomyModeApply",
+      "value": false,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "RequireSignedMutationGrant",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "SignedMutationGrantPresent",
+      "value": false,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "RateLimitAvailable",
+      "value": true,
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305"
+      ]
+    },
+    {
+      "name": "SourceRoleCount",
+      "value": 6,
+      "unit": "count",
+      "sourceUris": [
+        "urn:subactor:resource:sha256:e3045c6b3e43c1068ce11b67baa23470f038df66793867fc23c259a39b393305",
+        "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7",
+        "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a",
+        "urn:subactor:resource:sha256:a14b982163ca113436e2d197e577f33be85c32a7e4cfcaf952af2f4b77266887",
+        "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759",
+        "urn:subactor:resource:sha256:537043bcc90c9aa7969876ee906604872475647b3f8fc55064794f3fd98f1924",
+        "urn:subactor:resource:sha256:0ba64e33e87ecbaa126af75b68fa11da8c29d9ee8c35890936d7c9cf886af7e3",
+        "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294",
+        "urn:subactor:resource:sha256:dc4c645de2ace1eed37c22d76481467669f195f9f705b133e6ef2a1df846028b",
+        "urn:subactor:resource:sha256:d47115bd8f7b695a7d70024e7423a898c10ba77d7e7b4018e719cd929ba33a5e",
+        "urn:subactor:resource:sha256:f625349ef6b290ba2df48ad84f5db3ed9b49d048cbd1bb580d297a31a33d9c1c"
+      ]
+    }
+  ],
+  "expressions": {
+    "ResearchGate": {
+      "kind": "or",
+      "args": [
+        {
+          "kind": "not",
+          "arg": {
+            "kind": "ref",
+            "name": "RequireResearch"
+          }
+        },
+        {
+          "kind": "ref",
+          "name": "ResearchEvidencePresent"
+        }
+      ]
+    },
+    "DevelopmentGate": {
+      "kind": "and",
+      "args": [
+        {
+          "kind": "or",
+          "args": [
+            {
+              "kind": "not",
+              "arg": {
+                "kind": "ref",
+                "name": "RequireDevelopment"
+              }
+            },
+            {
+              "kind": "ref",
+              "name": "DevelopmentEvidencePresent"
+            }
+          ]
+        },
+        {
+          "kind": "or",
+          "args": [
+            {
+              "kind": "not",
+              "arg": {
+                "kind": "ref",
+                "name": "RequireDevelopmentAcceptance"
+              }
+            },
+            {
+              "kind": "ref",
+              "name": "DevelopmentAccepted"
+            }
+          ]
+        }
+      ]
+    },
+    "RuntimeGate": {
+      "kind": "or",
+      "args": [
+        {
+          "kind": "not",
+          "arg": {
+            "kind": "ref",
+            "name": "RequireRuntime"
+          }
+        },
+        {
+          "kind": "ref",
+          "name": "RuntimeEvidencePresent"
+        }
+      ]
+    },
+    "MutationGrantGate": {
+      "kind": "or",
+      "args": [
+        {
+          "kind": "not",
+          "arg": {
+            "kind": "ref",
+            "name": "RequireSignedMutationGrant"
+          }
+        },
+        {
+          "kind": "ref",
+          "name": "SignedMutationGrantPresent"
+        }
+      ]
+    },
+    "IterationAllowed": {
+      "kind": "and",
+      "args": [
+        {
+          "kind": "ref",
+          "name": "ManagerApproved"
+        },
+        {
+          "kind": "ref",
+          "name": "RateLimitAvailable"
+        },
+        {
+          "kind": "ref",
+          "name": "ResearchGate"
+        },
+        {
+          "kind": "ref",
+          "name": "DevelopmentGate"
+        },
+        {
+          "kind": "ref",
+          "name": "RuntimeGate"
+        }
+      ]
+    },
+    "ScenePublishAllowed": {
+      "kind": "and",
+      "args": [
+        {
+          "kind": "ref",
+          "name": "IterationAllowed"
+        },
+        {
+          "kind": "ref",
+          "name": "AutoPublishScene"
+        }
+      ]
+    },
+    "RuntimeSelfModificationAllowed": {
+      "kind": "and",
+      "args": [
+        {
+          "kind": "ref",
+          "name": "IterationAllowed"
+        },
+        {
+          "kind": "ref",
+          "name": "AllowRuntimeSelfModification"
+        },
+        {
+          "kind": "ref",
+          "name": "AutonomyModeApply"
+        },
+        {
+          "kind": "ref",
+          "name": "MutationGrantGate"
+        },
+        {
+          "kind": "ref",
+          "name": "DevelopmentAccepted"
+        }
+      ]
+    }
+  }
+}

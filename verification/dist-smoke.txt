@@ -1,0 +1,146 @@
+
+> @subactor/digital-twin-runtime-starter@0.4.0 verify:dist
+> node --test dist/test/*.test.js && node scripts/demo-autonomy.mjs
+
+TAP version 13
+# Subtest: LLM cannot override authority-owned math gates
+ok 1 - LLM cannot override authority-owned math gates
+  ---
+  duration_ms: 260.990577
+  type: 'test'
+  ...
+# Subtest: development fixture requires explicit policy
+ok 2 - development fixture requires explicit policy
+  ---
+  duration_ms: 205.035887
+  type: 'test'
+  ...
+# Subtest: rate limit blocks changed iteration before scene publication
+ok 3 - rate limit blocks changed iteration before scene publication
+  ---
+  duration_ms: 178.541441
+  type: 'test'
+  ...
+# Subtest: project lease prevents parallel autonomous iterations
+ok 4 - project lease prevents parallel autonomous iterations
+  ---
+  duration_ms: 7.041627
+  type: 'test'
+  ...
+# Subtest: improvementDSL round-trips propose-only actions
+ok 5 - improvementDSL round-trips propose-only actions
+  ---
+  duration_ms: 1.84555
+  type: 'test'
+  ...
+# Subtest: Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+ok 6 - Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+  ---
+  duration_ms: 214.860766
+  type: 'test'
+  ...
+# Subtest: DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+ok 7 - DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+  ---
+  duration_ms: 22.497406
+  type: 'test'
+  ...
+# Subtest: query DSL binds process, snapshot and result
+ok 8 - query DSL binds process, snapshot and result
+  ---
+  duration_ms: 7.477265
+  type: 'test'
+  ...
+# Subtest: tree DSL preserves hierarchy
+ok 9 - tree DSL preserves hierarchy
+  ---
+  duration_ms: 0.39984
+  type: 'test'
+  ...
+# Subtest: math DSL evaluates hard gate
+ok 10 - math DSL evaluates hard gate
+  ---
+  duration_ms: 0.683941
+  type: 'test'
+  ...
+# Subtest: deterministic fixtures validate NL -> every DSL boundary
+ok 11 - deterministic fixtures validate NL -> every DSL boundary
+  ---
+  duration_ms: 21.457329
+  type: 'test'
+  ...
+# Subtest: OpenRouter NL -> mathDSL uses strict structured output
+ok 12 - OpenRouter NL -> mathDSL uses strict structured output
+  ---
+  duration_ms: 29.075145
+  type: 'test'
+  ...
+# Subtest: full offline pipeline
+ok 13 - full offline pipeline
+  ---
+  duration_ms: 22.811892
+  type: 'test'
+  ...
+# Subtest: projectDSL and observationDSL round-trip deterministically
+ok 14 - projectDSL and observationDSL round-trip deterministically
+  ---
+  duration_ms: 8.356051
+  type: 'test'
+  ...
+# Subtest: project wizard creates isolated Docker/CI project and full living iteration loop
+ok 15 - project wizard creates isolated Docker/CI project and full living iteration loop
+  ---
+  duration_ms: 348.933925
+  type: 'test'
+  ...
+# Subtest: service-check performs real ClickHouse query and Docling health request
+ok 16 - service-check performs real ClickHouse query and Docling health request
+  ---
+  duration_ms: 31.213987
+  type: 'test'
+  ...
+# Subtest: todo2code adapter executes configured pipeline and reads graph, diagnostics and manifest
+ok 17 - todo2code adapter executes configured pipeline and reads graph, diagnostics and manifest
+  ---
+  duration_ms: 53.891731
+  type: 'test'
+  ...
+1..17
+# tests 17
+# suites 0
+# pass 17
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 808.220276
+{
+  "baseline": {
+    "ok": true,
+    "iterationUri": "urn:subactor:iteration:sha256:fe04544b275f52227a77c75537b6b2b08e6a16e2c0e6f485c333517c8b4dab6d"
+  },
+  "blocked": {
+    "ok": false,
+    "development": {
+      "name": "development",
+      "status": "blocked",
+      "artifactUris": [
+        "urn:subactor:intent:sha256:aa344be4e9f724b377ca1bbf11d31d9900a27b4bcdc559c68f994338e62dd004",
+        "urn:subactor:development-evidence:sha256:17922c3062ee5dd11f1fcaddffb2bf20b1e5c4db41f8076596e67c5060e5f6fc"
+      ],
+      "reason": "development review_required"
+    },
+    "improvementUri": "urn:subactor:improvement:sha256:25a4b0d87887b49707cf053264cc7124334ed48cb19f4117cba5781bb25a04ba"
+  },
+  "authority": {
+    "iterationAllowed": false,
+    "warnings": [
+      "LLM_AUTHORITY_BINDING_IGNORED:ManagerApproved",
+      "LLM_AUTHORITY_EXPRESSION_IGNORED:IterationAllowed"
+    ]
+  },
+  "failure": {
+    "errorCode": "EXAMPLE_CONNECTOR_FAILURE",
+    "retryAfterMs": 1000
+  }
+}

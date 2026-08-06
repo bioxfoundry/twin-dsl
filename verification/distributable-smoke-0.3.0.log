@@ -1,0 +1,331 @@
+Distribution smoke without node_modules
+2026-08-06T19:21:05Z
+{"ok":true,"files":10}
+{"ok":true,"services":["clickhouse","docling","runtime"]}
+TAP version 13
+# Subtest: Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+ok 1 - Biofoundry startup ingests folders/ZIP and updates OpenUSD on observed state change
+  ---
+  duration_ms: 453.897185
+  type: 'test'
+  ...
+# Subtest: DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+ok 2 - DQL walks sitemap, applies host/path/context budgets and materializes Markdown
+  ---
+  duration_ms: 29.395286
+  type: 'test'
+  ...
+# Subtest: query DSL binds process, snapshot and result
+ok 3 - query DSL binds process, snapshot and result
+  ---
+  duration_ms: 23.423895
+  type: 'test'
+  ...
+# Subtest: tree DSL preserves hierarchy
+ok 4 - tree DSL preserves hierarchy
+  ---
+  duration_ms: 0.726447
+  type: 'test'
+  ...
+# Subtest: math DSL evaluates hard gate
+ok 5 - math DSL evaluates hard gate
+  ---
+  duration_ms: 1.45471
+  type: 'test'
+  ...
+# Subtest: deterministic fixtures validate NL -> every DSL boundary
+ok 6 - deterministic fixtures validate NL -> every DSL boundary
+  ---
+  duration_ms: 38.927558
+  type: 'test'
+  ...
+# Subtest: OpenRouter NL -> mathDSL uses strict structured output
+ok 7 - OpenRouter NL -> mathDSL uses strict structured output
+  ---
+  duration_ms: 39.134608
+  type: 'test'
+  ...
+# Subtest: full offline pipeline
+ok 8 - full offline pipeline
+  ---
+  duration_ms: 43.745766
+  type: 'test'
+  ...
+# Subtest: projectDSL and observationDSL round-trip deterministically
+ok 9 - projectDSL and observationDSL round-trip deterministically
+  ---
+  duration_ms: 6.56676
+  type: 'test'
+  ...
+# Subtest: project wizard creates isolated Docker/CI project and full living iteration loop
+ok 10 - project wizard creates isolated Docker/CI project and full living iteration loop
+  ---
+  duration_ms: 286.450388
+  type: 'test'
+  ...
+# Subtest: todo2code adapter executes pipeline and reads the canonical graph artifact
+ok 11 - todo2code adapter executes pipeline and reads the canonical graph artifact
+  ---
+  duration_ms: 46.90757
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 11
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 750.81116
+[
+  {
+    "kind": "intent",
+    "hash": "f0599e0b76745f5b93633150f3d1f91a74abbaddd0475ab9112454a56071b3f8",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "resource",
+    "hash": "58a00ceff1ea629cc092cde91706207f3f68914e17dd262e6b69e9faeba3c70a",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "query",
+    "hash": "7f435a160a4f21a18f2697f84dc1290be5a383a541099ef8fa510be7640a093f",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "dql",
+    "hash": "690d0671c44586f9548609781e6d1882e3ea33ff70a0a4df22e8e74121b20b45",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "tree",
+    "hash": "d7f1958a8440b198862fd373c705ef4a04c3bdee948d6758ce169e5a480bb9e4",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "math",
+    "hash": "39da813fd81cdc8b87061e760c1e40732f4c4aeb078a303e3ef01737e39e9fb8",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "twin",
+    "hash": "2f068508ad75be8f99111cea0accefe4d1066d1c0ed9dc98a251103a0ca3f930",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "scene",
+    "hash": "aa27e1dcdede33e876d5e2fe9debf3fbdb2c4f09c46e60f8c2ce54cb0260ec78",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "project",
+    "hash": "58092f2b8462204d983f0e14ad1a247f517adb48928300b90637b66986911bb7",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  },
+  {
+    "kind": "observation",
+    "hash": "09773f1029739ed5a9de7476aad8356424c0a2d5463d1a68e8876bd62bfeebed",
+    "audit": {
+      "requestedMode": "deterministic",
+      "effectiveMode": "deterministic",
+      "degraded": false,
+      "reason": null,
+      "provider": null,
+      "model": null,
+      "responseId": null,
+      "durationMs": 0
+    }
+  }
+]
+{
+  "created": {
+    "projectDir": "$PACKAGE_ROOT/.living-project-demo/project",
+    "configPath": "$PACKAGE_ROOT/.living-project-demo/project/project.projectdsl",
+    "composePath": "$PACKAGE_ROOT/.living-project-demo/project/docker-compose.yml"
+  },
+  "verification": {
+    "ok": true,
+    "projectId": "universal-research-twin",
+    "checks": [
+      {
+        "name": "source:manager:data/manager",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:customer:data/customer",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:project:data/project",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:archive:data/archives",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:derived:feedback",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:development:code",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:runtime:logs",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "source:runtime:environment",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "docker-compose.yml",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": "vendor/runtime/dist/src/cli/main.js",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": ".github/workflows/ci.yml",
+        "ok": true,
+        "message": "available"
+      },
+      {
+        "name": ".github/workflows/release.yml",
+        "ok": true,
+        "message": "available"
+      }
+    ]
+  },
+  "first": {
+    "iterationUri": "urn:subactor:iteration:sha256:9b323b6e7f35cff3a5afde266e89308f9d672af8c0b041c32b3a53cf30618f46",
+    "ok": true
+  },
+  "feedbackIteration": {
+    "iterationUri": "urn:subactor:iteration:sha256:d12ffc6a81f5b259e6cdb5069895056f82ef37166e63d5d8987ef72d17b23417",
+    "noChange": false
+  },
+  "stable": {
+    "iterationUri": "urn:subactor:iteration:sha256:d12ffc6a81f5b259e6cdb5069895056f82ef37166e63d5d8987ef72d17b23417",
+    "noChange": true
+  },
+  "updated": {
+    "iterationUri": "urn:subactor:iteration:sha256:96871861e04271e2afac304b720bd7cc45fb8824a0db3593e3ba3eeb07c609fb",
+    "noChange": false,
+    "diff": {
+      "added": [],
+      "changed": [
+        "$PACKAGE_ROOT/.living-project-demo/project/environment/current.json"
+      ],
+      "removed": [],
+      "unchanged": [
+        "$PACKAGE_ROOT/.living-project-demo/project/data/manager/policy.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/data/customer/README.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/data/project/context.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/feedback/latest.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/code/CHANGELOG.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/code/README.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/code/TASK.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/code/TODO.md",
+        "$PACKAGE_ROOT/.living-project-demo/project/code/src/index.ts",
+        "$PACKAGE_ROOT/.living-project-demo/project/logs/runtime.jsonl"
+      ]
+    },
+    "sceneUri": "urn:subactor:scene:sha256:9c4ea653eb5f31f0bcab39759bce78e30424697abed71e09bb7771b14764339a"
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "schema": "t2c.code-change-source-patch/v1",
+  "status": "proposed",
+  "planHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "projectId": "mutation-demo",
+  "target": {
+    "root": "/home/tom/github/bioxfoundry/twin-dsl/.mutation-demo/out/mutations/workspaces/mutation-demo-326082e9",
+    "paths": []
+  },
+  "edits": [],
+  "note": "TODO2CODE_NOT_AVAILABLE: structured empty proposal; install semcod/todo2code for real patches",
+  "patchHash": "a10987b6ae702db1e897e18cfbd1453e1574fe806ef1eba0b782131a7e6152a6"
+}

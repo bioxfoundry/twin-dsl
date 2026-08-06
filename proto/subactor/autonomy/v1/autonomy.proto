@@ -1,0 +1,19 @@
+syntax = "proto3";
+package subactor.autonomy.v1;
+message DevelopmentEvidence {
+  string source=1; string graph_fingerprint=2; uint32 record_count=3; uint32 relation_count=4;
+  uint32 diagnostic_count=5; uint32 blocking_diagnostic_count=6; string acceptance=7;
+  string manifest_status=8; repeated string evidence_uris=9;
+}
+message ImprovementAction {
+  string id=1; string kind=2; string title=3; string reason=4; repeated string target_uris=5;
+  bool approval_required=6; string status=7;
+}
+message ImprovementPlan {
+  string id=1; string project_id=2; string mode=3; string generated_at=4; string source_iteration_uri=5;
+  repeated string evidence_uris=6; repeated ImprovementAction actions=7;
+}
+message FailureReceipt {
+  string project_id=1; string failure_id=2; string trace_id=3; string occurred_at=4; string config_path=5;
+  string output_directory=6; uint32 consecutive_failures=7; string error_code=8; string message=9; uint64 retry_after_ms=10;
+}

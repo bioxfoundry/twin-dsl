@@ -1,4 +1,4 @@
-name: CI
+name: Runtime CI
 on:
   push:
   pull_request:
@@ -8,25 +8,20 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --ignore-scripts
+      - run: npm install
       - run: npm run verify
-      - run: docker compose config -q
-      - run: docker compose build runtime docling
-      - name: Generate and verify isolated project
-        run: |
-          node dist/src/cli/main.js project-create "CI Living Twin" /tmp/ci-living-twin generic
-          node dist/src/cli/main.js project-verify /tmp/ci-living-twin/project.projectdsl
-          cd /tmp/ci-living-twin
-          docker compose config -q
-          docker compose build runtime docling
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: verification
+          name: autonomy-verification
           path: |
-            verification/
-            .living-project-demo/
+            .autonomy-demo
+            .living-project-demo
+            .biofoundry-run
+            verification

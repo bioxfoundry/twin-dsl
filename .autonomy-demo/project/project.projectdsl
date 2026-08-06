@@ -1,0 +1,33 @@
+PROJECT autonomy-example
+NAME "Autonomy Example"
+PROFILE generic
+MANAGER_INTENT "Continuously improve a validated twin without allowing LLM authority escalation."
+SOURCE manager "data/manager" subactor://project/autonomy-example/manager authority policy
+SOURCE customer "data/customer" subactor://project/autonomy-example/customer requirements
+SOURCE project "data/project" subactor://project/autonomy-example/data research
+SOURCE archive "data/archives" subactor://project/autonomy-example/archives historical
+SOURCE derived "feedback" subactor://project/autonomy-example/feedback feedback
+SOURCE development "code" subactor://project/autonomy-example/development code
+SOURCE runtime "logs" subactor://project/autonomy-example/logs runtime-log
+SOURCE runtime "environment" subactor://project/autonomy-example/environment environment
+DEVELOPMENT_ROOT "code"
+DEVELOPMENT_TASK "TASK.md"
+DEVELOPMENT_TODO "TODO.md"
+DEVELOPMENT_CHANGELOG "CHANGELOG.md"
+DEVELOPMENT_DOCS ["README.md","docs/**/*.md"]
+DEVELOPMENT_FIXTURE "config/development.intent.fixture.json"
+OBSERVATION_PATHS ["logs","environment"]
+OBSERVATION_ROOT subactor://project/autonomy-example/runtime
+POLICY_APPROVED true
+POLICY_REQUIRE_RESEARCH true
+POLICY_REQUIRE_DEVELOPMENT true
+POLICY_REQUIRE_DEVELOPMENT_ACCEPTANCE true
+POLICY_ALLOW_DEVELOPMENT_FIXTURE false
+POLICY_REQUIRE_RUNTIME true
+POLICY_AUTO_PUBLISH_SCENE true
+POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
+POLICY_AUTONOMY_MODE propose
+POLICY_REQUIRE_SIGNED_MUTATION_GRANT true
+POLICY_MAX_ITERATIONS_PER_HOUR 12
+POLICY_MAX_CONSECUTIVE_FAILURES 5
+SCENE_FORMAT openusd

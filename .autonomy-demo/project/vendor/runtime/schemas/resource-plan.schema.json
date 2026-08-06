@@ -1,0 +1,11 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"subactor.resource-plan/v1",
+  "type":"object","additionalProperties":false,
+  "required":["schema","id","sources","conversions","outputLogicalRoot","status"],
+  "properties":{
+    "schema":{"const":"subactor.resource-plan/v1"},"id":{"type":"string"},"status":{"const":"proposed"},"outputLogicalRoot":{"type":"string"},
+    "conversions":{"type":"array","items":{"type":"string"},"minItems":1,"uniqueItems":true},
+    "sources":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["kind","location","role","include","exclude"],"properties":{"kind":{"enum":["directory","archive","website","git","file"]},"location":{"type":"string"},"role":{"enum":["manager","customer","project","internet","archive","derived","runtime","development"]},"include":{"type":"array","items":{"type":"string"}},"exclude":{"type":"array","items":{"type":"string"}}}}}
+  }
+}
