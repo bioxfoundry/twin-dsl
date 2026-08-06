@@ -1,219 +1,187 @@
-# Subactor Digital Twin Runtime Starter 0.2.0
+# Subactor Digital Twin Runtime Starter 0.3.0
 
-Uruchamialny starter łączący istniejący `todo2code` jako walidowalny `intentDSL` z zasobami, OpenRouter, DQL/sitemap crawling, ClickHouse, konwersją dokumentów, `queryDSL`, `treeDSL`, `mathDSL`, `twinDSL`, `sceneDSL`, CQRS/ES i aktualizowaną sceną OpenUSD.
-
-## Co zostało ponownie użyte
-
-- `https://github.com/semcod/todo2code` — kanoniczny `t2c.intent/v1`, NL → Intent Evidence DSL, graf, diagnostyka i audyt OpenRouter;
-- Subactor AQL/OQL/URI Process — authority, ticket-before-effect, idempotency i receipts;
-- ClickHouse — szybka projekcja treści i wyników zapytań;
-- Docling — konwersja PDF/Office/obrazów do Markdown;
-- protokół Sitemap — kontrolowane odkrywanie stron przez DQL;
-- OpenUSD — materializacja konceptualnej sceny 3D z Digital Twin.
-
-Repozytorium `semcod/todo2coded` nie istnieje; integracja wskazuje istniejące `semcod/todo2code`.
-
-## Główna zasada
+Uruchamialny starter zamkniętej pętli:
 
 ```text
-LLM proponuje DSL
-→ parser i walidator odrzucają obce pola
-→ runtime wiąże zasoby, snapshoty i URI
-→ mathDSL sprawdza twarde bramki
-→ dopiero wtedy materializowane są Twin i scena
+research: źródła → resourceDSL/treeDSL/queryDSL/mathDSL
+    ↓
+development: wymagania + kod + Git → todo2code t2c.intent/v1 / evidence graph
+    ↓
+runtime: observationDSL + event log + środowisko
+    ↓
+Digital Twin: twinDSL → sceneDSL → OpenUSD
+    ↓
+feedback: zwalidowany rezultat wraca jako źródło następnej iteracji
 ```
 
-Model nie generuje hashy zasobów, nie nadaje authority, nie uznaje własnego claimu za fakt i nie zapisuje bezpośrednio sceny 3D.
+To jest poprawny model zagadnienia, pod warunkiem że trzy pętle pozostają rozdzielone:
 
-## Pełna weryfikacja
+1. **knowledge loop** — pozyskuje i waliduje wiedzę;
+2. **development loop** — porównuje intent z kodem i testami;
+3. **execution loop** — aktualizuje Twin i artefakty dopiero po twardych bramkach.
+
+`todo2code` pozostaje kanonicznym `intentDSL` dla poleceń, planów, kodu, Git, dokumentacji i diagnostyki Intent vs Reality. Subactor AQL/OQL/URI Process pozostaje granicą authority i efektów.
+
+## Najszybszy start nowego żywego projektu
 
 ```bash
-npm install
-npm run verify
+npm run build
+node dist/src/cli/main.js project-create \
+  "Customer Biofoundry" \
+  ./projects/customer-biofoundry \
+  biofoundry \
+  "Aktualizuj zwalidowany Digital Twin na podstawie dokumentacji klienta, kodu i obserwacji runtime."
+
+cd projects/customer-biofoundry
+cp .env.example .env
+docker compose up -d --build
+docker compose logs -f runtime
 ```
 
-W środowisku bez dostępu do npm wystarczą globalny TypeScript i lokalne `@types/node`. Archiwum zawiera zweryfikowany `dist/`, więc demonstracje można uruchomić również bez przebudowy.
+Każdy projekt otrzymuje własne:
 
-`verify` wykonuje:
+- `project.projectdsl` i `project.json`;
+- katalogi manager/customer/project/archive/code/logs/environment/feedback;
+- vendored, skompilowany runtime;
+- osobny `docker-compose.yml`, sieć i volume ClickHouse;
+- Docling, ClickHouse i watcher runtime;
+- CI oraz release do GHCR;
+- porty wyliczone dla projektu, aby ograniczyć konflikty;
+- append-only event log, receipts, candidate i current artifacts.
 
-1. TypeScript strict;
-2. kontrolę kontraktów Proto;
-3. testy parserów, OpenRouter mock, DQL, ZIP i Biofoundry;
-4. starszy pipeline query/tree/math;
-5. `NL → każdy DSL` na fixture;
-6. research lokalny + ZIP + sitemap;
-7. start Biofoundry;
-8. symulację dwóch zmian w czasie rzeczywistym.
+## Dodawanie dowolnego źródła
+
+```bash
+node vendor/runtime/dist/src/cli/main.js project-add-source \
+  project.projectdsl customer /data/customer/specification.pdf
+
+node vendor/runtime/dist/src/cli/main.js project-add-source \
+  project.projectdsl archive /data/customer/materials.zip
+
+node vendor/runtime/dist/src/cli/main.js project-add-source \
+  project.projectdsl development /home/user/repositories/device-runtime
+
+node vendor/runtime/dist/src/cli/main.js project-add-source \
+  project.projectdsl runtime /var/log/device-observations
+```
+
+Obsługiwane są pojedyncze pliki, katalogi, ZIP-y oraz DQL/sitemap dla WWW. Pliki Office/PDF/obrazy przechodzą przez Docling, a pliki tekstowe przez deterministyczny konwerter lokalny.
+
+Jedna iteracja bez watchera:
+
+```bash
+docker compose run --rm runtime \
+  project-iterate /project/project.projectdsl /project/.living-runtime deterministic
+```
+
+## Pętla bez dalszego używania NL
+
+Natural language jest wyłącznie wejściem do utworzenia lub zmiany kontraktu DSL:
+
+```text
+NL → structured LLM → parser → canonical DSL AST → hash → review/AQL
+```
+
+Po materializacji runtime komunikuje się wyłącznie przez:
+
+```text
+projectDSL
+resourceDSL
+intentDSL / t2c graph
+queryDSL + query-result
+DQL
+treeDSL
+mathDSL
+observationDSL
+twinDSL
+sceneDSL
+iteration receipts
+URI Process
+```
+
+LLM nie komunikuje się bezpośrednio z executorami. Zwraca wyłącznie propozycję typowanego DSL, która przechodzi parser, walidację domenową, hashowanie i bramki authority.
 
 ## OpenRouter: NL → wszystkie DSL
-
-```bash
-cp .env.example .env
-# ustaw OPENROUTER_API_KEY i OPENROUTER_MODEL
-
-npm run build
-node dist/src/cli/main.js nl-to-dsl math request.md out/math.json require-llm
-node dist/src/cli/main.js nl-to-dsl scene request.md out/scene.json require-llm
-```
 
 Obsługiwane wartości `kind`:
 
 ```text
-intent resource query dql tree math twin scene
+intent resource query dql tree math twin scene project observation
+```
+
+```bash
+export OPENROUTER_API_KEY="..."
+export OPENROUTER_MODEL="mistralai/codestral-2508"
+
+node dist/src/cli/main.js nl-to-dsl \
+  project request.md out/project.json require-llm
 ```
 
 - `intent` deleguje do lokalnego `todo2code`;
-- pozostałe DSL korzystają ze wspólnego klienta OpenRouter;
-- wywołania używają `response_format=json_schema`, `strict=true`, `provider.require_parameters=true` i opcjonalnego `response-healing`;
-- odpowiedź jest ponownie walidowana przez parser domenowy;
-- dostępne tryby: `deterministic`, `prefer-llm`, `require-llm`.
+- pozostałe DSL korzystają z jednego klienta OpenRouter;
+- odpowiedź używa strict JSON Schema i jest ponownie parsowana przez runtime;
+- tryby: `deterministic`, `prefer-llm`, `require-llm`.
 
-Offline:
-
-```bash
-npm run demo:nl-dsl
-ls .nl-dsl-run/
-```
-
-## Researcher: folder + ZIP + internet
+## Weryfikacja
 
 ```bash
-npm run demo:research
-cat .research-run/summary.json
+npm run verify
 ```
 
-Przebieg:
+Wersja 0.3.0 sprawdza:
+
+- TypeScript strict;
+- 10 kontraktów Proto;
+- 11 testów parserów i integracji;
+- NL → 10 DSL;
+- OpenRouter structured-output mock;
+- foldery, ZIP i DQL/sitemap;
+- Biofoundry real-time;
+- adapter procesu `todo2code`;
+- generator izolowanego projektu;
+- pełny living loop: research → development → observations → math → twin → scene → feedback;
+- no-change i blokadę publikacji po cofnięciu polityki managera;
+- kontrakty Docker Compose i CI/CD.
+
+## Docker i CI/CD
+
+Środowisko główne:
+
+```bash
+docker compose up -d --build
+```
+
+Projekt wygenerowany przez wizard ma własny Compose. GitHub Actions wykonuje `project-verify`, `docker compose config`, build obrazów i jedną deterministyczną iterację. Workflow release buduje obraz runtime i publikuje go do GHCR.
+
+W środowisku, w którym przygotowano paczkę, nie było dostępnego demona Docker. Compose i workflow zostały zweryfikowane kontraktowo oraz składniowo, ale obrazy ClickHouse/Docling nie zostały tu faktycznie uruchomione. CI dostarczony w paczce wykonuje brakującą bramę na runnerze z Dockerem.
+
+## Aktualny poziom autonomii
+
+Zaimplementowano **ciągłą autonomię modelu i sceny w obrębie zatwierdzonego projectDSL**:
+
+- obserwowanie zmian;
+- inkrementalne snapshoty;
+- twarde bramki mathDSL;
+- publikacja tylko zielonej sceny;
+- ostatnia poprawna wersja;
+- feedback do następnej iteracji;
+- brak ponownego runu dla identycznego stanu.
+
+Nie zaimplementowano jeszcze bezwarunkowej autonomicznej samomodyfikacji kodu runtime. Domyślna polityka generowanych projektów ma:
 
 ```text
-lokalne notatki + customer ZIP
-→ bezpieczne rozpakowanie
-→ resourceDSL + immutable URI
-
-DQL + sitemap.xml
-→ allowlist hostów i ścieżek
-→ budżet URL
-→ konwersja HTML → Markdown
-→ internet resources
-
-wszystkie zasoby
-→ snapshot
-→ queryDSL
-→ treeDSL result + citations
-→ mathDSL evidence gate
+POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
 ```
 
-Żywy crawl:
-
-```bash
-node dist/src/cli/main.js crawl path/to/research.dql out/crawl
-```
-
-## Real-time Biofoundry Digital Twin
-
-```bash
-npm run demo:biofoundry
-cat .biofoundry-run/latest.json
-cat .biofoundry-run/current/scene.usda
-```
-
-Tryb ciągły:
-
-```bash
-DT_WATCH_INTERVAL_MS=2000 \
-node dist/src/cli/main.js biofoundry-watch \
-  examples/biofoundry/biofoundry.config.json \
-  .biofoundry-live \
-  prefer-llm
-```
-
-Watcher analizuje:
-
-- `manager-guidelines/` — twarda polityka i zgoda;
-- `customer-docs/` — wymiary i wymagania;
-- `project-data/` — bieżący stan obserwowany;
-- `archives/*.zip` — materiały historyczne z osobnym lineage;
-- DQL/sitemap — wiedza kontekstowa z internetu.
-
-Przy zmianie:
-
-```text
-resource diff
-→ nowy snapshot
-→ treeDSL
-→ mathDSL startup gates
-→ twinDSL
-→ sceneDSL
-→ scene diff
-→ OpenUSD
-→ receipt
-```
-
-Jeżeli `SceneRebuildAllowed=false`, kandydat trafia do `candidate/`, a `current/scene.usda` pozostaje ostatnią poprawną sceną.
-
-Symulacja real-time:
-
-```bash
-npm run demo:realtime
-cat .biofoundry-realtime-demo/demo-summary.json
-```
-
-Pokazuje:
-
-1. poprawny start;
-2. zmianę temperatury 37 → 39°C i przebudowę sceny;
-3. przekroczenie limitu aktywnych bioreaktorów;
-4. zablokowanie nowej sceny i zachowanie ostatniej poprawnej wersji.
-
-## Docker
-
-```bash
-docker compose up --build
-```
-
-Uruchamia:
-
-- ClickHouse;
-- Docling;
-- runtime Node.
-
-Aby researcher demo użył rzeczywistej projekcji zamiast pamięciowej:
-
-```bash
-DT_SEARCH_BACKEND=clickhouse CLICKHOUSE_URL=http://127.0.0.1:8123 npm run demo:research
-```
-
-## Artefakty Biofoundry
-
-```text
-.biofoundry-run/
-├── candidate/
-│   ├── resources.json
-│   ├── tree.json
-│   ├── math.json
-│   ├── math.dsl
-│   ├── twin.json
-│   ├── scene.json
-│   ├── scene.usda
-│   ├── scene.diff.json
-│   └── generation-audit.json
-├── current/                 # tylko po zielonych bramkach
-├── receipts/
-├── state/
-└── latest.json
-```
+Pełna autonomia kodu wymaga podpisanego AQL/OQL grant, branch/PR sandbox, source patch związany z hashem, pełnych testów, canary, rollback, limitów kosztu i niezależnego acceptance po ponownej analizie `todo2code`.
 
 ## Dokumentacja
 
-- `docs/ARCHITECTURE.md`
-- `docs/DSL_SPEC.md`
-- `docs/OPENROUTER_NL_TO_DSL.md`
-- `docs/TODO2CODE_INTEGRATION.md`
-- `docs/DQL_PROFILES.md`
-- `docs/RESEARCHER_WORKFLOWS.md`
+- `docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md`
+- `docs/PROJECT_WIZARD.md`
+- `docs/FULL_AUTONOMY_GAPS.md`
+- `docs/CI_CD.md`
+- `docs/QUICK_SOURCE_RECIPES.md`
 - `docs/REALTIME_BIOFOUNDRY.md`
-- `docs/TEST_PLAN.md`
+- `docs/TODO2CODE_INTEGRATION.md`
 - `VERIFICATION.md`
-
-## Granice
-
-To jest testowalny starter, nie pełny produkt produkcyjny. Przed produkcją nadal potrzebne są m.in. trwały event store, Temporal/BullMQ, AV i pełna izolacja konwerterów, AQL bridge, podpisy receipts, OpenTelemetry, backup/restore oraz prawdziwy adapter OpenUSD/CAD/BIM.

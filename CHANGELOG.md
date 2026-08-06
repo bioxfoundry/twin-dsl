@@ -1,25 +1,40 @@
 # Changelog
 
-## [Unreleased] - 2026-08-06
+## 0.3.0 — 2026-08-06
 
-### Fixed
-- Fix ast-sorted-imports issues (ticket-3d7680cd)
-- Fix ast-missing-return-type issues (ticket-2f8c4185)
-- Fix ruff-sorted-imports issues (ticket-a28c2f25)
-- Fix smart-return-type issues (ticket-8e3ef0e3)
-- Fix import-optimization issues (ticket-ab3402c0)
+### Added
+
+- canonical living loop: research → development evidence → observationDSL → mathDSL → twinDSL → sceneDSL → feedback;
+- `projectDSL` (`subactor.living-project/v1`);
+- `observationDSL` (`subactor.observation/v1`);
+- `subactor.living-iteration/v1` receipts and append-only events;
+- generic LivingProjectRuntime and watcher;
+- project wizard generating isolated Docker Compose stacks, ports, data directories, vendored runtime and CI/CD;
+- quick `project-add-source` for arbitrary files, directories, ZIPs, code and runtime logs;
+- todo2code process adapter contract test;
+- no-change identity including projectDSL, knowledge, development graph and observations;
+- project-level candidate/current scene publication and fail-closed self-modification policy;
+- GitHub Actions CI and GHCR release workflows.
+
+### Verified
+
+- 10 Protobuf files;
+- 11/11 Node tests;
+- NL → 10 DSL contracts;
+- root and generated Docker Compose YAML;
+- root and generated GitHub Actions YAML;
+- full offline living loop and real-time update;
+- manager-policy change blocks publication and preserves the current scene.
+
+### Known boundaries
+
+- Docker daemon was unavailable in the build environment, so images were not started locally;
+- live OpenRouter and the complete real todo2code checkout were not executed; controlled structured-output and process-adapter tests passed;
+- autonomous runtime source mutation remains disabled by default.
 
 ## 0.2.0 — 2026-08-06
 
-- added OpenRouter-backed `NL → intent/resource/query/dql/tree/math/twin/scene DSL`;
-- retained `todo2code` as the canonical Intent Evidence DSL runtime;
-- added strict structured-output schemas and `deterministic|prefer-llm|require-llm` modes;
-- added DQL sitemap crawler with budgets, host/path allowlists and network guards;
-- added folder, ZIP, Docling and ClickHouse adapters;
-- added real-time Biofoundry Digital Twin pipeline and OpenUSD scene materialization;
-- added no-change detection, source precedence and blocked-candidate preservation;
-- added researcher and Biofoundry examples plus 8 passing tests.
-
-## 0.1.0 — 2026-08-06
-
-- initial query/tree/math Digital Twin starter.
+- OpenRouter NL → DSL compiler;
+- DQL sitemap crawler;
+- folder/ZIP researcher;
+- real-time Biofoundry conceptual Twin and OpenUSD scene.

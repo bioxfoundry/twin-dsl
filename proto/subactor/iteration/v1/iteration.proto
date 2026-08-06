@@ -1,0 +1,6 @@
+syntax = "proto3";
+package subactor.iteration.v1;
+message Stage { string name=1; string status=2; repeated string artifact_uris=3; string reason=4; }
+message LivingIterationReceipt { string project_id=1; string iteration_id=2; bool no_change=3; string started_at=4; string completed_at=5; string project_config_hash=6; string research_snapshot_hash=7; string development_fingerprint=8; string observation_snapshot_hash=9; string previous_iteration_uri=9; string intent_uri=10; string tree_uri=11; string math_uri=12; string observation_uri=13; string twin_uri=14; string scene_uri=15; string iteration_uri=16; repeated Stage stages=17; bool validation_ok=18; repeated string failures=19; }
+message RunIterationRequest { string project_config=1; string output_directory=2; string mode=3; }
+service LivingIterationService { rpc Run(RunIterationRequest) returns (LivingIterationReceipt); }

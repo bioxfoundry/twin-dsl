@@ -3,7 +3,7 @@ import { extname, basename } from "node:path";
 export interface ConvertedDocument { markdown:string; metadata:Record<string,unknown>; assets:string[]; converter:string; version:string; }
 export interface DocumentConverter { convert(path:string):Promise<ConvertedDocument>; }
 export class DeterministicMarkdownConverter implements DocumentConverter {
-  async convert(path:string):Promise<ConvertedDocument>{const ext=extname(path).toLowerCase();if(!['.md','.txt','.json','.yaml','.yml','.toml','.csv','.ts','.js','.mjs','.py','.php','.go','.rs','.java','.xml','.html','.htm'].includes(ext))throw new Error(`EXTERNAL_CONVERTER_REQUIRED:${ext}`);const text=await readFile(path,'utf8');const s=await stat(path);return{markdown:ext==='.md'?text:`# ${basename(path)}\n\n\`\`\`${ext.slice(1)||'text'}\n${text}\n\`\`\``,metadata:{source:path,size:s.size,mtime:s.mtime.toISOString()},assets:[],converter:'deterministic-text',version:'1.1.0'};}
+  async convert(path:string):Promise<ConvertedDocument>{const ext=extname(path).toLowerCase();if(!['.md','.txt','.json','.jsonl','.yaml','.yml','.toml','.csv','.ts','.js','.mjs','.py','.php','.go','.rs','.java','.xml','.html','.htm'].includes(ext))throw new Error(`EXTERNAL_CONVERTER_REQUIRED:${ext}`);const text=await readFile(path,'utf8');const s=await stat(path);return{markdown:ext==='.md'?text:`# ${basename(path)}\n\n\`\`\`${ext.slice(1)||'text'}\n${text}\n\`\`\``,metadata:{source:path,size:s.size,mtime:s.mtime.toISOString()},assets:[],converter:'deterministic-text',version:'1.1.0'};}
 }
 export class DoclingHttpAdapter implements DocumentConverter {
   constructor(readonly baseUrl=process.env.DOCLING_URL??'http://127.0.0.1:5001'){}

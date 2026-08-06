@@ -1,8 +1,8 @@
-export type ResultKind = "tree" | "math" | "table" | "text" | "scene" | "twin";
+export type ResultKind = "tree" | "math" | "table" | "text" | "scene" | "twin" | "observation" | "project";
 export type EpistemicType = "request" | "plan" | "decision" | "message" | "report" | "result" | "claim";
 export type LlmMode = "deterministic" | "prefer-llm" | "require-llm";
-export type DslKind = "intent" | "resource" | "query" | "dql" | "tree" | "math" | "twin" | "scene";
-export type SourceRole = "manager" | "customer" | "project" | "internet" | "archive" | "derived";
+export type DslKind = "intent" | "resource" | "query" | "dql" | "tree" | "math" | "twin" | "scene" | "project" | "observation";
+export type SourceRole = "manager" | "customer" | "project" | "internet" | "archive" | "derived" | "runtime" | "development";
 
 export interface SourceAnchor {
   artifactUri: string;
@@ -151,6 +151,67 @@ export interface SceneDocument {
   bindings: SceneBinding[];
 }
 
+export interface ObservationRecord {
+  id: string;
+  observedAt: string;
+  subjectUri: string;
+  metric: string;
+  value: MathValue;
+  unit?: string;
+  severity: "debug" | "info" | "warning" | "error" | "critical";
+  sourceUris: string[];
+  labels: string[];
+}
+export interface ObservationDocument {
+  schema: "subactor.observation/v1";
+  id: string;
+  sourceSnapshotHash: string;
+  observations: ObservationRecord[];
+}
+
+export interface LivingSourceSpec {
+  path: string;
+  role: SourceRole;
+  logicalRoot: string;
+  labels?: string[];
+}
+export interface LivingProjectDocument {
+  schema: "subactor.living-project/v1";
+  id: string;
+  name: string;
+  profile: "generic" | "biofoundry";
+  managerIntent: string;
+  sources: LivingSourceSpec[];
+  development: {
+    root: string;
+    task?: string;
+    todo?: string;
+    changelog?: string;
+    docs?: string[];
+    fixture?: string;
+  };
+  observations: {
+    paths: string[];
+    logicalRoot: string;
+  };
+  webResearch?: {
+    dqlFile: string;
+    fixtureMapFile?: string;
+  };
+  policy: {
+    approved: boolean;
+    requireResearch: boolean;
+    requireDevelopmentEvidence: boolean;
+    requireRuntimeEvidence: boolean;
+    autoPublishScene: boolean;
+    allowRuntimeSelfModification: boolean;
+    maxIterationsPerHour: number;
+  };
+  scene: {
+    format: "openusd" | "gltf" | "3dtiles";
+  };
+}
+
 export interface EvidenceReference { uri: string; anchor?: SourceAnchor; }
 export interface QueryResultEnvelope {
   schema: "subactor.query-result/v1";
@@ -161,7 +222,7 @@ export interface QueryResultEnvelope {
   resultUri: string;
   resultHash: string;
   resultKind: ResultKind;
-  payload: TreeDocument | MathDocument | TwinDocument | SceneDocument | unknown;
+  payload: TreeDocument | MathDocument | TwinDocument | SceneDocument | ObservationDocument | LivingProjectDocument | unknown;
   evidence: EvidenceReference[];
   validation: { ok: boolean; checks: {name: string; ok: boolean; message: string}[] };
   executionReceipt: { ticketId: string; processId: string; idempotencyKey: string; completedAt: string };
@@ -216,4 +277,33 @@ export interface TwinBuildReceipt {
   sceneUri: string;
   validation: { ok: boolean; checks: string[]; failures: string[] };
   generatedAt: string;
+}
+
+export interface LivingIterationReceipt {
+  schema: "subactor.living-iteration/v1";
+  projectId: string;
+  iterationId: string;
+  noChange: boolean;
+  startedAt: string;
+  completedAt: string;
+  projectConfigHash: string;
+  researchSnapshotHash: string;
+  developmentFingerprint: string;
+  observationSnapshotHash: string;
+  previousIterationUri: string | null;
+  intentUri: string;
+  treeUri: string;
+  mathUri: string;
+  observationUri: string;
+  twinUri: string;
+  sceneUri: string;
+  iterationUri: string;
+  diff: ResourceDiff;
+  stages: Array<{
+    name: "research" | "development" | "runtime" | "reasoning" | "twin" | "scene" | "feedback";
+    status: "succeeded" | "skipped" | "blocked" | "failed";
+    artifactUris: string[];
+    reason?: string;
+  }>;
+  validation: { ok: boolean; failures: string[] };
 }

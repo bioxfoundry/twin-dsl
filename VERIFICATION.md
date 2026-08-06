@@ -1,84 +1,96 @@
-# Verification report — 0.2.0
+# Verification report — 0.3.0
 
 Date: 2026-08-06
 
-## Gates executed
+## Verified path
 
-The following command completed successfully in the build environment:
+```text
+files/directories/ZIP/DQL
+→ resource records and content snapshot
+→ research tree/query/math
+→ todo2code development evidence boundary
+→ runtime/environment observationDSL
+→ hard iteration gates
+→ twinDSL
+→ sceneDSL/OpenUSD
+→ feedback source
+→ next iteration
+```
+
+## Executed gates
+
+```text
+TypeScript strict:                         PASS
+Protobuf contract scan:                    10 PASS
+Compose contract:                          PASS
+Node unit/integration tests:               11/11 PASS
+NL → DSL deterministic fixtures:           10/10 PASS
+OpenRouter strict structured-output mock:  PASS
+DQL sitemap/context crawler:               PASS
+Folder and ZIP ingestion:                  PASS
+Biofoundry real-time update:               PASS
+Project wizard:                            PASS
+Generic living iteration:                  PASS
+Todo2code process adapter:                 PASS
+No-change detection:                       PASS
+Manager-policy publication block:          PASS
+Last-known-good scene preservation:        PASS
+Root Docker Compose YAML parse:             PASS
+Generated Docker Compose YAML parse:        PASS
+Root GitHub Actions YAML parse:              PASS
+Generated GitHub Actions YAML parse:         PASS
+```
+
+Primary command:
 
 ```bash
 npm run verify
 ```
 
-Verified results:
+## Full-loop observations
 
-```text
-TypeScript strict check:             PASS
-Protobuf contract files:             7 PASS
-Node unit/integration tests:          8/8 PASS
-Offline query/tree/math pipeline:     PASS
-NL → DSL fixtures:                    8/8 PASS
-OpenRouter structured-output mock:    PASS
-DQL sitemap/context crawler fixture:  PASS
-Folder + ZIP researcher workflow:     PASS
-Biofoundry initial build:             PASS
-Biofoundry no-change path:             PASS
-Biofoundry real-time update:          PASS
-Biofoundry blocked publication:       PASS
-```
+- First iteration creates research, development, observation, math, twin, scene and feedback artifacts.
+- The feedback file is deliberately consumed on the second iteration.
+- The third identical iteration returns `noChange=true` with the previous iteration URI.
+- Changing environmental data creates a new source snapshot and Scene URI.
+- Changing projectDSL authority (`approved=false`) blocks publication and leaves `current/scene.usda` unchanged.
+- Runtime timestamps do not trigger rebuilding on their own.
 
-## Reproducible demo values
+## Docker and CI/CD status
 
-Base query pipeline:
+Created and syntax-validated:
 
-```text
-Resources indexed: 3
-Source snapshot: 2b3319ef3e60243c4885af7c519d65d72d9ee9749c8a2534568c38ff07025569
-Result URI: urn:subactor:query-result:sha256:779a06c70158d56bbcb08bd11748d132bc28b468cf334b33c644b629e4be80c7
-Result validation: true
-mathDSL Executable: true
-```
+- root Docker Compose stack;
+- generated per-project Compose stack;
+- ClickHouse service;
+- Docling service;
+- TypeScript runtime watcher service;
+- health checks and isolated volumes;
+- starter CI workflow;
+- generated-project CI workflow;
+- GHCR release workflows.
 
-Researcher workflow:
+The current execution environment has no Docker binary or daemon. Consequently, `docker compose up`, image build, container health and network integration were not executed here. Delivered GitHub Actions run these gates on `ubuntu-latest`.
 
-```text
-Search backend: memory
-Local resources: 2
-Web fixture pages: 2
-Source snapshot: 85184674f56f8fedfce44bc30a2408900cca8b6da51d75e47e7ca363c86a521b
-Result URI: urn:subactor:query-result:sha256:771584e68a8578458a19b62b5ec561604825dd05ba689638ffb1afea942f3cad
-Validated: true
-EvidenceReady: true
-```
+## Live external boundaries
 
-Biofoundry initial build:
+Not executed in this environment:
 
-```text
-Source snapshot: 2e04052e2af4b0cd4d13cd5c112a0b59a1e6acb7e4af2dd1f75bcd92764289c3
-Tree URI: urn:subactor:tree:sha256:0618e992cc30e7f0d9ce4863f69436d471f5ee4d525782b950d7406e1685db32
-Math URI: urn:subactor:math:sha256:b5cae3cc822a7601cdc906319834d5328ed171ab4af8d4192f5c62b1875b1051
-Twin URI: urn:subactor:twin:sha256:71b31aa08a7150bb609c35c63a77ee2087909073a58b48f79bff24a8865211c2
-Scene URI: urn:subactor:scene:sha256:eb74e5f0047cd2883197cefa3b65e0145b39ef281bf98f8a5ed97ab3a8d15e99
-Validation: true
-```
+- paid OpenRouter request;
+- full current `semcod/todo2code` checkout and its complete pipeline;
+- live internet crawl;
+- live ClickHouse and Docling containers;
+- external OpenUSD/CAD/BIM validator.
 
-Real-time Biofoundry simulation verified that:
+Tested instead:
 
-1. a temperature change changes the source snapshot, Twin URI, Scene URI and OpenUSD attribute;
-2. an unchanged snapshot returns `noChange=true` without a new scene;
-3. exceeding the manager's active-bioreactor limit produces `SceneRebuildAllowed=false`;
-4. a blocked candidate does not overwrite `current/scene.usda`.
+- controlled OpenRouter HTTP mock with strict JSON Schema;
+- contract-compatible todo2code fixture;
+- executable fake todo2code CLI producing canonical `latest → manifest → graph` artifacts;
+- sitemap and HTML fixtures through the same crawler;
+- in-memory search projection;
+- deterministic OpenUSD ASCII output.
 
-The complete console transcript is stored in `verification/verify.log`.
+## Autonomy conclusion
 
-## Controlled tests versus live tests
-
-The following boundaries were tested with deterministic fixtures or controlled mocks:
-
-- OpenRouter request shape and response validation — controlled HTTP mock, not a paid live model call;
-- web research — sitemap/HTML fixtures plus the same crawler and network-safety code used by live mode;
-- `todo2code` — public repository contracts and a contract-compatible fixture; the package calls a local real checkout when `T2C_ROOT` and `T2C_BIN` are configured;
-- ClickHouse and Docling — adapters and Docker Compose definitions are included, but containers were not started because Docker is unavailable in the build environment;
-- 3D output — deterministic OpenUSD ASCII (`.usda`) was generated; no external CAD/BIM validator or renderer was available.
-
-No OpenRouter API key or other secret is included in the package.
+The package validates autonomous **Twin model/scene iteration inside an approved projectDSL**. It does not validate unrestricted autonomous mutation of its own runtime source. That requires signed AQL/OQL authority, isolated source patches, independent acceptance, canary deployment and rollback.

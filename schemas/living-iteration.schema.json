@@ -1,0 +1,7 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"subactor.living-iteration/v1",
+  "type":"object",
+  "required":["schema","projectId","iterationId","noChange","startedAt","completedAt","projectConfigHash","researchSnapshotHash","developmentFingerprint","observationSnapshotHash","intentUri","treeUri","mathUri","observationUri","twinUri","sceneUri","iterationUri","diff","stages","validation"],
+  "properties":{"schema":{"const":"subactor.living-iteration/v1"},"projectId":{"type":"string"},"iterationId":{"type":"string"},"noChange":{"type":"boolean"},"projectConfigHash":{"type":"string"},"researchSnapshotHash":{"type":"string"},"developmentFingerprint":{"type":"string"},"observationSnapshotHash":{"type":"string"},"stages":{"type":"array"},"validation":{"type":"object"}}
+}

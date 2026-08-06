@@ -1,0 +1,20 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"subactor.living-project/v1",
+  "type":"object",
+  "additionalProperties":false,
+  "required":["schema","id","name","profile","managerIntent","sources","development","observations","policy","scene"],
+  "properties":{
+    "schema":{"const":"subactor.living-project/v1"},
+    "id":{"type":"string","pattern":"^[a-z0-9][a-z0-9-]{1,62}$"},
+    "name":{"type":"string","minLength":1},
+    "profile":{"enum":["generic","biofoundry"]},
+    "managerIntent":{"type":"string","minLength":1},
+    "sources":{"type":"array","minItems":1,"items":{"type":"object","additionalProperties":false,"required":["path","role","logicalRoot"],"properties":{"path":{"type":"string"},"role":{"enum":["manager","customer","project","internet","archive","derived","runtime","development"]},"logicalRoot":{"type":"string"},"labels":{"type":"array","items":{"type":"string"},"uniqueItems":true}}}},
+    "development":{"type":"object"},
+    "observations":{"type":"object"},
+    "webResearch":{"type":"object"},
+    "policy":{"type":"object","required":["approved","requireResearch","requireDevelopmentEvidence","requireRuntimeEvidence","autoPublishScene","allowRuntimeSelfModification","maxIterationsPerHour"]},
+    "scene":{"type":"object","required":["format"],"properties":{"format":{"enum":["openusd","gltf","3dtiles"]}}}
+  }
+}

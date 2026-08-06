@@ -5,7 +5,7 @@ import { CompositeDocumentConverter, DeterministicMarkdownConverter } from "../a
 import { resourceFromText } from "../dsl/resource.js";
 import { readZip } from "./archive.js";
 
-const TEXT_EXT=new Set(['.md','.txt','.json','.yaml','.yml','.toml','.csv','.ts','.js','.mjs','.py','.php','.go','.rs','.java','.xml','.html','.htm']);
+const TEXT_EXT=new Set(['.md','.txt','.json','.jsonl','.yaml','.yml','.toml','.csv','.ts','.js','.mjs','.py','.php','.go','.rs','.java','.xml','.html','.htm']);
 export interface ScanSource { path:string; role:SourceRole; logicalRoot:string; labels?:string[]; }
 export interface ScanResult { resources:ResourceRecord[]; texts:Map<string,string>; warnings:string[]; }
 async function walk(root:string):Promise<string[]>{const out:string[]=[];for(const e of await readdir(root,{withFileTypes:true})){if(['.git','node_modules','dist','.intent','.dt-run','.biofoundry-run'].includes(e.name))continue;const p=join(root,e.name);if(e.isSymbolicLink())continue;if(e.isDirectory())out.push(...await walk(p));else if(e.isFile())out.push(p);}return out;}
