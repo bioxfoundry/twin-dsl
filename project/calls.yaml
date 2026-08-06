@@ -1,0 +1,1385 @@
+project: /home/tom/github/bioxfoundry/twin-dsl
+generated_from: code2llm call graph analysis
+stats:
+  total_nodes: 114
+  total_edges: 107
+  modules_count: 20
+nodes:
+  src.adapters.clickhouse.ClickHouseHttpProjection.query:
+    name: query
+    module: src.adapters.clickhouse
+    line: 13
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 3
+  src.ingestion.archive.execFileAsync:
+    name: execFileAsync
+    module: src.ingestion.archive
+    line: 3
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 2
+  src.llm.openrouter.envBool:
+    name: envBool
+    module: src.llm.openrouter
+    line: 21
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  src.llm.dsl-schemas.strings:
+    name: strings
+    module: src.llm.dsl-schemas
+    line: 21
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 2
+  src.dsl.math.val:
+    name: val
+    module: src.dsl.math
+    line: 50
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 2
+  src.research.crawler.allowedPath:
+    name: allowedPath
+    module: src.research.crawler
+    line: 20
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.scene.openusd.ident:
+    name: ident
+    module: src.scene.openusd
+    line: 3
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 2
+  src.adapters.clickhouse.ClickHouseHttpProjection.all:
+    name: all
+    module: src.adapters.clickhouse
+    line: 16
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.adapters.clickhouse.ClickHouseHttpProjection.upsert:
+    name: upsert
+    module: src.adapters.clickhouse
+    line: 14
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.ingestion.archive.readZip:
+    name: readZip
+    module: src.ingestion.archive
+    line: 7
+    cyclomatic_complexity: 7
+    calls_out: 8
+    calls_in: 0
+  scripts.check-proto-contracts.files:
+    name: files
+    module: scripts.check-proto-contracts
+    line: 3
+    cyclomatic_complexity: 3
+    calls_out: 8
+    calls_in: 0
+  src.research.crawler.stripTags:
+    name: stripTags
+    module: src.research.crawler
+    line: 21
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 2
+  src.dsl.math.parseMathDsl:
+    name: parseMathDsl
+    module: src.dsl.math
+    line: 20
+    cyclomatic_complexity: 9
+    calls_out: 8
+    calls_in: 0
+  src.research.crawler.DqlCrawler.robots:
+    name: robots
+    module: src.research.crawler
+    line: 42
+    cyclomatic_complexity: 7
+    calls_out: 7
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource:
+    name: policyResource
+    module: src.runtime.biofoundry
+    line: 61
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.dsl.query.xs:
+    name: xs
+    module: src.dsl.query
+    line: 7
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.runtime.biofoundry.writeJson:
+    name: writeJson
+    module: src.runtime.biofoundry
+    line: 48
+    cyclomatic_complexity: 1
+    calls_out: 4
+    calls_in: 3
+  src.llm.dsl-schemas.validateSceneEnvelope:
+    name: validateSceneEnvelope
+    module: src.llm.dsl-schemas
+    line: 27
+    cyclomatic_complexity: 8
+    calls_out: 8
+    calls_in: 0
+  src.research.crawler.decode:
+    name: decode
+    module: src.research.crawler
+    line: 16
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 3
+  src.scene.openusd.primitive:
+    name: primitive
+    module: src.scene.openusd
+    line: 6
+    cyclomatic_complexity: 5
+    calls_out: 0
+    calls_in: 2
+  src.runtime.biofoundry.BiofoundryRuntime.allowed:
+    name: allowed
+    module: src.runtime.biofoundry
+    line: 67
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.extract:
+    name: extract
+    module: src.adapters.todo2code
+    line: 13
+    cyclomatic_complexity: 2
+    calls_out: 3
+    calls_in: 0
+  src.dsl.parser-util.unquote:
+    name: unquote
+    module: src.dsl.parser-util
+    line: 4
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.envInt:
+    name: envInt
+    module: src.llm.openrouter
+    line: 20
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 1
+  src.research.crawler.fetchText:
+    name: fetchText
+    module: src.research.crawler
+    line: 35
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 1
+  src.runtime.biofoundry.buildMath:
+    name: buildMath
+    module: src.runtime.biofoundry
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 4
+  src.dsl.query.parseQueryDsl:
+    name: parseQueryDsl
+    module: src.dsl.query
+    line: 6
+    cyclomatic_complexity: 13
+    calls_out: 14
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.controller:
+    name: controller
+    module: src.llm.openrouter
+    line: 58
+    cyclomatic_complexity: 19
+    calls_out: 11
+    calls_in: 0
+  src.research.crawler.privateIp:
+    name: privateIp
+    module: src.research.crawler
+    line: 10
+    cyclomatic_complexity: 15
+    calls_out: 4
+    calls_in: 2
+  src.dsl.dql.positiveInt:
+    name: positiveInt
+    module: src.dsl.dql
+    line: 4
+    cyclomatic_complexity: 4
+    calls_out: 3
+    calls_in: 1
+  src.ingestion.scanner.walk:
+    name: walk
+    module: src.ingestion.scanner
+    line: 11
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 1
+  src.adapters.todo2code.Todo2CodeAdapter.extractNl:
+    name: extractNl
+    module: src.adapters.todo2code
+    line: 14
+    cyclomatic_complexity: 4
+    calls_out: 13
+    calls_in: 0
+  src.research.crawler.p:
+    name: p
+    module: src.research.crawler
+    line: 13
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 0
+  src.llm.nl-dsl-compiler.NlDslCompiler.contract:
+    name: contract
+    module: src.llm.nl-dsl-compiler
+    line: 24
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 0
+  src.research.crawler.glob:
+    name: glob
+    module: src.research.crawler
+    line: 19
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 1
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.start:
+    name: start
+    module: src.runtime.realtime-watcher
+    line: 7
+    cyclomatic_complexity: 10
+    calls_out: 8
+    calls_in: 0
+  src.llm.openrouter.contentText:
+    name: contentText
+    module: src.llm.openrouter
+    line: 36
+    cyclomatic_complexity: 7
+    calls_out: 5
+    calls_in: 4
+  src.dsl.math.ex:
+    name: ex
+    module: src.dsl.math
+    line: 51
+    cyclomatic_complexity: 13
+    calls_out: 8
+    calls_in: 1
+  src.core.canonical.sha256:
+    name: sha256
+    module: src.core.canonical
+    line: 9
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.started:
+    name: started
+    module: src.llm.openrouter
+    line: 48
+    cyclomatic_complexity: 7
+    calls_out: 5
+    calls_in: 0
+  src.llm.dsl-schemas.validateResourcePlan:
+    name: validateResourcePlan
+    module: src.llm.dsl-schemas
+    line: 24
+    cyclomatic_complexity: 10
+    calls_out: 8
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.candidate:
+    name: candidate
+    module: src.runtime.biofoundry
+    line: 68
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.llm.dsl-schemas.validateTwinEnvelope:
+    name: validateTwinEnvelope
+    module: src.llm.dsl-schemas
+    line: 26
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  src.dsl.parser-util.list:
+    name: list
+    module: src.dsl.parser-util
+    line: 8
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath:
+    name: policyPath
+    module: src.runtime.biofoundry
+    line: 59
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.llm.dsl-schemas.exact:
+    name: exact
+    module: src.llm.dsl-schemas
+    line: 20
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 5
+  src.dsl.tree.parseTreeDsl:
+    name: parseTreeDsl
+    module: src.dsl.tree
+    line: 4
+    cyclomatic_complexity: 8
+    calls_out: 11
+    calls_in: 0
+  src.dsl.math.m:
+    name: m
+    module: src.dsl.math
+    line: 24
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 0
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.tick:
+    name: tick
+    module: src.runtime.realtime-watcher
+    line: 9
+    cyclomatic_complexity: 8
+    calls_out: 4
+    calls_in: 1
+  src.runtime.biofoundry.buildTwin:
+    name: buildTwin
+    module: src.runtime.biofoundry
+    line: 45
+    cyclomatic_complexity: 3
+    calls_out: 3
+    calls_in: 4
+  src.llm.openrouter.OpenRouterStructuredClient.configured:
+    name: configured
+    module: src.llm.openrouter
+    line: 44
+    cyclomatic_complexity: 1
+    calls_out: 0
+    calls_in: 1
+  src.research.researcher.runResearcherDemo:
+    name: runResearcherDemo
+    module: src.research.researcher
+    line: 15
+    cyclomatic_complexity: 9
+    calls_out: 29
+    calls_in: 0
+  src.ingestion.scanner.scanSources:
+    name: scanSources
+    module: src.ingestion.scanner
+    line: 13
+    cyclomatic_complexity: 15
+    calls_out: 21
+    calls_in: 0
+  src.dsl.query.match:
+    name: match
+    module: src.dsl.query
+    line: 28
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 3
+  src.dsl.math.evaluateMath:
+    name: evaluateMath
+    module: src.dsl.math
+    line: 32
+    cyclomatic_complexity: 17
+    calls_out: 12
+    calls_in: 0
+  src.dsl.tree.match:
+    name: match
+    module: src.dsl.tree
+    line: 13
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.generate:
+    name: generate
+    module: src.llm.openrouter
+    line: 46
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.dsl.math.expr:
+    name: expr
+    module: src.dsl.math
+    line: 11
+    cyclomatic_complexity: 13
+    calls_out: 11
+    calls_in: 1
+  src.dsl.math.numeric:
+    name: numeric
+    module: src.dsl.math
+    line: 31
+    cyclomatic_complexity: 5
+    calls_out: 2
+    calls_in: 3
+  src.dsl.math.truth:
+    name: truth
+    module: src.dsl.math
+    line: 30
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 3
+  src.dsl.math.renderMathDsl:
+    name: renderMathDsl
+    module: src.dsl.math
+    line: 49
+    cyclomatic_complexity: 18
+    calls_out: 11
+    calls_in: 0
+  src.ingestion.archive.maxFiles:
+    name: maxFiles
+    module: src.ingestion.archive
+    line: 8
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 0
+  src.dsl.query.id:
+    name: id
+    module: src.dsl.query
+    line: 9
+    cyclomatic_complexity: 11
+    calls_out: 8
+    calls_in: 0
+  src.research.researcher.fixtureFetch:
+    name: fixtureFetch
+    module: src.research.researcher
+    line: 14
+    cyclomatic_complexity: 3
+    calls_out: 5
+    calls_in: 1
+  src.llm.openrouter.sleep:
+    name: sleep
+    module: src.llm.openrouter
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 2
+  src.llm.openrouter.openRouterConfigFromEnv:
+    name: openRouterConfigFromEnv
+    module: src.llm.openrouter
+    line: 22
+    cyclomatic_complexity: 6
+    calls_out: 3
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.dir:
+    name: dir
+    module: src.adapters.todo2code
+    line: 16
+    cyclomatic_complexity: 3
+    calls_out: 11
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.request:
+    name: request
+    module: src.llm.openrouter
+    line: 57
+    cyclomatic_complexity: 19
+    calls_out: 14
+    calls_in: 2
+  src.llm.nl-dsl-compiler.NlDslCompiler.compile:
+    name: compile
+    module: src.llm.nl-dsl-compiler
+    line: 16
+    cyclomatic_complexity: 18
+    calls_out: 9
+    calls_in: 0
+  src.llm.dsl-schemas.textDsl:
+    name: textDsl
+    module: src.llm.dsl-schemas
+    line: 22
+    cyclomatic_complexity: 2
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.message:
+    name: message
+    module: src.llm.openrouter
+    line: 69
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 0
+  src.runtime.biofoundry.BiofoundryRuntime.policy:
+    name: policy
+    module: src.runtime.biofoundry
+    line: 60
+    cyclomatic_complexity: 1
+    calls_out: 6
+    calls_in: 0
+  src.ingestion.archive.safePath:
+    name: safePath
+    module: src.ingestion.archive
+    line: 6
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 1
+  src.dsl.tree.walk:
+    name: walk
+    module: src.dsl.tree
+    line: 35
+    cyclomatic_complexity: 1
+    calls_out: 3
+    calls_in: 1
+  src.llm.dsl-schemas.generationContract:
+    name: generationContract
+    module: src.llm.dsl-schemas
+    line: 29
+    cyclomatic_complexity: 11
+    calls_out: 2
+    calls_in: 0
+  src.llm.nl-dsl-compiler.NlDslCompiler.started:
+    name: started
+    module: src.llm.nl-dsl-compiler
+    line: 17
+    cyclomatic_complexity: 12
+    calls_out: 6
+    calls_in: 0
+  src.core.canonical.canonicalJson:
+    name: canonicalJson
+    module: src.core.canonical
+    line: 8
+    cyclomatic_complexity: 1
+    calls_out: 2
+    calls_in: 1
+  src.runtime.biofoundry.BiofoundryRuntime.changes:
+    name: changes
+    module: src.runtime.biofoundry
+    line: 58
+    cyclomatic_complexity: 4
+    calls_out: 1
+    calls_in: 0
+  src.dsl.math.env:
+    name: env
+    module: src.dsl.math
+    line: 33
+    cyclomatic_complexity: 16
+    calls_out: 10
+    calls_in: 0
+  src.scene.openusd.components:
+    name: components
+    module: src.scene.openusd
+    line: 8
+    cyclomatic_complexity: 25
+    calls_out: 16
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.available:
+    name: available
+    module: src.adapters.todo2code
+    line: 11
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 2
+  src.llm.dsl-schemas.obj:
+    name: obj
+    module: src.llm.dsl-schemas
+    line: 19
+    cyclomatic_complexity: 4
+    calls_out: 2
+    calls_in: 5
+  src.dsl.twin.validateTwin:
+    name: validateTwin
+    module: src.dsl.twin
+    line: 3
+    cyclomatic_complexity: 6
+    calls_out: 4
+    calls_in: 0
+  src.dsl.math.ev:
+    name: ev
+    module: src.dsl.math
+    line: 34
+    cyclomatic_complexity: 16
+    calls_out: 9
+    calls_in: 3
+  src.llm.nl-dsl-compiler.NlDslCompiler.deterministic:
+    name: deterministic
+    module: src.llm.nl-dsl-compiler
+    line: 37
+    cyclomatic_complexity: 3
+    calls_out: 6
+    calls_in: 3
+  src.research.crawler.locations:
+    name: locations
+    module: src.research.crawler
+    line: 17
+    cyclomatic_complexity: 2
+    calls_out: 5
+    calls_in: 1
+  src.research.crawler.DqlCrawler.crawl:
+    name: crawl
+    module: src.research.crawler
+    line: 39
+    cyclomatic_complexity: 25
+    calls_out: 26
+    calls_in: 0
+  src.research.crawler.first:
+    name: first
+    module: src.research.crawler
+    line: 22
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.runtime.biofoundry.buildScene:
+    name: buildScene
+    module: src.runtime.biofoundry
+    line: 46
+    cyclomatic_complexity: 5
+    calls_out: 4
+    calls_in: 4
+  src.scene.openusd.renderOpenUsd:
+    name: renderOpenUsd
+    module: src.scene.openusd
+    line: 7
+    cyclomatic_complexity: 25
+    calls_out: 16
+    calls_in: 0
+  src.dsl.math.value:
+    name: value
+    module: src.dsl.math
+    line: 5
+    cyclomatic_complexity: 6
+    calls_out: 4
+    calls_in: 3
+  src.adapters.todo2code.Todo2CodeAdapter.input:
+    name: input
+    module: src.adapters.todo2code
+    line: 17
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.ingestion.archive.limit:
+    name: limit
+    module: src.ingestion.archive
+    line: 5
+    cyclomatic_complexity: 3
+    calls_out: 2
+    calls_in: 1
+  src.adapters.clickhouse.ClickHouseHttpProjection.search:
+    name: search
+    module: src.adapters.clickhouse
+    line: 15
+    cyclomatic_complexity: 1
+    calls_out: 7
+    calls_in: 0
+  src.core.canonical.norm:
+    name: norm
+    module: src.core.canonical
+    line: 2
+    cyclomatic_complexity: 5
+    calls_out: 7
+    calls_in: 1
+  src.research.crawler.htmlToMarkdown:
+    name: htmlToMarkdown
+    module: src.research.crawler
+    line: 23
+    cyclomatic_complexity: 5
+    calls_out: 14
+    calls_in: 1
+  src.dsl.tree.renderTreeDsl:
+    name: renderTreeDsl
+    module: src.dsl.tree
+    line: 33
+    cyclomatic_complexity: 1
+    calls_out: 5
+    calls_in: 0
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce:
+    name: runOnce
+    module: src.runtime.realtime-watcher
+    line: 6
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 2
+  src.dsl.math.e:
+    name: e
+    module: src.dsl.math
+    line: 47
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 0
+  src.adapters.todo2code.Todo2CodeAdapter.mapped:
+    name: mapped
+    module: src.adapters.todo2code
+    line: 18
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.llm.openrouter.OpenRouterStructuredClient.text:
+    name: text
+    module: src.llm.openrouter
+    line: 67
+    cyclomatic_complexity: 2
+    calls_out: 2
+    calls_in: 2
+  src.dsl.math.rational:
+    name: rational
+    module: src.dsl.math
+    line: 4
+    cyclomatic_complexity: 2
+    calls_out: 1
+    calls_in: 1
+  scripts.check-proto-contracts.walk:
+    name: walk
+    module: scripts.check-proto-contracts
+    line: 2
+    cyclomatic_complexity: 3
+    calls_out: 4
+    calls_in: 1
+  src.runtime.biofoundry.diff:
+    name: diff
+    module: src.runtime.biofoundry
+    line: 32
+    cyclomatic_complexity: 2
+    calls_out: 6
+    calls_in: 2
+  src.core.canonical.contentUri:
+    name: contentUri
+    module: src.core.canonical
+    line: 10
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 0
+  src.research.crawler.assertPublic:
+    name: assertPublic
+    module: src.research.crawler
+    line: 15
+    cyclomatic_complexity: 6
+    calls_out: 6
+    calls_in: 0
+  src.adapters.clickhouse.InMemorySearchProjection.sqlString:
+    name: sqlString
+    module: src.adapters.clickhouse
+    line: 10
+    cyclomatic_complexity: 1
+    calls_out: 1
+    calls_in: 2
+  src.dsl.dql.parseDql:
+    name: parseDql
+    module: src.dsl.dql
+    line: 5
+    cyclomatic_complexity: 22
+    calls_out: 13
+    calls_in: 0
+  src.dsl.twin.visit:
+    name: visit
+    module: src.dsl.twin
+    line: 2
+    cyclomatic_complexity: 7
+    calls_out: 4
+    calls_in: 1
+  src.llm.openrouter.OpenRouterStructuredClient.envelope:
+    name: envelope
+    module: src.llm.openrouter
+    line: 68
+    cyclomatic_complexity: 5
+    calls_out: 3
+    calls_in: 0
+  src.runtime.biofoundry.buildTree:
+    name: buildTree
+    module: src.runtime.biofoundry
+    line: 34
+    cyclomatic_complexity: 6
+    calls_out: 7
+    calls_in: 4
+  src.research.crawler.robotsDisallow:
+    name: robotsDisallow
+    module: src.research.crawler
+    line: 31
+    cyclomatic_complexity: 8
+    calls_out: 7
+    calls_in: 2
+  src.llm.dsl-schemas.component:
+    name: component
+    module: src.llm.dsl-schemas
+    line: 25
+    cyclomatic_complexity: 4
+    calls_out: 6
+    calls_in: 0
+  src.adapters.todo2code.run:
+    name: run
+    module: src.adapters.todo2code
+    line: 8
+    cyclomatic_complexity: 2
+    calls_out: 7
+    calls_in: 5
+edges:
+- caller: src.core.canonical.canonicalJson
+  callee: src.core.canonical.norm
+  call_type: resolved
+- caller: src.core.canonical.sha256
+  callee: src.core.canonical.canonicalJson
+  call_type: resolved
+- caller: src.core.canonical.contentUri
+  callee: src.core.canonical.sha256
+  call_type: resolved
+- caller: src.research.crawler.p
+  callee: src.research.crawler.privateIp
+  call_type: resolved
+- caller: src.research.crawler.assertPublic
+  callee: src.research.crawler.privateIp
+  call_type: resolved
+- caller: src.research.crawler.locations
+  callee: src.research.crawler.decode
+  call_type: resolved
+- caller: src.research.crawler.allowedPath
+  callee: src.research.crawler.glob
+  call_type: resolved
+- caller: src.research.crawler.stripTags
+  callee: src.research.crawler.decode
+  call_type: resolved
+- caller: src.research.crawler.first
+  callee: src.research.crawler.stripTags
+  call_type: resolved
+- caller: src.research.crawler.htmlToMarkdown
+  callee: src.research.crawler.first
+  call_type: resolved
+- caller: src.research.crawler.htmlToMarkdown
+  callee: src.research.crawler.stripTags
+  call_type: resolved
+- caller: src.research.crawler.htmlToMarkdown
+  callee: src.research.crawler.decode
+  call_type: resolved
+- caller: src.research.crawler.DqlCrawler.crawl
+  callee: src.research.crawler.fetchText
+  call_type: resolved
+- caller: src.research.crawler.DqlCrawler.robots
+  callee: src.research.crawler.robotsDisallow
+  call_type: resolved
+- caller: src.research.researcher.runResearcherDemo
+  callee: src.research.researcher.fixtureFetch
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.changes
+  callee: src.runtime.biofoundry.diff
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyPath
+  callee: src.runtime.biofoundry.buildTree
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyPath
+  callee: src.runtime.biofoundry.buildMath
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyPath
+  callee: src.runtime.biofoundry.buildTwin
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyPath
+  callee: src.runtime.biofoundry.buildScene
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policy
+  callee: src.runtime.biofoundry.buildTree
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policy
+  callee: src.runtime.biofoundry.buildMath
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policy
+  callee: src.runtime.biofoundry.buildTwin
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policy
+  callee: src.runtime.biofoundry.buildScene
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyResource
+  callee: src.runtime.biofoundry.buildTree
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyResource
+  callee: src.runtime.biofoundry.buildMath
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyResource
+  callee: src.runtime.biofoundry.buildTwin
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.policyResource
+  callee: src.runtime.biofoundry.buildScene
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.allowed
+  callee: src.runtime.biofoundry.writeJson
+  call_type: resolved
+- caller: src.runtime.biofoundry.BiofoundryRuntime.candidate
+  callee: src.runtime.biofoundry.writeJson
+  call_type: resolved
+- caller: src.runtime.realtime-watcher.RealtimeTwinWatcher.start
+  callee: src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
+  call_type: resolved
+- caller: src.runtime.realtime-watcher.RealtimeTwinWatcher.start
+  callee: src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
+  call_type: resolved
+- caller: src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
+  callee: src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
+  call_type: resolved
+- caller: src.llm.openrouter.openRouterConfigFromEnv
+  callee: src.llm.openrouter.envInt
+  call_type: resolved
+- caller: src.llm.openrouter.openRouterConfigFromEnv
+  callee: src.llm.openrouter.envBool
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.generate
+  callee: src.llm.openrouter.OpenRouterStructuredClient.configured
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.generate
+  callee: src.llm.openrouter.OpenRouterStructuredClient.request
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.generate
+  callee: src.llm.openrouter.sleep
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.started
+  callee: src.llm.openrouter.OpenRouterStructuredClient.request
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.started
+  callee: src.llm.openrouter.sleep
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.request
+  callee: src.llm.openrouter.OpenRouterStructuredClient.text
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.controller
+  callee: src.llm.openrouter.OpenRouterStructuredClient.text
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.controller
+  callee: src.llm.openrouter.contentText
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.envelope
+  callee: src.llm.openrouter.contentText
+  call_type: resolved
+- caller: src.llm.openrouter.OpenRouterStructuredClient.message
+  callee: src.llm.openrouter.contentText
+  call_type: resolved
+- caller: src.llm.dsl-schemas.textDsl
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.textDsl
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateResourcePlan
+  callee: src.llm.dsl-schemas.strings
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.component
+  callee: src.llm.dsl-schemas.strings
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateTwinEnvelope
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateTwinEnvelope
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateSceneEnvelope
+  callee: src.llm.dsl-schemas.obj
+  call_type: resolved
+- caller: src.llm.dsl-schemas.validateSceneEnvelope
+  callee: src.llm.dsl-schemas.exact
+  call_type: resolved
+- caller: src.llm.dsl-schemas.generationContract
+  callee: src.llm.dsl-schemas.textDsl
+  call_type: resolved
+- caller: src.llm.nl-dsl-compiler.NlDslCompiler.compile
+  callee: src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
+  call_type: resolved
+- caller: src.llm.nl-dsl-compiler.NlDslCompiler.started
+  callee: src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
+  call_type: resolved
+- caller: src.llm.nl-dsl-compiler.NlDslCompiler.contract
+  callee: src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
+  call_type: resolved
+- caller: src.scene.openusd.renderOpenUsd
+  callee: src.scene.openusd.ident
+  call_type: resolved
+- caller: src.scene.openusd.renderOpenUsd
+  callee: src.scene.openusd.primitive
+  call_type: resolved
+- caller: src.scene.openusd.components
+  callee: src.scene.openusd.ident
+  call_type: resolved
+- caller: src.scene.openusd.components
+  callee: src.scene.openusd.primitive
+  call_type: resolved
+- caller: src.adapters.clickhouse.ClickHouseHttpProjection.upsert
+  callee: src.adapters.clickhouse.ClickHouseHttpProjection.query
+  call_type: resolved
+- caller: src.adapters.clickhouse.ClickHouseHttpProjection.search
+  callee: src.adapters.clickhouse.ClickHouseHttpProjection.query
+  call_type: resolved
+- caller: src.adapters.clickhouse.ClickHouseHttpProjection.search
+  callee: src.adapters.clickhouse.InMemorySearchProjection.sqlString
+  call_type: resolved
+- caller: src.adapters.clickhouse.ClickHouseHttpProjection.all
+  callee: src.adapters.clickhouse.ClickHouseHttpProjection.query
+  call_type: resolved
+- caller: src.adapters.clickhouse.ClickHouseHttpProjection.all
+  callee: src.adapters.clickhouse.InMemorySearchProjection.sqlString
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extract
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  callee: src.adapters.todo2code.Todo2CodeAdapter.available
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.dir
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.input
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.adapters.todo2code.Todo2CodeAdapter.mapped
+  callee: src.adapters.todo2code.run
+  call_type: resolved
+- caller: src.ingestion.archive.readZip
+  callee: src.ingestion.archive.limit
+  call_type: resolved
+- caller: src.ingestion.archive.readZip
+  callee: src.ingestion.archive.execFileAsync
+  call_type: resolved
+- caller: src.ingestion.archive.readZip
+  callee: src.ingestion.archive.safePath
+  call_type: resolved
+- caller: src.ingestion.archive.maxFiles
+  callee: src.ingestion.archive.execFileAsync
+  call_type: resolved
+- caller: src.ingestion.scanner.scanSources
+  callee: src.ingestion.scanner.walk
+  call_type: resolved
+- caller: src.dsl.parser-util.list
+  callee: src.dsl.parser-util.unquote
+  call_type: resolved
+- caller: src.dsl.query.parseQueryDsl
+  callee: src.dsl.query.match
+  call_type: resolved
+- caller: src.dsl.query.xs
+  callee: src.dsl.query.match
+  call_type: resolved
+- caller: src.dsl.query.id
+  callee: src.dsl.query.match
+  call_type: resolved
+- caller: src.dsl.math.value
+  callee: src.dsl.math.rational
+  call_type: resolved
+- caller: src.dsl.math.parseMathDsl
+  callee: src.dsl.math.value
+  call_type: resolved
+- caller: src.dsl.math.parseMathDsl
+  callee: src.dsl.math.expr
+  call_type: resolved
+- caller: src.dsl.math.m
+  callee: src.dsl.math.value
+  call_type: resolved
+- caller: src.dsl.math.evaluateMath
+  callee: src.dsl.math.ev
+  call_type: resolved
+- caller: src.dsl.math.evaluateMath
+  callee: src.dsl.math.truth
+  call_type: resolved
+- caller: src.dsl.math.evaluateMath
+  callee: src.dsl.math.numeric
+  call_type: resolved
+- caller: src.dsl.math.env
+  callee: src.dsl.math.ev
+  call_type: resolved
+- caller: src.dsl.math.env
+  callee: src.dsl.math.truth
+  call_type: resolved
+- caller: src.dsl.math.env
+  callee: src.dsl.math.numeric
+  call_type: resolved
+- caller: src.dsl.math.ev
+  callee: src.dsl.math.truth
+  call_type: resolved
+- caller: src.dsl.math.ev
+  callee: src.dsl.math.numeric
+  call_type: resolved
+- caller: src.dsl.math.e
+  callee: src.dsl.math.ev
+  call_type: resolved
+- caller: src.dsl.math.renderMathDsl
+  callee: src.dsl.math.val
+  call_type: resolved
+- caller: src.dsl.math.renderMathDsl
+  callee: src.dsl.math.ex
+  call_type: resolved
+- caller: src.dsl.math.ex
+  callee: src.dsl.math.val
+  call_type: resolved
+- caller: src.dsl.twin.validateTwin
+  callee: src.dsl.twin.visit
+  call_type: resolved
+- caller: src.dsl.tree.parseTreeDsl
+  callee: src.dsl.tree.match
+  call_type: resolved
+- caller: src.dsl.tree.renderTreeDsl
+  callee: src.dsl.tree.walk
+  call_type: resolved
+- caller: src.dsl.dql.parseDql
+  callee: src.dsl.dql.positiveInt
+  call_type: resolved
+- caller: scripts.check-proto-contracts.files
+  callee: scripts.check-proto-contracts.walk
+  call_type: resolved
+modules:
+  scripts.check-proto-contracts:
+  - scripts.check-proto-contracts.files
+  - scripts.check-proto-contracts.walk
+  src.adapters.clickhouse:
+  - src.adapters.clickhouse.ClickHouseHttpProjection.all
+  - src.adapters.clickhouse.ClickHouseHttpProjection.query
+  - src.adapters.clickhouse.ClickHouseHttpProjection.search
+  - src.adapters.clickhouse.ClickHouseHttpProjection.upsert
+  - src.adapters.clickhouse.InMemorySearchProjection.sqlString
+  src.adapters.todo2code:
+  - src.adapters.todo2code.Todo2CodeAdapter.available
+  - src.adapters.todo2code.Todo2CodeAdapter.dir
+  - src.adapters.todo2code.Todo2CodeAdapter.extract
+  - src.adapters.todo2code.Todo2CodeAdapter.extractNl
+  - src.adapters.todo2code.Todo2CodeAdapter.input
+  - src.adapters.todo2code.Todo2CodeAdapter.mapped
+  - src.adapters.todo2code.run
+  src.core.canonical:
+  - src.core.canonical.canonicalJson
+  - src.core.canonical.contentUri
+  - src.core.canonical.norm
+  - src.core.canonical.sha256
+  src.dsl.dql:
+  - src.dsl.dql.parseDql
+  - src.dsl.dql.positiveInt
+  src.dsl.math:
+  - src.dsl.math.e
+  - src.dsl.math.env
+  - src.dsl.math.ev
+  - src.dsl.math.evaluateMath
+  - src.dsl.math.ex
+  - src.dsl.math.expr
+  - src.dsl.math.m
+  - src.dsl.math.numeric
+  - src.dsl.math.parseMathDsl
+  - src.dsl.math.rational
+  - src.dsl.math.renderMathDsl
+  - src.dsl.math.truth
+  - src.dsl.math.val
+  - src.dsl.math.value
+  src.dsl.parser-util:
+  - src.dsl.parser-util.list
+  - src.dsl.parser-util.unquote
+  src.dsl.query:
+  - src.dsl.query.id
+  - src.dsl.query.match
+  - src.dsl.query.parseQueryDsl
+  - src.dsl.query.xs
+  src.dsl.tree:
+  - src.dsl.tree.match
+  - src.dsl.tree.parseTreeDsl
+  - src.dsl.tree.renderTreeDsl
+  - src.dsl.tree.walk
+  src.dsl.twin:
+  - src.dsl.twin.validateTwin
+  - src.dsl.twin.visit
+  src.ingestion.archive:
+  - src.ingestion.archive.execFileAsync
+  - src.ingestion.archive.limit
+  - src.ingestion.archive.maxFiles
+  - src.ingestion.archive.readZip
+  - src.ingestion.archive.safePath
+  src.ingestion.scanner:
+  - src.ingestion.scanner.scanSources
+  - src.ingestion.scanner.walk
+  src.llm.dsl-schemas:
+  - src.llm.dsl-schemas.component
+  - src.llm.dsl-schemas.exact
+  - src.llm.dsl-schemas.generationContract
+  - src.llm.dsl-schemas.obj
+  - src.llm.dsl-schemas.strings
+  - src.llm.dsl-schemas.textDsl
+  - src.llm.dsl-schemas.validateResourcePlan
+  - src.llm.dsl-schemas.validateSceneEnvelope
+  - src.llm.dsl-schemas.validateTwinEnvelope
+  src.llm.nl-dsl-compiler:
+  - src.llm.nl-dsl-compiler.NlDslCompiler.compile
+  - src.llm.nl-dsl-compiler.NlDslCompiler.contract
+  - src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
+  - src.llm.nl-dsl-compiler.NlDslCompiler.started
+  src.llm.openrouter:
+  - src.llm.openrouter.OpenRouterStructuredClient.configured
+  - src.llm.openrouter.OpenRouterStructuredClient.controller
+  - src.llm.openrouter.OpenRouterStructuredClient.envelope
+  - src.llm.openrouter.OpenRouterStructuredClient.generate
+  - src.llm.openrouter.OpenRouterStructuredClient.message
+  - src.llm.openrouter.OpenRouterStructuredClient.request
+  - src.llm.openrouter.OpenRouterStructuredClient.started
+  - src.llm.openrouter.OpenRouterStructuredClient.text
+  - src.llm.openrouter.contentText
+  - src.llm.openrouter.envBool
+  - src.llm.openrouter.envInt
+  - src.llm.openrouter.openRouterConfigFromEnv
+  - src.llm.openrouter.sleep
+  src.research.crawler:
+  - src.research.crawler.DqlCrawler.crawl
+  - src.research.crawler.DqlCrawler.robots
+  - src.research.crawler.allowedPath
+  - src.research.crawler.assertPublic
+  - src.research.crawler.decode
+  - src.research.crawler.fetchText
+  - src.research.crawler.first
+  - src.research.crawler.glob
+  - src.research.crawler.htmlToMarkdown
+  - src.research.crawler.locations
+  - src.research.crawler.p
+  - src.research.crawler.privateIp
+  - src.research.crawler.robotsDisallow
+  - src.research.crawler.stripTags
+  src.research.researcher:
+  - src.research.researcher.fixtureFetch
+  - src.research.researcher.runResearcherDemo
+  src.runtime.biofoundry:
+  - src.runtime.biofoundry.BiofoundryRuntime.allowed
+  - src.runtime.biofoundry.BiofoundryRuntime.candidate
+  - src.runtime.biofoundry.BiofoundryRuntime.changes
+  - src.runtime.biofoundry.BiofoundryRuntime.policy
+  - src.runtime.biofoundry.BiofoundryRuntime.policyPath
+  - src.runtime.biofoundry.BiofoundryRuntime.policyResource
+  - src.runtime.biofoundry.buildMath
+  - src.runtime.biofoundry.buildScene
+  - src.runtime.biofoundry.buildTree
+  - src.runtime.biofoundry.buildTwin
+  - src.runtime.biofoundry.diff
+  - src.runtime.biofoundry.writeJson
+  src.runtime.realtime-watcher:
+  - src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
+  - src.runtime.realtime-watcher.RealtimeTwinWatcher.start
+  - src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
+  src.scene.openusd:
+  - src.scene.openusd.components
+  - src.scene.openusd.ident
+  - src.scene.openusd.primitive
+  - src.scene.openusd.renderOpenUsd
+entry_points:
+- deploy.docling.server.convert
+- deploy.docling.server.health
+- scripts.check-proto-contracts.files
+- scripts.demo-realtime-biofoundry.tmp
+- src.adapters.clickhouse.ClickHouseHttpProjection.all
+- src.adapters.clickhouse.ClickHouseHttpProjection.search
+- src.adapters.clickhouse.ClickHouseHttpProjection.upsert
+- src.adapters.clickhouse.InMemorySearchProjection.all
+- src.adapters.clickhouse.InMemorySearchProjection.search
+- src.adapters.clickhouse.InMemorySearchProjection.upsert
+- src.adapters.document-converter.CompositeDocumentConverter.convert
+- src.adapters.document-converter.DeterministicMarkdownConverter.convert
+- src.adapters.document-converter.DoclingHttpAdapter.convert
+- src.adapters.todo2code.Todo2CodeAdapter.dir
+- src.adapters.todo2code.Todo2CodeAdapter.extract
+- src.adapters.todo2code.Todo2CodeAdapter.extractNl
+- src.adapters.todo2code.Todo2CodeAdapter.input
+- src.adapters.todo2code.Todo2CodeAdapter.loadFixture
+- src.adapters.todo2code.Todo2CodeAdapter.mapped
+- src.adapters.todo2code.Todo2CodeAdapter.raw
+- src.cli.main.main
+- src.cli.main.t2c
+- src.core.canonical.contentUri
+- src.core.uri.assertProcessUri
+- src.core.uri.assertResourceUri
+- src.core.uri.isImmutableResourceUri
+- src.dsl.dql.parseDql
+- src.dsl.dql.renderDql
+- src.dsl.dql.xs
+- src.dsl.intent.intentUri
+- src.dsl.intent.validateT2cIntent
+- src.dsl.math.e
+- src.dsl.math.env
+- src.dsl.math.evaluateMath
+- src.dsl.math.m
+- src.dsl.math.parseMathDsl
+- src.dsl.math.r
+- src.dsl.math.renderMathDsl
+- src.dsl.math.x
+- src.dsl.math.xs
+- src.dsl.parser-util.i
+- src.dsl.parser-util.kv
+- src.dsl.parser-util.lines
+- src.dsl.parser-util.list
+- src.dsl.parser-util.x
+- src.dsl.query.id
+- src.dsl.query.parseQueryDsl
+- src.dsl.query.renderQueryDsl
+- src.dsl.query.xs
+- src.dsl.resource.resourceFromText
+- src.dsl.scene.validateScene
+- src.dsl.tree.header
+- src.dsl.tree.indent
+- src.dsl.tree.parseTreeDsl
+- src.dsl.tree.renderTreeDsl
+- src.dsl.tree.xs
+- src.dsl.twin.flattenTwin
+- src.dsl.twin.validateTwin
+- src.ingestion.archive.maxFiles
+- src.ingestion.archive.readZip
+- src.ingestion.scanner.TEXT_EXT
+- src.ingestion.scanner.scanSources
+- src.llm.dsl-schemas.component
+- src.llm.dsl-schemas.generationContract
+- src.llm.dsl-schemas.validateResourcePlan
+- src.llm.dsl-schemas.validateSceneEnvelope
+- src.llm.dsl-schemas.validateTwinEnvelope
+- src.llm.nl-dsl-compiler.NlDslCompiler.compile
+- src.llm.nl-dsl-compiler.NlDslCompiler.contract
+- src.llm.nl-dsl-compiler.NlDslCompiler.response
+- src.llm.nl-dsl-compiler.NlDslCompiler.started
+- src.llm.nl-dsl-compiler.NlDslCompiler.value
+- src.llm.openrouter.OpenRouterStructuredClient.controller
+- src.llm.openrouter.OpenRouterStructuredClient.deterministicAudit
+- src.llm.openrouter.OpenRouterStructuredClient.envelope
+- src.llm.openrouter.OpenRouterStructuredClient.generate
+- src.llm.openrouter.OpenRouterStructuredClient.message
+- src.llm.openrouter.OpenRouterStructuredClient.provider
+- src.llm.openrouter.OpenRouterStructuredClient.response
+- src.llm.openrouter.OpenRouterStructuredClient.responseFormat
+- src.llm.openrouter.OpenRouterStructuredClient.started
+- src.llm.openrouter.OpenRouterStructuredClient.value
+- src.llm.openrouter.openRouterConfigFromEnv
+- src.research.crawler.DqlCrawler.crawl
+- src.research.crawler.DqlCrawler.robots
+- src.research.crawler.assertPublic
+- src.research.crawler.p
+- src.research.crawler.title
+- src.research.researcher.local
+- src.research.researcher.math
+- src.research.researcher.runResearcherDemo
+- src.research.researcher.snapshot
+- src.research.researcher.source
+- src.runtime.biofoundry.BiofoundryRuntime.absoluteConfig
+- src.runtime.biofoundry.BiofoundryRuntime.allowed
+- src.runtime.biofoundry.BiofoundryRuntime.build
+- src.runtime.biofoundry.BiofoundryRuntime.candidate
+- src.runtime.biofoundry.BiofoundryRuntime.changes
+- src.runtime.biofoundry.BiofoundryRuntime.mathGen
+- src.runtime.biofoundry.BiofoundryRuntime.policy
+- src.runtime.biofoundry.BiofoundryRuntime.policyPath
+- src.runtime.biofoundry.BiofoundryRuntime.policyResource
+- src.runtime.biofoundry.BiofoundryRuntime.previousResources
+- src.runtime.biofoundry.BiofoundryRuntime.resources
+- src.runtime.biofoundry.BiofoundryRuntime.sceneGen
+- src.runtime.biofoundry.BiofoundryRuntime.twinGen
+- src.runtime.biofoundry.jsonFile
+- src.runtime.biofoundry.readPrevious
+- src.runtime.event-store.InMemoryEventStore.all
+- src.runtime.event-store.InMemoryEventStore.append
+- src.runtime.event-store.InMemoryEventStore.read
+- src.runtime.event-store.InMemoryEventStore.xs
+- src.runtime.pipeline.runDemo
+- src.runtime.query-runtime.QueryRuntime.evidence
+- src.runtime.query-runtime.QueryRuntime.execute
+- src.runtime.query-runtime.QueryRuntime.executionId
+- src.runtime.query-runtime.QueryRuntime.term
+- src.runtime.realtime-watcher.RealtimeTwinWatcher.start
+- src.runtime.realtime-watcher.RealtimeTwinWatcher.stop
+- src.scene.openusd.components
+- src.scene.openusd.renderOpenUsd
+- src.scene.openusd.sceneDiff

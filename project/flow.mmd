@@ -1,0 +1,35 @@
+flowchart TD
+%% generated in 0.00s
+
+    %% Entry points (blue)
+    classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
+
+    subgraph CLI
+        src__cli__main__json["json"]
+        src__cli__main__save["save"]
+        src__cli__main__main["main"]
+        src__cli__main__t2c["t2c"]
+        deploy__docling__server__health["health"]
+        deploy__docling__server__convert["convert"]
+    end
+
+    subgraph Core
+        src__core__uri__assertProcessUri["assertProcessUri"]
+        src__core__uri__assertResourceUri["assertResourceUri"]
+        src__core__uri__isImmutableResourceUri["isImmutableResourceUri"]
+        src__core__canonical__contentUri["contentUri"]
+        src__research__crawler__privateIp{{privateIp CC=15}}
+        src__research__crawler__p["p"]
+        src__research__crawler__assertPublic["assertPublic"]
+        src__research__crawler__decode["decode"]
+        src__research__crawler__stripTags["stripTags"]
+        src__research__crawler__first["first"]
+        src__research__crawler__htmlToMarkdown["htmlToMarkdown"]
+        src__research__crawler__title["title"]
+        src__research__crawler__DqlCrawler__crawl["crawl"]
+        src__research__crawler__DqlCrawler__robots["robots"]
+        src__research__researcher__runResearcherDemo["runResearcherDemo"]
+        ...["+113 more"]
+    end
+
+    class src__core__uri__assertProcessUri,src__core__uri__assertResourceUri,src__core__uri__isImmutableResourceUri,src__core__canonical__contentUri,src__cli__main__json,src__cli__main__save,src__cli__main__main,src__cli__main__t2c,src__research__crawler__p,src__research__crawler__assertPublic entry

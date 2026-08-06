@@ -1,0 +1,408 @@
+# twin-dsl | 79f 1560L | yml:1,json:30,yaml:2,shell:2,xml:2,typescript:29,python:1,javascript:3,proto:7 | 2026-08-06
+# generated in 0.01s
+# producer: code2llm | artifact: map.toon.yaml | schema: 1
+# stats: 191 func | 0 cls | 79 mod | CC̄=4.6 | critical:15 | cycles:0
+# alerts[5]: fan-out BiofoundryRuntime.build=38; fan-out runResearcherDemo=29; fan-out main=27; fan-out DqlCrawler.crawl=26; CC DqlCrawler.crawl=25
+# hotspots[5]: BiofoundryRuntime.build fan=38; runResearcherDemo fan=29; main fan=27; DqlCrawler.crawl fan=26; runDemo fan=24
+# evolution: CC̄ 4.6→4.6 (flat 0.0)
+# Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
+M[79]:
+  Makefile,21
+  PACKAGE_MANIFEST.json,35
+  buf.yaml,7
+  deploy/docling/Dockerfile,5
+  deploy/docling/server.py,12
+  docker-compose.yml,22
+  examples/biofoundry/biofoundry.config.json,48
+  examples/biofoundry/customer-docs/equipment-spec.json,9
+  examples/biofoundry/manager-guidelines/manager-policy.json,6
+  examples/biofoundry/project-data/current-state.json,10
+  examples/biofoundry/web-fixtures-map.json,5
+  examples/biofoundry/web-fixtures/sitemap.xml,5
+  examples/nl-to-dsl/dql.fixture.json,1
+  examples/nl-to-dsl/intent.fixture.json,11
+  examples/nl-to-dsl/math.fixture.json,1
+  examples/nl-to-dsl/query.fixture.json,1
+  examples/nl-to-dsl/resource.fixture.json,15
+  examples/nl-to-dsl/scene.fixture.json,11
+  examples/nl-to-dsl/tree.fixture.json,1
+  examples/nl-to-dsl/twin.fixture.json,12
+  examples/researcher/fixtures-map.json,6
+  examples/researcher/web-fixtures/sitemap.xml,6
+  examples/t2c.intent.fixture.json,4
+  nlp2uri.yaml,8
+  package.json,27
+  project.sh,60
+  proto/subactor/common/v1/common.proto,5
+  proto/subactor/dsl/v1/dsl.proto,9
+  proto/subactor/query/v1/query.proto,11
+  proto/subactor/research/v1/research.proto,6
+  proto/subactor/resource/v1/resource.proto,5
+  proto/subactor/scene/v1/scene.proto,8
+  proto/subactor/twin/v1/twin.proto,6
+  schemas/biofoundry-config.schema.json,5
+  schemas/dql-crawl.schema.json,23
+  schemas/dsl-generation-result.schema.json,5
+  schemas/math.schema.json,11
+  schemas/query-result.schema.json,14
+  schemas/query.schema.json,12
+  schemas/resource-plan.schema.json,11
+  schemas/resource.schema.json,12
+  schemas/scene.schema.json,11
+  schemas/tree.schema.json,10
+  schemas/twin-build-receipt.schema.json,66
+  schemas/twin.schema.json,12
+  scripts/check-proto-contracts.mjs,3
+  scripts/demo-realtime-biofoundry.mjs,2
+  scripts/run-nl-dsl-examples.mjs,5
+  src/adapters/clickhouse.ts,17
+  src/adapters/document-converter.ts,15
+  src/adapters/todo2code.ts,23
+  src/cli/main.ts,29
+  src/core/canonical.ts,10
+  src/core/types.ts,219
+  src/core/uri.ts,8
+  src/dsl/dql.ts,41
+  src/dsl/intent.ts,4
+  src/dsl/math.ts,53
+  src/dsl/parser-util.ts,16
+  src/dsl/query.ts,61
+  src/dsl/resource.ts,3
+  src/dsl/scene.ts,3
+  src/dsl/tree.ts,41
+  src/dsl/twin.ts,4
+  src/ingestion/archive.ts,11
+  src/ingestion/scanner.ts,25
+  src/llm/dsl-schemas.ts,38
+  src/llm/nl-dsl-compiler.ts,42
+  src/llm/openrouter.ts,77
+  src/research/crawler.ts,47
+  src/research/researcher.ts,23
+  src/runtime/biofoundry.ts,73
+  src/runtime/event-store.ts,13
+  src/runtime/pipeline.ts,2
+  src/runtime/query-runtime.ts,17
+  src/runtime/realtime-watcher.ts,13
+  src/scene/openusd.ts,15
+  tree.sh,1
+  tsconfig.json,15
+D:
+  src/research/crawler.ts:
+    i: ../core/types.js,../dsl/resource.js,node:dns/promises,node:net
+    e: CrawledPage,CrawlResult,DqlCrawler,privateIp,p,assertPublic,decode,locations,isSitemapIndex,glob,allowedPath,stripTags,first,htmlToMarkdown,title,robotsDisallow,robotAllowed,score,fetchText
+    CrawledPage:
+    CrawlResult:
+    DqlCrawler: crawl(-1),robots(-1)
+    privateIp()
+    p()
+    assertPublic()
+    decode()
+    locations()
+    isSitemapIndex()
+    glob()
+    allowedPath()
+    stripTags()
+    first()
+    htmlToMarkdown()
+    title()
+    robotsDisallow()
+    robotAllowed()
+    score()
+    fetchText()
+  src/scene/openusd.ts:
+    i: ../core/types.js,../dsl/twin.js
+    e: ident,q,vec,primitive,renderOpenUsd,components,sceneDiff
+    ident()
+    q()
+    vec()
+    primitive()
+    renderOpenUsd()
+    components()
+    sceneDiff()
+  src/dsl/dql.ts:
+    i: ../core/types.js,./parser-util.js
+    e: positiveInt,parseDql,xs,renderDql
+    positiveInt()
+    parseDql()
+    xs()
+    renderDql()
+  src/runtime/biofoundry.ts:
+    i: ../core/canonical.js,../core/types.js,../dsl/dql.js,../dsl/math.js,../dsl/scene.js,../dsl/twin.js,../ingestion/scanner.js,../llm/nl-dsl-compiler.js,../research/crawler.js,../scene/openusd.js,node:crypto,node:fs/promises,node:path
+    e: BiofoundryConfig,ManagerPolicy,EquipmentSpec,CustomerSpec,ProjectState,BiofoundryRuntime,jsonFile,snapshot,diff,resourceByPath,buildTree,buildMath,buildTwin,buildScene,readPrevious,writeJson
+    BiofoundryConfig:
+    ManagerPolicy:
+    EquipmentSpec:
+    CustomerSpec:
+    ProjectState:
+    BiofoundryRuntime: build(-1),absoluteConfig(-1),resources(-1),previousResources(-1),changes(-1),policyPath(-1),policy(-1),policyResource(-1),mathGen(-1),twinGen(-1),sceneGen(-1),allowed(-1),candidate(-1)
+    jsonFile()
+    snapshot()
+    diff()
+    resourceByPath()
+    buildTree()
+    buildMath()
+    buildTwin()
+    buildScene()
+    readPrevious()
+    writeJson()
+  src/llm/openrouter.ts:
+    i: ../core/types.js
+    e: OpenRouterConfig,StructuredOutput,OpenRouterStructuredClient,envInt,envBool,openRouterConfigFromEnv,sleep,contentText
+    OpenRouterConfig:
+    StructuredOutput:
+    OpenRouterStructuredClient: configured(-1),generate(-1),started(-1),request(-1),controller(-1),responseFormat(-1),response(-1),text(-1),envelope(-1),message(-1),value(-1),provider(-1),deterministicAudit(-1)
+    envInt()
+    envBool()
+    openRouterConfigFromEnv()
+    sleep()
+    contentText()
+  src/llm/nl-dsl-compiler.ts:
+    i: ../adapters/todo2code.js,../core/canonical.js,../core/types.js,./dsl-schemas.js,./openrouter.js
+    e: CompileNlOptions,NlDslCompiler
+    CompileNlOptions:
+    NlDslCompiler: compile(-1),started(-1),contract(-1),response(-1),deterministic(-1),value(-1)
+  src/dsl/math.ts:
+    i: ../core/types.js,./parser-util.js
+    e: rational,value,r,expr,x,parseMathDsl,xs,m,truth,numeric,evaluateMath,env,ev,e,renderMathDsl,val,ex
+    rational()
+    value()
+    r()
+    expr()
+    x()
+    parseMathDsl()
+    xs()
+    m()
+    truth()
+    numeric()
+    evaluateMath()
+    env()
+    ev()
+    e()
+    renderMathDsl()
+    val()
+    ex()
+  src/cli/main.ts:
+    i: ../adapters/todo2code.js,../core/types.js,../dsl/dql.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../research/crawler.js,../research/researcher.js,../runtime/biofoundry.js,../runtime/pipeline.js,../runtime/realtime-watcher.js,node:fs/promises,node:path
+    e: json,save,main,t2c
+    json()
+    save()
+    main()
+    t2c()
+  src/ingestion/scanner.ts:
+    i: ../adapters/document-converter.js,../core/types.js,../dsl/resource.js,./archive.js,node:fs/promises,node:path
+    e: ScanSource,ScanResult,TEXT_EXT,walk,textFromBuffer,scanSources
+    ScanSource:
+    ScanResult:
+    TEXT_EXT()
+    walk()
+    textFromBuffer()
+    scanSources()
+  src/dsl/query.ts:
+    i: ../core/canonical.js,../core/types.js,../core/uri.js,./parser-util.js
+    e: parseQueryDsl,xs,id,match,renderQueryDsl
+    parseQueryDsl()
+    xs()
+    id()
+    match()
+    renderQueryDsl()
+  src/dsl/scene.ts:
+    i: ../core/types.js
+    e: validateScene
+    validateScene()
+  src/llm/dsl-schemas.ts:
+    i: ../core/types.js,../dsl/dql.js,../dsl/math.js,../dsl/query.js,../dsl/scene.js,../dsl/tree.js,../dsl/twin.js
+    e: obj,exact,strings,textDsl,validateResourcePlan,component,validateTwinEnvelope,validateSceneEnvelope,generationContract
+    obj()
+    exact()
+    strings()
+    textDsl()
+    validateResourcePlan()
+    component()
+    validateTwinEnvelope()
+    validateSceneEnvelope()
+    generationContract()
+  src/adapters/document-converter.ts:
+    i: node:fs/promises,node:path
+    e: ConvertedDocument,DocumentConverter,DeterministicMarkdownConverter,DoclingHttpAdapter,CompositeDocumentConverter
+    ConvertedDocument:
+    DocumentConverter:
+    DeterministicMarkdownConverter: convert(-1)
+    DoclingHttpAdapter: convert(-1)
+    CompositeDocumentConverter: convert(-1)
+  src/runtime/query-runtime.ts:
+    i: ../adapters/clickhouse.js,../core/canonical.js,../core/types.js,./event-store.js,node:crypto
+    e: QueryRuntime
+    QueryRuntime: execute(-1),executionId(-1),term(-1),evidence(-1)
+  src/runtime/realtime-watcher.ts:
+    i: ../core/types.js,./biofoundry.js
+    e: RealtimeTwinWatcher
+    RealtimeTwinWatcher: runOnce(-1),start(-1),tick(-1),stop(-1)
+  src/research/researcher.ts:
+    i: ../adapters/clickhouse.js,../core/canonical.js,../dsl/dql.js,../dsl/math.js,../dsl/query.js,../dsl/tree.js,../ingestion/scanner.js,../runtime/event-store.js,../runtime/query-runtime.js,./crawler.js,node:fs/promises,node:path
+    e: fixtureFetch,runResearcherDemo,local,snapshot,source,math
+    fixtureFetch()
+    runResearcherDemo()
+    local()
+    snapshot()
+    source()
+    math()
+  src/dsl/tree.ts:
+    i: ../core/types.js,./parser-util.js
+    e: parseTreeDsl,xs,header,indent,match,renderTreeDsl,walk
+    parseTreeDsl()
+    xs()
+    header()
+    indent()
+    match()
+    renderTreeDsl()
+    walk()
+  src/ingestion/archive.ts:
+    i: node:child_process,node:util
+    e: ArchiveEntry,execFileAsync,limit,safePath,readZip,maxFiles
+    ArchiveEntry:
+    execFileAsync()
+    limit()
+    safePath()
+    readZip()
+    maxFiles()
+  src/dsl/twin.ts:
+    i: ../core/types.js
+    e: visit,validateTwin,flattenTwin
+    visit()
+    validateTwin()
+    flattenTwin()
+  src/core/canonical.ts:
+    i: node:crypto
+    e: norm,canonicalJson,sha256,contentUri
+    norm()
+    canonicalJson()
+    sha256()
+    contentUri()
+  src/runtime/pipeline.ts:
+    i: node:fs/promises
+    e: runDemo
+    runDemo()
+  src/dsl/intent.ts:
+    i: ../core/canonical.js,../core/types.js
+    e: validateT2cIntent,intentUri
+    validateT2cIntent()
+    intentUri()
+  src/adapters/todo2code.ts:
+    i: ../core/types.js,../dsl/intent.js,node:child_process,node:fs/promises,node:os,node:path
+    e: Todo2CodeAdapter,run
+    Todo2CodeAdapter: available(-1),loadFixture(-1),extract(-1),extractNl(-1),dir(-1),input(-1),mapped(-1),raw(-1)
+    run()
+  src/core/uri.ts:
+    e: assertProcessUri,assertResourceUri,isImmutableResourceUri
+    assertProcessUri()
+    assertResourceUri()
+    isImmutableResourceUri()
+  src/runtime/event-store.ts:
+    i: ../core/types.js,node:crypto
+    e: InMemoryEventStore
+    InMemoryEventStore: append(-1),xs(-1),read(-1),all(-1)
+  src/dsl/parser-util.ts:
+    e: lines,unquote,x,list,x,kv,i
+    lines()
+    unquote()
+    x()
+    list()
+    x()
+    kv()
+    i()
+  src/dsl/resource.ts:
+    i: ../core/canonical.js,../core/types.js
+    e: resourceFromText
+    resourceFromText()
+  scripts/check-proto-contracts.mjs:
+    e: walk,files
+    walk()
+    files()
+  src/adapters/clickhouse.ts:
+    i: ../core/types.js
+    e: IndexedChunk,SearchProjection,InMemorySearchProjection,ClickHouseHttpProjection
+    IndexedChunk:
+    SearchProjection:
+    InMemorySearchProjection: upsert(-1),search(-1),all(-1),sqlString(-1)
+    ClickHouseHttpProjection: query(-1),upsert(-1),search(-1),all(-1)
+  deploy/docling/server.py:
+    e: health,convert
+    health()
+    convert(file)
+  scripts/demo-realtime-biofoundry.mjs:
+    i: node:fs/promises
+    e: tmp
+    tmp()
+  Makefile:
+  docker-compose.yml:
+  PACKAGE_MANIFEST.json:
+  tsconfig.json:
+  nlp2uri.yaml:
+  tree.sh:
+  buf.yaml:
+  package.json:
+  schemas/dsl-generation-result.schema.json:
+  schemas/resource.schema.json:
+  schemas/resource-plan.schema.json:
+  schemas/biofoundry-config.schema.json:
+  schemas/math.schema.json:
+  schemas/scene.schema.json:
+  schemas/query-result.schema.json:
+  schemas/query.schema.json:
+  schemas/twin.schema.json:
+  schemas/twin-build-receipt.schema.json:
+  schemas/dql-crawl.schema.json:
+  schemas/tree.schema.json:
+  examples/t2c.intent.fixture.json:
+  examples/biofoundry/biofoundry.config.json:
+  examples/biofoundry/web-fixtures-map.json:
+  examples/biofoundry/project-data/current-state.json:
+  examples/biofoundry/manager-guidelines/manager-policy.json:
+  examples/biofoundry/web-fixtures/sitemap.xml:
+  examples/biofoundry/customer-docs/equipment-spec.json:
+  examples/researcher/fixtures-map.json:
+  examples/researcher/web-fixtures/sitemap.xml:
+  examples/nl-to-dsl/resource.fixture.json:
+  examples/nl-to-dsl/scene.fixture.json:
+  examples/nl-to-dsl/math.fixture.json:
+  examples/nl-to-dsl/intent.fixture.json:
+  examples/nl-to-dsl/tree.fixture.json:
+  examples/nl-to-dsl/query.fixture.json:
+  examples/nl-to-dsl/twin.fixture.json:
+  examples/nl-to-dsl/dql.fixture.json:
+  src/core/types.ts:
+    e: SourceAnchor,ResourceRecord,ResourcePlan,IntentRecord,QueryFilter,QueryContract,DqlCrawlPlan,TreeNode,TreeDocument,Rational,MathBinding,MathDocument,TwinComponent,TwinDocument,SceneBinding,SceneDocument,EvidenceReference,QueryResultEnvelope,GenerationAudit,DslGenerationResult,DomainEvent,ResourceDiff,TwinBuildReceipt
+    SourceAnchor:
+    ResourceRecord:
+    ResourcePlan:
+    IntentRecord:
+    QueryFilter:
+    QueryContract:
+    DqlCrawlPlan:
+    TreeNode:
+    TreeDocument:
+    Rational:
+    MathBinding:
+    MathDocument:
+    TwinComponent:
+    TwinDocument:
+    SceneBinding:
+    SceneDocument:
+    EvidenceReference:
+    QueryResultEnvelope:
+    GenerationAudit:
+    DslGenerationResult:
+    DomainEvent:
+    ResourceDiff:
+    TwinBuildReceipt:
+  deploy/docling/Dockerfile:
+  scripts/run-nl-dsl-examples.mjs:
+    i: ../dist/src/llm/nl-dsl-compiler.js,node:fs/promises
+  proto/subactor/query/v1/query.proto:
+  proto/subactor/twin/v1/twin.proto:
+  proto/subactor/research/v1/research.proto:
+  proto/subactor/scene/v1/scene.proto:
+  proto/subactor/resource/v1/resource.proto:
+  proto/subactor/common/v1/common.proto:
+  proto/subactor/dsl/v1/dsl.proto:
+  project.sh:

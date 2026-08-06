@@ -1,0 +1,63 @@
+// LESS format — define @variables here as needed
+
+app {
+  name: @subactor/digital-twin-runtime-starter;
+  version: 0.2.0;
+}
+
+interface[type="api"] {
+  type: rest;
+  framework: fastapi;
+}
+
+workflow[name="verify"] {
+  trigger: manual;
+  step-1: run cmd=npm run verify;
+}
+
+workflow[name="demo"] {
+  trigger: manual;
+  step-1: run cmd=npm run demo;
+}
+
+workflow[name="research"] {
+  trigger: manual;
+  step-1: run cmd=npm run demo:research;
+}
+
+workflow[name="biofoundry"] {
+  trigger: manual;
+  step-1: run cmd=npm run demo:biofoundry;
+}
+
+workflow[name="realtime"] {
+  trigger: manual;
+  step-1: run cmd=npm run demo:realtime;
+}
+
+workflow[name="nl-dsl"] {
+  trigger: manual;
+  step-1: run cmd=npm run demo:nl-dsl;
+}
+
+workflow[name="clean"] {
+  trigger: manual;
+  step-1: run cmd=npm run clean;
+}
+
+env_vars {
+  keys: T2C_ROOT, T2C_BIN, T2C_NL_MODE, OPENROUTER_API_KEY, OPENROUTER_BASE_URL, OPENROUTER_MODEL, OPENROUTER_HTTP_REFERER, OPENROUTER_APP_TITLE, OPENROUTER_DATA_COLLECTION, OPENROUTER_TIMEOUT_MS, OPENROUTER_MAX_RETRIES, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_RESPONSE_HEALING, DT_LLM_MODE, DT_WATCH_INTERVAL_MS, DT_MAX_ARCHIVE_FILES, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT;
+}
+
+deploy {
+  target: docker-compose;
+  compose_file: docker-compose.yml;
+}
+
+environment[name="local"] {
+  runtime: docker-compose;
+  env_file: .env.example;
+  template_file: .env.example;
+  vars: DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT, DT_LLM_MODE, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_ARCHIVE_FILES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_WATCH_INTERVAL_MS, OPENROUTER_API_KEY, OPENROUTER_APP_TITLE, OPENROUTER_BASE_URL, OPENROUTER_DATA_COLLECTION, OPENROUTER_HTTP_REFERER, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_MAX_RETRIES, OPENROUTER_MODEL, OPENROUTER_RESPONSE_HEALING, OPENROUTER_TIMEOUT_MS, T2C_BIN, T2C_NL_MODE, T2C_ROOT;
+  runtime_llm: OPENROUTER_API_KEY, OPENROUTER_APP_TITLE, OPENROUTER_BASE_URL, OPENROUTER_DATA_COLLECTION, OPENROUTER_HTTP_REFERER, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_MAX_RETRIES, OPENROUTER_MODEL, OPENROUTER_RESPONSE_HEALING, OPENROUTER_TIMEOUT_MS;
+}

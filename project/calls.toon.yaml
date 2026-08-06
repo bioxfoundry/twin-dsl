@@ -1,0 +1,221 @@
+# code2llm call graph | /home/tom/github/bioxfoundry/twin-dsl
+# generated in 0.05s
+# nodes: 114 | edges: 107 | modules: 20
+# CC̄=4.6
+
+HUBS[20]:
+  src.research.researcher.runResearcherDemo
+    CC=9  in:0  out:29  total:29
+  src.research.crawler.DqlCrawler.crawl
+    CC=25  in:0  out:26  total:26
+  src.ingestion.scanner.scanSources
+    CC=15  in:0  out:21  total:21
+  src.llm.openrouter.OpenRouterStructuredClient.request
+    CC=19  in:2  out:14  total:16
+  src.scene.openusd.components
+    CC=25  in:0  out:16  total:16
+  src.scene.openusd.renderOpenUsd
+    CC=25  in:0  out:16  total:16
+  src.research.crawler.htmlToMarkdown
+    CC=5  in:1  out:14  total:15
+  src.dsl.query.parseQueryDsl
+    CC=13  in:0  out:14  total:14
+  src.adapters.todo2code.Todo2CodeAdapter.extractNl
+    CC=4  in:0  out:13  total:13
+  src.dsl.dql.parseDql
+    CC=22  in:0  out:13  total:13
+  src.dsl.math.evaluateMath
+    CC=17  in:0  out:12  total:12
+  src.dsl.math.expr
+    CC=13  in:1  out:11  total:12
+  src.dsl.math.ev
+    CC=16  in:3  out:9  total:12
+  src.adapters.todo2code.run
+    CC=2  in:5  out:7  total:12
+  src.llm.openrouter.OpenRouterStructuredClient.controller
+    CC=19  in:0  out:11  total:11
+  src.dsl.tree.parseTreeDsl
+    CC=8  in:0  out:11  total:11
+  src.dsl.math.renderMathDsl
+    CC=18  in:0  out:11  total:11
+  src.adapters.todo2code.Todo2CodeAdapter.dir
+    CC=3  in:0  out:11  total:11
+  src.runtime.biofoundry.buildTree
+    CC=6  in:4  out:7  total:11
+  src.dsl.math.env
+    CC=16  in:0  out:10  total:10
+
+MODULES:
+  scripts.check-proto-contracts  [2 funcs]
+    files  CC=3  out:8
+    walk  CC=3  out:4
+  src.adapters.clickhouse  [5 funcs]
+    all  CC=1  out:6
+    query  CC=2  out:4
+    search  CC=1  out:7
+    upsert  CC=2  out:2
+    sqlString  CC=1  out:1
+  src.adapters.todo2code  [7 funcs]
+    available  CC=2  out:1
+    dir  CC=3  out:11
+    extract  CC=2  out:3
+    extractNl  CC=4  out:13
+    input  CC=1  out:1
+    mapped  CC=1  out:1
+    run  CC=2  out:7
+  src.core.canonical  [4 funcs]
+    canonicalJson  CC=1  out:2
+    contentUri  CC=1  out:1
+    norm  CC=5  out:7
+    sha256  CC=2  out:4
+  src.dsl.dql  [2 funcs]
+    parseDql  CC=22  out:13
+    positiveInt  CC=4  out:3
+  src.dsl.math  [14 funcs]
+    e  CC=2  out:2
+    env  CC=16  out:10
+    ev  CC=16  out:9
+    evaluateMath  CC=17  out:12
+    ex  CC=13  out:8
+    expr  CC=13  out:11
+    m  CC=3  out:3
+    numeric  CC=5  out:2
+    parseMathDsl  CC=9  out:8
+    rational  CC=2  out:1
+  src.dsl.parser-util  [2 funcs]
+    list  CC=2  out:5
+    unquote  CC=3  out:4
+  src.dsl.query  [4 funcs]
+    id  CC=11  out:8
+    match  CC=2  out:1
+    parseQueryDsl  CC=13  out:14
+    xs  CC=11  out:8
+  src.dsl.tree  [4 funcs]
+    match  CC=1  out:1
+    parseTreeDsl  CC=8  out:11
+    renderTreeDsl  CC=1  out:5
+    walk  CC=1  out:3
+  src.dsl.twin  [2 funcs]
+    validateTwin  CC=6  out:4
+    visit  CC=7  out:4
+  src.ingestion.archive  [5 funcs]
+    execFileAsync  CC=1  out:0
+    limit  CC=3  out:2
+    maxFiles  CC=2  out:4
+    readZip  CC=7  out:8
+    safePath  CC=5  out:3
+  src.ingestion.scanner  [2 funcs]
+    scanSources  CC=15  out:21
+    walk  CC=6  out:7
+  src.llm.dsl-schemas  [9 funcs]
+    component  CC=4  out:6
+    exact  CC=5  out:3
+    generationContract  CC=11  out:2
+    obj  CC=4  out:2
+    strings  CC=3  out:4
+    textDsl  CC=2  out:4
+    validateResourcePlan  CC=10  out:8
+    validateSceneEnvelope  CC=8  out:8
+    validateTwinEnvelope  CC=2  out:5
+  src.llm.nl-dsl-compiler  [4 funcs]
+    compile  CC=18  out:9
+    contract  CC=6  out:6
+    deterministic  CC=3  out:6
+    started  CC=12  out:6
+  src.llm.openrouter  [13 funcs]
+    configured  CC=1  out:0
+    controller  CC=19  out:11
+    envelope  CC=5  out:3
+    generate  CC=11  out:8
+    message  CC=5  out:3
+    request  CC=19  out:14
+    started  CC=7  out:5
+    text  CC=2  out:2
+    contentText  CC=7  out:5
+    envBool  CC=2  out:1
+  src.research.crawler  [14 funcs]
+    crawl  CC=25  out:26
+    robots  CC=7  out:7
+    allowedPath  CC=3  out:2
+    assertPublic  CC=6  out:6
+    decode  CC=1  out:1
+    fetchText  CC=6  out:7
+    first  CC=3  out:2
+    glob  CC=1  out:3
+    htmlToMarkdown  CC=5  out:14
+    locations  CC=2  out:5
+  src.research.researcher  [2 funcs]
+    fixtureFetch  CC=3  out:5
+    runResearcherDemo  CC=9  out:29
+  src.runtime.biofoundry  [12 funcs]
+    allowed  CC=1  out:5
+    candidate  CC=1  out:5
+    changes  CC=4  out:1
+    policy  CC=1  out:6
+    policyPath  CC=1  out:6
+    policyResource  CC=1  out:6
+    buildMath  CC=1  out:0
+    buildScene  CC=5  out:4
+    buildTree  CC=6  out:7
+    buildTwin  CC=3  out:3
+  src.runtime.realtime-watcher  [3 funcs]
+    runOnce  CC=2  out:2
+    start  CC=10  out:8
+    tick  CC=8  out:4
+  src.scene.openusd  [4 funcs]
+    components  CC=25  out:16
+    ident  CC=2  out:1
+    primitive  CC=5  out:0
+    renderOpenUsd  CC=25  out:16
+
+EDGES:
+  src.core.canonical.canonicalJson → src.core.canonical.norm
+  src.core.canonical.sha256 → src.core.canonical.canonicalJson
+  src.core.canonical.contentUri → src.core.canonical.sha256
+  src.research.crawler.p → src.research.crawler.privateIp
+  src.research.crawler.assertPublic → src.research.crawler.privateIp
+  src.research.crawler.locations → src.research.crawler.decode
+  src.research.crawler.allowedPath → src.research.crawler.glob
+  src.research.crawler.stripTags → src.research.crawler.decode
+  src.research.crawler.first → src.research.crawler.stripTags
+  src.research.crawler.htmlToMarkdown → src.research.crawler.first
+  src.research.crawler.htmlToMarkdown → src.research.crawler.stripTags
+  src.research.crawler.htmlToMarkdown → src.research.crawler.decode
+  src.research.crawler.DqlCrawler.crawl → src.research.crawler.fetchText
+  src.research.crawler.DqlCrawler.robots → src.research.crawler.robotsDisallow
+  src.research.researcher.runResearcherDemo → src.research.researcher.fixtureFetch
+  src.runtime.biofoundry.BiofoundryRuntime.changes → src.runtime.biofoundry.diff
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildTree
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildMath
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildTwin
+  src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildScene
+  src.runtime.biofoundry.BiofoundryRuntime.policy → src.runtime.biofoundry.buildTree
+  src.runtime.biofoundry.BiofoundryRuntime.policy → src.runtime.biofoundry.buildMath
+  src.runtime.biofoundry.BiofoundryRuntime.policy → src.runtime.biofoundry.buildTwin
+  src.runtime.biofoundry.BiofoundryRuntime.policy → src.runtime.biofoundry.buildScene
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource → src.runtime.biofoundry.buildTree
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource → src.runtime.biofoundry.buildMath
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource → src.runtime.biofoundry.buildTwin
+  src.runtime.biofoundry.BiofoundryRuntime.policyResource → src.runtime.biofoundry.buildScene
+  src.runtime.biofoundry.BiofoundryRuntime.allowed → src.runtime.biofoundry.writeJson
+  src.runtime.biofoundry.BiofoundryRuntime.candidate → src.runtime.biofoundry.writeJson
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.start → src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.start → src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
+  src.runtime.realtime-watcher.RealtimeTwinWatcher.tick → src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
+  src.llm.openrouter.openRouterConfigFromEnv → src.llm.openrouter.envInt
+  src.llm.openrouter.openRouterConfigFromEnv → src.llm.openrouter.envBool
+  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.OpenRouterStructuredClient.configured
+  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.OpenRouterStructuredClient.request
+  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.sleep
+  src.llm.openrouter.OpenRouterStructuredClient.started → src.llm.openrouter.OpenRouterStructuredClient.request
+  src.llm.openrouter.OpenRouterStructuredClient.started → src.llm.openrouter.sleep
+  src.llm.openrouter.OpenRouterStructuredClient.request → src.llm.openrouter.OpenRouterStructuredClient.text
+  src.llm.openrouter.OpenRouterStructuredClient.controller → src.llm.openrouter.OpenRouterStructuredClient.text
+  src.llm.openrouter.OpenRouterStructuredClient.controller → src.llm.openrouter.contentText
+  src.llm.openrouter.OpenRouterStructuredClient.envelope → src.llm.openrouter.contentText
+  src.llm.openrouter.OpenRouterStructuredClient.message → src.llm.openrouter.contentText
+  src.llm.dsl-schemas.textDsl → src.llm.dsl-schemas.obj
+  src.llm.dsl-schemas.textDsl → src.llm.dsl-schemas.exact
+  src.llm.dsl-schemas.validateResourcePlan → src.llm.dsl-schemas.obj
+  src.llm.dsl-schemas.validateResourcePlan → src.llm.dsl-schemas.exact
+  src.llm.dsl-schemas.validateResourcePlan → src.llm.dsl-schemas.strings
