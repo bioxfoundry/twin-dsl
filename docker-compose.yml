@@ -1,0 +1,22 @@
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:26.3
+    ports: ["8123:8123", "9000:9000"]
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+      - ./deploy/clickhouse/init:/docker-entrypoint-initdb.d:ro
+  docling:
+    build: ./deploy/docling
+    ports: ["5001:5001"]
+  runtime:
+    image: node:22-bookworm
+    working_dir: /workspace
+    command: ["sh","-lc","npm run verify"]
+    volumes:
+      - ./:/workspace
+    environment:
+      CLICKHOUSE_URL: http://clickhouse:8123
+      DOCLING_URL: http://docling:5001
+    depends_on: [clickhouse, docling]
+volumes:
+  clickhouse-data:

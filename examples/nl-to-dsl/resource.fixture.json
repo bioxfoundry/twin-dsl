@@ -1,0 +1,15 @@
+{
+  "document": {
+    "schema":"subactor.resource-plan/v1",
+    "id":"biofoundry-resources",
+    "sources":[
+      {"kind":"directory","location":"manager-guidelines","role":"manager","include":["**/*"],"exclude":[]},
+      {"kind":"directory","location":"customer-docs","role":"customer","include":["**/*"],"exclude":[]},
+      {"kind":"archive","location":"archives/*.zip","role":"archive","include":["**/*"],"exclude":["**/*.exe"]},
+      {"kind":"website","location":"https://biofoundry.example.test/sitemap.xml","role":"internet","include":["/docs/**"],"exclude":["/privacy"]}
+    ],
+    "conversions":["markdown","ocr-when-required","tree-manifest"],
+    "outputLogicalRoot":"subactor://project/biofoundry/resources",
+    "status":"proposed"
+  }
+}

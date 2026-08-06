@@ -1,0 +1,1 @@
+{"dsl":"DQL biofoundry-web\nSITEMAPS [https://biofoundry.example.test/sitemap.xml]\nSEEDS []\nALLOW_HOSTS [biofoundry.example.test]\nINCLUDE [/docs/**]\nEXCLUDE [/privacy]\nCONTEXT [biofoundry, bioreactor]\nMAX_URLS 20\nMAX_SITEMAPS 4\nSAME_ORIGIN true\nRESPECT_ROBOTS true\nOUTPUT markdown\nVALIDATE [same-origin, citations, budget]"}

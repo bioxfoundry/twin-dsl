@@ -1,0 +1,9 @@
+syntax = "proto3";
+package subactor.dsl.v1;
+
+enum DslKind { DSL_KIND_UNSPECIFIED=0; DSL_KIND_INTENT=1; DSL_KIND_RESOURCE=2; DSL_KIND_QUERY=3; DSL_KIND_DQL=4; DSL_KIND_TREE=5; DSL_KIND_MATH=6; DSL_KIND_TWIN=7; DSL_KIND_SCENE=8; }
+enum LlmMode { LLM_MODE_UNSPECIFIED=0; LLM_MODE_DETERMINISTIC=1; LLM_MODE_PREFER_LLM=2; LLM_MODE_REQUIRE_LLM=3; }
+message CompileNaturalLanguageRequest { DslKind kind=1; string natural_language=2; bytes context_json=3; LlmMode mode=4; bytes deterministic_value_json=5; }
+message GenerationAudit { LlmMode requested_mode=1; string effective_mode=2; bool degraded=3; string reason=4; string provider=5; string model=6; string response_id=7; uint64 duration_ms=8; bytes usage_json=9; }
+message CompileNaturalLanguageResponse { DslKind kind=1; bytes value_json=2; string canonical_hash=3; GenerationAudit audit=4; }
+service DslCompilerService { rpc CompileNaturalLanguage(CompileNaturalLanguageRequest) returns (CompileNaturalLanguageResponse); }

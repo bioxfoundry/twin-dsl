@@ -1,0 +1,10 @@
+{
+  "activeBioreactors": 2,
+  "equipment": {
+    "bioreactor-01": {"status":"running","temperatureC":37,"rpm":180},
+    "bioreactor-02": {"status":"cleaning","temperatureC":22,"rpm":0},
+    "buffer-tank-01": {"status":"ready","temperatureC":20},
+    "clean-bench-01": {"status":"available"},
+    "incubator-01": {"status":"running","temperatureC":37}
+  }
+}

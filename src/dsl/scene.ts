@@ -1,0 +1,3 @@
+import type { SceneDocument } from "../core/types.js";
+export type { SceneDocument } from "../core/types.js";
+export function validateScene(s:SceneDocument):void{if(s.schema!=='subactor.scene/v1'||!s.id||!['openusd','gltf','3dtiles'].includes(s.format))throw new Error('INVALID_SCENE');const paths=new Set<string>();for(const b of s.bindings){if(!b.twinUri||!b.scenePath||!b.scenePath.startsWith('/'))throw new Error('INVALID_SCENE_BINDING');if(paths.has(b.scenePath))throw new Error(`DUPLICATE_SCENE_PATH:${b.scenePath}`);paths.add(b.scenePath);if(b.position&&b.position.length!==3)throw new Error('INVALID_SCENE_POSITION');if(b.size&&b.size.length!==3)throw new Error('INVALID_SCENE_SIZE');}}

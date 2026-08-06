@@ -1,0 +1,5 @@
+{
+  "https://biofoundry.example.test/sitemap.xml": "web-fixtures/sitemap.xml",
+  "https://biofoundry.example.test/docs/operational-twin": "web-fixtures/operational-twin.html",
+  "https://biofoundry.example.test/privacy": "web-fixtures/privacy.html"
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.math/v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "id",
+    "bindings",
+    "expressions"
+  ]
+}

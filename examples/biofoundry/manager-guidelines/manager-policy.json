@@ -1,0 +1,6 @@
+{
+  "approved": true,
+  "maxActiveBioreactors": 4,
+  "minWalkwayMeters": 1.5,
+  "requireCleanDirtySeparation": true
+}

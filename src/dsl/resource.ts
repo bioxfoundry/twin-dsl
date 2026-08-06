@@ -1,0 +1,3 @@
+import type { ResourceRecord, SourceRole } from "../core/types.js";
+import { contentUri, sha256 } from "../core/canonical.js";
+export function resourceFromText(id:string, logicalUri:string, sourcePath:string, text:string, parentUri?:string,sourceRole?:SourceRole,labels:string[]=[]):ResourceRecord { const hash=sha256(text);return{schema:'subactor.resource/v1',id,uri:contentUri('resource',text),logicalUri,mediaType:'text/markdown',sha256:hash,size:Buffer.byteLength(text),sourcePath,sourceRole,labels:[...new Set(labels)],parentUri,derived:false,derivedFrom:[],createdAt:new Date().toISOString()}; }

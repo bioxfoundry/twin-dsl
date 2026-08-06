@@ -1,0 +1,7 @@
+TREE platform-autonomy
+  NODE platform project "Subactor Platform"
+    NODE contracts document "Autonomy Contracts"
+      NODE aql section "Contract AQL"
+    NODE uri-process document "URI Process Autonomy"
+      NODE ticket-gate rule "Ticket before effect"
+      NODE result-receipt rule "Result after effect"

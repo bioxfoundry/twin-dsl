@@ -1,0 +1,48 @@
+{
+  "schema": "subactor.biofoundry-config/v1",
+  "id": "biofoundry-demo",
+  "managerRequest": "Maintain a real-time conceptual 3D Biofoundry twin. Apply customer dimensions, preserve clean/dirty zone separation, never exceed active bioreactor capacity, and rebuild the scene only after all startup gates pass.",
+  "sources": [
+    {
+      "path": "manager-guidelines",
+      "role": "manager",
+      "logicalRoot": "subactor://biofoundry/manager",
+      "labels": [
+        "authority",
+        "policy"
+      ]
+    },
+    {
+      "path": "customer-docs",
+      "role": "customer",
+      "logicalRoot": "subactor://biofoundry/customer",
+      "labels": [
+        "requirements",
+        "geometry"
+      ]
+    },
+    {
+      "path": "project-data",
+      "role": "project",
+      "logicalRoot": "subactor://biofoundry/project",
+      "labels": [
+        "observed-state"
+      ]
+    },
+    {
+      "path": "archives",
+      "role": "archive",
+      "logicalRoot": "subactor://biofoundry/archive",
+      "labels": [
+        "legacy"
+      ]
+    }
+  ],
+  "policyFile": "manager-guidelines/manager-policy.json",
+  "customerSpecFile": "customer-docs/equipment-spec.json",
+  "projectStateFile": "project-data/current-state.json",
+  "webResearch": {
+    "dqlFile": "dsl/web-research.dql",
+    "fixtureMapFile": "web-fixtures-map.json"
+  }
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "schema":"t2c.intent/v1",
+    "id":"INT-DEMO-BIOFOUNDRY",
+    "type":"request",
+    "text":"Research the Biofoundry project and build a validated conceptual Digital Twin.",
+    "actor":"human:manager",
+    "ticket":"PLF-BIO-001",
+    "targetUris":["subactor://project/biofoundry"]
+  }
+]

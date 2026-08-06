@@ -1,0 +1,5 @@
+MATH biofoundry-evidence-readiness
+BIND LocalEvidence = true FROM [subactor://research/local]
+BIND WebEvidence = true FROM [subactor://research/web]
+BIND CitationsPresent = true FROM [urn:subactor:query-result:pending]
+EXPR EvidenceReady = AND(LocalEvidence, WebEvidence, CitationsPresent)

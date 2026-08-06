@@ -1,0 +1,9 @@
+QUERY q-autonomy-readiness
+INTENT urn:subactor:intent:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+PROCESS query://knowledge/clickhouse/search/execute
+SOURCES [__SOURCE__]
+SNAPSHOT __SNAPSHOT__
+FILTER text contains "ticket"
+RETURN math
+RESULT_URI urn:subactor:query-result:sha256:{hash}
+VALIDATE [evidence-present, snapshot-bound, immutable-result-uri]

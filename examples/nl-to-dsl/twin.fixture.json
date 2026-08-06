@@ -1,0 +1,12 @@
+{
+  "document": {
+    "schema":"subactor.twin/v1",
+    "id":"biofoundry",
+    "kind":"physical",
+    "observedAt":"2026-08-06T18:00:00Z",
+    "sourceSnapshotHash":"cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+    "components":[
+      {"id":"bioreactor-01","type":"bioreactor","sourceUris":["urn:subactor:resource:sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],"properties":{"position":[0,0,1.5],"size":[2,2,3],"status":"running"},"children":[]}
+    ]
+  }
+}

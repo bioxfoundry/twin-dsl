@@ -1,0 +1,2 @@
+import test from 'node:test';import assert from'node:assert/strict';import{mkdtemp,rm}from'node:fs/promises';import{tmpdir}from'node:os';import{join}from'node:path';import{runDemo}from'../src/runtime/pipeline.js';
+test('full offline pipeline',async()=>{const d=await mkdtemp(join(tmpdir(),'dt-'));try{const r=await runDemo('examples',d);assert.equal(r.resources>0,true);assert.equal(r.validated,true);assert.equal(r.executable,true);}finally{await rm(d,{recursive:true,force:true});}});

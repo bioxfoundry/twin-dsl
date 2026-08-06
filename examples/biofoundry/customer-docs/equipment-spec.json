@@ -1,0 +1,9 @@
+{
+  "equipment": [
+    {"id":"bioreactor-01","type":"bioreactor","position":[0,0,1.5],"size":[2,2,3],"capacityLiters":1000,"zone":"dirty"},
+    {"id":"bioreactor-02","type":"bioreactor","position":[4,0,1.5],"size":[2,2,3],"capacityLiters":1000,"zone":"dirty"},
+    {"id":"buffer-tank-01","type":"buffer-tank","position":[8,0,1.25],"size":[1.8,1.8,2.5],"capacityLiters":500,"zone":"dirty"},
+    {"id":"clean-bench-01","type":"clean-bench","position":[0,5,0.5],"size":[3,1.2,1],"zone":"clean"},
+    {"id":"incubator-01","type":"incubator","position":[4,5,1],"size":[1.5,1.5,2],"zone":"clean"}
+  ]
+}

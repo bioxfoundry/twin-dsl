@@ -1,0 +1,9 @@
+MATH uri-process-executable
+BIND TicketExists = true FROM [urn:subactor:resource:sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa#ticket]
+BIND ManifestExists = true
+BIND DefinitionMatches = true
+BIND IdempotencyBound = true
+BIND AqlAllows = true
+BIND BridgeValidated = true
+BIND ResultRecorded = true
+EXPR Executable = AND(TicketExists, ManifestExists, DefinitionMatches, IdempotencyBound, AqlAllows, BridgeValidated, ResultRecorded)

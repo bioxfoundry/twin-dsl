@@ -1,0 +1,5 @@
+TREE biofoundry-research-result
+  NODE sources evidence-set "Biofoundry evidence"
+    NODE local local-source "Local project and customer sources"
+    NODE web internet-source "Sitemap-discovered web sources"
+    NODE archive archive-source "Customer archive records"

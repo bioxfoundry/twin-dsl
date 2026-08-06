@@ -1,0 +1,11 @@
+syntax = "proto3";
+package subactor.query.v1;
+import "subactor/common/v1/common.proto";
+enum ResultKind { RESULT_KIND_UNSPECIFIED=0; RESULT_KIND_TREE=1; RESULT_KIND_MATH=2; RESULT_KIND_TABLE=3; RESULT_KIND_TEXT=4; RESULT_KIND_SCENE=5; }
+message QueryFilter { string field=1; string operator=2; string value=3; }
+message QueryContract { string query_id=1; string intent_uri=2; string process_uri=3; repeated string source_uris=4; string source_snapshot_hash=5; repeated QueryFilter filters=6; ResultKind expected_result_kind=7; string result_uri_template=8; repeated string validations=9; string canonical_hash=10; }
+message QueryExecutionRequest { QueryContract query=1; string ticket_id=2; string principal=3; }
+message QueryExecutionEvent { string type=1; string execution_id=2; string message=3; }
+message GetQueryResultRequest { string result_uri=1; }
+message QueryResultEnvelope { string query_id=1; string query_hash=2; string execution_id=3; string source_snapshot_hash=4; string result_uri=5; string result_hash=6; ResultKind result_kind=7; bytes payload_json=8; repeated subactor.common.v1.EvidenceReference evidence=9; subactor.common.v1.ExecutionReceipt execution_receipt=10; }
+service QueryRuntime { rpc Execute(QueryExecutionRequest) returns (stream QueryExecutionEvent); rpc GetResult(GetQueryResultRequest) returns (QueryResultEnvelope); }

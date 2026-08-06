@@ -1,0 +1,4 @@
+[
+  {"schema":"t2c.intent/v1","id":"intent-1","type":"request","text":"Sprawdź gotowość URI Process","actor":"human:founder","targetUris":["subactor://project/platform/document/uri-process-autonomy"]},
+  {"schema":"t2c.intent/v1","id":"intent-2","type":"plan","text":"Wyszukaj dowody i zwróć mathDSL","actor":"agent:research","targetUris":["query://knowledge/clickhouse/search/execute"]}
+]

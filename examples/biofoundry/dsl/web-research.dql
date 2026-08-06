@@ -1,0 +1,13 @@
+DQL biofoundry-context-research
+SITEMAPS [https://biofoundry.example.test/sitemap.xml]
+SEEDS []
+ALLOW_HOSTS [biofoundry.example.test]
+INCLUDE [/docs/**]
+EXCLUDE [/privacy, /login]
+CONTEXT [biofoundry, bioreactor, digital twin]
+MAX_URLS 10
+MAX_SITEMAPS 3
+SAME_ORIGIN true
+RESPECT_ROBOTS true
+OUTPUT markdown
+VALIDATE [same-origin, citations, budget]

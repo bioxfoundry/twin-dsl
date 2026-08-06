@@ -1,0 +1,4 @@
+import type { TwinComponent, TwinDocument } from "../core/types.js";
+function visit(c:TwinComponent,ids:Set<string>):void{if(!c.id||!c.type)throw new Error('INVALID_TWIN_COMPONENT');if(ids.has(c.id))throw new Error(`DUPLICATE_TWIN_COMPONENT:${c.id}`);ids.add(c.id);if(!Array.isArray(c.sourceUris)||c.sourceUris.length===0)throw new Error(`TWIN_COMPONENT_SOURCE_REQUIRED:${c.id}`);for(const child of c.children)visit(child,ids);}
+export function validateTwin(t:TwinDocument):void{if(t.schema!=='subactor.twin/v1')throw new Error('BAD_TWIN_SCHEMA');if(!/^[a-f0-9]{64}$/.test(t.sourceSnapshotHash))throw new Error('TWIN_SNAPSHOT_REQUIRED');if(!t.id||!Array.isArray(t.components))throw new Error('INVALID_TWIN');const ids=new Set<string>();for(const c of t.components)visit(c,ids);}
+export function flattenTwin(t:TwinDocument):TwinComponent[]{const out:TwinComponent[]=[];const walk=(c:TwinComponent)=>{out.push(c);c.children.forEach(walk);};t.components.forEach(walk);return out;}

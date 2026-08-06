@@ -1,0 +1,1 @@
+{"dsl":"TREE biofoundry\n  NODE root physical-system \"Biofoundry\"\n    NODE process process-zone \"Process zone\"\n      NODE reactor01 bioreactor \"Bioreactor 01\"\n    NODE clean clean-zone \"Clean zone\"\n      NODE bench01 clean-bench \"Clean bench 01\""}

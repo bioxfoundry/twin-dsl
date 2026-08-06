@@ -1,0 +1,6 @@
+{
+  "https://biofoundry.example.test/sitemap.xml": "web-fixtures/sitemap.xml",
+  "https://biofoundry.example.test/docs/digital-twin": "web-fixtures/digital-twin.html",
+  "https://biofoundry.example.test/products/bioreactor": "web-fixtures/bioreactor.html",
+  "https://biofoundry.example.test/privacy": "web-fixtures/privacy.html"
+}

@@ -1,0 +1,1 @@
+Research the Biofoundry project using local manager guidelines, customer documents, ZIP archives and the approved website sitemap. Build a source-addressed structure, calculate startup gates, create a current Digital Twin and propose a conceptual OpenUSD scene. Do not invent measurements or verified CAD geometry.

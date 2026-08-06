@@ -1,0 +1,11 @@
+{
+  "document": {
+    "schema":"subactor.scene/v1",
+    "id":"biofoundry-scene",
+    "format":"openusd",
+    "sourceTwinId":"biofoundry",
+    "bindings":[
+      {"twinUri":"urn:subactor:twin:sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd#component=bioreactor-01","componentId":"bioreactor-01","scenePath":"/Biofoundry/bioreactor-01","primitive":"cylinder","position":[0,0,1.5],"size":[2,2,3],"propertyMap":{"status":"subactor:status"}}
+    ]
+  }
+}
