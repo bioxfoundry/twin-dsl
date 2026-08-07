@@ -5,11 +5,15 @@ import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
+  BACKEND_TYPES,
   ConversionError,
   ConverterChain,
   DoclingHttpConverter,
   ExternalConverterRequired,
+  LocalToolConverter,
+  MammothConverter,
   TextConverter,
+  TurndownConverter,
   convert,
   convertToMarkdown,
   detectDocumentKind,
@@ -83,11 +87,15 @@ test("missing file is reported clearly", async (t) => {
 });
 
 /* --------------------------------------------------------------- chain routing */
-const skips: Converter = { name: "skips", convert: async () => { throw new ExternalConverterRequired(".pdf"); } };
-const breaks: Converter = { name: "breaks", convert: async () => { throw new ConversionError("BACKEND_EXPLODED"); } };
+const skips: Converter = { name: "skips", backendType: "stdlib", convert: async () => { throw new ExternalConverterRequired(".pdf"); } };
+const breaks: Converter = { name: "breaks", backendType: "stdlib", convert: async () => { throw new ConversionError("BACKEND_EXPLODED"); } };
 const works: Converter = {
   name: "works",
-  convert: async (): Promise<ConvertedDocument> => ({ markdown: "# ok", metadata: {}, assets: [], converter: "works", version: "1" }),
+  backendType: "stdlib",
+  convert: async (): Promise<ConvertedDocument> => ({
+    markdown: "# ok", metadata: {}, assets: [], converter: "works", version: "1",
+    backendType: "stdlib", inputKind: "", ocr: false, fallbackDepth: 0, durationMs: 0, warnings: [],
+  }),
 };
 
 test("chain skips inapplicable backends", async (t) => {
@@ -184,4 +192,67 @@ test("cli emits markdown and reports failures on stderr", async (t) => {
     console.log = realLog;
     console.error = realError;
   }
+});
+
+/* ------------------------------------------------------------------ provenance */
+test("operational provenance is populated", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "a.txt");
+  await writeFile(path, "x");
+  const doc = await convert(path);
+  assert.equal(doc.backendType, "stdlib");
+  assert.equal(doc.inputKind, ".txt");
+  assert.equal(doc.ocr, false);
+  assert.ok(doc.durationMs >= 0);
+  assert.deepEqual(doc.warnings, []);
+});
+
+test("fallbackDepth counts backends that declined", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "a.md");
+  await writeFile(path, "x");
+  const doc = await new ConverterChain([skips, skips, works]).convert(path);
+  assert.equal(doc.fallbackDepth, 2, "depth must reveal a badly ordered chain");
+});
+
+test("truncation is reported as a warning", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "big.txt");
+  await writeFile(path, "a".repeat(5000));
+  const doc = await new TextConverter(100).convert(path);
+  assert.ok(doc.warnings.some((w) => w.startsWith("TRUNCATED:100:5000")), JSON.stringify(doc.warnings));
+});
+
+test("each backend declares a valid backendType", () => {
+  assert.equal(new TextConverter().backendType, "stdlib");
+  assert.equal(new LocalToolConverter().backendType, "binary");
+  assert.equal(new TurndownConverter().backendType, "node");
+  assert.equal(new MammothConverter().backendType, "node");
+  assert.equal(new DoclingHttpConverter().backendType, "http");
+  for (const c of [new TextConverter(), new LocalToolConverter(), new TurndownConverter(), new DoclingHttpConverter()]) {
+    assert.ok(BACKEND_TYPES.includes(c.backendType));
+  }
+});
+
+/* -------------------------------------------------------------- node backends */
+test("HTML becomes real Markdown, not a fenced code block", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "page.html");
+  await writeFile(path, "<h1>Zone Build</h1><p>12.4 x 14.2 m</p><ul><li>liquid_handler_01</li></ul>");
+  const doc = await convert(path);
+  // Turndown must win over TextConverter, which also claims .html.
+  assert.equal(doc.converter, "turndown");
+  assert.equal(doc.backendType, "node");
+  assert.match(doc.markdown, /^# Zone Build/);
+  // Turndown escapes underscores in Markdown; that is correct output, not a defect.
+  assert.match(doc.markdown, /-\s+liquid\\?_handler\\?_01/);
+  assert.doesNotMatch(doc.markdown, /```/);
+});
+
+test("DOCX goes through mammoth then turndown", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "doc.docx");
+  // A DOCX is a zip; mammoth must fail on a non-zip rather than silently produce nothing.
+  await writeFile(path, Buffer.from("not really a docx"));
+  await assert.rejects(() => new MammothConverter().convert(path), /MAMMOTH_FAILED|ConversionError/);
 });

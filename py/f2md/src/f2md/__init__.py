@@ -11,7 +11,7 @@ which backend produced the Markdown.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 from .chain import ConverterChain, convert, convert_to_markdown, default_chain
 from .converters import (
@@ -19,6 +19,8 @@ from .converters import (
     DoclingHttpConverter,
     DoclingLocalConverter,
     LocalToolConverter,
+    MarkItDownConverter,
+    PyMuPDFConverter,
     TextConverter,
 )
 from .detect import (
@@ -29,7 +31,7 @@ from .detect import (
     is_text_kind,
     media_type_for,
 )
-from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
+from .types import BACKEND_TYPES, ConversionError, ConvertedDocument, ExternalConverterRequired
 
 __all__ = [
     "__version__",
@@ -42,6 +44,9 @@ __all__ = [
     "LocalToolConverter",
     "DoclingHttpConverter",
     "DoclingLocalConverter",
+    "MarkItDownConverter",
+    "PyMuPDFConverter",
+    "BACKEND_TYPES",
     "convert",
     "convert_to_markdown",
     "default_chain",

@@ -1,7 +1,7 @@
 /** The fallback chain: cheapest backend that can do the job wins. */
 import { stat } from "node:fs/promises";
 import { extname } from "node:path";
-import { DoclingHttpConverter, LocalToolConverter, TextConverter } from "./converters.js";
+import { DoclingHttpConverter, LocalToolConverter, MammothConverter, TextConverter, TurndownConverter } from "./converters.js";
 import { ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
 
 /**
@@ -26,11 +26,14 @@ export class ConverterChain {
       if (error instanceof ConversionError) throw error;
       throw new ConversionError(`FILE_NOT_FOUND:${path}`);
     }
+    const started = Date.now();
     let firstRealFailure: ConversionError | undefined;
     let lastKind = extname(path).toLowerCase();
-    for (const converter of this.converters) {
+    for (let depth = 0; depth < this.converters.length; depth++) {
       try {
-        return await converter.convert(path);
+        const document = await this.converters[depth].convert(path);
+        // Stamp facts a backend cannot know about itself: how deep the chain went, and how long.
+        return { ...document, fallbackDepth: depth, durationMs: Date.now() - started };
       } catch (error) {
         if (error instanceof ExternalConverterRequired) {
           lastKind = error.kind;
@@ -49,13 +52,21 @@ export class ConverterChain {
 }
 
 /**
- * Text -> local pdftotext/pandoc -> Docling over HTTP.
+ * Turndown/Mammoth (Node) -> text -> pdftotext/pandoc -> Docling over HTTP.
  *
  * Docling joins only when a URL is configured, so the default chain never waits on a service that
  * was never meant to be running.
  */
 export function defaultChain(doclingUrl?: string): ConverterChain {
-  const converters: Converter[] = [new TextConverter(), new LocalToolConverter()];
+  const converters: Converter[] = [
+    // Turndown must precede TextConverter: .html is a text extension, so without this HTML would
+    // be fenced as a code block instead of becoming real Markdown. When the optional peer
+    // dependency is absent Turndown declines and TextConverter still produces something usable.
+    new TurndownConverter(),
+    new MammothConverter(),
+    new TextConverter(),
+    new LocalToolConverter(),
+  ];
   const url = doclingUrl ?? process.env.DOCLING_URL;
   if (url) converters.push(new DoclingHttpConverter(url));
   return new ConverterChain(converters);

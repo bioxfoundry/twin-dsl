@@ -11,16 +11,18 @@
  * anything else can be routed to a Docling service. Every result carries provenance, so a caller
  * always knows which backend produced the Markdown.
  */
-export const VERSION = "0.1.0";
+export const VERSION = "0.2.0";
 
-export { ConversionError, ExternalConverterRequired } from "./types.js";
-export type { ConvertedDocument, Converter } from "./types.js";
+export { BACKEND_TYPES, ConversionError, ExternalConverterRequired } from "./types.js";
+export type { BackendType, ConvertedDocument, Converter } from "./types.js";
 export {
   DEFAULT_MAX_CHARS,
   DEFAULT_TIMEOUT_MS,
   DoclingHttpConverter,
   LocalToolConverter,
+  MammothConverter,
   TextConverter,
+  TurndownConverter,
 } from "./converters.js";
 export { ConverterChain, convert, convertToMarkdown, defaultChain } from "./chain.js";
 export {

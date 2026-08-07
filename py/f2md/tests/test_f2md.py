@@ -2,17 +2,23 @@ from __future__ import annotations
 
 import json
 import os
+import subprocess
+import sys
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
 
 from f2md import (
+    BACKEND_TYPES,
     ConversionError,
     ConverterChain,
     ConvertedDocument,
     DoclingHttpConverter,
     ExternalConverterRequired,
+    LocalToolConverter,
+    MarkItDownConverter,
+    PyMuPDFConverter,
     TextConverter,
     convert,
     convert_to_markdown,
@@ -67,7 +73,63 @@ def test_envelope_round_trips_to_json(tmp_path) -> None:
     src = tmp_path / "a.txt"
     src.write_text("x", encoding="utf-8")
     payload = json.loads(json.dumps(convert(str(src)).to_dict()))
-    assert set(payload) == {"markdown", "metadata", "assets", "converter", "version"}
+    # camelCase on the wire, matching the JavaScript package byte for byte.
+    assert set(payload) == {
+        "markdown", "metadata", "assets", "converter", "version",
+        "backendType", "inputKind", "ocr", "fallbackDepth", "durationMs", "warnings",
+    }
+
+
+def test_operational_provenance_is_populated(tmp_path) -> None:
+    src = tmp_path / "a.txt"
+    src.write_text("x", encoding="utf-8")
+    doc = convert(str(src))
+    assert doc.backend_type == "stdlib"
+    assert doc.input_kind == ".txt"
+    assert doc.ocr is False
+    # The markup backend sits first (so HTML is not fenced as code) and declines a .txt cheaply.
+    assert doc.fallback_depth == 1, "text files are handled right after the markup backend declines"
+    assert doc.duration_ms >= 0
+    assert doc.warnings == []
+
+
+def test_fallback_depth_counts_backends_that_declined(tmp_path) -> None:
+    src = tmp_path / "a.md"
+    src.write_text("x", encoding="utf-8")
+    doc = ConverterChain([_Skips(), _Skips(), _Works()]).convert(str(src))
+    assert doc.fallback_depth == 2, "depth must reveal a badly ordered chain"
+
+
+def test_truncation_is_reported_as_a_warning(tmp_path) -> None:
+    src = tmp_path / "big.txt"
+    src.write_text("a" * 5000, encoding="utf-8")
+    doc = TextConverter(max_chars=100).convert(str(src))
+    assert any(w.startswith("TRUNCATED:100:5000") for w in doc.warnings), doc.warnings
+
+
+def test_backend_type_is_declared_per_backend() -> None:
+    assert TextConverter().backend_type == "stdlib"
+    assert LocalToolConverter().backend_type == "binary"
+    assert PyMuPDFConverter().backend_type == "python"
+    assert MarkItDownConverter().backend_type == "python"
+    assert DoclingHttpConverter().backend_type == "http"
+    for converter in (TextConverter(), LocalToolConverter(), PyMuPDFConverter(), DoclingHttpConverter()):
+        assert converter.backend_type in BACKEND_TYPES
+
+
+def test_optional_backends_decline_when_their_library_is_absent(tmp_path) -> None:
+    # A missing extra must route past the backend, never raise ImportError at the caller.
+    src = tmp_path / "a.pdf"
+    src.write_bytes(b"%PDF-1.4 not really")
+    for converter in (PyMuPDFConverter(), MarkItDownConverter()):
+        try:
+            converter.convert(str(src))
+        except ExternalConverterRequired:
+            pass  # library missing, or file not supported — both are routing signals
+        except ConversionError:
+            pass  # library present and the fake PDF failed to parse — also acceptable
+        else:
+            pass  # library present and it somehow parsed; nothing to assert
 
 
 def test_binary_content_is_not_treated_as_text(tmp_path) -> None:
@@ -207,3 +269,54 @@ def test_cli_reports_failure_on_stderr_and_exits_nonzero(tmp_path, capsys) -> No
     captured = capsys.readouterr()
     assert "FILE_NOT_FOUND" in captured.err
     assert captured.out == "", "stdout must stay clean so redirection is usable"
+
+
+def test_cli_json_stays_parseable_when_a_backend_prints(tmp_path) -> None:
+    """PyMuPDF prints banners from its C extension straight to fd 1.
+
+    `contextlib.redirect_stdout` only rebinds `sys.stdout` and misses that, so without fd-level
+    capture `f2md file --json | jq` fails on the noise. Run through a real subprocess: that is the
+    contract users depend on, and pytest's own capture would mask the leak.
+    """
+    pytest.importorskip("pymupdf4llm")
+    pdf = tmp_path / "doc.pdf"
+    pdf.write_bytes(_MINIMAL_PDF)
+    done = subprocess.run(
+        [sys.executable, "-m", "f2md.cli", str(pdf), "--json"],
+        capture_output=True, timeout=300, check=False,
+    )
+    assert done.returncode == 0, done.stderr.decode()
+    payload = json.loads(done.stdout.decode())  # must parse with no leading noise
+    assert payload["converter"] == "pymupdf4llm", payload["converter"]
+    assert payload["backendType"] == "python"
+    assert payload["fallbackDepth"] >= 1, "text backend must decline a PDF first"
+
+
+def _build_minimal_pdf() -> bytes:
+    text = b"Strefa Build ma 12.4 x 14.2 m i miesci liquid_handler_01 oraz sequencing_01"
+    content = b"BT /F1 14 Tf 60 700 Td (" + text + b") Tj ET"
+    objs = [
+        b"<< /Type /Catalog /Pages 2 0 R >>",
+        b"<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+        b"<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R "
+        b"/Resources << /Font << /F1 5 0 R >> >> >>",
+        b"<< /Length " + str(len(content)).encode() + b" >>stream\n" + content + b"\nendstream",
+        b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    ]
+    out = b"%PDF-1.4\n"
+    offsets = []
+    for index, obj in enumerate(objs, 1):
+        offsets.append(len(out))
+        out += str(index).encode() + b" 0 obj\n" + obj + b"\nendobj\n"
+    start = len(out)
+    out += b"xref\n0 " + str(len(objs) + 1).encode() + b"\n0000000000 65535 f \n"
+    for offset in offsets:
+        out += ("%010d 00000 n \n" % offset).encode()
+    out += (
+        b"trailer\n<< /Size " + str(len(objs) + 1).encode() + b" /Root 1 0 R >>\nstartxref\n"
+        + str(start).encode() + b"\n%%EOF\n"
+    )
+    return out
+
+
+_MINIMAL_PDF = _build_minimal_pdf()

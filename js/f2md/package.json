@@ -1,6 +1,6 @@
 {
   "name": "@subactor/f2md",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain.",
   "keywords": [
     "markdown",
@@ -49,9 +49,24 @@
   },
   "devDependencies": {
     "@types/node": ">=18",
-    "typescript": ">=5.4 <7"
+    "typescript": ">=5.4 <7",
+    "mammoth": ">=1.7",
+    "turndown": ">=7",
+    "@types/turndown": ">=5"
   },
   "publishConfig": {
     "access": "public"
+  },
+  "peerDependencies": {
+    "mammoth": ">=1.7",
+    "turndown": ">=7"
+  },
+  "peerDependenciesMeta": {
+    "mammoth": {
+      "optional": true
+    },
+    "turndown": {
+      "optional": true
+    }
   }
 }

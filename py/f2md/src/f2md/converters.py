@@ -2,17 +2,24 @@
 
 Each backend raises :class:`ExternalConverterRequired` when the file is not its job, which is what
 lets :func:`f2md.chain.convert` fall through without treating "wrong backend" as an error.
+
+Heavier backends (MarkItDown, PyMuPDF, Docling) import their library lazily so the core package
+stays stdlib-only and a missing extra degrades to "not my job" rather than an ImportError.
 """
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import os
 import shutil
 import subprocess
+import sys
+import tempfile
 import urllib.request
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional, Protocol, runtime_checkable
+from typing import Any, Dict, Iterator, List, Optional, Protocol, Tuple, runtime_checkable
 
 from .detect import detect_document_kind, is_text_kind
 from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
@@ -24,6 +31,7 @@ DEFAULT_TIMEOUT_S = int(os.environ.get("F2MD_TIMEOUT_S", "120"))
 @runtime_checkable
 class Converter(Protocol):
     name: str
+    backend_type: str
 
     def convert(self, path: str) -> ConvertedDocument: ...
 
@@ -37,10 +45,52 @@ def _stat_metadata(path: str) -> Dict[str, Any]:
     }
 
 
-def _clip(text: str, max_chars: int) -> str:
+def _clip(text: str, max_chars: int) -> Tuple[str, List[str]]:
+    """Truncate to ``max_chars``, reporting it as a warning rather than silently losing content."""
     if max_chars <= 0 or len(text) <= max_chars:
-        return text
-    return text[:max_chars] + "\n\n…[truncated]"
+        return text, []
+    return text[:max_chars] + "\n\n…[truncated]", [f"TRUNCATED:{max_chars}:{len(text)}"]
+
+
+class _Captured:
+    """Holds whatever a backend printed, once the capture block has exited."""
+
+    text: str = ""
+
+
+@contextlib.contextmanager
+def _quiet_stdout() -> Iterator[_Captured]:
+    """Keep a backend's chatter off stdout.
+
+    PyMuPDF prints banners like "=== Document parser messages ===" from its C extension, straight
+    to file descriptor 1 — `contextlib.redirect_stdout` only rebinds `sys.stdout` and misses it
+    entirely. Left alone this corrupts `f2md file --json` into unparseable output, so the file
+    descriptor itself is redirected for the duration of the call.
+    """
+    captured = _Captured()
+    sys.stdout.flush()
+    saved_fd = os.dup(1)
+    with tempfile.TemporaryFile(mode="w+b") as sink:
+        os.dup2(sink.fileno(), 1)
+        try:
+            # Also rebind sys.stdout, so pure-Python prints land in the same sink.
+            with contextlib.redirect_stdout(io.TextIOWrapper(os.fdopen(os.dup(1), "wb"), errors="replace")):
+                yield captured
+        finally:
+            sys.stdout.flush()
+            os.dup2(saved_fd, 1)
+            os.close(saved_fd)
+            sink.seek(0)
+            captured.text = sink.read().decode("utf-8", errors="replace")
+
+
+def _package_version(module_name: str, fallback: str = "unknown") -> str:
+    try:
+        from importlib.metadata import version
+
+        return version(module_name)
+    except Exception:  # noqa: BLE001 - version reporting must never break a conversion
+        return fallback
 
 
 class TextConverter:
@@ -51,6 +101,7 @@ class TextConverter:
     """
 
     name = "deterministic-text"
+    backend_type = "stdlib"
     version = "1.2.0"
 
     def __init__(self, max_chars: int = DEFAULT_MAX_CHARS) -> None:
@@ -68,13 +119,17 @@ class TextConverter:
         text = raw.decode("utf-8", errors="replace")
         name = os.path.basename(path)
         if kind in (".md", ".markdown"):
-            markdown = text
+            markdown, warnings = text, []
         else:
+            body, warnings = _clip(text, self.max_chars)
             fence = kind.lstrip(".") or "text"
-            markdown = f"# {name}\n\n```{fence}\n{_clip(text, self.max_chars)}\n```\n"
+            markdown = f"# {name}\n\n```{fence}\n{body}\n```\n"
         metadata = _stat_metadata(path)
         metadata["extractedChars"] = len(text)
-        return ConvertedDocument(markdown, metadata, [], self.name, self.version)
+        return ConvertedDocument(
+            markdown, metadata, [], self.name, self.version,
+            backend_type=self.backend_type, input_kind=kind, warnings=warnings,
+        )
 
 
 class LocalToolConverter:
@@ -85,6 +140,7 @@ class LocalToolConverter:
     """
 
     name = "local-tools"
+    backend_type = "binary"
     version = "1.0.0"
 
     PANDOC_FORMATS = {".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".pptx": "pptx", ".epub": "epub"}
@@ -93,7 +149,7 @@ class LocalToolConverter:
         self.max_chars = max_chars
         self.timeout_s = timeout_s
 
-    def _run(self, argv: list, tool: str) -> str:
+    def _run(self, argv: List[str], tool: str) -> str:
         try:
             done = subprocess.run(argv, capture_output=True, timeout=self.timeout_s, check=False)
         except subprocess.TimeoutExpired as error:
@@ -123,10 +179,122 @@ class LocalToolConverter:
             tool = "pandoc"
         else:
             raise ExternalConverterRequired(kind)
+        body, warnings = _clip(text, self.max_chars)
+        if tool == "pdftotext":
+            # pdftotext emits a plain text layer: tables and figures are flattened or lost.
+            warnings.append("LAYOUT_ONLY:tables and images are not preserved")
         metadata = _stat_metadata(path)
         metadata["extractedChars"] = len(text)
-        name = os.path.basename(path)
-        return ConvertedDocument(f"# {name}\n\n{_clip(text, self.max_chars)}\n", metadata, [], tool, self.version)
+        return ConvertedDocument(
+            f"# {os.path.basename(path)}\n\n{body}\n", metadata, [], tool, self.version,
+            backend_type=self.backend_type, input_kind=kind, warnings=warnings,
+        )
+
+
+class PyMuPDFConverter:
+    """PDFs with a text layer, via `pymupdf4llm`.
+
+    Produces structured Markdown (headings, lists, tables) rather than the flat text layer
+    `pdftotext` yields, so it is the better default when document structure matters. It cannot do
+    OCR, so scanned PDFs are declined and left to Docling.
+
+    Requires the optional extra: ``pip install 'f2md[pymupdf]'``.
+    """
+
+    name = "pymupdf4llm"
+    backend_type = "python"
+
+    def __init__(self, max_chars: int = DEFAULT_MAX_CHARS, min_chars: int = 32) -> None:
+        self.max_chars = max_chars
+        # Below this, the PDF almost certainly has no text layer and needs OCR instead.
+        self.min_chars = min_chars
+        self.version = _package_version("pymupdf4llm")
+
+    def convert(self, path: str) -> ConvertedDocument:
+        kind = detect_document_kind(path)
+        if kind != ".pdf":
+            raise ExternalConverterRequired(kind)
+        try:
+            import pymupdf4llm  # type: ignore[import-not-found]
+        except ImportError:
+            # Missing extra is a routing signal, not a failure: the chain moves on.
+            raise ExternalConverterRequired(kind) from None
+        try:
+            with _quiet_stdout() as chatter:
+                text = str(pymupdf4llm.to_markdown(path)).strip()
+        except Exception as error:  # noqa: BLE001 - surfaced as one conversion failure
+            raise ConversionError(f"PYMUPDF_FAILED:{error}") from error
+        noise = chatter.text.strip()
+        if len(text) < self.min_chars:
+            # A scanned page yields almost nothing here; hand it to a backend that can OCR.
+            raise ExternalConverterRequired(kind)
+        body, warnings = _clip(text, self.max_chars)
+        if noise:
+            warnings.append("BACKEND_DIAGNOSTIC:" + " / ".join(noise.splitlines())[:200])
+        metadata = _stat_metadata(path)
+        metadata["extractedChars"] = len(text)
+        return ConvertedDocument(
+            body, metadata, [], self.name, self.version,
+            backend_type=self.backend_type, input_kind=kind, warnings=warnings,
+        )
+
+
+class MarkItDownConverter:
+    """Microsoft MarkItDown: Office, HTML, XLSX, PPTX, CSV, images and more.
+
+    A broad general-purpose backend, placed after the specialised ones so a PDF still goes through
+    the PDF-aware path first.
+
+    Requires the optional extra: ``pip install 'f2md[markitdown]'``.
+    """
+
+    name = "markitdown"
+    backend_type = "python"
+    #: Formats worth routing here. Plain text and source files are handled earlier and cheaper.
+    SUPPORTED = (
+        ".pdf", ".docx", ".doc", ".pptx", ".ppt", ".xlsx", ".xls", ".odt", ".ods", ".rtf", ".epub",
+        ".html", ".htm", ".csv", ".tsv", ".json", ".xml", ".zip",
+        ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tiff", ".bmp",
+    )
+    #: Formats that must be claimed *before* the text backend, or they would be fenced as code
+    #: instead of becoming real Markdown. Mirrors TurndownConverter's position in the JS chain.
+    MARKUP = (".html", ".htm")
+
+    def __init__(self, max_chars: int = DEFAULT_MAX_CHARS, kinds: Optional[Tuple[str, ...]] = None) -> None:
+        self.max_chars = max_chars
+        #: Restrict this instance to a subset, so the same backend can sit at two chain positions.
+        self.kinds = kinds or self.SUPPORTED
+        self.version = _package_version("markitdown")
+        self._converter: Any = None
+
+    def convert(self, path: str) -> ConvertedDocument:
+        kind = detect_document_kind(path)
+        if kind not in self.kinds:
+            raise ExternalConverterRequired(kind)
+        if self._converter is None:
+            try:
+                from markitdown import MarkItDown  # type: ignore[import-not-found]
+            except ImportError:
+                raise ExternalConverterRequired(kind) from None
+            self._converter = MarkItDown()
+        try:
+            with _quiet_stdout():
+                result = self._converter.convert(path)
+            text = str(getattr(result, "text_content", "") or "").strip()
+        except Exception as error:  # noqa: BLE001 - surfaced as one conversion failure
+            raise ConversionError(f"MARKITDOWN_FAILED:{error}") from error
+        if not text:
+            raise ConversionError("MARKITDOWN_EMPTY")
+        body, warnings = _clip(text, self.max_chars)
+        metadata = _stat_metadata(path)
+        metadata["extractedChars"] = len(text)
+        title = getattr(result, "title", None)
+        if title:
+            metadata["title"] = str(title)
+        return ConvertedDocument(
+            body, metadata, [], self.name, self.version,
+            backend_type=self.backend_type, input_kind=kind, warnings=warnings,
+        )
 
 
 class DoclingHttpConverter:
@@ -136,6 +304,7 @@ class DoclingHttpConverter:
     """
 
     name = "docling-http"
+    backend_type = "http"
     version = "1.0.0"
 
     def __init__(self, base_url: Optional[str] = None, timeout_s: int = 180) -> None:
@@ -143,6 +312,7 @@ class DoclingHttpConverter:
         self.timeout_s = timeout_s
 
     def convert(self, path: str) -> ConvertedDocument:
+        kind = detect_document_kind(path)
         with open(path, "rb") as handle:
             payload = handle.read()
         boundary = "----f2md" + os.urandom(12).hex()
@@ -169,16 +339,23 @@ class DoclingHttpConverter:
             raise ConversionError("DOCLING_MARKDOWN_MISSING")
         metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else _stat_metadata(path)
         assets = [str(a) for a in data.get("assets", [])] if isinstance(data.get("assets"), list) else []
-        return ConvertedDocument(markdown, metadata, assets, str(data.get("converter") or "docling"), self.version)
+        return ConvertedDocument(
+            markdown, metadata, assets, str(data.get("converter") or "docling"), self.version,
+            backend_type=self.backend_type, input_kind=kind,
+            # Only trust an explicit signal from the service; never guess that OCR happened.
+            ocr=bool(data.get("ocr", False)),
+            warnings=[str(w) for w in data.get("warnings", [])] if isinstance(data.get("warnings"), list) else [],
+        )
 
 
 class DoclingLocalConverter:
     """Docling in-process, when the optional `docling` extra is installed."""
 
     name = "docling-local"
-    version = "1.0.0"
+    backend_type = "python"
 
     def __init__(self) -> None:
+        self.version = _package_version("docling")
         try:
             from docling.document_converter import DocumentConverter  # type: ignore[import-not-found]
         except ImportError as error:  # pragma: no cover - depends on optional extra
@@ -186,11 +363,16 @@ class DoclingLocalConverter:
         self._converter = DocumentConverter()
 
     def convert(self, path: str) -> ConvertedDocument:
+        kind = detect_document_kind(path)
         try:
-            result = self._converter.convert(path)
+            with _quiet_stdout():
+                result = self._converter.convert(path)
             markdown = result.document.export_to_markdown()
         except Exception as error:  # noqa: BLE001 - surfaced as one conversion failure
             raise ConversionError(f"DOCLING_LOCAL_FAILED:{error}") from error
         metadata = _stat_metadata(path)
         metadata["extractedChars"] = len(markdown)
-        return ConvertedDocument(markdown, metadata, [], "docling", self.version)
+        return ConvertedDocument(
+            markdown, metadata, [], "docling", self.version,
+            backend_type=self.backend_type, input_kind=kind,
+        )

@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "f2md"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -26,10 +26,18 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-# Talk to a Docling HTTP service. `requests` is optional; urllib is used when absent.
-http = ["requests>=2.28"]
+# Structured Markdown from PDFs with a text layer — better than a flat pdftotext dump.
+pymupdf = ["pymupdf4llm>=0.0.17; python_version>='3.10'"]
+# Broad format coverage: Office, HTML, spreadsheets, images.
+markitdown = ["markitdown>=0.1; python_version>='3.10'"]
 # Run Docling in-process instead of over HTTP.
-docling = ["docling>=2.0"]
+docling = ["docling>=2.0; python_version>='3.10'"]
+# Everything optional at once.
+all = [
+  "pymupdf4llm>=0.0.17; python_version>='3.10'",
+  "markitdown>=0.1; python_version>='3.10'",
+  "docling>=2.0; python_version>='3.10'",
+]
 dev = ["pytest>=7", "mypy>=1.8", "ruff>=0.5"]
 
 [project.urls]
