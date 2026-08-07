@@ -80,3 +80,21 @@ def media_type_for(path: str) -> str:
 
 def is_text_kind(kind: str) -> bool:
     return kind in TEXT_EXTENSIONS
+
+
+#: Formats whose content is structured data or source code rather than prose. Running a language
+#: detector over them produces confident nonsense — a CAD parameter file reads as Dutch, a JSON
+#: config as Italian — and acting on that would route the file to a translator that mangles it.
+NON_PROSE_EXTENSIONS = frozenset({
+    ".json", ".jsonl", ".ndjson", ".yaml", ".yml", ".toml", ".ini", ".cfg", ".xml", ".csv", ".tsv",
+    ".svg", ".properties", ".env", ".gradle", ".make", ".cmake", ".dockerfile", ".sql", ".graphql",
+    ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".rb", ".php", ".go", ".rs", ".java",
+    ".kt", ".c", ".h", ".cpp", ".hpp", ".cs", ".sh", ".bash", ".zsh",
+    ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".dql",
+    ".step", ".stp", ".stl", ".f3d", ".scad", ".glb", ".gltf", ".usda", ".usdz", ".ifc", ".dwg", ".dxf",
+})
+
+
+def is_prose_kind(kind: str) -> bool:
+    """Whether language detection is meaningful for this format."""
+    return bool(kind) and kind not in NON_PROSE_EXTENSIONS

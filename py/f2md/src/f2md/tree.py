@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from .chain import ConverterChain, default_chain
-from .detect import detect_document_kind, media_type_for
+from .detect import detect_document_kind, is_prose_kind, media_type_for
 from .translate import TranslationPolicy, TranslationUnavailable, detect_language
 from .types import ConversionError
 
@@ -165,7 +165,8 @@ def convert_tree(
 
         secret = bool(secret_re and secret_re.search(document.markdown))
         marker = SECRET_SUFFIX if secret else ""
-        language = detect_language(document.markdown)
+        # Only prose has a language worth detecting; see NON_PROSE_EXTENSIONS.
+        language = detect_language(document.markdown) if is_prose_kind(kind) else None
         if language:
             result.by_language[language] = result.by_language.get(language, 0) + 1
 

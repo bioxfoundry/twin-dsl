@@ -25,9 +25,11 @@ from .converters import (
 )
 from .detect import (
     BINARY_EXTENSIONS,
+    NON_PROSE_EXTENSIONS,
     MEDIA_TYPES,
     TEXT_EXTENSIONS,
     detect_document_kind,
+    is_prose_kind,
     is_text_kind,
     media_type_for,
 )
@@ -59,6 +61,8 @@ __all__ = [
     "detect_document_kind",
     "media_type_for",
     "is_text_kind",
+    "is_prose_kind",
+    "NON_PROSE_EXTENSIONS",
     "TEXT_EXTENSIONS",
     "BINARY_EXTENSIONS",
     "MEDIA_TYPES",

@@ -460,3 +460,24 @@ def test_tree_does_not_suffix_documents_already_in_the_target_language(tmp_path)
     assert result.translated == 0
     assert (out / "en.md.md").is_file()
     assert not list(out.glob("*.en.md")), "the target language stays unsuffixed"
+
+
+def test_language_is_not_detected_for_code_and_data(tmp_path) -> None:
+    """A CAD parameter file reads as Dutch to a language detector.
+
+    Acting on that would suffix the output with a wrong language and hand structured data to a
+    translator, so detection is skipped for non-prose formats entirely.
+    """
+    pytest.importorskip("py3langid")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "thread.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>\n<ThreadType>\n  <Name>PG Conduit Thread</Name>\n'
+        "  <Unit>mm</Unit>\n  <Designation>PG7</Designation>\n  <Pitch>1.270</Pitch>\n</ThreadType>\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "out"
+    convert_tree(str(src), str(out), translate_to="en")
+    assert (out / "thread.xml.md").is_file(), sorted(p.name for p in out.iterdir())
+    assert not list(out.glob("*.nl.md")) and not list(out.glob("*.*.*.md"))
+    assert 'language: "unknown"' in (out / "thread.xml.md").read_text(encoding="utf-8")
