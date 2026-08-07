@@ -1,0 +1,6 @@
+syntax = "proto3";
+package subactor.research.v1;
+message DqlCrawlPlan { string id=1; repeated string sitemap_urls=2; repeated string seed_urls=3; repeated string allow_hosts=4; repeated string include_paths=5; repeated string exclude_paths=6; repeated string context_terms=7; uint32 max_urls=8; uint32 max_sitemaps=9; bool same_origin_only=10; bool respect_robots=11; repeated string validations=12; }
+message CrawlRequest { DqlCrawlPlan plan=1; string ticket_id=2; string principal=3; }
+message CrawlEvent { string type=1; string uri=2; string message=3; bytes resource_json=4; }
+service ResearchService { rpc Crawl(CrawlRequest) returns (stream CrawlEvent); }

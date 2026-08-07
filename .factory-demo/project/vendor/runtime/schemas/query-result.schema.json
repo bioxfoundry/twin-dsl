@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.query-result/v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "queryId",
+    "queryHash",
+    "resultUri",
+    "resultHash",
+    "payload",
+    "evidence"
+  ]
+}

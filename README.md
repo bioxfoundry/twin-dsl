@@ -1,6 +1,15 @@
 # Subactor Digital Twin Runtime Starter 0.5.0
 
+## Iterations
+
+### 1
 ![img.png](img.png)
+
+### 2
+![img_1.png](img_1.png)
+
+
+
 
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 

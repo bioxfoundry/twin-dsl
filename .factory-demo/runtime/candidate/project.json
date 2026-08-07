@@ -1,0 +1,111 @@
+{
+  "schema": "subactor.living-project/v1",
+  "id": "biofoundry-factory-floor",
+  "sources": [
+    {
+      "role": "manager",
+      "path": "data/manager",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/manager",
+      "labels": [
+        "authority",
+        "policy"
+      ]
+    },
+    {
+      "role": "customer",
+      "path": "data/customer",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/customer",
+      "labels": [
+        "requirements"
+      ]
+    },
+    {
+      "role": "project",
+      "path": "data/project",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/data",
+      "labels": [
+        "research"
+      ]
+    },
+    {
+      "role": "archive",
+      "path": "data/archives",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/archives",
+      "labels": [
+        "historical"
+      ]
+    },
+    {
+      "role": "derived",
+      "path": "feedback",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/feedback",
+      "labels": [
+        "feedback"
+      ]
+    },
+    {
+      "role": "development",
+      "path": "code",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/development",
+      "labels": [
+        "code"
+      ]
+    },
+    {
+      "role": "runtime",
+      "path": "logs",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/logs",
+      "labels": [
+        "runtime-log"
+      ]
+    },
+    {
+      "role": "runtime",
+      "path": "environment",
+      "logicalRoot": "subactor://project/biofoundry-factory-floor/environment",
+      "labels": [
+        "environment"
+      ]
+    }
+  ],
+  "development": {
+    "root": "code",
+    "task": "TASK.md",
+    "todo": "TODO.md",
+    "changelog": "CHANGELOG.md",
+    "docs": [
+      "README.md",
+      "docs/**/*.md"
+    ],
+    "fixture": "config/development.intent.fixture.json"
+  },
+  "observations": {
+    "paths": [
+      "logs",
+      "environment"
+    ],
+    "logicalRoot": "subactor://project/biofoundry-factory-floor/runtime"
+  },
+  "policy": {
+    "approved": true,
+    "requireResearch": true,
+    "requireDevelopmentEvidence": true,
+    "requireDevelopmentAcceptance": true,
+    "allowDevelopmentFixture": true,
+    "requireRuntimeEvidence": true,
+    "autoPublishScene": true,
+    "allowRuntimeSelfModification": false,
+    "autonomyMode": "propose",
+    "requireSignedMutationGrant": true,
+    "maxIterationsPerHour": 12,
+    "maxConsecutiveFailures": 5
+  },
+  "scene": {
+    "format": "openusd",
+    "blueprintFile": "baseline/scene-blueprint.json",
+    "physicalEvidenceFile": "baseline/physical-evidence.json"
+  },
+  "name": "Biofoundry Factory Floor",
+  "profile": "biofoundry",
+  "managerIntent": "Run the biofoundry as a live physical twin."
+}

@@ -1,0 +1,366 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Biofoundry Digital Twin — live</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --panel-2:#1d232d; --line:#2a3240;
+    --ink:#e6edf3; --muted:#8b97a8; --accent:#4c8dff;
+    --placeholder:#8b97a8; --document:#b0883c; --measured:#3fa7d6; --cad:#4fbf7f; --ifc:#8b6ee0; --verified:#3ddc97;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+  #app{display:grid;grid-template-columns:1fr 380px;grid-template-rows:auto 1fr;height:100vh}
+  header{grid-column:1/-1;display:flex;align-items:center;gap:16px;padding:10px 16px;background:var(--panel);border-bottom:1px solid var(--line)}
+  header h1{font-size:15px;margin:0;font-weight:600;letter-spacing:.2px}
+  header .sub{color:var(--muted);font-size:12px}
+  .spacer{flex:1}
+  button{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 12px;font:inherit;font-size:13px;cursor:pointer}
+  button:hover:not(:disabled){border-color:var(--accent)}
+  button:disabled{opacity:.45;cursor:default}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  #stage{position:relative;background:radial-gradient(ellipse at 50% 40%,#161d29 0%,#0c0f14 70%)}
+  canvas{display:block;width:100%;height:100%;cursor:grab}
+  canvas:active{cursor:grabbing}
+  #hud{position:absolute;left:12px;bottom:12px;font-size:12px;color:var(--muted);background:rgba(14,17,22,.75);border:1px solid var(--line);border-radius:6px;padding:8px 10px;pointer-events:none}
+  aside{background:var(--panel);border-left:1px solid var(--line);overflow-y:auto;padding:14px}
+  .card{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:12px;margin-bottom:12px}
+  .card h2{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+  .kv{display:flex;justify-content:space-between;gap:12px;padding:3px 0;font-size:13px}
+  .kv span:first-child{color:var(--muted)}
+  .kv span:last-child{font-variant-numeric:tabular-nums;text-align:right;word-break:break-word}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+  .badge{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;font-weight:600;color:#0e1116}
+  .legend{display:flex;flex-wrap:wrap;gap:6px}
+  ul.parts{list-style:none;margin:0;padding:0;max-height:260px;overflow-y:auto}
+  ul.parts li{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:12px}
+  ul.parts li:hover{background:#242c38}
+  ul.parts li.sel{background:#2b3a55;outline:1px solid var(--accent)}
+  .dot{width:9px;height:9px;border-radius:50%;flex:none}
+  .grow{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ok{color:#3ddc97}.warn{color:#e0b341}.bad{color:#ff6b6b}
+  .stat{display:flex;gap:14px;flex-wrap:wrap}
+  .stat div{flex:1;min-width:88px}
+  .stat b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+  .stat small{color:var(--muted);font-size:11px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>Biofoundry Digital Twin</h1>
+    <span class="sub" id="revision">loading…</span>
+    <span class="spacer"></span>
+    <button id="btn-intake">Apply floor-plan evidence</button>
+    <button id="btn-iterate" class="primary">Run iteration</button>
+    <a id="usd" href="/api/scene.usda" download="scene.usda"><button>Export USD</button></a>
+  </header>
+  <div id="stage">
+    <canvas id="gl"></canvas>
+    <div id="hud">drag to orbit · wheel to zoom · click a part to inspect</div>
+  </div>
+  <aside>
+    <div class="card">
+      <h2>Factory</h2>
+      <div class="stat">
+        <div><b id="s-parts">–</b><small>components</small></div>
+        <div><b id="s-physical">–</b><small>physical geometry</small></div>
+        <div><b id="s-area">–</b><small>envelope m²</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Geometry evidence</h2>
+      <div class="legend" id="legend"></div>
+    </div>
+    <div class="card">
+      <h2>Identity invariants</h2>
+      <div class="kv"><span>componentIdsStable</span><span id="i-ids">–</span></div>
+      <div class="kv"><span>scenePathsStable</span><span id="i-paths">–</span></div>
+      <div class="kv"><span>applied / rejected</span><span id="i-app">–</span></div>
+    </div>
+    <div class="card">
+      <h2>Runtime observations</h2>
+      <div id="obs"><span class="mono" style="color:var(--muted)">none</span></div>
+    </div>
+    <div class="card">
+      <h2>Components</h2>
+      <ul class="parts" id="parts"></ul>
+    </div>
+    <div class="card">
+      <h2>Selected</h2>
+      <div id="sel"><span class="mono" style="color:var(--muted)">click a part in the scene</span></div>
+    </div>
+  </aside>
+</div>
+<script>
+const GRADES = ['placeholder','document','measured','cad','ifc','verified'];
+const GRADE_COLOR = {placeholder:'#8b97a8',document:'#b0883c',measured:'#3fa7d6',cad:'#4fbf7f',ifc:'#8b6ee0',verified:'#3ddc97'};
+// Mirrors normalizeGeometryEvidence() in src/scene/physical-evidence.ts.
+function grade(v){
+  const t=String(v??'').toLowerCase();
+  if(GRADES.includes(t))return t;
+  if(t.includes('verified')||t.includes('as-built'))return 'verified';
+  if(t.includes('ifc')||t.includes('bim'))return 'ifc';
+  if(t.includes('cad')||t.includes('stl')||t.includes('step')||t.includes('mesh'))return 'cad';
+  if(t.includes('measured')||t.includes('survey'))return 'measured';
+  if(t.includes('document')||t.includes('archive')||t.includes('inventory'))return 'document';
+  return 'placeholder';
+}
+const hex2rgb = h => [parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
+
+/* ---------------------------------------------------------------- mat4 */
+const M4={
+  ident:()=>[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1],
+  mul(a,b){const o=new Array(16);for(let r=0;r<4;r++)for(let c=0;c<4;c++){let s=0;for(let k=0;k<4;k++)s+=a[k*4+c]*b[r*4+k];o[r*4+c]=s;}return o;},
+  perspective(fovy,aspect,near,far){const f=1/Math.tan(fovy/2),d=near-far;return[f/aspect,0,0,0, 0,f,0,0, 0,0,(far+near)/d,-1, 0,0,2*far*near/d,0];},
+  lookAt(eye,at,up){
+    const z=norm(sub(eye,at)),x=norm(cross(up,z)),y=cross(z,x);
+    return[x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1];
+  },
+  trs(t,s){return[s[0],0,0,0, 0,s[1],0,0, 0,0,s[2],0, t[0],t[1],t[2],1];},
+};
+const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
+const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+const cross=(a,b)=>[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+const norm=a=>{const l=Math.hypot(...a)||1;return[a[0]/l,a[1]/l,a[2]/l];};
+
+/* ------------------------------------------------------------ geometry */
+function boxMesh(){
+  const p=[],n=[];
+  const face=(o,u,v,nn)=>{
+    const a=o,b=add(o,u),c=add(add(o,u),v),d=add(o,v);
+    for(const q of [a,b,c,a,c,d]){p.push(...q);n.push(...nn);}
+  };
+  const add=(a,b)=>[a[0]+b[0],a[1]+b[1],a[2]+b[2]];
+  const h=.5;
+  face([-h,-h,-h],[1,0,0],[0,1,0],[0,0,-1]);
+  face([-h,-h, h],[0,1,0],[1,0,0],[0,0, 1]);
+  face([-h,-h,-h],[0,1,0],[0,0,1],[-1,0,0]);
+  face([ h,-h,-h],[0,0,1],[0,1,0],[ 1,0,0]);
+  face([-h,-h,-h],[0,0,1],[1,0,0],[0,-1,0]);
+  face([-h, h,-h],[1,0,0],[0,0,1],[0, 1,0]);
+  return {pos:new Float32Array(p),nrm:new Float32Array(n)};
+}
+function cylMesh(seg=28){
+  const p=[],n=[],h=.5;
+  for(let i=0;i<seg;i++){
+    const a0=i/seg*Math.PI*2,a1=(i+1)/seg*Math.PI*2;
+    const c0=[Math.cos(a0)*.5,Math.sin(a0)*.5],c1=[Math.cos(a1)*.5,Math.sin(a1)*.5];
+    const n0=[Math.cos(a0),Math.sin(a0),0],n1=[Math.cos(a1),Math.sin(a1),0];
+    p.push(c0[0],c0[1],-h, c1[0],c1[1],-h, c1[0],c1[1],h);n.push(...n0,...n1,...n1);
+    p.push(c0[0],c0[1],-h, c1[0],c1[1], h, c0[0],c0[1],h);n.push(...n0,...n1,...n0);
+    p.push(0,0,h, c0[0],c0[1],h, c1[0],c1[1],h);n.push(0,0,1,0,0,1,0,0,1);
+    p.push(0,0,-h, c1[0],c1[1],-h, c0[0],c0[1],-h);n.push(0,0,-1,0,0,-1,0,0,-1);
+  }
+  return {pos:new Float32Array(p),nrm:new Float32Array(n)};
+}
+
+/* ---------------------------------------------------------------- WebGL */
+const canvas=document.getElementById('gl');
+const gl=canvas.getContext('webgl',{antialias:true,preserveDrawingBuffer:true});
+const VS=`attribute vec3 aPos;attribute vec3 aNrm;uniform mat4 uMVP,uModel;varying vec3 vN;varying float vZ;
+void main(){vec4 w=uModel*vec4(aPos,1.);gl_Position=uMVP*vec4(aPos,1.);vN=mat3(uModel)*aNrm;vZ=w.z;}`;
+const FS=`precision mediump float;varying vec3 vN;varying float vZ;uniform vec3 uColor;uniform float uFlat,uSel;
+void main(){
+  if(uFlat>.5){gl_FragColor=vec4(uColor,1.);return;}
+  vec3 n=normalize(vN);
+  float d=max(dot(n,normalize(vec3(.45,.35,.82))),0.)*.72+.34;
+  vec3 c=uColor*d+vec3(.05,.06,.08);
+  c=mix(c,vec3(1.,.95,.6),uSel*.32);
+  gl_FragColor=vec4(c,1.);
+}`;
+function shader(type,src){const s=gl.createShader(type);gl.shaderSource(s,src);gl.compileShader(s);
+  if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s));return s;}
+const prog=gl.createProgram();
+gl.attachShader(prog,shader(gl.VERTEX_SHADER,VS));gl.attachShader(prog,shader(gl.FRAGMENT_SHADER,FS));
+gl.linkProgram(prog);gl.useProgram(prog);
+const A={pos:gl.getAttribLocation(prog,'aPos'),nrm:gl.getAttribLocation(prog,'aNrm')};
+const U={mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog,'uModel'),
+  color:gl.getUniformLocation(prog,'uColor'),flat:gl.getUniformLocation(prog,'uFlat'),sel:gl.getUniformLocation(prog,'uSel')};
+function upload(mesh){
+  const pb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pb);gl.bufferData(gl.ARRAY_BUFFER,mesh.pos,gl.STATIC_DRAW);
+  const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,mesh.nrm,gl.STATIC_DRAW);
+  return {pb,nb,count:mesh.pos.length/3};
+}
+const MESH={cube:upload(boxMesh()),cylinder:upload(cylMesh()),sphere:upload(cylMesh(18)),scope:upload(boxMesh())};
+gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+
+/* ----------------------------------------------------------- scene data */
+let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40;
+const cam={yaw:-0.75,pitch:0.62,dist:78};
+
+function buildObjects(state){
+  const twin=state.twin,scene=state.scene;
+  if(!twin||!scene)return[];
+  const byId=new Map(twin.components.map(c=>[c.id,c]));
+  const objs=scene.bindings.map((b,i)=>{
+    const c=byId.get(b.componentId)||{type:'',properties:{},sourceUris:[]};
+    const g=grade(c.properties.geometryEvidence);
+    return {
+      idx:i, id:b.componentId, path:b.scenePath, type:c.type,
+      label:c.properties.label||b.componentId,
+      pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)),
+      prim:b.primitive||'cube', grade:g, color:hex2rgb(GRADE_COLOR[g]),
+      props:c.properties, uris:c.sourceUris||[],
+    };
+  });
+  // Frame the camera on the actual extent so any facility size fits.
+  let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
+  for(const o of objs)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],o.pos[k]-o.size[k]/2);mx[k]=Math.max(mx[k],o.pos[k]+o.size[k]/2);}
+  if(objs.length){CENTER=[0,1,2].map(k=>(mn[k]+mx[k])/2);RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;}
+  return objs;
+}
+
+function draw(pick){
+  const w=canvas.clientWidth,h=canvas.clientHeight;
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}
+  gl.viewport(0,0,w,h);
+  gl.clearColor(0,0,0,pick?1:0);
+  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+  const eye=[
+    CENTER[0]+cam.dist*Math.cos(cam.pitch)*Math.cos(cam.yaw),
+    CENTER[1]+cam.dist*Math.cos(cam.pitch)*Math.sin(cam.yaw),
+    CENTER[2]+cam.dist*Math.sin(cam.pitch),
+  ];
+  const view=M4.lookAt(eye,CENTER,[0,0,1]);
+  const proj=M4.perspective(Math.PI/4,w/Math.max(h,1),.5,RADIUS*12+200);
+  const vp=M4.mul(proj,view);
+  gl.uniform1f(U.flat,pick?1:0);
+  for(const o of OBJECTS){
+    const model=M4.trs(o.pos,o.size);
+    gl.uniformMatrix4fv(U.mvp,false,new Float32Array(M4.mul(vp,model)));
+    gl.uniformMatrix4fv(U.model,false,new Float32Array(model));
+    if(pick){const n=o.idx+1;gl.uniform3f(U.color,(n&255)/255,((n>>8)&255)/255,((n>>16)&255)/255);}
+    else{gl.uniform3f(U.color,...o.color);gl.uniform1f(U.sel,SELECTED===o.idx?1:0);}
+    const m=MESH[o.prim]||MESH.cube;
+    gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
+    gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
+    gl.drawArrays(gl.TRIANGLES,0,m.count);
+  }
+}
+function render(){draw(false);}
+
+/* -------------------------------------------------------- interaction */
+let drag=null;
+canvas.addEventListener('mousedown',e=>drag={x:e.clientX,y:e.clientY,moved:false});
+addEventListener('mousemove',e=>{
+  if(!drag)return;
+  const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
+  if(Math.abs(dx)+Math.abs(dy)>3)drag.moved=true;
+  cam.yaw+=dx*.008;cam.pitch=Math.max(-1.4,Math.min(1.45,cam.pitch+dy*.008));
+  drag.x=e.clientX;drag.y=e.clientY;render();
+});
+addEventListener('mouseup',e=>{
+  if(drag&&!drag.moved)pickAt(e);
+  drag=null;
+});
+canvas.addEventListener('wheel',e=>{e.preventDefault();cam.dist=Math.max(3,Math.min(RADIUS*8+400,cam.dist*(1+Math.sign(e.deltaY)*.1)));render();},{passive:false});
+function pickAt(e){
+  const r=canvas.getBoundingClientRect();
+  const x=Math.round(e.clientX-r.left),y=Math.round(r.bottom-e.clientY);
+  draw(true);
+  const px=new Uint8Array(4);gl.readPixels(x,y,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);
+  const n=px[0]|(px[1]<<8)|(px[2]<<16);
+  SELECTED=n>0?n-1:null;
+  render();showSelected();paintList();
+}
+
+/* ------------------------------------------------------------- panels */
+const $=id=>document.getElementById(id);
+function paintLegend(){
+  $('legend').innerHTML=GRADES.map(g=>{
+    const n=OBJECTS.filter(o=>o.grade===g).length;
+    return `<span class="badge" style="background:${GRADE_COLOR[g]};opacity:${n?1:.28}">${g} ${n}</span>`;
+  }).join('');
+}
+function paintList(){
+  $('parts').innerHTML=OBJECTS.map(o=>
+    `<li data-i="${o.idx}" class="${SELECTED===o.idx?'sel':''}">
+       <span class="dot" style="background:${GRADE_COLOR[o.grade]}"></span>
+       <span class="grow">${o.label}</span>
+       <span class="mono" style="color:var(--muted)">${o.grade}</span>
+     </li>`).join('');
+  for(const li of $('parts').children)li.onclick=()=>{SELECTED=+li.dataset.i;render();showSelected();paintList();};
+}
+function showSelected(){
+  if(SELECTED===null){$('sel').innerHTML='<span class="mono" style="color:var(--muted)">click a part in the scene</span>';return;}
+  const o=OBJECTS[SELECTED];
+  const skip=new Set(['label']);
+  const rows=Object.entries(o.props).filter(([k])=>!skip.has(k)).slice(0,14)
+    .map(([k,v])=>`<div class="kv"><span>${k}</span><span class="mono">${String(v).slice(0,64)}</span></div>`).join('');
+  $('sel').innerHTML=`
+    <div class="kv"><span>componentId</span><span class="mono">${o.id}</span></div>
+    <div class="kv"><span>scenePath</span><span class="mono">${o.path}</span></div>
+    <div class="kv"><span>type</span><span class="mono">${o.type}</span></div>
+    <div class="kv"><span>size m</span><span class="mono">${o.size.map(v=>v.toFixed(2)).join(' × ')}</span></div>
+    <div class="kv"><span>evidence</span><span class="badge" style="background:${GRADE_COLOR[o.grade]}">${o.grade}</span></div>
+    ${rows}
+    <div class="kv"><span>sourceUris</span><span class="mono">${o.uris.length}</span></div>`;
+}
+function paintStats(state){
+  const physical=OBJECTS.filter(o=>o.grade!=='placeholder').length;
+  $('s-parts').textContent=OBJECTS.length;
+  $('s-physical').textContent=`${physical}/${OBJECTS.length}`;
+  const env=OBJECTS.find(o=>o.id==='facility_shell');
+  $('s-area').textContent=env?Math.round(env.size[0]*env.size[1]):'–';
+  const r=state.report||{};
+  const mark=v=>v===true?'<span class="ok">true</span>':v===false?'<span class="bad">false</span>':'–';
+  $('i-ids').innerHTML=mark(r.componentIdsStable);
+  $('i-paths').innerHTML=mark(r.scenePathsStable);
+  $('i-app').innerHTML=`<span class="ok">${(r.applied||[]).length}</span> / <span class="${(r.rejected||[]).length?'warn':''}">${(r.rejected||[]).length}</span>`;
+  const obs=(state.observations&&state.observations.observations)||[];
+  $('obs').innerHTML=obs.length?obs.slice(-6).map(o=>
+    `<div class="kv"><span>${o.metric}</span><span class="mono">${JSON.stringify(o.value)}${o.unit&&o.unit!=='mixed'?' '+o.unit:''}</span></div>`).join('')
+    :'<span class="mono" style="color:var(--muted)">none</span>';
+  const uri=(state.iteration&&state.iteration.iterationUri)||'';
+  $('revision').textContent=uri?`revision ${uri.slice(-12)} · ${OBJECTS.length} components`:'no revision yet';
+}
+
+/* -------------------------------------------------------------- state */
+async function refresh(){
+  const state=await (await fetch('/api/state')).json();
+  applyState(state);
+}
+function applyState(state){
+  OBJECTS=buildObjects(state);
+  paintLegend();paintList();paintStats(state);showSelected();render();
+}
+$('btn-iterate').onclick=async()=>{
+  const b=$('btn-iterate');b.disabled=true;b.textContent='Iterating…';
+  try{await fetch('/api/iterate',{method:'POST'});await refresh();}
+  finally{b.disabled=false;b.textContent='Run iteration';}
+};
+$('btn-intake').onclick=async()=>{
+  const b=$('btn-intake');b.disabled=true;b.textContent='Applying…';
+  const evidence={
+    schema:'subactor.physical-evidence/v1',
+    id:'dashboard-floor-plan',
+    coordinateSystem:{unit:'m',upAxis:'Z',origin:'site-datum-A'},
+    records:[
+      {componentId:'facility_shell',kind:'space',evidence:'ifc',position:[0,0,0],size:[58.2,34.6,.2],sourceRef:'ifc:0xF17A'},
+      {componentId:'build',kind:'space',evidence:'cad',position:[7.5,9,0],size:[12.4,14.2,3.2],sourceRef:'plan:A3-sheet2'},
+      {componentId:'test',kind:'space',evidence:'cad',position:[22.5,9,0],size:[12.8,14.2,3.2],sourceRef:'plan:A3-sheet2'},
+      {componentId:'liquid_handler_01',kind:'equipment',evidence:'measured',position:[4.6,10.1,.9],size:[2.24,1.58,1.81],sourceRef:'register:LH-01'},
+      {componentId:'sequencing_01',kind:'equipment',evidence:'measured',position:[19.6,10.2,.9],size:[1.94,1.42,1.72],sourceRef:'register:SEQ-01'},
+      {componentId:'biospec_bioreactor_01',kind:'equipment',evidence:'ifc',position:[21,-11.5,1.1],size:[2.86,2.86,2.24],sourceRef:'ifc:2N4mP'},
+    ],
+  };
+  try{
+    const res=await fetch('/api/intake',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(evidence)});
+    const out=await res.json();
+    if(out.error){alert(out.error);return;}
+    // Intake is durable — evidence file + a new iteration — so a plain refresh shows the new revision.
+    await refresh();
+  } finally {b.disabled=false;b.textContent='Apply floor-plan evidence';}
+};
+addEventListener('resize',render);
+// The canvas gets its size from grid layout, which can settle after the first draw; without this
+// the buffer is resized (and cleared) with nothing redrawn into it.
+new ResizeObserver(()=>render()).observe(canvas);
+refresh();
+setInterval(refresh,5000);
+</script>
+</body>
+</html>

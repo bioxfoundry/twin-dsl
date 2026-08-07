@@ -1,0 +1,62 @@
+{
+  "schema": "subactor.physical-evidence-report/v1",
+  "applied": [
+    {
+      "componentId": "facility_shell",
+      "from": "placeholder",
+      "to": "ifc",
+      "fields": [
+        "position",
+        "size"
+      ]
+    },
+    {
+      "componentId": "build",
+      "from": "placeholder",
+      "to": "cad",
+      "fields": [
+        "position",
+        "size"
+      ]
+    },
+    {
+      "componentId": "test",
+      "from": "placeholder",
+      "to": "cad",
+      "fields": [
+        "position",
+        "size"
+      ]
+    },
+    {
+      "componentId": "liquid_handler_01",
+      "from": "placeholder",
+      "to": "measured",
+      "fields": [
+        "position",
+        "size"
+      ]
+    },
+    {
+      "componentId": "sequencing_01",
+      "from": "placeholder",
+      "to": "measured",
+      "fields": [
+        "position",
+        "size"
+      ]
+    },
+    {
+      "componentId": "biospec_bioreactor_01",
+      "from": "cad",
+      "to": "ifc",
+      "fields": [
+        "position",
+        "size"
+      ]
+    }
+  ],
+  "rejected": [],
+  "componentIdsStable": true,
+  "scenePathsStable": true
+}

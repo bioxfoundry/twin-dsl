@@ -1,0 +1,820 @@
+#usda 1.0
+(
+    defaultPrim = "Biofoundry"
+    metersPerUnit = 1
+    upAxis = "Z"
+    doc = "Semantic Digital Twin scene; geometryEvidence may be placeholder"
+)
+
+def Scope "Biofoundry" {
+    custom string subactor:sceneId = "biofoundry-factory-floor-scene"
+    custom string subactor:sourceTwinId = "biofoundry-factory-floor-twin"
+    custom int subactor:bindingCount = 30
+    def Scope "Facility" {
+        def Xform "Envelope" {
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=facility_shell"
+            custom string subactor:componentId = "facility_shell"
+            custom string subactor:scenePath = "/Biofoundry/Facility/Envelope"
+            custom string subactor:label = "Facility envelope (placeholder 60×36 m)"
+            custom string subactor:componentType = "facility"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832", "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 3
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "ifc"
+            custom string subactor:buildingBoundaryM = "[60,36,4]"
+            custom string subactor:note = "Not as-built; replace when IFC/DWG arrives"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"architecture\",\"cleanroom\",\"specifikacija\",\"studija\",\"facility\",\"whitepaper\"]"
+            custom string subactor:geometryUnit = "m"
+            custom string subactor:geometryUpAxis = "Z"
+            custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+            custom string subactor:geometrySourceRef = "ifc:0xF17A"
+            custom string subactor:geometryOrigin = "site-datum-A"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (58.2, 34.6, 0.2)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.55, 0.55, 0.6)]
+            }
+        }
+        def Xform "CleanroomBase01" {
+            double3 xformOp:translate = (-20, 0, 0.5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=cleanroom_base_01"
+            custom string subactor:componentId = "cleanroom_base_01"
+            custom string subactor:scenePath = "/Biofoundry/Facility/CleanroomBase01"
+            custom string subactor:label = "Open-source cleanroom base"
+            custom string subactor:componentType = "facility-module"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 1
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "document-only"
+            custom string subactor:zone = "facility_shell"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"cleanroom\",\"clean room\",\"open source ecology\"]"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (8, 10, 1)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.55, 0.55, 0.6)]
+            }
+        }
+    }
+    def Scope "Zones" {
+        def Xform "MissionRequirements" {
+            double3 xformOp:translate = (-22.5, 9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=mission_requirements"
+            custom string subactor:componentId = "mission_requirements"
+            custom string subactor:scenePath = "/Biofoundry/Zones/MissionRequirements"
+            custom string subactor:label = "Mission & Requirements"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832"]
+            custom double subactor:sourceUriCount = 1
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom double subactor:matchedResourceCount = 1
+            custom string subactor:evidenceFidelity = "semantic+path"
+            custom string subactor:pathIncludes = "[\"policy\",\"manager\",\"mission\",\"lmt\",\"paraiskas\",\"studija\",\"intent\",\"partneryst\"]"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "Design" {
+            double3 xformOp:translate = (-7.5, 9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=design"
+            custom string subactor:componentId = "design"
+            custom string subactor:scenePath = "/Biofoundry/Zones/Design"
+            custom string subactor:label = "Design / Bioinformatics"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"]
+            custom double subactor:sourceUriCount = 1
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback"
+            custom string subactor:pathIncludes = "[\"design\",\"architecture\",\"opentwins\",\"bioinfo\",\"construct\",\"pathway\",\"specifikacija\"]"
+            custom string subactor:developmentAcceptance = "accepted"
+            custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+            custom double subactor:blockingDiagnosticCount = 0
+            custom string subactor:developmentSource = "fixture"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "Build" {
+            double3 xformOp:translate = (7.5, 9, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=build"
+            custom string subactor:componentId = "build"
+            custom string subactor:scenePath = "/Biofoundry/Zones/Build"
+            custom string subactor:label = "Build / Molecular Construction"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"]
+            custom double subactor:sourceUriCount = 1
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "cad"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback"
+            custom string subactor:pathIncludes = "[\"build\",\"assembly\",\"dna\",\"oscar\",\"pipette\",\"sila\",\"bioreactor\",\"cad\"]"
+            custom string subactor:developmentAcceptance = "accepted"
+            custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+            custom double subactor:blockingDiagnosticCount = 0
+            custom string subactor:developmentSource = "fixture"
+            custom string subactor:geometryUnit = "m"
+            custom string subactor:geometryUpAxis = "Z"
+            custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+            custom string subactor:geometrySourceRef = "plan:A3-sheet2"
+            custom string subactor:geometryOrigin = "site-datum-A"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (12.4, 14.2, 3.2)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "Test" {
+            double3 xformOp:translate = (22.5, 9, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=test"
+            custom string subactor:componentId = "test"
+            custom string subactor:scenePath = "/Biofoundry/Zones/Test"
+            custom string subactor:label = "Test / Analytics & QC"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "cad"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback"
+            custom string subactor:pathIncludes = "[\"test\",\"assay\",\"qc\",\"microscop\",\"analytics\",\"sequenc\",\"quality\"]"
+            custom double subactor:observationCount = 3
+            custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+            custom string subactor:latest_status = "ready"
+            custom double subactor:latest_temperatureC = 22
+            custom bool subactor:latest_availability = true
+            custom string subactor:geometryUnit = "m"
+            custom string subactor:geometryUpAxis = "Z"
+            custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+            custom string subactor:geometrySourceRef = "plan:A3-sheet2"
+            custom string subactor:geometryOrigin = "site-datum-A"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (12.8, 14.2, 3.2)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "GovernanceTranslation" {
+            double3 xformOp:translate = (-22.5, -9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=governance_translation"
+            custom string subactor:componentId = "governance_translation"
+            custom string subactor:scenePath = "/Biofoundry/Zones/GovernanceTranslation"
+            custom string subactor:label = "Governance / QA / Translation"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832", "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"governance\",\"biosafety\",\"regulatory\",\"audit\",\"qa\",\"lmt\",\"sutartis\",\"dark-factory\",\"partneryst\"]"
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "OrchestrationData" {
+            double3 xformOp:translate = (-7.5, -9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=orchestration_data"
+            custom string subactor:componentId = "orchestration_data"
+            custom string subactor:scenePath = "/Biofoundry/Zones/OrchestrationData"
+            custom string subactor:label = "Orchestration / Data / LIMS"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832", "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd", "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+            custom double subactor:sourceUriCount = 6
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom double subactor:matchedResourceCount = 3
+            custom string subactor:evidenceFidelity = "semantic+path"
+            custom string subactor:pathIncludes = "[\"orchestr\",\"lims\",\"sila\",\"ros\",\"chemos\",\"data\",\"workflow\",\"api\"]"
+            custom string subactor:developmentAcceptance = "accepted"
+            custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+            custom double subactor:blockingDiagnosticCount = 0
+            custom string subactor:developmentSource = "fixture"
+            custom double subactor:observationCount = 3
+            custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+            custom string subactor:latest_status = "ready"
+            custom double subactor:latest_temperatureC = 22
+            custom bool subactor:latest_availability = true
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "Learn" {
+            double3 xformOp:translate = (7.5, -9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=learn"
+            custom string subactor:componentId = "learn"
+            custom string subactor:scenePath = "/Biofoundry/Zones/Learn"
+            custom string subactor:label = "Learn / AI / Modeling"
+            custom string subactor:componentType = "system-layer"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback"
+            custom string subactor:pathIncludes = "[\"learn\",\"model\",\"ml\",\"ai\",\"chemos\",\"whitepaper\",\"article\",\"active\"]"
+            custom double subactor:observationCount = 3
+            custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+            custom string subactor:latest_status = "ready"
+            custom double subactor:latest_temperatureC = 22
+            custom bool subactor:latest_availability = true
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.25, 0.45, 0.85)]
+            }
+        }
+        def Xform "FlagshipCellFreeEnzyme" {
+            double3 xformOp:translate = (22.5, -9, 0.125)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=flagship_cellfree_enzyme"
+            custom string subactor:componentId = "flagship_cellfree_enzyme"
+            custom string subactor:scenePath = "/Biofoundry/Zones/FlagshipCellFreeEnzyme"
+            custom string subactor:label = "Flagship Cell-Free / Protein-Enzyme Workflow"
+            custom string subactor:componentType = "reference-workflow"
+            custom string[] subactor:sourceUris = ["urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd", "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+            custom double subactor:sourceUriCount = 3
+            custom string subactor:semanticEvidence = "manager_scope"
+            custom string subactor:geometryEvidence = "placeholder"
+            custom string subactor:workflow = "cell-free/protein-enzyme"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback"
+            custom string subactor:pathIncludes = "[\"cell-free\",\"cellfree\",\"enzyme\",\"protein\",\"bioreactor\",\"biospec\",\"flagship\",\"main_control\"]"
+            custom string subactor:developmentAcceptance = "accepted"
+            custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+            custom double subactor:blockingDiagnosticCount = 0
+            custom string subactor:developmentSource = "fixture"
+            custom double subactor:observationCount = 3
+            custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+            custom string subactor:latest_status = "ready"
+            custom double subactor:latest_temperatureC = 22
+            custom bool subactor:latest_availability = true
+            def Cube "Geometry" {
+                double size = 1
+                double3 xformOp:scale = (13, 15, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:scale"]
+                color3f[] primvars:displayColor = [(0.85, 0.45, 0.15)]
+            }
+        }
+    }
+    def Scope "Equipment" {
+        def Scope "Build" {
+            def Xform "LiquidHandler01" {
+                double3 xformOp:translate = (4.6, 10.1, 0.9)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=liquid_handler_01"
+                custom string subactor:componentId = "liquid_handler_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Build/LiquidHandler01"
+                custom string subactor:label = "Liquid Handler"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759", "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e", "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8", "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294", "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922"]
+                custom double subactor:sourceUriCount = 6
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "measured"
+                custom string subactor:zone = "build"
+                custom string subactor:interface = "SiLA2/ROS"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"pipette\",\"liquid\",\"handler\",\"oscar\"]"
+                custom string subactor:geometryUnit = "m"
+                custom string subactor:geometryUpAxis = "Z"
+                custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+                custom string subactor:geometrySourceRef = "register:LH-01"
+                custom string subactor:geometryOrigin = "site-datum-A"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2.24, 1.58, 1.81)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "DNAAssembly01" {
+                double3 xformOp:translate = (9.5, 10, 0.8)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=dna_assembly_01"
+                custom string subactor:componentId = "dna_assembly_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Build/DNAAssembly01"
+                custom string subactor:label = "DNA Assembly Station"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759", "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e", "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8", "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294", "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922"]
+                custom double subactor:sourceUriCount = 6
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "build"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"assembly\",\"dna\",\"molecular\",\"construct\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2, 1.4, 1.6)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "OscarRobot01" {
+                double3 xformOp:translate = (6, 12.5, 1)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=oscar_robot_01"
+                custom string subactor:componentId = "oscar_robot_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Build/OscarRobot01"
+                custom string subactor:label = "OSCAR robot platform"
+                custom string subactor:componentType = "equipment"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759", "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e", "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8", "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294", "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922"]
+                custom double subactor:sourceUriCount = 6
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "archive-inventory"
+                custom string subactor:zone = "build"
+                custom string subactor:interfaces = "ROS2+SiLA2"
+                custom string subactor:note = "ZIP inventory only; no facility coordinates"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"oscar\",\"pipette-tool\",\"sb5c00733\",\"31570286\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (3.5, 2.5, 2)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.2, 0.7, 0.45)]
+                }
+            }
+            def Xform "MicrofluidicAssembly01" {
+                double3 xformOp:translate = (11.5, 12, 0.7)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=microfluidic_assembly_01"
+                custom string subactor:componentId = "microfluidic_assembly_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Build/MicrofluidicAssembly01"
+                custom string subactor:label = "Microfluidic assembly"
+                custom string subactor:componentType = "equipment"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "document-only"
+                custom string subactor:zone = "build"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"microfluid\",\"mmc1\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (1.6, 1.2, 1.4)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.2, 0.7, 0.45)]
+                }
+            }
+            def Xform "BioprinterMOS3S01" {
+                double3 xformOp:translate = (8.5, 7, 0.95)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=bioprinter_mos3s_01"
+                custom string subactor:componentId = "bioprinter_mos3s_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Build/BioprinterMOS3S01"
+                custom string subactor:label = "MOS3S / 3D microfluidic bioprinting"
+                custom string subactor:componentType = "equipment"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "stl-parts"
+                custom string subactor:zone = "build"
+                custom string subactor:note = "STL parts present; not a room layout"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"bioprint\",\"mos3s\",\"syringe\",\"carriage\",\"3d-microfluidic\",\"3d microfluidic\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2.8, 2, 1.9)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.2, 0.7, 0.45)]
+                }
+            }
+        }
+        def Scope "Test" {
+            def Xform "Sequencing01" {
+                double3 xformOp:translate = (19.6, 10.2, 0.9)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=sequencing_01"
+                custom string subactor:componentId = "sequencing_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Test/Sequencing01"
+                custom string subactor:label = "Sequencing / Validation"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+                custom double subactor:sourceUriCount = 2
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "measured"
+                custom string subactor:zone = "test"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback"
+                custom string subactor:pathIncludes = "[\"sequenc\",\"validation\",\"ngs\",\"sanger\"]"
+                custom double subactor:observationCount = 3
+                custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+                custom string subactor:latest_status = "ready"
+                custom double subactor:latest_temperatureC = 22
+                custom bool subactor:latest_availability = true
+                custom string subactor:geometryUnit = "m"
+                custom string subactor:geometryUpAxis = "Z"
+                custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+                custom string subactor:geometrySourceRef = "register:SEQ-01"
+                custom string subactor:geometryOrigin = "site-datum-A"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (1.94, 1.42, 1.72)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "Analytics01" {
+                double3 xformOp:translate = (24.5, 10, 1)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=analytics_01"
+                custom string subactor:componentId = "analytics_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Test/Analytics01"
+                custom string subactor:label = "Analytical Instrumentation"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+                custom double subactor:sourceUriCount = 2
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "test"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback"
+                custom string subactor:pathIncludes = "[\"analytic\",\"assay\",\"qc\",\"microscop\"]"
+                custom double subactor:observationCount = 3
+                custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+                custom string subactor:latest_status = "ready"
+                custom double subactor:latest_temperatureC = 22
+                custom bool subactor:latest_availability = true
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2.4, 1.8, 2)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "Microscope01" {
+                double3 xformOp:translate = (20.5, 12.5, 0.85)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=microscope_module_01"
+                custom string subactor:componentId = "microscope_module_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Test/Microscope01"
+                custom string subactor:label = "Microscopy module"
+                custom string subactor:componentType = "equipment"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "document-only"
+                custom string subactor:zone = "test"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"microscop\",\"7561142\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (1.8, 1.5, 1.7)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.2, 0.7, 0.45)]
+                }
+            }
+        }
+        def Scope "Orchestration" {
+            def Xform "LIMS01" {
+                double3 xformOp:translate = (-7.5, -9, 1.2)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=lims_01"
+                custom string subactor:componentId = "lims_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Orchestration/LIMS01"
+                custom string subactor:label = "LIMS"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+                custom double subactor:sourceUriCount = 4
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "orchestration_data"
+                custom double subactor:matchedResourceCount = 2
+                custom string subactor:evidenceFidelity = "semantic+path"
+                custom string subactor:pathIncludes = "[\"lims\",\"sample\",\"eln\",\"data\"]"
+                custom double subactor:observationCount = 3
+                custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+                custom string subactor:latest_status = "ready"
+                custom double subactor:latest_temperatureC = 22
+                custom bool subactor:latest_availability = true
+                def Cylinder "Geometry" {
+                    double radius = 0.7
+                    double height = 2.4
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+        }
+        def Scope "Learn" {
+            def Xform "AICompute01" {
+                double3 xformOp:translate = (6, -9, 1.2)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=compute_01"
+                custom string subactor:componentId = "compute_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Learn/AICompute01"
+                custom string subactor:label = "AI Compute"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+                custom double subactor:sourceUriCount = 2
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "learn"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback"
+                custom string subactor:pathIncludes = "[\"compute\",\"ai\",\"model\",\"chemos\",\"learn\"]"
+                custom double subactor:observationCount = 3
+                custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+                custom string subactor:latest_status = "ready"
+                custom double subactor:latest_temperatureC = 22
+                custom bool subactor:latest_availability = true
+                def Cylinder "Geometry" {
+                    double radius = 0.6
+                    double height = 2.4
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+        }
+        def Scope "Flagship" {
+            def Xform "CellFree01" {
+                double3 xformOp:translate = (19.5, -9, 0.9)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=cellfree_01"
+                custom string subactor:componentId = "cellfree_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Flagship/CellFree01"
+                custom string subactor:label = "Cell-Free Automation"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "flagship_cellfree_enzyme"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback"
+                custom string subactor:pathIncludes = "[\"cellfree\",\"cell-free\",\"bioreactor\",\"biospec\"]"
+                custom string subactor:developmentAcceptance = "accepted"
+                custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+                custom double subactor:blockingDiagnosticCount = 0
+                custom string subactor:developmentSource = "fixture"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2.5, 1.8, 1.8)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "EnzymeScreen01" {
+                double3 xformOp:translate = (24.5, -9, 0.9)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=enzyme_screen_01"
+                custom string subactor:componentId = "enzyme_screen_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Flagship/EnzymeScreen01"
+                custom string subactor:label = "Protein / Enzyme Screening"
+                custom string subactor:componentType = "equipment-placeholder"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a", "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759", "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e", "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8", "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294", "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922", "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a", "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916"]
+                custom double subactor:sourceUriCount = 8
+                custom string subactor:semanticEvidence = "inferred"
+                custom string subactor:geometryEvidence = "placeholder"
+                custom string subactor:zone = "flagship_cellfree_enzyme"
+                custom string subactor:note = "No dedicated enzyme-path files; evidence from flagship/bioreactor/assay corpus"
+                custom double subactor:matchedResourceCount = 8
+                custom string subactor:evidenceFidelity = "semantic+path"
+                custom string subactor:pathIncludes = "[\"cellfree\",\"cell-free\",\"bioreactor\",\"biospec\",\"assay\",\"qc\",\"microscop\",\"flagship\",\"biofoundr\"]"
+                custom double subactor:observationCount = 3
+                custom string subactor:observedMetrics = "[\"status\",\"temperatureC\",\"availability\"]"
+                custom string subactor:latest_status = "ready"
+                custom double subactor:latest_temperatureC = 22
+                custom bool subactor:latest_availability = true
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (2.5, 1.8, 1.8)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.55, 0.75, 0.35)]
+                }
+            }
+            def Xform "BiospecBioreactor01" {
+                double3 xformOp:translate = (21, -11.5, 1.1)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=biospec_bioreactor_01"
+                custom string subactor:componentId = "biospec_bioreactor_01"
+                custom string subactor:scenePath = "/Biofoundry/Equipment/Flagship/BiospecBioreactor01"
+                custom string subactor:label = "BIO-SPEC Bioreactor (control SW + CAD)"
+                custom string subactor:componentType = "equipment"
+                custom string[] subactor:sourceUris = ["urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "ifc"
+                custom string subactor:zone = "flagship_cellfree_enzyme"
+                custom string subactor:software = "main_control.py"
+                custom string subactor:note = "Part CAD present; facility placement placeholder"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback"
+                custom string subactor:pathIncludes = "[\"bioreactor\",\"biospec\",\"main_control\",\"gl45\",\"lid_unf\",\"aluminium_plate\",\"osfstorage\",\"bill_of_materials\"]"
+                custom string subactor:developmentAcceptance = "accepted"
+                custom string subactor:developmentFingerprint = "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+                custom double subactor:blockingDiagnosticCount = 0
+                custom string subactor:developmentSource = "fixture"
+                custom string subactor:geometryUnit = "m"
+                custom string subactor:geometryUpAxis = "Z"
+                custom string subactor:physicalEvidenceId = "dashboard-floor-plan"
+                custom string subactor:geometrySourceRef = "ifc:2N4mP"
+                custom string subactor:geometryOrigin = "site-datum-A"
+                def Cylinder "Geometry" {
+                    double radius = 1.43
+                    double height = 2.24
+                    color3f[] primvars:displayColor = [(0.2, 0.7, 0.45)]
+                }
+            }
+        }
+    }
+    def Scope "Services" {
+        def Xform "ChemOS01" {
+            double3 xformOp:translate = (9, -11.5, 1.5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=chemos_planner_01"
+            custom string subactor:componentId = "chemos_planner_01"
+            custom string subactor:scenePath = "/Biofoundry/Services/ChemOS01"
+            custom string subactor:label = "ChemOS 2.0-class experiment planner"
+            custom string subactor:componentType = "software-service"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 1
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "n/a"
+            custom string subactor:zone = "learn"
+            custom string subactor:layer = "orchestration/learn"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"chemos\",\"chem os\",\"experiment\"]"
+            def Cylinder "Geometry" {
+                double radius = 0.4
+                double height = 3
+                color3f[] primvars:displayColor = [(0.65, 0.35, 0.85)]
+            }
+        }
+        def Xform "SiLA2_01" {
+            double3 xformOp:translate = (-5.5, -11.5, 1.5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=sila_orchestrator_01"
+            custom string subactor:componentId = "sila_orchestrator_01"
+            custom string subactor:scenePath = "/Biofoundry/Services/SiLA2_01"
+            custom string subactor:label = "SiLA 2 device orchestrator"
+            custom string subactor:componentType = "software-service"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "n/a"
+            custom string subactor:zone = "orchestration_data"
+            custom string subactor:standard = "SiLA2"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"sila\"]"
+            def Cylinder "Geometry" {
+                double radius = 0.4
+                double height = 3
+                color3f[] primvars:displayColor = [(0.65, 0.35, 0.85)]
+            }
+        }
+        def Xform "ROS2_01" {
+            double3 xformOp:translate = (5, 7.5, 1.5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=ros2_robotics_01"
+            custom string subactor:componentId = "ros2_robotics_01"
+            custom string subactor:scenePath = "/Biofoundry/Services/ROS2_01"
+            custom string subactor:label = "ROS 2 robotics layer"
+            custom string subactor:componentType = "software-service"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "n/a"
+            custom string subactor:zone = "build"
+            custom string subactor:standard = "ROS2"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"ros\",\"ros2\",\"robot\"]"
+            def Cylinder "Geometry" {
+                double radius = 0.4
+                double height = 3
+                color3f[] primvars:displayColor = [(0.65, 0.35, 0.85)]
+            }
+        }
+        def Xform "OpenTwins01" {
+            double3 xformOp:translate = (-9.5, -6.5, 1.5)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=opentwins_state_01"
+            custom string subactor:componentId = "opentwins_state_01"
+            custom string subactor:scenePath = "/Biofoundry/Services/OpenTwins01"
+            custom string subactor:label = "OpenTwins state model"
+            custom string subactor:componentType = "software-service"
+            custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7", "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+            custom double subactor:sourceUriCount = 2
+            custom string subactor:semanticEvidence = "direct"
+            custom string subactor:geometryEvidence = "n/a"
+            custom string subactor:zone = "orchestration_data"
+            custom double subactor:matchedResourceCount = 0
+            custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+            custom string subactor:pathIncludes = "[\"opentwins\",\"open twins\",\"digital twin\"]"
+            def Cylinder "Geometry" {
+                double radius = 0.4
+                double height = 3
+                color3f[] primvars:displayColor = [(0.65, 0.35, 0.85)]
+            }
+        }
+    }
+    def Scope "CAD" {
+        def Scope "Biospec" {
+            def Xform "LidUNF" {
+                double3 xformOp:translate = (22.2, -13.2, 0.4)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=biospec_cad_lid_unf"
+                custom string subactor:componentId = "biospec_cad_lid_unf"
+                custom string subactor:scenePath = "/Biofoundry/CAD/Biospec/LidUNF"
+                custom string subactor:label = "BIO-SPEC lid UNF"
+                custom string subactor:componentType = "cad-part"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "cad-file"
+                custom string subactor:parentEquipment = "biospec_bioreactor_01"
+                custom string subactor:format = "STEP/F3D/SCAD"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"lid_unf\",\"lid_unf.step\",\"lid_unf.f3d\",\"lid_unf.scad\"]"
+                def Cylinder "Geometry" {
+                    double radius = 0.3
+                    double height = 0.35
+                    color3f[] primvars:displayColor = [(0.75, 0.75, 0.25)]
+                }
+            }
+            def Xform "GL45Ports" {
+                double3 xformOp:translate = (23, -13.2, 0.4)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=biospec_cad_gl45"
+                custom string subactor:componentId = "biospec_cad_gl45"
+                custom string subactor:scenePath = "/Biofoundry/CAD/Biospec/GL45Ports"
+                custom string subactor:label = "BIO-SPEC GL45 ports"
+                custom string subactor:componentType = "cad-part"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "cad-file"
+                custom string subactor:parentEquipment = "biospec_bioreactor_01"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"gl45\"]"
+                def Cylinder "Geometry" {
+                    double radius = 0.25
+                    double height = 0.4
+                    color3f[] primvars:displayColor = [(0.75, 0.75, 0.25)]
+                }
+            }
+            def Xform "AluminiumPlate" {
+                double3 xformOp:translate = (23.8, -13.2, 0.25)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                custom string subactor:twinUri = "urn:subactor:twin:sha256:6406975df6b3f718b50e2e80725689bc263b550d91dec523a709705b25ffef05#component=biospec_cad_plate"
+                custom string subactor:componentId = "biospec_cad_plate"
+                custom string subactor:scenePath = "/Biofoundry/CAD/Biospec/AluminiumPlate"
+                custom string subactor:label = "BIO-SPEC aluminium plate"
+                custom string subactor:componentType = "cad-part"
+                custom string[] subactor:sourceUris = ["urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a"]
+                custom double subactor:sourceUriCount = 1
+                custom string subactor:semanticEvidence = "direct"
+                custom string subactor:geometryEvidence = "cad-file"
+                custom string subactor:parentEquipment = "biospec_bioreactor_01"
+                custom double subactor:matchedResourceCount = 0
+                custom string subactor:evidenceFidelity = "role-fallback-empty-filter"
+                custom string subactor:pathIncludes = "[\"aluminium_plate\"]"
+                def Cube "Geometry" {
+                    double size = 1
+                    double3 xformOp:scale = (0.9, 0.7, 0.15)
+                    uniform token[] xformOpOrder = ["xformOp:scale"]
+                    color3f[] primvars:displayColor = [(0.75, 0.75, 0.25)]
+                }
+            }
+        }
+    }
+}

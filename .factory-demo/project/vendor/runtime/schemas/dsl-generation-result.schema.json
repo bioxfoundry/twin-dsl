@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.dsl-generation-result/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "kind",
+    "value",
+    "canonicalHash",
+    "audit"
+  ],
+  "properties": {
+    "schema": {
+      "const": "subactor.dsl-generation-result/v1"
+    },
+    "kind": {
+      "enum": [
+        "intent",
+        "resource",
+        "query",
+        "dql",
+        "tree",
+        "math",
+        "twin",
+        "scene",
+        "project",
+        "observation",
+        "improvement"
+      ]
+    },
+    "value": {},
+    "canonicalHash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "audit": {
+      "type": "object",
+      "required": [
+        "requestedMode",
+        "effectiveMode",
+        "degraded",
+        "reason",
+        "provider",
+        "model",
+        "responseId",
+        "durationMs"
+      ],
+      "properties": {
+        "requestedMode": {
+          "enum": [
+            "deterministic",
+            "prefer-llm",
+            "require-llm"
+          ]
+        },
+        "effectiveMode": {
+          "enum": [
+            "deterministic",
+            "llm"
+          ]
+        },
+        "degraded": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "provider": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "model": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "responseId": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "durationMs": {
+          "type": "number",
+          "minimum": 0
+        }
+      }
+    }
+  }
+}

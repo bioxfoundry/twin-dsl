@@ -19,6 +19,7 @@ import { parseProjectDsl } from "../dsl/project.js";
 import { issueMutationGrant, verifyMutationGrantDocument, writeMutationGrant } from "../runtime/mutation-grant.js";
 import { proposeCodeMutation, applyCodeMutation } from "../runtime/mutation-pipeline.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
+import { startDashboard } from "../serve/dashboard.js";
 import { renderOpenUsd } from "../scene/openusd.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
@@ -80,6 +81,14 @@ async function main():Promise<void>{
     console.log(JSON.stringify({host:cycle.host,summary},null,2));return;
   }
   if(cmd==='nl-to-dsl'){const[kind,input,out,mode='require-llm',fixture]=args;if(!kind||!input||!out)throw new Error('usage: nl-to-dsl <kind> <input> <out> [mode] [fixture.json]');const result=await new NlDslCompiler().compile({kind:kind as DslKind,text:await readFile(input,'utf8'),mode:mode as LlmMode,deterministicValue:fixture?await json(fixture):undefined});await save(out,result);console.log(JSON.stringify({kind:result.kind,hash:result.canonicalHash,audit:result.audit},null,2));return;}
+  if(cmd==='dashboard'){
+    const[config='project.projectdsl',out='.living-runtime',port='7331',mode='deterministic']=args;
+    const server=await startDashboard({configPath:resolve(config),outDir:resolve(out),port:Number(port),mode:mode as LlmMode});
+    console.log(JSON.stringify({dashboard:server.url,config:resolve(config),out:resolve(out)},null,2));
+    const stop=():void=>{void server.close().then(()=>process.exit(0));};
+    process.once('SIGINT',stop);process.once('SIGTERM',stop);
+    return;
+  }
   if(cmd==='scene-render'){
     const[scenePath,twinPath,out]=args;if(!scenePath||!twinPath)throw new Error('usage: scene-render <scene.json> <twin.json> [out.usda]');
     const scene=await json(scenePath) as SceneDocument,twin=await json(twinPath) as TwinDocument;
@@ -105,6 +114,6 @@ async function main():Promise<void>{
     return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
 }
 await main();

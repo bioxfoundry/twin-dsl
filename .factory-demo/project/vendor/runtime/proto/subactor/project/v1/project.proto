@@ -1,0 +1,22 @@
+syntax = "proto3";
+package subactor.project.v1;
+message SourceSpec { string path=1; string role=2; string logical_root=3; repeated string labels=4; }
+message ProjectPolicy {
+  bool approved=1;
+  bool require_research=2;
+  bool require_development_evidence=3;
+  bool require_runtime_evidence=4;
+  bool auto_publish_scene=5;
+  bool allow_runtime_self_modification=6;
+  uint32 max_iterations_per_hour=7;
+  bool require_development_acceptance=8;
+  bool allow_development_fixture=9;
+  string autonomy_mode=10;
+  bool require_signed_mutation_grant=11;
+  string mutation_grant_file=12;
+  uint32 max_consecutive_failures=13;
+}
+message LivingProject { string id=1; string name=2; string profile=3; string manager_intent=4; repeated SourceSpec sources=5; bytes development_json=6; bytes observations_json=7; bytes web_research_json=8; ProjectPolicy policy=9; string scene_format=10; }
+message CreateProjectRequest { string name=1; string output_directory=2; string profile=3; string manager_intent=4; }
+message CreateProjectResponse { string project_directory=1; string config_path=2; string compose_path=3; }
+service ProjectWizardService { rpc Create(CreateProjectRequest) returns (CreateProjectResponse); }

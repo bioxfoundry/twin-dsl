@@ -1,0 +1,35 @@
+{
+  "schema": "subactor.improvement-plan/v1",
+  "id": "biofoundry-factory-floor-improvement-c708412c1355bf84",
+  "projectId": "biofoundry-factory-floor",
+  "mode": "propose_only",
+  "generatedAt": "2026-08-07T09:16:20.516Z",
+  "sourceIterationUri": "urn:subactor:iteration:sha256:07a2017b3d741c0e0cba93a42b6860be13d79704934ee20ff339b2f5beeeb86d",
+  "evidenceUris": [
+    "urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832",
+    "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7",
+    "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a",
+    "urn:subactor:resource:sha256:8a7b2b208b3fd105146a567d370a4087c852f16137124c21b7d83931e786c50f",
+    "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759",
+    "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e",
+    "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8",
+    "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294",
+    "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922",
+    "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a",
+    "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916",
+    "urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+  ],
+  "actions": [
+    {
+      "id": "action-1",
+      "kind": "validation",
+      "title": "Review rejected LLM authority override",
+      "reason": "LLM_AUTHORITY_EXPRESSION_IGNORED:DevelopmentGate",
+      "targetUris": [
+        "subactor://project/biofoundry-factory-floor/math/authority"
+      ],
+      "approvalRequired": true,
+      "status": "proposed"
+    }
+  ]
+}

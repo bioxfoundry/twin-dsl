@@ -1,0 +1,5 @@
+.env
+.living-runtime/
+artifacts/
+vendor/todo2code/*
+!vendor/todo2code/README.md

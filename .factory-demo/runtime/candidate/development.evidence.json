@@ -1,0 +1,14 @@
+{
+  "schema": "subactor.development-evidence/v1",
+  "source": "fixture",
+  "graphFingerprint": "3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd",
+  "recordCount": 2,
+  "relationCount": 0,
+  "diagnosticCount": 0,
+  "blockingDiagnosticCount": 0,
+  "acceptance": "accepted",
+  "manifestStatus": null,
+  "evidenceUris": [
+    "urn:subactor:intent:sha256:3f7d1687bc21273f9832f568a7d06c3b234b8a42d28cce946e357b0fd8502ecd"
+  ]
+}

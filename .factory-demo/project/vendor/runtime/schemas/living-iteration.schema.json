@@ -1,0 +1,121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.living-iteration/v2",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "projectId",
+    "iterationId",
+    "traceId",
+    "idempotencyKey",
+    "noChange",
+    "startedAt",
+    "completedAt",
+    "projectConfigHash",
+    "researchSnapshotHash",
+    "developmentFingerprint",
+    "observationSnapshotHash",
+    "previousIterationUri",
+    "intentUri",
+    "developmentEvidenceUri",
+    "treeUri",
+    "mathUri",
+    "observationUri",
+    "twinUri",
+    "sceneUri",
+    "improvementUri",
+    "iterationUri",
+    "diff",
+    "authorityWarnings",
+    "stages",
+    "validation"
+  ],
+  "properties": {
+    "schema": {
+      "const": "subactor.living-iteration/v2"
+    },
+    "projectId": {
+      "type": "string"
+    },
+    "iterationId": {
+      "type": "string"
+    },
+    "traceId": {
+      "type": "string"
+    },
+    "idempotencyKey": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "noChange": {
+      "type": "boolean"
+    },
+    "startedAt": {
+      "type": "string"
+    },
+    "completedAt": {
+      "type": "string"
+    },
+    "projectConfigHash": {
+      "type": "string"
+    },
+    "researchSnapshotHash": {
+      "type": "string"
+    },
+    "developmentFingerprint": {
+      "type": "string"
+    },
+    "observationSnapshotHash": {
+      "type": "string"
+    },
+    "previousIterationUri": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "intentUri": {
+      "type": "string"
+    },
+    "developmentEvidenceUri": {
+      "type": "string"
+    },
+    "treeUri": {
+      "type": "string"
+    },
+    "mathUri": {
+      "type": "string"
+    },
+    "observationUri": {
+      "type": "string"
+    },
+    "twinUri": {
+      "type": "string"
+    },
+    "sceneUri": {
+      "type": "string"
+    },
+    "improvementUri": {
+      "type": "string"
+    },
+    "iterationUri": {
+      "type": "string"
+    },
+    "diff": {
+      "type": "object"
+    },
+    "authorityWarnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stages": {
+      "type": "array"
+    },
+    "validation": {
+      "type": "object"
+    }
+  }
+}

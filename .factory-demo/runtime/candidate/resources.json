@@ -1,0 +1,190 @@
+[
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-1",
+    "uri": "urn:subactor:resource:sha256:4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/manager/policy.md",
+    "mediaType": "text/markdown",
+    "sha256": "4aa65711303fb7a79a1fdd16ab2c7ec6644a5935fdfdc3380f37eb541c6ea832",
+    "size": 212,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/data/manager/policy.md",
+    "sourceRole": "manager",
+    "labels": [
+      "authority",
+      "policy"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.499Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-2",
+    "uri": "urn:subactor:resource:sha256:aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/customer/README.md",
+    "mediaType": "text/markdown",
+    "sha256": "aa676cf171a25dade147dda1eb2d4451f9ddbd89063400896bf4a83ea3b831a7",
+    "size": 118,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/data/customer/README.md",
+    "sourceRole": "customer",
+    "labels": [
+      "requirements"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.500Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-3",
+    "uri": "urn:subactor:resource:sha256:c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/data/context.md",
+    "mediaType": "text/markdown",
+    "sha256": "c2b311edb698a6bbfeaf269086135c4d7246656002fb025fa2d47f3de1c1020a",
+    "size": 74,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/data/project/context.md",
+    "sourceRole": "project",
+    "labels": [
+      "research"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.500Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-4",
+    "uri": "urn:subactor:resource:sha256:8a7b2b208b3fd105146a567d370a4087c852f16137124c21b7d83931e786c50f",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/feedback/latest.md",
+    "mediaType": "text/markdown",
+    "sha256": "8a7b2b208b3fd105146a567d370a4087c852f16137124c21b7d83931e786c50f",
+    "size": 343,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/feedback/latest.md",
+    "sourceRole": "derived",
+    "labels": [
+      "feedback"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.501Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-5",
+    "uri": "urn:subactor:resource:sha256:897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/development/CHANGELOG.md",
+    "mediaType": "text/markdown",
+    "sha256": "897ce7b61f60c6352e129f50894c4c3b3f2404c928fc1b7fdf1e6c7fd357b759",
+    "size": 56,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/code/CHANGELOG.md",
+    "sourceRole": "development",
+    "labels": [
+      "code"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.501Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-6",
+    "uri": "urn:subactor:resource:sha256:c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/development/README.md",
+    "mediaType": "text/markdown",
+    "sha256": "c55e3ead47c572ebbfd9349dc7de4c20cc26ea9570cf0b82cd5edbd327e0fa6e",
+    "size": 42,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/code/README.md",
+    "sourceRole": "development",
+    "labels": [
+      "code"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.501Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-7",
+    "uri": "urn:subactor:resource:sha256:b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/development/TASK.md",
+    "mediaType": "text/markdown",
+    "sha256": "b604f36b147f3c6cb7c817a042cd2a1205bb22a38969ee64283cf5c21bb156d8",
+    "size": 91,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/code/TASK.md",
+    "sourceRole": "development",
+    "labels": [
+      "code"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.501Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-8",
+    "uri": "urn:subactor:resource:sha256:268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/development/TODO.md",
+    "mediaType": "text/markdown",
+    "sha256": "268d19d121f9bb44f287b863ec043f4d65b2d64e2bfed605925b804aa887a294",
+    "size": 125,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/code/TODO.md",
+    "sourceRole": "development",
+    "labels": [
+      "code"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.501Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-9",
+    "uri": "urn:subactor:resource:sha256:36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/development/src/index.ts",
+    "mediaType": "text/markdown",
+    "sha256": "36a668b871f520ed2bcb0e514745f3c4bde87f561d2aa9dc49b8c424515e8922",
+    "size": 74,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/code/src/index.ts",
+    "sourceRole": "development",
+    "labels": [
+      "code"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.502Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-10",
+    "uri": "urn:subactor:resource:sha256:b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/logs/runtime.jsonl",
+    "mediaType": "text/markdown",
+    "sha256": "b2702750291aaca24cfcdef3dea204304167add2b58bb4b213d76eb37b2fd30a",
+    "size": 198,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/logs/runtime.jsonl",
+    "sourceRole": "runtime",
+    "labels": [
+      "runtime-log"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.502Z"
+  },
+  {
+    "schema": "subactor.resource/v1",
+    "id": "res-11",
+    "uri": "urn:subactor:resource:sha256:a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916",
+    "logicalUri": "subactor://project/biofoundry-factory-floor/environment/current.json",
+    "mediaType": "text/markdown",
+    "sha256": "a0bdaffbc342108ab527a8b37b8f3f5ea264c3a7e6fca7d294700c23bd6a2916",
+    "size": 238,
+    "sourcePath": "/home/tom/github/bioxfoundry/twin-dsl/.factory-demo/project/environment/current.json",
+    "sourceRole": "runtime",
+    "labels": [
+      "environment"
+    ],
+    "derived": false,
+    "derivedFrom": [],
+    "createdAt": "2026-08-07T09:16:20.502Z"
+  }
+]
