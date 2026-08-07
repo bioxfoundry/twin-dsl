@@ -1,5 +1,0 @@
-syntax = "proto3";
-package subactor.observation.v1;
-message Observation { string id=1; string observed_at=2; string subject_uri=3; string metric=4; bytes value_json=5; string unit=6; string severity=7; repeated string source_uris=8; repeated string labels=9; }
-message ObservationDocument { string id=1; string source_snapshot_hash=2; repeated Observation observations=3; }
-service ObservationService { rpc Publish(ObservationDocument) returns (ObservationDocument); }
