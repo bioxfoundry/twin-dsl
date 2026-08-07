@@ -34,6 +34,25 @@
   quietly weakening it. The shipped biofoundry blueprint and intake template are checked against
   both descriptions.
 
+- **f2md 0.2.0 — operational provenance.** The envelope now also carries `backendType`
+  (`stdlib`/`binary`/`python`/`node`/`http`), `inputKind`, `ocr`, `fallbackDepth`, `durationMs` and
+  `warnings`. That is what separates an orchestration layer from a wrapper: a high `fallbackDepth`
+  means a badly ordered chain, `warnings` records truncation and lost tables instead of losing them
+  silently, and `ocr` distinguishes a clean text extraction from a recognition guess. Both packages
+  emit the same camelCase keys.
+- **f2md backends.** Python gains `PyMuPDFConverter` (`pymupdf4llm`, structured PDF Markdown that
+  declines scans so they reach an OCR backend) and `MarkItDownConverter`, both optional extras.
+  JavaScript gains `TurndownConverter` (HTML) and `MammothConverter` (DOCX → semantic HTML →
+  Turndown, since Mammoth's own Markdown output is deprecated upstream), both optional peer
+  dependencies so the core stays dependency-free. Markup backends sit **before** the text backend
+  in the chain, otherwise HTML would be fenced as a code block rather than converted.
+- **`f2md --tree SRC OUT`** mirrors a directory into Markdown: `src/a/b.pdf` → `out/a/b.pdf.md`,
+  with the full envelope as YAML front matter. Files with no text layer still get a stub file, so
+  the mirrored tree never silently disagrees with its source.
+- **Cross-language conformance** (`npm run f2md:conformance`, wired into `verify`): shared fixtures
+  are converted by both implementations and the envelope contract is compared. Routing differences
+  are reported rather than failed — they depend on which optional backends are installed, which is
+  a deployment fact, not a contract violation.
 - **Document conversion extracted as a standalone package**, in `py/f2md` (PyPI `f2md`) and
   `js/f2md` (npm `@subactor/f2md`), both producing the same envelope so either side of a pipeline
   agrees on provenance. The runtime now consumes `js/f2md` rather than carrying its own copy, so

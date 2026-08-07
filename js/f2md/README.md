@@ -34,20 +34,33 @@ extraction from an OCR guess three steps later. Every result is one shape:
 | `markdown` | the converted body |
 | `metadata` | source path, size, mtime, extracted character count |
 | `assets` | extracted side files, when a backend produces them |
-| `converter` | which backend actually ran (`deterministic-text`, `pdftotext`, `pandoc`, `docling`) |
+| `converter` | which backend actually ran (`deterministic-text`, `turndown`, `pdftotext`, `docling`) |
 | `version` | that backend's version, so output changes are traceable |
+| `backendType` | `stdlib`, `binary`, `node` or `http` — what the conversion actually costs |
+| `inputKind` | detected type, independent of what the filename claims |
+| `ocr` | whether this came from optical recognition rather than an embedded text layer |
+| `fallbackDepth` | how many backends declined first; a high number means a badly ordered chain |
+| `durationMs` | wall-clock cost, for diagnosing a slow pipeline |
+| `warnings` | non-fatal quality signals: truncation, lost styles, backend diagnostics |
 
 ## The chain
 
 Backends are tried cheapest-first, and each one declines files that are not its job:
 
 ```
+turndown (HTML)          before the text backend, or HTML would be fenced as code
+        ↓
+mammoth -> turndown      DOCX via semantic HTML
+        ↓
 text / source files      no dependencies, no external process
         ↓
 pdftotext / pandoc       used only if the binary is on PATH
         ↓
-Docling over HTTP        only when DOCLING_URL is set
+Docling over HTTP        layout, tables, OCR — only when DOCLING_URL is set
 ```
+
+Every optional backend declines when its peer dependency is absent, so the same chain works on a
+bare install and a fully equipped one.
 
 Declining is a routing signal, not an error. A backend that *was* the right one but genuinely
 broke surfaces its own failure rather than the misleading "unsupported format" — a Docling outage
@@ -55,8 +68,18 @@ looks like a Docling outage.
 
 ## Install footprint
 
-Nothing is installed beyond this package. PDF and Office support uses binaries if they happen to
-be on your PATH:
+Nothing is installed beyond this package. Node backends are **optional peer dependencies** — add
+them only if you want them:
+
+```bash
+npm install turndown          # HTML -> Markdown
+npm install mammoth turndown  # DOCX -> HTML -> Markdown
+```
+
+Mammoth's own Markdown output is deprecated upstream, so the supported path is DOCX -> semantic
+HTML -> Turndown, which also keeps the HTML conversion rules in one place.
+
+PDF and Office support uses binaries if they happen to be on your PATH:
 
 ```bash
 apt install poppler-utils pandoc     # Debian/Ubuntu

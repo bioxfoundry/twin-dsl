@@ -21,7 +21,40 @@ f2md notes.md                    # Markdown to stdout
 f2md report.pdf --json           # full envelope as JSON
 f2md imports/deck.pptx-9f2c      # content-addressed names work too
 f2md scan.pdf --backend docling  # force a specific backend
+f2md --tree docs/ docs-md/       # mirror a whole directory tree
 ```
+
+## Converting a directory tree
+
+```bash
+f2md --tree /data/lab /data/lab-md
+f2md --tree /data/lab /data/lab-md --only .pdf,.docx --quiet
+```
+
+`src/a/b/report.pdf` becomes `out/a/b/report.pdf.md`. The original extension is kept before `.md`,
+so the output name still says what produced it and two files differing only by extension never
+collide. Each file gets YAML front matter carrying the full envelope:
+
+```yaml
+---
+source: "reports/q3.pdf"
+inputKind: ".pdf"
+mediaType: "application/pdf"
+converter: "pymupdf4llm"
+converterVersion: "1.28.2"
+backendType: "python"
+ocr: false
+fallbackDepth: 2
+durationMs: 842
+extractedChars: 8123
+converted: true
+warnings: []
+---
+```
+
+Files with no text layer — CAD meshes, archives, binaries — still get a Markdown file containing
+the front matter and a short stub saying why. Dropping them would leave a tree that silently
+disagrees with its source, which is worse than an explicit "nothing to extract here".
 
 ## Why another converter
 
@@ -34,20 +67,35 @@ extraction from an OCR guess three steps later. Every result is one shape:
 | `markdown` | the converted body |
 | `metadata` | source path, size, mtime, extracted character count |
 | `assets` | extracted side files, when a backend produces them |
-| `converter` | which backend actually ran (`deterministic-text`, `pdftotext`, `pandoc`, `docling`) |
+| `converter` | which backend actually ran (`deterministic-text`, `pymupdf4llm`, `pdftotext`, `docling`) |
 | `version` | that backend's version, so output changes are traceable |
+| `backendType` | `stdlib`, `binary`, `python` or `http` — what the conversion actually costs |
+| `inputKind` | detected type, independent of what the filename claims |
+| `ocr` | whether this came from optical recognition rather than an embedded text layer |
+| `fallbackDepth` | how many backends declined first; a high number means a badly ordered chain |
+| `durationMs` | wall-clock cost, for diagnosing a slow pipeline |
+| `warnings` | non-fatal quality signals: truncation, lost tables, backend diagnostics |
 
 ## The chain
 
 Backends are tried cheapest-first, and each one declines files that are not its job:
 
 ```
+MarkItDown (markup)      HTML before the text backend, or it would be fenced as code
+        ↓
 text / source files      stdlib only, no install footprint
+        ↓
+pymupdf4llm              structured Markdown from PDFs with a text layer; declines scans
         ↓
 pdftotext / pandoc       used only if the binary is on PATH
         ↓
-Docling over HTTP        only when DOCLING_URL is set
+MarkItDown (general)     Office, spreadsheets, images
+        ↓
+Docling over HTTP        layout, tables, OCR — only when DOCLING_URL is set
 ```
+
+Specialised backends come before general ones, and every optional backend declines when its
+library is missing — so the same chain works on a bare install and a fully equipped one.
 
 Declining is a routing signal, not an error. A backend that *was* the right one but genuinely
 broke surfaces its own failure rather than the misleading "unsupported format" — a Docling outage
@@ -58,8 +106,11 @@ looks like a Docling outage.
 The core is **stdlib-only**. Extras are opt-in:
 
 ```bash
-pip install f2md              # text and source files
-pip install 'f2md[docling]'   # run Docling in-process
+pip install f2md                # text and source files
+pip install 'f2md[pymupdf]'     # structured PDF extraction
+pip install 'f2md[markitdown]'  # Office, HTML, spreadsheets, images
+pip install 'f2md[docling]'     # run Docling in-process
+pip install 'f2md[all]'         # everything
 ```
 
 PDF and Office support needs `pdftotext` (poppler) and/or `pandoc` on your PATH — no Python

@@ -51,6 +51,8 @@ export type DocumentConverter = Converter;
  */
 export class CompositeDocumentConverter implements Converter {
   readonly name = "composite";
+  /** The chain spans several backend kinds; report the cheapest it can start from. */
+  readonly backendType = "stdlib" as const;
   readonly #chain: ConverterChain;
 
   constructor(
