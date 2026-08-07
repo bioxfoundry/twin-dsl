@@ -1,6 +1,0 @@
-syntax = "proto3";
-package subactor.twin.v1;
-message TwinComponent { string id=1; string type=2; repeated string source_uris=3; map<string,string> properties=4; repeated TwinComponent children=5; }
-message Twin { string id=1; string kind=2; string observed_at=3; string source_snapshot_hash=4; repeated TwinComponent components=5; }
-message GetTwinRequest { string id=1; }
-service TwinQueryService { rpc GetTwin(GetTwinRequest) returns (Twin); }

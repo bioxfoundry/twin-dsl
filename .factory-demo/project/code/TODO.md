@@ -1,2 +1,0 @@
-- [ ] Connect and validate the canonical todo2code pipeline.
-- [ ] Review generated improvementDSL before any code mutation.

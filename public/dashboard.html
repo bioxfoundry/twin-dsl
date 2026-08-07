@@ -184,12 +184,23 @@ function upload(mesh){
   const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,mesh.nrm,gl.STATIC_DRAW);
   return {pb,nb,count:mesh.pos.length/3};
 }
+/** 12 edges of the unit box, drawn as lines so adjacent slabs read as separate volumes. */
+function boxEdges(){
+  const h=.5,c=[[-h,-h,-h],[h,-h,-h],[h,h,-h],[-h,h,-h],[-h,-h,h],[h,-h,h],[h,h,h],[-h,h,h]];
+  const e=[[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]];
+  const p=[];for(const [a,b] of e)p.push(...c[a],...c[b]);
+  return {pos:new Float32Array(p),nrm:new Float32Array(p.length)};
+}
 const MESH={cube:upload(boxMesh()),cylinder:upload(cylMesh()),sphere:upload(cylMesh(18)),scope:upload(boxMesh())};
-gl.enable(gl.DEPTH_TEST);gl.enable(gl.CULL_FACE);gl.cullFace(gl.BACK);
+const EDGES=upload(boxEdges());
+gl.enable(gl.DEPTH_TEST);
+// Faces are wound per-face rather than consistently, so depth testing alone resolves visibility.
+gl.disable(gl.CULL_FACE);
 
 /* ----------------------------------------------------------- scene data */
-let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40;
-const cam={yaw:-0.75,pitch:0.62,dist:78};
+let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,framed=false;
+// Low pitch so equipment reads as standing volumes rather than a top-down floor plan.
+const cam={yaw:-0.95,pitch:0.30,dist:78};
 
 function buildObjects(state){
   const twin=state.twin,scene=state.scene;
@@ -209,7 +220,11 @@ function buildObjects(state){
   // Frame the camera on the actual extent so any facility size fits.
   let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];
   for(const o of objs)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],o.pos[k]-o.size[k]/2);mx[k]=Math.max(mx[k],o.pos[k]+o.size[k]/2);}
-  if(objs.length){CENTER=[0,1,2].map(k=>(mn[k]+mx[k])/2);RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;}
+  if(objs.length){
+    CENTER=[0,1,2].map(k=>(mn[k]+mx[k])/2);
+    RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;
+    if(!framed){cam.dist=RADIUS*1.35;framed=true;}
+  }
   return objs;
 }
 
@@ -238,6 +253,15 @@ function draw(pick){
     gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
     gl.drawArrays(gl.TRIANGLES,0,m.count);
+    if(!pick){
+      // Outline pass: without it a floor slab and the zone slab on top of it read as one surface.
+      gl.uniform1f(U.flat,1);
+      gl.uniform3f(U.color,...(SELECTED===o.idx?[1,.92,.5]:[.05,.06,.08]));
+      gl.bindBuffer(gl.ARRAY_BUFFER,EDGES.pb);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
+      gl.bindBuffer(gl.ARRAY_BUFFER,EDGES.nb);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
+      gl.drawArrays(gl.LINES,0,EDGES.count);
+      gl.uniform1f(U.flat,0);
+    }
   }
 }
 function render(){draw(false);}

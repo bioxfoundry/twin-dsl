@@ -1,5 +1,0 @@
-syntax = "proto3";
-package subactor.common.v1;
-message SourceAnchor { string artifact_uri=1; string revision_hash=2; string fragment=3; uint32 page=4; repeated uint32 lines=5; repeated double bbox=6; string converter=7; string converter_version=8; }
-message EvidenceReference { string uri=1; SourceAnchor anchor=2; }
-message ExecutionReceipt { string ticket_id=1; string process_id=2; string idempotency_key=3; string completed_at=4; }

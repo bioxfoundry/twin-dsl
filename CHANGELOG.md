@@ -4,6 +4,14 @@
 
 ### Added
 
+- **Live factory dashboard** (`dashboard` CLI command, `docs/DASHBOARD.md`): serves a living
+  project's twin/scene over HTTP and renders the factory in 3D. Dependency-free — `node:http` plus a
+  hand-written WebGL renderer, no CDN and no build step. Colour encodes geometry evidence, so the
+  factory visibly hardens as floor-plan and register data arrives; identity invariants and the
+  evidence report are shown next to the scene. `POST /api/intake` is durable rather than a preview:
+  it writes the evidence file, wires `SCENE_PHYSICAL_EVIDENCE_FILE` and runs an iteration, so the
+  result is a real new twin revision. Local-only by design: no auth, binds to `127.0.0.1`.
+
 - **Physical Evidence Intake** (`subactor.physical-evidence/v1`): replaces placeholder geometry with
   floor-plan / CAD / IFC / survey / register facts while `componentId` and `scenePath` stay stable.
   Evidence grades are ranked `placeholder < document < measured < cad < ifc < verified`; a weaker
