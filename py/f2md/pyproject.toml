@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "f2md"
+version = "0.1.0"
+description = "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain."
+readme = "README.md"
+requires-python = ">=3.9"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [{ name = "Softreck", email = "info@softreck.com" }]
+keywords = ["markdown", "conversion", "pdf", "docx", "docling", "pandoc", "ingestion", "rag"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Topic :: Text Processing :: Markup :: Markdown",
+  "Typing :: Typed",
+]
+# The core chain is stdlib-only on purpose: text and code files convert with no install
+# footprint, and heavier backends stay opt-in.
+dependencies = []
+
+[project.optional-dependencies]
+# Talk to a Docling HTTP service. `requests` is optional; urllib is used when absent.
+http = ["requests>=2.28"]
+# Run Docling in-process instead of over HTTP.
+docling = ["docling>=2.0"]
+dev = ["pytest>=7", "mypy>=1.8", "ruff>=0.5"]
+
+[project.urls]
+Homepage = "https://github.com/bioxfoundry/twin-dsl/tree/main/py/f2md"
+Source = "https://github.com/bioxfoundry/twin-dsl/tree/main/py/f2md"
+Issues = "https://github.com/bioxfoundry/twin-dsl/issues"
+
+[project.scripts]
+f2md = "f2md.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/f2md"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/f2md", "tests", "README.md", "LICENSE"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 120
+target-version = "py39"
+
+[tool.mypy]
+strict = true
+python_version = "3.9"

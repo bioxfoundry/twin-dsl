@@ -1,0 +1,57 @@
+{
+  "name": "@subactor/f2md",
+  "version": "0.1.0",
+  "description": "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain.",
+  "keywords": [
+    "markdown",
+    "conversion",
+    "pdf",
+    "docx",
+    "docling",
+    "pandoc",
+    "ingestion",
+    "rag"
+  ],
+  "license": "Apache-2.0",
+  "author": "Softreck <info@softreck.com>",
+  "homepage": "https://github.com/bioxfoundry/twin-dsl/tree/main/js/f2md",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bioxfoundry/twin-dsl.git",
+    "directory": "js/f2md"
+  },
+  "bugs": "https://github.com/bioxfoundry/twin-dsl/issues",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "f2md": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/*.test.js",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "@types/node": ">=18",
+    "typescript": ">=5.4 <7"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

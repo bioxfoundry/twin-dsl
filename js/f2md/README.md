@@ -1,0 +1,116 @@
+# @subactor/f2md
+
+Convert any file to a unified Markdown envelope — with provenance, and with **zero runtime
+dependencies**.
+
+```bash
+npm install @subactor/f2md
+```
+
+```ts
+import { convert } from "@subactor/f2md";
+
+const doc = await convert("report.pdf");
+doc.markdown;   // '# report.pdf\n\n…'
+doc.converter;  // 'pdftotext'
+doc.metadata;   // { source: 'report.pdf', size: 91234, mtime: '…', extractedChars: 8123 }
+```
+
+```bash
+npx f2md notes.md                    # Markdown to stdout
+npx f2md report.pdf --json           # full envelope as JSON
+npx f2md imports/deck.pptx-9f2c      # content-addressed names work too
+npx f2md scan.pdf --backend docling  # force a specific backend
+```
+
+## Why another converter
+
+Most tools answer "what does this file say". Ingestion pipelines also need to answer **"where did
+this Markdown come from, and which backend produced it"** — otherwise you cannot tell a clean text
+extraction from an OCR guess three steps later. Every result is one shape:
+
+| field | meaning |
+| --- | --- |
+| `markdown` | the converted body |
+| `metadata` | source path, size, mtime, extracted character count |
+| `assets` | extracted side files, when a backend produces them |
+| `converter` | which backend actually ran (`deterministic-text`, `pdftotext`, `pandoc`, `docling`) |
+| `version` | that backend's version, so output changes are traceable |
+
+## The chain
+
+Backends are tried cheapest-first, and each one declines files that are not its job:
+
+```
+text / source files      no dependencies, no external process
+        ↓
+pdftotext / pandoc       used only if the binary is on PATH
+        ↓
+Docling over HTTP        only when DOCLING_URL is set
+```
+
+Declining is a routing signal, not an error. A backend that *was* the right one but genuinely
+broke surfaces its own failure rather than the misleading "unsupported format" — a Docling outage
+looks like a Docling outage.
+
+## Install footprint
+
+Nothing is installed beyond this package. PDF and Office support uses binaries if they happen to
+be on your PATH:
+
+```bash
+apt install poppler-utils pandoc     # Debian/Ubuntu
+brew install poppler pandoc          # macOS
+```
+
+A missing binary is treated as "not my job", so the chain falls through instead of throwing.
+
+## Content-addressed filenames
+
+Ingestion pipelines rename imports to `report.pdf-9f2c8ad4` or `deck.pptx.part`, which defeats
+`path.extname`. Detection scans the basename instead:
+
+```ts
+import { detectDocumentKind, mediaTypeFor } from "@subactor/f2md";
+
+detectDocumentKind("imports/report.pdf-9f2c8ad4"); // '.pdf'
+mediaTypeFor("imports/report.pdf-9f2c8ad4");       // 'application/pdf'
+```
+
+## Building your own chain
+
+```ts
+import { ConverterChain, TextConverter, LocalToolConverter, DoclingHttpConverter } from "@subactor/f2md";
+
+const chain = new ConverterChain([
+  new TextConverter(50_000),
+  new LocalToolConverter(400_000, 30_000),
+  new DoclingHttpConverter("http://docling:5001"),
+]);
+const doc = await chain.convert("scan.pdf");
+```
+
+A converter is anything with a `name` and `convert(path): Promise<ConvertedDocument>`. Throw
+`ExternalConverterRequired(kind)` to pass the file down the chain, or `ConversionError` to report a
+real failure.
+
+## Environment
+
+| variable | default | purpose |
+| --- | --- | --- |
+| `DOCLING_URL` | *(unset)* | adds the Docling backend to the default chain |
+| `F2MD_MAX_CHARS` | `400000` | truncation limit for extracted text |
+| `F2MD_TIMEOUT_MS` | `120000` | timeout for `pdftotext` / `pandoc` |
+
+## Python
+
+The same contract ships as [`f2md`](https://pypi.org/project/f2md/) on PyPI, producing an identical
+envelope so both sides of a pipeline agree on provenance.
+
+## Requirements
+
+Node.js >= 18 (uses built-in `fetch`, `FormData` and `AbortSignal.timeout`).
+
+## License
+
+Apache-2.0

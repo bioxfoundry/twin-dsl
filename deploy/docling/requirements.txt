@@ -1,0 +1,13 @@
+# Docling document conversion service.
+#
+# torch is NOT listed here: it is installed first, from the CPU-only PyTorch index, because the
+# default index resolves it to CUDA builds that pull ~3 GB of nvidia_* wheels (cublas alone is
+# 423 MB) which this service never uses — it runs document layout models on CPU.
+docling>=2.0,<3
+fastapi>=0.110,<1
+uvicorn[standard]>=0.29,<1
+python-multipart>=0.0.9
+
+# opencv-python-headless is deliberately NOT listed here — see the Dockerfile. Both opencv
+# distributions install the same `cv2` directory, so they must be swapped in order, not resolved
+# together by pip.

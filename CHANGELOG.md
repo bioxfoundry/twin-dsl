@@ -34,8 +34,30 @@
   quietly weakening it. The shipped biofoundry blueprint and intake template are checked against
   both descriptions.
 
+- **Document conversion extracted as a standalone package**, in `py/f2md` (PyPI `f2md`) and
+  `js/f2md` (npm `@subactor/f2md`), both producing the same envelope so either side of a pipeline
+  agrees on provenance. The runtime now consumes `js/f2md` rather than carrying its own copy, so
+  there is one implementation. Python core is stdlib-only; the JS package has no dependencies.
+  Both ship a `f2md` CLI. npm `f2md` was already taken by an unrelated package, hence the scope.
+- `make up` / `make down` / `make restart`, plus `build`, `logs`, `ps`, `service-check`,
+  `down-clean` and `prune-cache`. `up`/`build`/`restart` create `.env` from `.env.example` on first
+  use, so the documented defaults are the ones that actually apply; an existing `.env` is never
+  overwritten.
+
 ### Fixed
 
+- **The Docling service had never converted anything.** `import cv2` failed with
+  `libxcb.so.1: cannot open shared object file` because docling pulls `opencv-python` (the GUI
+  build) into a slim image with no X11 libraries, and then torch's inductor backend failed with
+  `InvalidCxxCompiler` because the image has no C++ toolchain. Only `/health` worked — which is
+  exactly what the compose healthcheck probes, so the stack reported healthy while every
+  conversion returned HTTP 500. Now swaps in `opencv-python-headless` (in order — both
+  distributions own the same `cv2` directory) and runs torch in eager mode.
+- **Docker builds re-downloaded gigabytes every time.** `--no-cache-dir` actively defeated pip's
+  cache, and docling resolved torch to CUDA builds pulling ~3 GB of `nvidia_*` wheels this CPU
+  service never uses. With BuildKit cache mounts and the CPU-only torch index, the image dropped
+  from 5.83 GB to 1.79 GB and a repeat build went from ~885 s to 5 s. Model weights now live on a
+  named volume, so `down` no longer discards them.
 - **The compose stack could not use its own ClickHouse.** The official image logs
   "disabling network access for user 'default'" and restricts it to `127.0.0.1` unless
   `CLICKHOUSE_USER` or `CLICKHOUSE_PASSWORD` is set, so every cross-container query returned

@@ -395,3 +395,11 @@ project/refactor/generated/
 /.physical-intake-demo/
 /.physical-intake/
 /.factory-demo/
+
+# Extracted packages (py/f2md, js/f2md) build output.
+/py/*/dist/
+/py/*/build/
+/py/*/*.egg-info/
+/js/*/dist/
+/js/*/dist-test/
+/js/*/node_modules/
