@@ -54,7 +54,7 @@ System rozdziela trzy pętle:
 
 ```bash
 npm install
-npm run verify
+npm run verify          # typecheck, testy, wszystkie dema — pełna weryfikacja
 ```
 
 Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
@@ -62,6 +62,117 @@ Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
 ```bash
 npm run verify:dist
 ```
+
+Usługi pomocnicze (ClickHouse + Docling) przez `make`:
+
+```bash
+make up            # tworzy .env z .env.example przy pierwszym uruchomieniu, buduje i startuje
+make service-check # sprawdza, czy oba serwisy odpowiadają
+make logs
+make down          # zatrzymuje, ale ZACHOWUJE wolumeny (modele Docling, dane ClickHouse)
+make down-clean    # kasuje też wolumeny — kolejny start pobierze modele od nowa
+```
+
+Powtórny `make up` korzysta z cache BuildKit: pierwszy build obrazu Docling trwa kilkanaście minut,
+kolejne kilka sekund.
+
+## Konwersja dokumentów do Markdown
+
+Do zasilania twina dokumentacją służy **[f2md](py/f2md)** — wyodrębniona paczka, publikowana jako
+`f2md` na PyPI i `@subactor/f2md` na npm. Nie jest kolejnym uniwersalnym konwerterem: to warstwa
+orkiestracji i śledzenia pochodzenia nad wymiennymi backendami (PyMuPDF, MarkItDown, Docling,
+pdftotext/pandoc, Turndown/Mammoth).
+
+### Cały folder naraz
+
+To jest sposób, w jaki powstał [`nanobionic-laboratory-md`](https://github.com/bioxfoundry/nanobionic-laboratory-md):
+
+```bash
+pip install 'f2md[pymupdf]'                 # rdzeń jest stdlib-only; PDF to opcjonalny extra
+apt install poppler-utils pandoc            # dla PDF/Office bez Doclinga
+
+make up                                     # opcjonalnie: Docling dla skanów i OCR
+
+DOCLING_URL=http://127.0.0.1:15001 \
+  f2md --tree ../nanobionic-laboratory ../nanobionic-laboratory-md \
+       --secret-pattern 'konfidencial'
+```
+
+Struktura wyjścia odwzorowuje wejście **1:1**, jeden plik na jeden plik:
+
+```
+nanobionic-laboratory/A/report.pdf
+        ↓
+nanobionic-laboratory-md/A/report.pdf.md
+```
+
+Oryginalne rozszerzenie zostaje przed `.md`, więc nazwa nadal mówi, co ją wyprodukowało, a dwa
+pliki różniące się tylko rozszerzeniem nigdy nie kolidują.
+
+Przydatne opcje:
+
+| opcja | działanie |
+| --- | --- |
+| `--only .pdf,.docx` | ogranicza przebieg do wybranych typów |
+| `--quiet` | bez postępu per plik (postęp idzie na stderr, JSON na stdout) |
+| `--secret-pattern REGEX` | pliki pasujące trafiają do `<nazwa>.secret.md` z `confidential: true` |
+| `--docling-url URL` | dopina Docling jako ostatnie ogniwo (skany, tabele, OCR) |
+
+Przebieg jest idempotentny — nadpisuje w miejscu — i odmawia zapisu wewnątrz katalogu źródłowego,
+co inaczej podałoby wygenerowany Markdown na wejście kolejnego uruchomienia.
+
+### Co dostajesz w każdym pliku
+
+Każdy plik ma front matter z pełną kopertą konwersji, więc pochodzenie przeżywa granicę katalogu:
+
+```yaml
+---
+source: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf"
+inputKind: ".pdf"
+mediaType: "application/pdf"
+confidential: true
+converter: "pymupdf4llm"
+converterVersion: "1.28.2"
+backendType: "python"
+ocr: true
+fallbackDepth: 2
+durationMs: 816
+extractedChars: 7495
+converted: true
+warnings: []
+---
+```
+
+Najważniejsze pola:
+
+- **`converter` / `converterVersion`** — który backend faktycznie zadziałał. Bez tego nie odróżnisz
+  czystej ekstrakcji od zgadywanki OCR trzy kroki później;
+- **`ocr`** — czy tekst powstał z rozpoznawania obrazu. W korpusie nanobionic **52 ze 101** plików
+  przeszły OCR, co powinno ważyć na zaufaniu do ich treści;
+- **`fallbackDepth`** — ile backendów odmówiło, zanim któryś wziął plik. Wysoka wartość na całym
+  korpusie oznacza źle ustawioną kolejność łańcucha;
+- **`warnings`** — obcięcie tekstu, utracone tabele, diagnostyka backendu. Straty są zapisane,
+  a nie po cichu porzucone;
+- **`backendType`** — `stdlib` / `binary` / `python` / `http`, czyli ile ta konwersja realnie kosztuje.
+
+### Pliki bez warstwy tekstowej
+
+Siatki CAD (STL, F3D, SCAD) i archiwa ZIP też dostają plik `.md` — z front matter i krótkim stubem
+wyjaśniającym, dlaczego nie ma treści. Drzewo, które po cichu pomija pliki, nie zgadza się ze
+źródłem, a to gorsze niż jawne „tu nie ma tekstu". W korpusie nanobionic to 33 ze 134 plików.
+
+### Pojedynczy plik
+
+```bash
+f2md notes.md                     # Markdown na stdout
+f2md report.pdf --json            # pełna koperta jako JSON
+f2md imports/report.pdf-9f2c8ad4  # nazwy content-addressed też działają
+f2md scan.pdf --backend docling   # wymuszenie konkretnego backendu
+f2md --detect *.pdf               # tylko wykryty typ i media type
+```
+
+Ten sam kontrakt w Node.js — `npx f2md --tree src/ out/`. Oba pakiety emitują identyczną kopertę;
+`npm run f2md:conformance` pilnuje, żeby się nie rozjechały.
 
 ## Kreator żywego projektu
 
@@ -252,6 +363,58 @@ Sprawdzone lokalnie:
 - kontrakty Docker Compose i CI/CD.
 
 W środowisku przygotowania paczki nie ma binarnego Dockera ani demona. `docker compose up`, budowa obrazów i sieciowa integracja prawdziwych kontenerów nie zostały wykonane lokalnie. Workflow `Docker Integration` uruchamia tę brakującą bramę na `ubuntu-latest`, w tym `runtime service-check`.
+
+## Od placeholdera do fizycznego twina
+
+Geometria startuje jako jawny placeholder i twardnieje, gdy pojawią się realne dane — **bez zmiany
+tożsamości komponentu**. To kontrakt, na którym opiera się cała ścieżka:
+
+```
+componentId  zostaje ten sam
+scenePath    zostaje ten sam
+zmienia się tylko reprezentacja fizyczna i jej pochodzenie
+```
+
+Dzięki temu `liquid_handler_01` przechodzi `placeholder → measured → cad → ifc → verified`, zamiast
+stać się pięcioma różnymi urządzeniami. Szczegóły: [`docs/PHYSICAL_EVIDENCE_INTAKE.md`](docs/PHYSICAL_EVIDENCE_INTAKE.md).
+
+```bash
+# szablon do wypełnienia
+cp physical-intake/templates/physical-evidence.template.json baseline/physical-evidence.json
+
+# nałożenie na istniejącą parę twin/scene
+node dist/src/cli/main.js physical-intake twin.json scene.json baseline/physical-evidence.json
+
+# trwale: wpięcie w projekt (wchodzi do hasha konfiguracji, więc wymusza nową rewizję)
+echo 'SCENE_PHYSICAL_EVIDENCE_FILE "baseline/physical-evidence.json"' >> project.projectdsl
+```
+
+Intake odrzuca dane, które łamałyby kontrakt: nieznany `componentId`, dowód słabszy niż istniejący,
+plik siatki spoza zaingestowanego korpusu, jednostki inne niż metry.
+
+```bash
+npm run demo:physical   # pełny przebieg end-to-end, wywala build gdy tożsamość się zmieni
+```
+
+## Dashboard 3D
+
+Podgląd żywego twina w przeglądarce — bez zależności, własny renderer WebGL:
+
+```bash
+node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port]
+# domyślnie http://127.0.0.1:7331/
+```
+
+Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
+twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`, niebieski
+`measured`, zielony `cad`, fioletowy `ifc`, miętowy `verified`. Obok sceny raportowane są
+niezmienniki tożsamości (`componentIdsStable`, `scenePathsStable`).
+
+Endpointy: `/api/state`, `/api/scene.usda` (eksport OpenUSD), `POST /api/iterate`, `POST /api/intake`.
+
+> Usługa **nie ma uwierzytelniania ani ochrony CSRF**, a `/api/iterate` i `/api/intake` modyfikują
+> projekt na dysku. Słucha tylko na `127.0.0.1` — to narzędzie do lokalnej inspekcji, nie wystawiaj
+> go na publiczny interfejs. Szczegóły: [`docs/DASHBOARD.md`](docs/DASHBOARD.md).
 
 ## Przykłady
 
