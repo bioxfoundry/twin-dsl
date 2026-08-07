@@ -12,9 +12,11 @@ import type {
   LlmMode,
   MathDocument,
   ObservationDocument,
+  PhysicalEvidenceReport,
   ObservationRecord,
   ResourceDiff,
   ResourceRecord,
+  SceneBlueprint,
   SceneDocument,
   SourceRole,
   TreeDocument,
@@ -52,6 +54,8 @@ import {
   biofoundryConceptTwin,
   biofoundryReadinessBindings,
 } from "./biofoundry-concept.js";
+import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
+import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
@@ -127,7 +131,9 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
   const developmentPresent = development.source !== "missing" && development.recordCount > 0;
   const developmentAccepted = development.acceptance === "accepted";
   const runtimePresent = observations.observations.length > 0;
-  const readiness = project.profile === "biofoundry" ? biofoundryReadinessBindings(resources) : {bindings:[],expressions:{}};
+  const readiness = project.profile === "biofoundry"
+    ? biofoundryReadinessBindings(resources, project.sources.map(source=>source.path))
+    : {bindings:[],expressions:{}};
   return {
     schema:"subactor.math/v1",
     id:`${project.id}-iteration-gates`,
@@ -165,7 +171,8 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
     },
   };
 }
-function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[],observations:ObservationDocument,snapshot:string,development:DevelopmentEvidenceSummary):TwinDocument {
+function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[],observations:ObservationDocument,snapshot:string,development:DevelopmentEvidenceSummary,blueprint?:SceneBlueprint):TwinDocument {
+  if(blueprint) return materializeBlueprintTwin({blueprint,projectId:project.id,resources,observations,development,sourceSnapshotHash:snapshot});
   if(project.profile === "biofoundry") return biofoundryConceptTwin(project,resources,observations,snapshot,development);
   const roles = [...new Set(resources.map(resource=>resource.sourceRole??"project"))];
   return {
@@ -181,7 +188,8 @@ function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[]
     ],
   };
 }
-function conceptualScene(project:LivingProjectDocument,twin:TwinDocument):SceneDocument {
+function conceptualScene(project:LivingProjectDocument,twin:TwinDocument,blueprint?:SceneBlueprint):SceneDocument {
+  if(blueprint) return materializeBlueprintScene({blueprint,projectId:project.id,format:project.scene.format,twin});
   if(project.profile === "biofoundry") return biofoundryConceptScene(project,twin);
   const twinUri = contentUri("twin",twin);
   return {
@@ -233,7 +241,15 @@ export class LivingProjectRuntime {
     const startedAt = new Date().toISOString();
     const traceId = randomUUID();
     const base = dirname(configPath);
-    const projectConfigHash = sha256(canonicalJson(project));
+    const sceneBlueprint = project.scene.blueprintFile
+      ? validateSceneBlueprint(await readJson(resolve(base,project.scene.blueprintFile)))
+      : undefined;
+    const physicalEvidence = project.scene.physicalEvidenceFile
+      ? validatePhysicalEvidence(await readJson(resolve(base,project.scene.physicalEvidenceFile)))
+      : undefined;
+    // Blueprint and physical facts are part of structural identity: a geometry or semantic model
+    // change forces a new iteration even when sources and code are untouched.
+    const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,physicalEvidence}));
     const scanned = await scanSources(project.sources.map(source=>({path:resolve(base,source.path),role:source.role,logicalRoot:source.logicalRoot,labels:source.labels})));
     if(project.webResearch) {
       const plan = parseDql(await readFile(resolve(base,project.webResearch.dqlFile),"utf8"));
@@ -284,9 +300,9 @@ export class LivingProjectRuntime {
     const grantPresent = await mutationGrantPresent(project,base);
     const tree = groupTree(project,resources);
     const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable});
-    const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence);
-    const deterministicScene = conceptualScene(project,deterministicTwin);
-    const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,stableKey,iterationsLastHour,grantPresent};
+    const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint);
+    const deterministicScene = conceptualScene(project,deterministicTwin,sceneBlueprint);
+    const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
     const effectiveMode:LlmMode = rateLimitAvailable ? mode : "deterministic";
 
     const mathGeneration = await this.compiler.compile({kind:"math",text:`Evaluate the iteration gates for ${project.managerIntent}`,context,mode:effectiveMode,deterministicValue:{dsl:renderMathDsl(authoritativeMath)}});
@@ -304,7 +320,7 @@ export class LivingProjectRuntime {
       twinGeneration = {...twinGeneration,value:twin,audit:fallbackAudit(twinGeneration.audit,"domain_grounding_failed")};
     }
 
-    const deterministicSceneForTwin = conceptualScene(project,twin);
+    const deterministicSceneForTwin = conceptualScene(project,twin,sceneBlueprint);
     let sceneGeneration = await this.compiler.compile({kind:"scene",text:`Build the current conceptual scene for ${project.name} without inventing geometry.`,context:{...context,math,twin},mode:effectiveMode,deterministicValue:{document:deterministicSceneForTwin}});
     let scene = sceneGeneration.value as SceneDocument;
     try { validateScene(scene); validateSceneGrounding(scene,twin,resources); }
@@ -313,6 +329,17 @@ export class LivingProjectRuntime {
       authorityWarnings.push(`LLM_SCENE_PROPOSAL_REJECTED:${error instanceof Error?error.message:String(error)}`);
       scene = deterministicSceneForTwin;
       sceneGeneration = {...sceneGeneration,value:scene,audit:fallbackAudit(sceneGeneration.audit,"domain_grounding_failed")};
+    }
+
+    // Physical facts are authoritative and deterministic: they are folded in after the model is
+    // settled, so no LLM proposal can talk the twin out of a surveyed dimension.
+    let physicalEvidenceReport:PhysicalEvidenceReport|undefined;
+    if(physicalEvidence) {
+      const grounded = applyPhysicalEvidence({twin,scene,evidence:physicalEvidence,allowedAssetUris:resources.map(resource=>resource.uri)});
+      twin = grounded.twin;
+      scene = grounded.scene;
+      physicalEvidenceReport = grounded.report;
+      for(const entry of physicalEvidenceReport.rejected) authorityWarnings.push(`PHYSICAL_EVIDENCE_REJECTED:${entry.componentId}:${entry.reason}`);
     }
 
     const allowed = evaluateMath(math,"IterationAllowed") === true;
@@ -339,11 +366,12 @@ export class LivingProjectRuntime {
     await writeJson(join(candidate,"scene.json"),scene);
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
     await writeJson(join(candidate,"scene.diff.json"),sceneDiff(await readOptional<SceneDocument>(join(outDir,"current/scene.json")),scene));
+    await writeJson(join(candidate,"physical-evidence.report.json"),physicalEvidenceReport??{schema:"subactor.physical-evidence-report/v1",applied:[],rejected:[],componentIdsStable:true,scenePathsStable:true});
     await writeJson(join(candidate,"improvement.json"),improvement);
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});

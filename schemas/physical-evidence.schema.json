@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.physical-evidence/v1",
+  "title": "Physical Evidence Intake",
+  "description": "Physical facts about components that already exist in the twin. Intake may raise a component's geometry fidelity but never lower it, and never creates or renames a component.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "coordinateSystem", "records"],
+  "properties": {
+    "schema": {"const": "subactor.physical-evidence/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "upAxis"],
+      "properties": {
+        "unit": {"const": "m", "description": "Metres only; convert millimetre CAD before intake."},
+        "upAxis": {"const": "Z"},
+        "origin": {"type": "string", "description": "Named survey datum or site origin."}
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["componentId", "kind", "evidence"],
+        "properties": {
+          "componentId": {"type": "string", "minLength": 1, "description": "Must already exist in the twin; unknown ids are rejected."},
+          "kind": {"enum": ["space", "equipment", "utility"]},
+          "evidence": {
+            "enum": ["placeholder", "document", "measured", "cad", "ifc", "verified"],
+            "description": "Ranked weakest to strongest."
+          },
+          "position": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+          "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}},
+          "assetUri": {"type": "string", "minLength": 1, "description": "Must be an ingested resource URI when the runtime supplies the corpus."},
+          "sourceRef": {"type": "string", "description": "IFC GUID, drawing sheet, survey report or equipment register row."},
+          "properties": {"type": "object"}
+        }
+      }
+    }
+  }
+}

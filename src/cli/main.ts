@@ -18,6 +18,11 @@ import { checkExternalServices } from "../runtime/service-check.js";
 import { parseProjectDsl } from "../dsl/project.js";
 import { issueMutationGrant, verifyMutationGrantDocument, writeMutationGrant } from "../runtime/mutation-grant.js";
 import { proposeCodeMutation, applyCodeMutation } from "../runtime/mutation-pipeline.js";
+import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
+import { renderOpenUsd } from "../scene/openusd.js";
+import { validateScene } from "../dsl/scene.js";
+import { validateTwin } from "../dsl/twin.js";
+import type { SceneDocument, TwinDocument } from "../core/types.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -75,7 +80,31 @@ async function main():Promise<void>{
     console.log(JSON.stringify({host:cycle.host,summary},null,2));return;
   }
   if(cmd==='nl-to-dsl'){const[kind,input,out,mode='require-llm',fixture]=args;if(!kind||!input||!out)throw new Error('usage: nl-to-dsl <kind> <input> <out> [mode] [fixture.json]');const result=await new NlDslCompiler().compile({kind:kind as DslKind,text:await readFile(input,'utf8'),mode:mode as LlmMode,deterministicValue:fixture?await json(fixture):undefined});await save(out,result);console.log(JSON.stringify({kind:result.kind,hash:result.canonicalHash,audit:result.audit},null,2));return;}
+  if(cmd==='scene-render'){
+    const[scenePath,twinPath,out]=args;if(!scenePath||!twinPath)throw new Error('usage: scene-render <scene.json> <twin.json> [out.usda]');
+    const scene=await json(scenePath) as SceneDocument,twin=await json(twinPath) as TwinDocument;
+    validateScene(scene);validateTwin(twin);
+    const usda=renderOpenUsd(scene,twin);
+    if(out){await mkdir(dirname(out),{recursive:true});await writeFile(out,usda);console.log(JSON.stringify({out,bindings:scene.bindings.length,bytes:usda.length},null,2));}
+    else console.log(usda);
+    return;
+  }
+  if(cmd==='physical-intake'){
+    const[twinPath,scenePath,evidencePath,outDir='.physical-intake']=args;
+    if(!twinPath||!scenePath||!evidencePath)throw new Error('usage: physical-intake <twin.json> <scene.json> <evidence.json> [out-dir]');
+    const twin=await json(twinPath) as TwinDocument,scene=await json(scenePath) as SceneDocument;
+    const evidence=validatePhysicalEvidence(await json(evidencePath));
+    const result=applyPhysicalEvidence({twin,scene,evidence});
+    await save(`${outDir}/twin.json`,result.twin);
+    await save(`${outDir}/scene.json`,result.scene);
+    await save(`${outDir}/physical-evidence.report.json`,result.report);
+    await mkdir(outDir,{recursive:true});
+    await writeFile(`${outDir}/scene.usda`,renderOpenUsd(result.scene,result.twin));
+    console.log(JSON.stringify(result.report,null,2));
+    if(result.report.rejected.length)process.exitCode=1;
+    return;
+  }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
 }
 await main();

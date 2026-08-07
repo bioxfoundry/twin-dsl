@@ -53,7 +53,7 @@ export const BIOFOUNDRY_ZONES: readonly BiofoundryZoneSpec[] = [
     type: "system-layer",
     position: [-7.5, 9.0, 0],
     size: [13, 15, 4],
-    keywords: ["design", "bioinfo", "pathway", "construct", "architecture", "opentwins"],
+    keywords: ["design", "bioinfo", "pathway", "construct", "architecture", "opentwins", "sila", "ros", "biofoundry", "specifikacija"],
     evidenceAnchor: "biofoundry-review:page8",
     geometryStatus: "placeholder",
   },
@@ -75,7 +75,7 @@ export const BIOFOUNDRY_ZONES: readonly BiofoundryZoneSpec[] = [
     type: "system-layer",
     position: [22.5, 9.0, 0],
     size: [13, 15, 4],
-    keywords: ["test", "assay", "sequenc", "qc", "analytics", "microscop", "quality"],
+    keywords: ["test", "assay", "sequenc", "qc", "analytics", "microscop", "quality", "microfluid"],
     evidenceAnchor: "biofoundry-review:page8",
     geometryStatus: "placeholder",
   },
@@ -86,7 +86,7 @@ export const BIOFOUNDRY_ZONES: readonly BiofoundryZoneSpec[] = [
     type: "system-layer",
     position: [-22.5, -9.0, 0],
     size: [13, 15, 4],
-    keywords: ["governance", "biosafety", "regulatory", "audit", "qa", "translation", "specifikacija"],
+    keywords: ["governance", "biosafety", "regulatory", "audit", "qa", "translation", "specifikacija", "lmt", "paraiskas", "partneryst", "dark-factory", "dark_factory", "sutartis"],
     evidenceAnchor: "biofoundry-review:page8",
     geometryStatus: "placeholder",
   },
@@ -373,24 +373,34 @@ export function biofoundryConceptScene(project: LivingProjectDocument, twin: Twi
 }
 
 /** Non-authority readiness bindings merged into iteration math (analysis only). */
-export function biofoundryReadinessBindings(resources: ResourceRecord[]): {
+export function biofoundryReadinessBindings(
+  resources: ResourceRecord[],
+  extraPaths: string[] = [],
+): {
   bindings: Array<{ name: string; value: boolean; sourceUris: string[] }>;
   expressions: Record<string, { kind: "and"; args: Array<{ kind: "ref"; name: string }> } | { kind: "literal"; value: boolean }>;
 } {
   const uris = resources.map((resource) => resource.uri);
-  const text = resources.map((resource) => haystack(resource)).join(" ");
+  // Include import/source paths so binary CAD/BOM/PDF evidence counts even when the text scanner skips them.
+  const text = [
+    ...resources.map((resource) => haystack(resource)),
+    ...extraPaths.map((path) => path.toLowerCase()),
+  ].join(" ");
   const hasFloorplan = /\b(ifc|dwg|dxf|floorplan|floor-plan|as-built|bim)\b/.test(text);
-  const hasEquipmentDims = /\b(equipment.?register|bill_of_materials|bom)\b/.test(text);
+  const hasEquipmentDims = /\b(equipment.?register|bill_of_materials|bill-of-materials|bom\.|\/bom\b|\.step\b|\.stl\b|cad.?files)\b/.test(text)
+    || /bill_of_materials|cad.files|cad-files/.test(text);
+  const hasCadGeometry = /\b(\.step|\.stl|\.f3d|cad.files|cad-files)\b/.test(text);
   const hasTelemetry = resources.some((resource) => resource.sourceRole === "runtime");
   return {
     bindings: [
       { name: "HasSemanticArchitecture", value: true, sourceUris: uris },
-      { name: "HasEvidenceProvenance", value: uris.length > 0, sourceUris: uris },
+      { name: "HasEvidenceProvenance", value: uris.length > 0 || extraPaths.length > 0, sourceUris: uris },
       { name: "GeometryExplicitlyPlaceholder", value: true, sourceUris: uris },
       { name: "ManagerApprovedConceptScene", value: true, sourceUris: uris },
       { name: "HasFacilityFloorplan", value: hasFloorplan, sourceUris: uris },
       { name: "HasCertifiedCoordinates", value: false, sourceUris: uris },
-      { name: "HasEquipmentDimensions", value: hasEquipmentDims, sourceUris: uris },
+      { name: "HasEquipmentDimensions", value: hasEquipmentDims || hasCadGeometry, sourceUris: uris },
+      { name: "HasCadGeometryAssets", value: hasCadGeometry, sourceUris: uris },
       { name: "HasUtilityNetwork", value: false, sourceUris: uris },
       { name: "HasTelemetryBindings", value: hasTelemetry, sourceUris: uris },
     ],

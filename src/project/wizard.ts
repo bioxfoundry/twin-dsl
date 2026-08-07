@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { LivingProjectDocument, SourceRole } from "../core/types.js";
 import { parseProjectDsl, renderProjectDsl, validateProject } from "../dsl/project.js";
 import { sha256 } from "../core/canonical.js";
+import { biofoundryLiveBlueprintV02 } from "../scene/blueprint.js";
 
 export type ProjectProfile = "generic" | "biofoundry";
 export interface CreateProjectOptions { name:string; outDir:string; profile?:ProjectProfile; managerIntent?:string; }
@@ -216,7 +217,7 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
   const port = basePort(id);
   if(await exists(projectDir)) { const entries=await readdir(projectDir); if(entries.length) throw new Error(`PROJECT_DIRECTORY_NOT_EMPTY:${projectDir}`); }
   await mkdir(projectDir,{recursive:true});
-  for(const directory of ["data/manager","data/customer","data/project","data/archives","imports","feedback","code/src","logs","environment","config","artifacts","project/ticket-001",".github/workflows","scripts"]) await mkdir(join(projectDir,directory),{recursive:true});
+  for(const directory of ["data/manager","data/customer","data/project","data/archives","imports","feedback","code/src","logs","environment","config","artifacts","project/ticket-001",".github/workflows","scripts","baseline","models"]) await mkdir(join(projectDir,directory),{recursive:true});
   const managerIntent = options.managerIntent??"Continuously improve a validated Digital Twin from manager policy, customer documentation, code evidence and runtime observations.";
   const project:LivingProjectDocument = {
     schema:"subactor.living-project/v1",id,name:options.name,profile,managerIntent,
@@ -233,11 +234,12 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
     development:{root:"code",task:"TASK.md",todo:"TODO.md",changelog:"CHANGELOG.md",docs:["README.md","docs/**/*.md"],fixture:"config/development.intent.fixture.json"},
     observations:{paths:["logs","environment"],logicalRoot:`subactor://project/${id}/runtime`},
     policy:{approved:true,requireResearch:true,requireDevelopmentEvidence:true,requireDevelopmentAcceptance:true,allowDevelopmentFixture:true,requireRuntimeEvidence:true,autoPublishScene:true,allowRuntimeSelfModification:false,autonomyMode:"propose",requireSignedMutationGrant:true,maxIterationsPerHour:12,maxConsecutiveFailures:5},
-    scene:{format:"openusd"},
+    scene:{format:"openusd",...(profile==="biofoundry"?{blueprintFile:"baseline/scene-blueprint.json"}:{})},
   };
   validateProject(project);
   await text(join(projectDir,"project.projectdsl"),renderProjectDsl(project));
   await text(join(projectDir,"project.json"),JSON.stringify(project,null,2)+"\n");
+  if(profile==="biofoundry") await text(join(projectDir,"baseline/scene-blueprint.json"),JSON.stringify(biofoundryLiveBlueprintV02(),null,2)+"\n");
   await text(join(projectDir,"data/manager/policy.md"),`# Manager policy\n\n${managerIntent}\n\nRuntime self-modification remains disabled until an apply-mode policy, signed mutation grant, isolated change plan and independent acceptance exist.\n`);
   await text(join(projectDir,"data/customer/README.md"),"# Customer documentation\n\nPlace specifications, PDFs, images, spreadsheets, CAD/BIM references and ZIP archives here.\n");
   await text(join(projectDir,"data/project/context.md"),"# Project research context\n\nAdd project facts and research evidence here.\n");

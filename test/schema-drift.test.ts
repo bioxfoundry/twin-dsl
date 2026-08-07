@@ -1,0 +1,148 @@
+/**
+ * Schema drift guard: a document accepted by the published JSON Schema must also be accepted by the
+ * hand-written runtime validator, and vice versa. Without this the two descriptions of the same
+ * contract diverge silently — which is how `position: [1, 2]` once reached the USD renderer and
+ * produced an unloadable layer.
+ */
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { checkJsonSchema, matchesJsonSchema } from "../src/core/json-schema.js";
+import { biofoundryLiveBlueprintV02, validateSceneBlueprint } from "../src/scene/blueprint.js";
+import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
+
+const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
+async function schema(name: string): Promise<unknown> {
+  return JSON.parse(await readFile(join(schemasDir, name), "utf8"));
+}
+
+function accepts(validator: (value: unknown) => unknown, value: unknown): boolean {
+  try {
+    validator(value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Assert both descriptions of the contract agree on every document in the corpus. */
+async function assertNoDrift(
+  schemaFile: string,
+  validator: (value: unknown) => unknown,
+  corpus: { name: string; document: unknown }[],
+): Promise<void> {
+  const definition = await schema(schemaFile);
+  const disagreements: string[] = [];
+  for (const { name, document } of corpus) {
+    const bySchema = matchesJsonSchema(definition, document);
+    const byValidator = accepts(validator, document);
+    if (bySchema !== byValidator) {
+      disagreements.push(`${name}: schema=${bySchema ? "accept" : "reject"} validator=${byValidator ? "accept" : "reject"}`);
+    }
+  }
+  assert.deepEqual(disagreements, [], `${schemaFile} drifted from its runtime validator`);
+}
+
+const blueprintBase = {
+  schema: "subactor.scene-blueprint/v1",
+  id: "bp",
+  twinKind: "physical",
+  components: [{ id: "a", type: "zone", sourceRoles: ["project"] }],
+  bindings: [{ componentId: "a", scenePath: "/Root/A" }],
+};
+
+test("scene-blueprint schema and runtime validator agree", async () => {
+  await assertNoDrift("scene-blueprint.schema.json", validateSceneBlueprint, [
+    { name: "minimal valid", document: blueprintBase },
+    { name: "full valid", document: { ...blueprintBase,
+      components: [{ id: "a", type: "zone", label: "A", sourceRoles: ["project", "customer"], pathIncludes: ["x"], pathExcludes: ["y"], maxSourceUris: 5, properties: { k: 1 }, includeDevelopmentEvidence: true, includeRuntimeObservations: true }],
+      bindings: [{ componentId: "a", scenePath: "/Root/A", primitive: "cylinder", position: [1, 2, 3], size: [1, 2, 3], propertyMap: { a: "subactor:a" } }] } },
+    { name: "empty components", document: { ...blueprintBase, components: [] } },
+    { name: "empty bindings", document: { ...blueprintBase, bindings: [] } },
+    { name: "unknown sourceRole", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["not-a-role"] }] } },
+    { name: "empty component id", document: { ...blueprintBase, components: [{ id: "", type: "zone", sourceRoles: ["project"] }] } },
+    { name: "empty component type", document: { ...blueprintBase, components: [{ id: "a", type: "", sourceRoles: ["project"] }] } },
+    { name: "position too short", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "/Root/A", position: [1, 2] }] } },
+    { name: "size too long", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "/Root/A", size: [1, 2, 3, 4] }] } },
+    { name: "relative scenePath", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "Root/A" }] } },
+    { name: "unknown primitive", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "/Root/A", primitive: "torus" }] } },
+    { name: "wrong schema id", document: { ...blueprintBase, schema: "subactor.scene-blueprint/v2" } },
+    { name: "unknown twinKind", document: { ...blueprintBase, twinKind: "imaginary" } },
+    { name: "empty id", document: { ...blueprintBase, id: "" } },
+    { name: "unknown document key", document: { ...blueprintBase, note: "hi" } },
+    { name: "unknown component key", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], colour: "red" }] } },
+    { name: "unknown binding key", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "/Root/A", rotation: [0, 0, 0] }] } },
+    { name: "duplicate sourceRoles", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project", "project"] }] } },
+    { name: "non-string label", document: { ...blueprintBase, components: [{ id: "a", type: "zone", label: 7, sourceRoles: ["project"] }] } },
+    { name: "maxSourceUris zero", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], maxSourceUris: 0 }] } },
+    { name: "maxSourceUris too large", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], maxSourceUris: 501 }] } },
+    { name: "maxSourceUris fractional", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], maxSourceUris: 2.5 }] } },
+    { name: "properties as array", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], properties: [] }] } },
+    { name: "non-boolean flag", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], includeRuntimeObservations: "yes" }] } },
+    { name: "propertyMap with non-string value", document: { ...blueprintBase, bindings: [{ componentId: "a", scenePath: "/Root/A", propertyMap: { k: 3 } }] } },
+    { name: "non-string pathIncludes", document: { ...blueprintBase, components: [{ id: "a", type: "zone", sourceRoles: ["project"], pathIncludes: [3] }] } },
+  ]);
+});
+
+const evidenceBase = {
+  schema: "subactor.physical-evidence/v1",
+  id: "e",
+  coordinateSystem: { unit: "m", upAxis: "Z" },
+  records: [{ componentId: "a", kind: "equipment", evidence: "measured" }],
+};
+
+test("physical-evidence schema and runtime validator agree", async () => {
+  await assertNoDrift("physical-evidence.schema.json", validatePhysicalEvidence, [
+    { name: "minimal valid", document: evidenceBase },
+    { name: "no records", document: { ...evidenceBase, records: [] } },
+    { name: "full valid", document: { ...evidenceBase,
+      coordinateSystem: { unit: "m", upAxis: "Z", origin: "datum" },
+      records: [{ componentId: "a", kind: "space", evidence: "ifc", position: [0, 0, 0], size: [1, 2, 3], assetUri: "urn:x", sourceRef: "ifc:1", properties: { k: 1 } }] } },
+    { name: "millimetres", document: { ...evidenceBase, coordinateSystem: { unit: "mm", upAxis: "Z" } } },
+    { name: "Y up", document: { ...evidenceBase, coordinateSystem: { unit: "m", upAxis: "Y" } } },
+    { name: "unknown grade", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "guessed" }] } },
+    { name: "unknown kind", document: { ...evidenceBase, records: [{ componentId: "a", kind: "vehicle", evidence: "cad" }] } },
+    { name: "zero extent", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "cad", size: [1, 1, 0] }] } },
+    { name: "negative extent", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "cad", size: [1, 1, -2] }] } },
+    { name: "size too short", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "cad", size: [1, 2] }] } },
+    { name: "empty componentId", document: { ...evidenceBase, records: [{ componentId: "", kind: "equipment", evidence: "cad" }] } },
+    { name: "empty assetUri", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "cad", assetUri: "" }] } },
+    { name: "unknown record key", document: { ...evidenceBase, records: [{ componentId: "a", kind: "equipment", evidence: "cad", heightM: 3 }] } },
+    { name: "unknown document key", document: { ...evidenceBase, note: "hi" } },
+    { name: "missing coordinateSystem", document: { schema: evidenceBase.schema, id: "e", records: [] } },
+    { name: "wrong schema id", document: { ...evidenceBase, schema: "subactor.physical-evidence/v2" } },
+  ]);
+});
+
+test("the blueprint shipped by the wizard validates against its own schema", async () => {
+  // The wizard writes this file into every biofoundry project, so it is the artifact that matters.
+  const blueprint = biofoundryLiveBlueprintV02();
+  assert.deepEqual(checkJsonSchema(await schema("scene-blueprint.schema.json"), blueprint), []);
+  assert.ok(validateSceneBlueprint(blueprint));
+});
+
+test("the shipped intake template validates against its own schema", async () => {
+  const template = JSON.parse(await readFile(join(schemasDir, "..", "physical-intake/templates/physical-evidence.template.json"), "utf8"));
+  assert.deepEqual(checkJsonSchema(await schema("physical-evidence.schema.json"), template), []);
+  assert.ok(validatePhysicalEvidence(template));
+});
+
+test("every shipped schema uses only the supported vocabulary", async () => {
+  // Guards the checker itself: a schema growing a keyword this evaluator cannot see would
+  // otherwise make the drift tests above silently weaker.
+  const { readdir } = await import("node:fs/promises");
+  const files = (await readdir(schemasDir)).filter((name) => name.endsWith(".json"));
+  assert.ok(files.length >= 20, "expected the full schema set");
+  const unsupported: string[] = [];
+  for (const file of files) {
+    // Validating a schema against itself is meaningless; instead check the checker accepts its
+    // vocabulary by running it against a value that exercises every node it can reach.
+    const violations = checkJsonSchema(await schema(file), undefined);
+    for (const violation of violations) {
+      if (violation.message.startsWith("unsupported schema keyword")) unsupported.push(`${file}${violation.path}: ${violation.message}`);
+    }
+  }
+  assert.deepEqual(unsupported, []);
+});

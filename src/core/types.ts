@@ -152,6 +152,42 @@ export interface SceneDocument {
   bindings: SceneBinding[];
 }
 
+/**
+ * Geometry provenance, ordered weakest → strongest. Physical intake may raise a component's
+ * fidelity but never lower it, so a placeholder can never overwrite surveyed or as-built data.
+ */
+export type GeometryEvidenceKind = "placeholder" | "document" | "measured" | "cad" | "ifc" | "verified";
+export const GEOMETRY_EVIDENCE_ORDER: GeometryEvidenceKind[] = ["placeholder", "document", "measured", "cad", "ifc", "verified"];
+
+/** One physical fact about an existing twin component; `componentId` must already exist. */
+export interface PhysicalEvidenceRecord {
+  componentId: string;
+  kind: "space" | "equipment" | "utility";
+  evidence: GeometryEvidenceKind;
+  position?: [number, number, number];
+  size?: [number, number, number];
+  /** External mesh/CAD asset (USDZ, GLB, STEP) resolved by the scene renderer. */
+  assetUri?: string;
+  /** Where the fact came from: IFC GUID, drawing sheet, survey report, equipment register row. */
+  sourceRef?: string;
+  properties?: Record<string, unknown>;
+}
+export interface PhysicalEvidenceDocument {
+  schema: "subactor.physical-evidence/v1";
+  id: string;
+  /** Declared so intake can refuse to mix millimetre CAD with metre site coordinates. */
+  coordinateSystem: { unit: "m"; upAxis: "Z"; origin?: string };
+  records: PhysicalEvidenceRecord[];
+}
+export interface PhysicalEvidenceReport {
+  schema: "subactor.physical-evidence-report/v1";
+  applied: { componentId: string; from: GeometryEvidenceKind; to: GeometryEvidenceKind; fields: string[] }[];
+  rejected: { componentId: string; reason: string }[];
+  /** Core invariant: physical intake changes representation, never identity. */
+  componentIdsStable: boolean;
+  scenePathsStable: boolean;
+}
+
 export interface ObservationRecord {
   id: string;
   observedAt: string;
@@ -249,7 +285,42 @@ export interface LivingProjectDocument {
   };
   scene: {
     format: "openusd" | "gltf" | "3dtiles";
+    /** Optional path to subactor.scene-blueprint/v1 (stable semantic IDs for Twin/Scene). */
+    blueprintFile?: string;
+    /** Optional path to subactor.physical-evidence/v1 (replaces placeholder geometry with facts). */
+    physicalEvidenceFile?: string;
   };
+}
+
+/** Stable semantic layout: identity ≠ state. Included in project config hash. */
+export interface SceneBlueprintComponent {
+  id: string;
+  type: string;
+  label?: string;
+  sourceRoles: SourceRole[];
+  /** If set, only resources whose path/logicalUri contains one of these tokens (case-insensitive). */
+  pathIncludes?: string[];
+  pathExcludes?: string[];
+  /** Cap attached evidence URIs for readability (default unlimited). */
+  maxSourceUris?: number;
+  properties?: Record<string, unknown>;
+  includeDevelopmentEvidence?: boolean;
+  includeRuntimeObservations?: boolean;
+}
+export interface SceneBlueprintBinding {
+  componentId: string;
+  scenePath: string;
+  primitive?: "cube" | "cylinder" | "sphere" | "scope";
+  position?: [number, number, number];
+  size?: [number, number, number];
+  propertyMap?: Record<string, string>;
+}
+export interface SceneBlueprint {
+  schema: "subactor.scene-blueprint/v1";
+  id: string;
+  twinKind: TwinDocument["kind"];
+  components: SceneBlueprintComponent[];
+  bindings: SceneBlueprintBinding[];
 }
 
 export interface EvidenceReference { uri: string; anchor?: SourceAnchor; }

@@ -1,0 +1,48 @@
+{
+  "schema": "subactor.physical-evidence/v1",
+  "id": "REPLACE-with-intake-id-eg-site-survey-2026-08",
+  "coordinateSystem": {
+    "unit": "m",
+    "upAxis": "Z",
+    "origin": "REPLACE-with-survey-datum-eg-north-west-inner-corner-ground-floor"
+  },
+  "records": [
+    {
+      "componentId": "facility_shell",
+      "kind": "space",
+      "evidence": "cad",
+      "position": [0, 0, 0],
+      "size": [1, 1, 1],
+      "sourceRef": "REPLACE-eg-plan:A3-sheet1 or ifc:1a2B3c4D",
+      "properties": {
+        "clearHeightM": 0,
+        "note": "size = [width X, depth Y, slab thickness Z] in metres"
+      }
+    },
+    {
+      "componentId": "build",
+      "kind": "space",
+      "evidence": "measured",
+      "position": [0, 0, 0],
+      "size": [1, 1, 1],
+      "sourceRef": "REPLACE-eg-room-schedule-row-12",
+      "properties": {
+        "roomName": "REPLACE",
+        "clearHeightM": 0
+      }
+    },
+    {
+      "componentId": "liquid_handler_01",
+      "kind": "equipment",
+      "evidence": "measured",
+      "position": [0, 0, 0],
+      "size": [1, 1, 1],
+      "sourceRef": "REPLACE-eg-register:LH-01",
+      "properties": {
+        "assetId": "REPLACE",
+        "manufacturer": "REPLACE",
+        "model": "REPLACE"
+      }
+    }
+  ]
+}
