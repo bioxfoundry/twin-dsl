@@ -23,6 +23,9 @@ services:
   clickhouse:
     image: clickhouse/clickhouse-server:26.3
     restart: unless-stopped
+    environment:
+      CLICKHOUSE_USER: \${CLICKHOUSE_USER:-digital_twin}
+      CLICKHOUSE_PASSWORD: \${CLICKHOUSE_PASSWORD:-digital_twin_local}
     ports:
       - "\${CLICKHOUSE_HTTP_PORT:-${port}}:8123"
       - "\${CLICKHOUSE_NATIVE_PORT:-${port+1}}:9000"
@@ -53,6 +56,8 @@ services:
     command: ["project-watch", "/project/project.projectdsl", "/project/.living-runtime", "\${DT_LLM_MODE:-prefer-llm}"]
     environment:
       CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: \${CLICKHOUSE_USER:-digital_twin}
+      CLICKHOUSE_PASSWORD: \${CLICKHOUSE_PASSWORD:-digital_twin_local}
       DOCLING_URL: http://docling:5001
       DT_SEARCH_BACKEND: clickhouse
       DT_WATCH_INTERVAL_MS: \${DT_WATCH_INTERVAL_MS:-5000}
@@ -256,7 +261,7 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
   ],null,2)+"\n");
   await text(join(projectDir,"project/ticket-001/user-manager.md"),`---\ntype: request\n---\n${managerIntent}\n`);
   await text(join(projectDir,"project/ticket-001/ai-agent.md"),"## Execution Plan\n\nRun research → todo2code development evidence → observations → deterministic gates → twin → scene → improvementDSL → feedback.\n");
-  await text(join(projectDir,".env.example"),`COMPOSE_PROJECT_NAME=${id}\nCLICKHOUSE_HTTP_PORT=${port}\nCLICKHOUSE_NATIVE_PORT=${port+1}\nDOCLING_PORT=${port+2}\nDT_LLM_MODE=prefer-llm\nDT_WATCH_INTERVAL_MS=5000\nDT_WATCH_MAX_RETRY_MS=60000\nDT_LEASE_STALE_MS=300000\nOPENROUTER_API_KEY=\nOPENROUTER_MODEL=mistralai/codestral-2508\nOPENROUTER_DATA_COLLECTION=deny\nT2C_HOST_ROOT=./vendor/todo2code\n`);
+  await text(join(projectDir,".env.example"),`COMPOSE_PROJECT_NAME=${id}\nCLICKHOUSE_USER=digital_twin\nCLICKHOUSE_PASSWORD=digital_twin_local\nCLICKHOUSE_HTTP_PORT=${port}\nCLICKHOUSE_NATIVE_PORT=${port+1}\nDOCLING_PORT=${port+2}\nDT_LLM_MODE=prefer-llm\nDT_WATCH_INTERVAL_MS=5000\nDT_WATCH_MAX_RETRY_MS=60000\nDT_LEASE_STALE_MS=300000\nOPENROUTER_API_KEY=\nOPENROUTER_MODEL=mistralai/codestral-2508\nOPENROUTER_DATA_COLLECTION=deny\nT2C_HOST_ROOT=./vendor/todo2code\n`);
   await text(join(projectDir,".gitignore"),".env\n.living-runtime/\nartifacts/\nvendor/todo2code/*\n!vendor/todo2code/README.md\n");
   await text(join(projectDir,"docker-compose.yml"),compose(id,port));
   await text(join(projectDir,".github/workflows/ci.yml"),ciWorkflow());

@@ -36,6 +36,20 @@
 
 ### Fixed
 
+- **The compose stack could not use its own ClickHouse.** The official image logs
+  "disabling network access for user 'default'" and restricts it to `127.0.0.1` unless
+  `CLICKHOUSE_USER` or `CLICKHOUSE_PASSWORD` is set, so every cross-container query returned
+  HTTP 401 — including `runtime` → `clickhouse:8123` with `DT_SEARCH_BACKEND=clickhouse`.
+  Credentials are now set on both services, and `ClickHouseHttpProjection` sends them as
+  `X-ClickHouse-User` / `X-ClickHouse-Key` headers (it had no authentication support at all)
+  so they never reach a query string or log.
+- **ClickHouse inserts never worked.** `created_at` was sent as ISO-8601, which JSONEachRow
+  rejects for `DateTime64(3)` with `CANNOT_PARSE_INPUT_ASSERTION_FAILED`; the 401 above had been
+  masking it. Timestamps are now encoded as `YYYY-MM-DD HH:MM:SS.mmm` in UTC.
+- `docker compose up` failed with "all predefined address pools have been fully subnetted" on
+  hosts running many stacks. The project network is pinned to an explicit subnet
+  (`DT_NETWORK_SUBNET`, default `10.201.7.0/24`) instead of drawing from the exhausted defaults.
+  `check-compose` now enforces both the pinned subnet and the ClickHouse credentials.
 - **OpenUSD cube geometry was rendered at half the declared extent.** `size = 1` was combined with
   `xformOp:scale = size/2`, so a 60×36 m envelope measured 30×18 m in the layer. Cylinders were
   correct, leaving scenes internally inconsistent. Verified against `pxr` (usd-core) bounding boxes.
