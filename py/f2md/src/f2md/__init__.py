@@ -11,7 +11,7 @@ which backend produced the Markdown.
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+__version__ = "0.3.0"
 
 from .chain import ConverterChain, convert, convert_to_markdown, default_chain
 from .converters import (
@@ -31,6 +31,7 @@ from .detect import (
     is_text_kind,
     media_type_for,
 )
+from .translate import ArgosTranslator, OpenRouterTranslator, TranslationPolicy, TranslationUnavailable, detect_language
 from .types import BACKEND_TYPES, ConversionError, ConvertedDocument, ExternalConverterRequired
 
 __all__ = [
@@ -47,6 +48,11 @@ __all__ = [
     "MarkItDownConverter",
     "PyMuPDFConverter",
     "BACKEND_TYPES",
+    "TranslationPolicy",
+    "TranslationUnavailable",
+    "ArgosTranslator",
+    "OpenRouterTranslator",
+    "detect_language",
     "convert",
     "convert_to_markdown",
     "default_chain",

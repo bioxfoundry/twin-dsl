@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "f2md"
-version = "0.2.0"
+version = "0.3.0"
 description = "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain."
 readme = "README.md"
 requires-python = ">=3.9"
@@ -32,11 +32,18 @@ pymupdf = ["pymupdf4llm>=0.0.17; python_version>='3.10'"]
 markitdown = ["markitdown>=0.1; python_version>='3.10'"]
 # Run Docling in-process instead of over HTTP.
 docling = ["docling>=2.0; python_version>='3.10'"]
+# Offline language detection — without it documents stay untagged rather than being guessed at.
+lang = ["py3langid>=0.3"]
+# Offline neural translation. Nothing leaves the machine, which is what makes it usable for
+# confidential documents; the hosted engine needs no extra (urllib) but does need a key.
+translate = ["argostranslate>=1.9", "py3langid>=0.3"]
 # Everything optional at once.
 all = [
   "pymupdf4llm>=0.0.17; python_version>='3.10'",
   "markitdown>=0.1; python_version>='3.10'",
   "docling>=2.0; python_version>='3.10'",
+  "argostranslate>=1.9",
+  "py3langid>=0.3",
 ]
 dev = ["pytest>=7", "mypy>=1.8", "ruff>=0.5"]
 

@@ -48,6 +48,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--only", default=None, help="with --tree, restrict to these kinds, e.g. .pdf,.docx")
     parser.add_argument("--quiet", action="store_true", help="with --tree, suppress per-file progress")
     parser.add_argument(
+        "--translate",
+        default=None,
+        metavar="LANG",
+        help="with --tree, translate non-LANG documents to LANG (e.g. en); originals keep a .<lang>.md suffix",
+    )
+    parser.add_argument(
+        "--translation-policy",
+        choices=["hybrid", "argos", "openrouter"],
+        default="hybrid",
+        help="hybrid (default): confidential documents stay on the offline engine, others use the LLM",
+    )
+    parser.add_argument(
         "--secret-pattern",
         default=None,
         metavar="REGEX",
@@ -68,6 +80,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             result = convert_tree(
                 src, out, docling_url=args.docling_url, on_progress=progress,
                 only=only, secret_pattern=args.secret_pattern,
+                translate_to=args.translate, translation_policy=args.translation_policy,
             )
         except ConversionError as error:
             print(f"f2md: {error}", file=sys.stderr)

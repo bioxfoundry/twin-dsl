@@ -18,6 +18,7 @@ from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from .chain import ConverterChain, default_chain
 from .detect import detect_document_kind, media_type_for
+from .translate import TranslationPolicy, TranslationUnavailable, detect_language
 from .types import ConversionError
 
 #: Marker inserted before ``.md`` for documents matching a confidentiality pattern.
@@ -58,6 +59,8 @@ class TreeResult:
     stubbed: int = 0
     skipped: int = 0
     confidential: int = 0
+    translated: int = 0
+    by_language: Dict[str, int] = field(default_factory=dict)
     by_converter: Dict[str, int] = field(default_factory=dict)
     failures: List[Dict[str, str]] = field(default_factory=list)
 
@@ -67,6 +70,8 @@ class TreeResult:
             "stubbed": self.stubbed,
             "skipped": self.skipped,
             "confidential": self.confidential,
+            "translated": self.translated,
+            "byLanguage": dict(sorted(self.by_language.items(), key=lambda kv: -kv[1])),
             "byConverter": dict(sorted(self.by_converter.items(), key=lambda kv: -kv[1])),
             "failures": self.failures,
         }
@@ -89,6 +94,8 @@ def convert_tree(
     on_progress: Optional[Any] = None,
     only: Optional[Sequence[str]] = None,
     secret_pattern: Optional[str] = None,
+    translate_to: Optional[str] = None,
+    translation_policy: str = "hybrid",
 ) -> TreeResult:
     """Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
 
@@ -102,6 +109,9 @@ def convert_tree(
     does not know would be missed. The caller states the rule for their corpus.
     """
     secret_re = re.compile(secret_pattern, re.IGNORECASE) if secret_pattern else None
+    # The unsuffixed name is always the target language; an original in another language keeps its
+    # own code, so `report.docx.md` is English and `report.docx.lt.md` is the Lithuanian source.
+    policy = TranslationPolicy(translation_policy, translate_to) if translate_to else None
     src = os.path.abspath(src)
     out = os.path.abspath(out)
     if not os.path.isdir(src):
@@ -154,10 +164,19 @@ def convert_tree(
             continue
 
         secret = bool(secret_re and secret_re.search(document.markdown))
-        target = os.path.join(out, relative + (SECRET_SUFFIX if secret else "") + ".md")
+        marker = SECRET_SUFFIX if secret else ""
+        language = detect_language(document.markdown)
+        if language:
+            result.by_language[language] = result.by_language.get(language, 0) + 1
+
+        # A document already in the target language needs no suffix and no translation.
+        foreign = bool(policy and language and language != policy.target)
+        suffix = f".{language}" if foreign else ""
+        target = os.path.join(out, relative + marker + suffix + ".md")
         fields = {
             **base_fields,
             "confidential": secret,
+            "language": language or "unknown",
             "converter": document.converter,
             "converterVersion": document.version,
             "backendType": document.backend_type,
@@ -175,6 +194,32 @@ def convert_tree(
         result.converted += 1
         if secret:
             result.confidential += 1
+
+        if foreign and policy and language:
+            translated_path = os.path.join(out, relative + marker + ".md")
+            try:
+                translation = policy.translate(document.markdown, language, secret)
+            except (TranslationUnavailable, ConversionError) as error:
+                # Never fail the run: the original is already written and correct. The gap is
+                # recorded so a later pass can pick up exactly what is missing.
+                fields["translationError"] = str(error)
+                with open(target, "w", encoding="utf-8") as handle:
+                    handle.write(front_matter(fields) + document.markdown.rstrip() + "\n")
+                result.failures.append({"source": relative, "error": f"TRANSLATION:{error}"[:200]})
+                if on_progress:
+                    on_progress(index, len(paths), relative, f"{document.converter} [{language}] no-translation")
+                continue
+            translated_fields = {
+                **fields,
+                "language": policy.target,
+                "translatedFrom": language,
+                "translationEngine": translation.engine,
+                "translationModel": translation.model,
+                "translationOf": os.path.basename(target),
+            }
+            with open(translated_path, "w", encoding="utf-8") as handle:
+                handle.write(front_matter(translated_fields) + translation.text.rstrip() + "\n")
+            result.translated += 1
         result.by_converter[document.converter] = result.by_converter.get(document.converter, 0) + 1
         if on_progress:
             on_progress(index, len(paths), relative, document.converter)

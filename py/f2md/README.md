@@ -30,6 +30,7 @@ f2md --tree docs/ docs-md/       # mirror a whole directory tree
 f2md --tree /data/lab /data/lab-md
 f2md --tree /data/lab /data/lab-md --only .pdf,.docx --quiet
 f2md --tree /data/lab /data/lab-md --secret-pattern 'konfidencial|strictly confidential'
+f2md --tree /data/lab /data/lab-md --translate en
 ```
 
 `src/a/b/report.pdf` becomes `out/a/b/report.pdf.md`. The original extension is kept before `.md`,
@@ -57,6 +58,43 @@ warnings: []
 Files with no text layer — CAD meshes, archives, binaries — still get a Markdown file containing
 the front matter and a short stub saying why. Dropping them would leave a tree that silently
 disagrees with its source, which is worse than an explicit "nothing to extract here".
+
+### Translating to one language
+
+`--translate en` detects each document's language and, for anything not already in the target,
+writes **both** files:
+
+```
+Bendradarbiavimo_sutartis.docx.secret.lt.md   original, tagged with its language
+Bendradarbiavimo_sutartis.docx.secret.md      English translation
+```
+
+The unsuffixed name is always the target language, so a consumer that wants "the English one" can
+ignore language codes entirely, while the original stays available and clearly labelled.
+
+Two engines, picked **per document**, not per run:
+
+| policy | confidential documents | everything else |
+| --- | --- | --- |
+| `hybrid` *(default)* | `argos`, offline | `openrouter`, hosted LLM |
+| `argos` | `argos` | `argos` |
+| `openrouter` | **refused** | `openrouter` |
+
+This is the point of the feature. Machine translation of a document marked confidential must not
+send it to a third party, so `hybrid` keeps those on the offline engine and `openrouter` refuses
+them outright rather than silently downgrading — a policy that can leak is not a policy.
+
+```bash
+pip install 'f2md[translate]'   # argostranslate + language detection, fully offline
+export OPENROUTER_API_KEY=...   # only needed for the hosted half of `hybrid`
+```
+
+Argos downloads its own language-pair models on first use (~100-200 MB each). If an engine is
+unavailable the original is still written and the gap is recorded as `translationError` in its
+front matter — a run never fails because a translator was missing.
+
+Translated files carry `translatedFrom`, `translationEngine`, `translationModel` and `translationOf`,
+so it is always clear that the text is machine output and which engine produced it.
 
 ### Marking confidential documents
 

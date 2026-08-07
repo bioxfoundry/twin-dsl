@@ -117,9 +117,44 @@ Przydatne opcje:
 | `--quiet` | bez postępu per plik (postęp idzie na stderr, JSON na stdout) |
 | `--secret-pattern REGEX` | pliki pasujące trafiają do `<nazwa>.secret.md` z `confidential: true` |
 | `--docling-url URL` | dopina Docling jako ostatnie ogniwo (skany, tabele, OCR) |
+| `--translate en` | wykrywa język i tłumaczy dokumenty spoza `en` |
+| `--translation-policy` | `hybrid` (domyślnie), `argos`, `openrouter` |
 
 Przebieg jest idempotentny — nadpisuje w miejscu — i odmawia zapisu wewnątrz katalogu źródłowego,
 co inaczej podałoby wygenerowany Markdown na wejście kolejnego uruchomienia.
+
+### Języki i tłumaczenie
+
+`--translate en` wykrywa język każdego dokumentu i dla wszystkiego, co nie jest po angielsku,
+zapisuje **oba** pliki:
+
+```
+Bendradarbiavimo_sutartis.docx.secret.lt.md   oryginał, oznaczony językiem
+Bendradarbiavimo_sutartis.docx.secret.md      tłumaczenie na angielski
+```
+
+Nazwa bez sufiksu językowego to **zawsze** język docelowy, więc konsument, który chce „tę
+angielską", może w ogóle nie znać kodów języków — a oryginał zostaje dostępny i wyraźnie opisany.
+
+Silnik wybierany jest **per dokument**, nie per przebieg:
+
+| polityka | dokumenty poufne | pozostałe |
+| --- | --- | --- |
+| `hybrid` *(domyślnie)* | `argos`, offline | `openrouter`, LLM w chmurze |
+| `argos` | `argos` | `argos` |
+| `openrouter` | **odmowa** | `openrouter` |
+
+To jest sedno tej funkcji: tłumaczenie maszynowe dokumentu oznaczonego `KONFIDENCIALU` nie może go
+wysłać do zewnętrznego dostawcy. `hybrid` trzyma takie pliki na silniku offline, a `openrouter`
+**odmawia** ich zamiast po cichu obniżać wymagania — polityka, która może wyciec, nie jest polityką.
+
+```bash
+pip install 'f2md[translate]'   # argostranslate + detekcja języka, w pełni offline
+export OPENROUTER_API_KEY=...   # tylko dla chmurowej połowy `hybrid`
+```
+
+Gdy silnik jest niedostępny, oryginał i tak powstaje, a brak zapisuje się jako `translationError`
+w jego front matter — przebieg nigdy nie pada z powodu brakującego tłumacza.
 
 ### Co dostajesz w każdym pliku
 

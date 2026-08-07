@@ -391,3 +391,72 @@ def test_tree_records_both_absolute_and_tree_relative_source(tmp_path) -> None:
     text = (out / "deep" / "a.md.md").read_text(encoding="utf-8")
     assert f'source: "{(src / "a.md").resolve()}"' in text
     assert 'sourceRelative: "deep/a.md"' in text
+
+
+# --------------------------------------------------------------------- translation routing
+def test_hybrid_policy_keeps_confidential_documents_offline() -> None:
+    from f2md.translate import TranslationPolicy
+
+    policy = TranslationPolicy("hybrid", "en")
+    assert policy.engine_for(confidential=True) == "argos", "confidential text must not leave the host"
+    assert policy.engine_for(confidential=False) == "openrouter"
+
+
+def test_hosted_only_policy_refuses_confidential_documents() -> None:
+    from f2md.translate import TranslationPolicy, TranslationUnavailable
+
+    policy = TranslationPolicy("openrouter", "en")
+    # Refused rather than silently downgraded: a policy that can leak is not a policy.
+    with pytest.raises(TranslationUnavailable, match="CONFIDENTIAL_REFUSED"):
+        policy.engine_for(confidential=True)
+
+
+def test_offline_only_policy_never_uses_the_network() -> None:
+    from f2md.translate import TranslationPolicy
+
+    policy = TranslationPolicy("argos", "en")
+    assert policy.engine_for(confidential=True) == "argos"
+    assert policy.engine_for(confidential=False) == "argos"
+
+
+def test_unknown_policy_is_rejected() -> None:
+    from f2md.translate import TranslationPolicy
+
+    with pytest.raises(ConversionError, match="TRANSLATION_POLICY_INVALID"):
+        TranslationPolicy("send-it-anywhere", "en")
+
+
+def test_tree_names_originals_by_language_and_keeps_target_unsuffixed(tmp_path) -> None:
+    pytest.importorskip("py3langid")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "lt.md").write_text(
+        "# Bendradarbiavimo sutartis\n\nSi sutartis sudaryta tarp Saptera UAB ir instituto. "
+        "Salys susitaria del bendradarbiavimo industrines doktoranturos srityje.\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "out"
+    # No engine is reachable in the test environment; the run must still produce the original and
+    # record the gap rather than failing.
+    result = convert_tree(str(src), str(out), translate_to="en", translation_policy="openrouter")
+    assert result.by_language.get("lt") == 1
+    assert (out / "lt.md.lt.md").is_file(), sorted(p.name for p in out.iterdir())
+    text = (out / "lt.md.lt.md").read_text(encoding="utf-8")
+    assert 'language: "lt"' in text
+    assert "translationError" in text, "a missing engine must be recorded, not silently dropped"
+
+
+def test_tree_does_not_suffix_documents_already_in_the_target_language(tmp_path) -> None:
+    pytest.importorskip("py3langid")
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "en.md").write_text(
+        "# Laboratory automation\n\nThis document describes digital twins and robotic platforms "
+        "used for high throughput screening in modern laboratories.\n",
+        encoding="utf-8",
+    )
+    out = tmp_path / "out"
+    result = convert_tree(str(src), str(out), translate_to="en")
+    assert result.translated == 0
+    assert (out / "en.md.md").is_file()
+    assert not list(out.glob("*.en.md")), "the target language stays unsuffixed"
