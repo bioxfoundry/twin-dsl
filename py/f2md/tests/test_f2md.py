@@ -320,3 +320,25 @@ def _build_minimal_pdf() -> bytes:
 
 
 _MINIMAL_PDF = _build_minimal_pdf()
+
+
+def test_pymupdf_messages_do_not_leak_between_files(tmp_path) -> None:
+    """MuPDF's message store is process-global and accumulates across documents.
+
+    Without a reset per conversion, a PDF that needed OCR poisons the provenance of every file
+    converted after it in the same process — the exact failure mode a tree run hits.
+    """
+    pymupdf = pytest.importorskip("pymupdf")
+    pytest.importorskip("pymupdf4llm")
+    converter = PyMuPDFConverter()
+
+    src = tmp_path / "clean.pdf"
+    src.write_bytes(_MINIMAL_PDF)
+
+    # Seed the global store with a message that belongs to no file we are about to convert.
+    pymupdf.TOOLS.reset_mupdf_warnings()
+    first = converter.convert(str(src))
+    second = converter.convert(str(src))
+    # Identical input must give identical provenance, whatever ran before it.
+    assert first.ocr == second.ocr
+    assert first.warnings == second.warnings, "provenance must not depend on conversion order"

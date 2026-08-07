@@ -13,6 +13,7 @@ import contextlib
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -26,6 +27,9 @@ from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
 
 DEFAULT_MAX_CHARS = int(os.environ.get("F2MD_MAX_CHARS", "400000"))
 DEFAULT_TIMEOUT_S = int(os.environ.get("F2MD_TIMEOUT_S", "120"))
+
+#: PyMuPDF logs one of these per page it had to recognise rather than read.
+_OCR_PAGE_MARKER = re.compile(r"OCR on page", re.IGNORECASE)
 
 
 @runtime_checkable
@@ -219,23 +223,44 @@ class PyMuPDFConverter:
         except ImportError:
             # Missing extra is a routing signal, not a failure: the chain moves on.
             raise ExternalConverterRequired(kind) from None
+        # MuPDF's message store is process-global and accumulates across documents. Without a
+        # reset, messages from a previously converted PDF get attributed to this one — which in a
+        # tree run silently mislabels which files went through OCR.
+        try:
+            import pymupdf  # type: ignore[import-not-found]
+
+            pymupdf.TOOLS.reset_mupdf_warnings()
+        except Exception:  # noqa: BLE001 - attribution is best-effort, never fatal
+            pass
         try:
             with _quiet_stdout() as chatter:
                 text = str(pymupdf4llm.to_markdown(path)).strip()
         except Exception as error:  # noqa: BLE001 - surfaced as one conversion failure
             raise ConversionError(f"PYMUPDF_FAILED:{error}") from error
         noise = chatter.text.strip()
+        try:
+            import pymupdf  # type: ignore[import-not-found]
+
+            # The store holds this document's messages now; stdout only carries a summary banner.
+            noise = "\n".join(filter(None, [noise, str(pymupdf.TOOLS.mupdf_warnings() or "")])).strip()
+        except Exception:  # noqa: BLE001
+            pass
         if len(text) < self.min_chars:
             # A scanned page yields almost nothing here; hand it to a backend that can OCR.
             raise ExternalConverterRequired(kind)
         body, warnings = _clip(text, self.max_chars)
+        # PyMuPDF falls back to Tesseract per page and says so on stdout. Reporting ocr=false while
+        # the text actually came from recognition would defeat the point of the field, so the
+        # captured chatter is the evidence: only a per-page "OCR on page" line counts, not the
+        # generic "Using Tesseract for OCR processing" capability banner.
+        ocr = bool(_OCR_PAGE_MARKER.search(noise))
         if noise:
             warnings.append("BACKEND_DIAGNOSTIC:" + " / ".join(noise.splitlines())[:200])
         metadata = _stat_metadata(path)
         metadata["extractedChars"] = len(text)
         return ConvertedDocument(
             body, metadata, [], self.name, self.version,
-            backend_type=self.backend_type, input_kind=kind, warnings=warnings,
+            backend_type=self.backend_type, input_kind=kind, ocr=ocr, warnings=warnings,
         )
 
 
