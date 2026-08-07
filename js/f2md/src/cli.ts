@@ -6,6 +6,7 @@ import { ConverterChain, defaultChain } from "./chain.js";
 import { DoclingHttpConverter, LocalToolConverter, TextConverter } from "./converters.js";
 import { detectDocumentKind, mediaTypeFor } from "./detect.js";
 import { ConversionError } from "./types.js";
+import { convertTree } from "./tree.js";
 import { VERSION } from "./index.js";
 
 const USAGE = `usage: f2md [options] <file...>
@@ -14,6 +15,9 @@ const USAGE = `usage: f2md [options] <file...>
   --detect            only report detected kind and media type
   --backend <name>    auto (default) | text | local | docling
   --docling-url <url> Docling service URL (or set DOCLING_URL)
+  --tree <src> <out>  mirror a directory: src/a/b.pdf -> out/a/b.pdf.md with front matter
+  --only <kinds>      with --tree, restrict to these kinds, e.g. .pdf,.docx
+  --quiet             with --tree, suppress per-file progress
   --version
 `;
 
@@ -30,6 +34,9 @@ export async function main(argv: string[]): Promise<number> {
   let detect = false;
   let backend = "auto";
   let doclingUrl: string | undefined;
+  let tree: [string, string] | undefined;
+  let only: string[] | undefined;
+  let quiet = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
@@ -37,11 +44,31 @@ export async function main(argv: string[]): Promise<number> {
     else if (arg === "--detect") detect = true;
     else if (arg === "--backend") backend = argv[++i] ?? "auto";
     else if (arg === "--docling-url") doclingUrl = argv[++i];
+    else if (arg === "--tree") tree = [argv[++i], argv[++i]];
+    else if (arg === "--only") only = (argv[++i] ?? "").split(",").map((k) => k.trim()).filter(Boolean);
+    else if (arg === "--quiet") quiet = true;
     else if (arg === "--version") { console.log(`f2md ${VERSION}`); return 0; }
     else if (arg === "--help" || arg === "-h") { console.log(USAGE); return 0; }
     else if (arg.startsWith("-")) { console.error(`f2md: unknown option ${arg}\n${USAGE}`); return 2; }
     else paths.push(arg);
   }
+  if (tree) {
+    const [src, out] = tree;
+    if (!src || !out) { console.error("f2md: --tree needs SRC and OUT\n" + USAGE); return 2; }
+    try {
+      const result = await convertTree(src, out, {
+        doclingUrl,
+        only,
+        onProgress: quiet ? undefined : (i, total, rel, note) => console.error(`[${i}/${total}] ${rel} -> ${note}`),
+      });
+      console.log(JSON.stringify(result, null, 2));
+      return 0;
+    } catch (error) {
+      console.error(`f2md: ${error instanceof ConversionError ? error.message : String(error)}`);
+      return 2;
+    }
+  }
+
   if (!paths.length) { console.error(USAGE); return 2; }
 
   if (detect) {

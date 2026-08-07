@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -16,6 +16,7 @@ import {
   TurndownConverter,
   convert,
   convertToMarkdown,
+  convertTree,
   detectDocumentKind,
   mediaTypeFor,
   type ConvertedDocument,
@@ -255,4 +256,39 @@ test("DOCX goes through mammoth then turndown", async (t) => {
   // A DOCX is a zip; mammoth must fail on a non-zip rather than silently produce nothing.
   await writeFile(path, Buffer.from("not really a docx"));
   await assert.rejects(() => new MammothConverter().convert(path), /MAMMOTH_FAILED|ConversionError/);
+});
+
+/* ------------------------------------------------------------------- tree mode */
+test("tree mode mirrors structure and keeps the original extension", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src");
+  const out = join(dir, "out");
+  await mkdir(join(src, "sub"), { recursive: true });
+  await writeFile(join(src, "note.md"), "# Hello\n");
+  await writeFile(join(src, "sub", "page.html"), "<h1>Zone</h1>");
+  await writeFile(join(src, "sub", "model.stl"), Buffer.from([0, 1, 2, 3]));
+
+  const result = await convertTree(src, out, { onProgress: undefined });
+  assert.equal(result.converted, 2);
+  assert.equal(result.stubbed, 1, "a binary with no text layer must still produce a file");
+
+  const note = await readFile(join(out, "note.md.md"), "utf8");
+  assert.match(note, /^---\n/, "front matter must lead the file");
+  assert.match(note, /converter: "deterministic-text"/);
+  assert.match(note, /backendType: "stdlib"/);
+  assert.match(note, /# Hello/);
+
+  // The stub records why there is no text rather than omitting the file.
+  const stub = await readFile(join(out, "sub", "model.stl.md"), "utf8");
+  assert.match(stub, /converted: false/);
+  assert.match(stub, /EXTERNAL_CONVERTER_REQUIRED/);
+});
+
+test("tree mode refuses to write inside its own source", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src");
+  await mkdir(src, { recursive: true });
+  await writeFile(join(src, "a.md"), "x");
+  // Otherwise the next run would re-ingest its own generated Markdown.
+  await assert.rejects(() => convertTree(src, join(src, "out")), /OUTPUT_INSIDE_SOURCE/);
 });

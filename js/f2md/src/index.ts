@@ -25,6 +25,8 @@ export {
   TurndownConverter,
 } from "./converters.js";
 export { ConverterChain, convert, convertToMarkdown, defaultChain } from "./chain.js";
+export { SKIP_DIRS, convertTree, frontMatter, walkFiles } from "./tree.js";
+export type { TreeOptions, TreeResult } from "./tree.js";
 export {
   BINARY_EXTENSIONS,
   MEDIA_TYPES,
