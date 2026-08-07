@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, relative } from "node:path";
 import {
   BACKEND_TYPES,
   ConversionError,
@@ -291,4 +291,25 @@ test("tree mode refuses to write inside its own source", async (t) => {
   await writeFile(join(src, "a.md"), "x");
   // Otherwise the next run would re-ingest its own generated Markdown.
   await assert.rejects(() => convertTree(src, join(src, "out")), /OUTPUT_INSIDE_SOURCE/);
+});
+
+test("source is absolute even when called with a relative path", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "note.md");
+  await writeFile(path, "# Hi\n");
+  // A relative path cannot be resolved later from a different working directory.
+  const doc = await convert(relative(process.cwd(), path));
+  assert.equal(doc.metadata.source, path);
+});
+
+test("tree records both absolute and tree-relative source", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src", "deep");
+  await mkdir(src, { recursive: true });
+  await writeFile(join(src, "a.md"), "# A\n");
+  const out = join(dir, "out");
+  await convertTree(join(dir, "src"), out);
+  const text = await readFile(join(out, "deep", "a.md.md"), "utf8");
+  assert.match(text, new RegExp(`source: "${join(src, "a.md").replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}"`));
+  assert.match(text, /sourceRelative: "deep\/a\.md"/);
 });

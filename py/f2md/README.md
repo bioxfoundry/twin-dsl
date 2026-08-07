@@ -38,7 +38,8 @@ collide. Each file gets YAML front matter carrying the full envelope:
 
 ```yaml
 ---
-source: "reports/q3.pdf"
+source: "/data/lab/reports/q3.pdf"
+sourceRelative: "reports/q3.pdf"
 inputKind: ".pdf"
 mediaType: "application/pdf"
 converter: "pymupdf4llm"

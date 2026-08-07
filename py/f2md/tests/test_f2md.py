@@ -370,3 +370,24 @@ def test_tree_without_a_pattern_marks_nothing(tmp_path) -> None:
     result = convert_tree(str(src), str(out))
     assert result.confidential == 0
     assert (out / "deal.md.md").is_file()
+
+
+def test_source_is_absolute_even_when_called_with_a_relative_path(tmp_path, monkeypatch) -> None:
+    """A relative path cannot be resolved later from a different working directory."""
+    src = tmp_path / "note.md"
+    src.write_text("# Hi\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    doc = convert("note.md")
+    assert os.path.isabs(doc.metadata["source"]), doc.metadata["source"]
+    assert doc.metadata["source"] == str(src.resolve())
+
+
+def test_tree_records_both_absolute_and_tree_relative_source(tmp_path) -> None:
+    src = tmp_path / "src" / "deep"
+    src.mkdir(parents=True)
+    (src / "a.md").write_text("# A\n", encoding="utf-8")
+    out = tmp_path / "out"
+    convert_tree(str(tmp_path / "src"), str(out))
+    text = (out / "deep" / "a.md.md").read_text(encoding="utf-8")
+    assert f'source: "{(src / "a.md").resolve()}"' in text
+    assert 'sourceRelative: "deep/a.md"' in text

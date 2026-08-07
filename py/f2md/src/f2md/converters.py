@@ -43,7 +43,9 @@ class Converter(Protocol):
 def _stat_metadata(path: str) -> Dict[str, Any]:
     info = os.stat(path)
     return {
-        "source": path,
+        # Absolute: a caller that recorded a relative path cannot resolve it later from a
+        # different working directory, which defeats the point of recording provenance.
+        "source": os.path.abspath(path),
         "size": info.st_size,
         "mtime": datetime.fromtimestamp(info.st_mtime, tz=timezone.utc).isoformat().replace("+00:00", "Z"),
     }

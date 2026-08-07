@@ -122,7 +122,11 @@ def convert_tree(
         os.makedirs(os.path.dirname(os.path.join(out, relative)), exist_ok=True)
 
         base_fields: Dict[str, Any] = {
-            "source": relative,
+            # Absolute, so a Markdown file still points at its origin after being moved or
+            # published somewhere else. The tree-relative form is kept alongside it because that
+            # is what mirrors the output layout.
+            "source": os.path.abspath(path),
+            "sourceRelative": relative,
             "inputKind": kind,
             "mediaType": media_type_for(path),
         }

@@ -127,7 +127,8 @@ Każdy plik ma front matter z pełną kopertą konwersji, więc pochodzenie prze
 
 ```yaml
 ---
-source: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf"
+source: "/home/tom/github/bioxfoundry/nanobionic-laboratory/Saptera_Technologine_Kortele_Dark_Factory_v1.pdf"
+sourceRelative: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf"
 inputKind: ".pdf"
 mediaType: "application/pdf"
 confidential: true
@@ -145,6 +146,8 @@ warnings: []
 
 Najważniejsze pola:
 
+- **`source`** — ścieżka **absolutna** do oryginału, więc plik md wskazuje na źródło nawet po
+  przeniesieniu czy opublikowaniu gdzie indziej; `sourceRelative` odwzorowuje układ drzewa;
 - **`converter` / `converterVersion`** — który backend faktycznie zadziałał. Bez tego nie odróżnisz
   czystej ekstrakcji od zgadywanki OCR trzy kroki później;
 - **`ocr`** — czy tekst powstał z rozpoznawania obrazu. W korpusie nanobionic **52 ze 101** plików

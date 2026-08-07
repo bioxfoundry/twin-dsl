@@ -99,7 +99,9 @@ export async function convertTree(src: string, out: string, options: TreeOptions
     }
     const outPath = join(target, `${rel}.md`);
     await mkdir(dirname(outPath), { recursive: true });
-    const base = { source: rel, inputKind: kind, mediaType: mediaTypeFor(path) };
+    // Absolute, so a Markdown file still points at its origin after being moved or published
+    // elsewhere; the tree-relative form is kept alongside it because that mirrors the layout.
+    const base = { source: resolve(path), sourceRelative: rel, inputKind: kind, mediaType: mediaTypeFor(path) };
 
     try {
       const document = await chain.convert(path);

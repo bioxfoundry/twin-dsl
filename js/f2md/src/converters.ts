@@ -6,7 +6,7 @@
  */
 import { execFile } from "node:child_process";
 import { readFile, stat } from "node:fs/promises";
-import { basename } from "node:path";
+import { basename, resolve } from "node:path";
 import { promisify } from "node:util";
 import { detectDocumentKind, isTextKind } from "./detect.js";
 import { type BackendType, ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
@@ -18,7 +18,9 @@ export const DEFAULT_TIMEOUT_MS = Number(process.env.F2MD_TIMEOUT_MS ?? 120_000)
 
 async function statMetadata(path: string): Promise<Record<string, unknown>> {
   const info = await stat(path);
-  return { source: path, size: info.size, mtime: info.mtime.toISOString() };
+  // Absolute: a caller that recorded a relative path cannot resolve it later from a different
+  // working directory, which defeats the point of recording provenance.
+  return { source: resolve(path), size: info.size, mtime: info.mtime.toISOString() };
 }
 
 /** Truncate to `maxChars`, reporting it as a warning rather than silently losing content. */
