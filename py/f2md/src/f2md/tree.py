@@ -12,12 +12,16 @@ tree that silently disagrees with its source, which is worse than an explicit "n
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterator, List, Optional, Sequence
 
 from .chain import ConverterChain, default_chain
 from .detect import detect_document_kind, media_type_for
 from .types import ConversionError
+
+#: Marker inserted before ``.md`` for documents matching a confidentiality pattern.
+SECRET_SUFFIX = ".secret"
 
 #: Directories never worth walking into.
 SKIP_DIRS = frozenset({".git", ".svn", "node_modules", "__pycache__", ".venv", "venv", ".mypy_cache", ".pytest_cache"})
@@ -53,6 +57,7 @@ class TreeResult:
     converted: int = 0
     stubbed: int = 0
     skipped: int = 0
+    confidential: int = 0
     by_converter: Dict[str, int] = field(default_factory=dict)
     failures: List[Dict[str, str]] = field(default_factory=list)
 
@@ -61,6 +66,7 @@ class TreeResult:
             "converted": self.converted,
             "stubbed": self.stubbed,
             "skipped": self.skipped,
+            "confidential": self.confidential,
             "byConverter": dict(sorted(self.by_converter.items(), key=lambda kv: -kv[1])),
             "failures": self.failures,
         }
@@ -82,12 +88,20 @@ def convert_tree(
     docling_url: Optional[str] = None,
     on_progress: Optional[Any] = None,
     only: Optional[Sequence[str]] = None,
+    secret_pattern: Optional[str] = None,
 ) -> TreeResult:
     """Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
 
     ``only`` restricts the run to the given detected kinds (e.g. ``(".pdf",)``).
     ``on_progress`` is called with ``(index, total, relative_path, converter_or_error)``.
+
+    ``secret_pattern`` is a case-insensitive regex; a document whose text matches it is written as
+    ``<name>.<ext>.secret.md`` and flagged in its front matter. There is deliberately **no
+    default**: guessing confidentiality misfires in both directions — an academic paper discussing
+    "confidential peer review" is not confidential, while a marking in a language the heuristic
+    does not know would be missed. The caller states the rule for their corpus.
     """
+    secret_re = re.compile(secret_pattern, re.IGNORECASE) if secret_pattern else None
     src = os.path.abspath(src)
     out = os.path.abspath(out)
     if not os.path.isdir(src):
@@ -105,8 +119,7 @@ def convert_tree(
         if only and kind not in only:
             result.skipped += 1
             continue
-        target = os.path.join(out, relative + ".md")
-        os.makedirs(os.path.dirname(target), exist_ok=True)
+        os.makedirs(os.path.dirname(os.path.join(out, relative)), exist_ok=True)
 
         base_fields: Dict[str, Any] = {
             "source": relative,
@@ -125,6 +138,8 @@ def convert_tree(
                 f"- size: {os.path.getsize(path)} bytes\n"
             )
             fields = {**base_fields, "converter": "none", "converted": False, "error": reason}
+            # A stub has no text to match against, so it is never classified as confidential.
+            target = os.path.join(out, relative + ".md")
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(front_matter(fields) + body)
             result.stubbed += 1
@@ -134,8 +149,11 @@ def convert_tree(
                 on_progress(index, len(paths), relative, f"STUB:{reason[:60]}")
             continue
 
+        secret = bool(secret_re and secret_re.search(document.markdown))
+        target = os.path.join(out, relative + (SECRET_SUFFIX if secret else "") + ".md")
         fields = {
             **base_fields,
+            "confidential": secret,
             "converter": document.converter,
             "converterVersion": document.version,
             "backendType": document.backend_type,
@@ -151,6 +169,8 @@ def convert_tree(
         with open(target, "w", encoding="utf-8") as handle:
             handle.write(front_matter(fields) + document.markdown.rstrip() + "\n")
         result.converted += 1
+        if secret:
+            result.confidential += 1
         result.by_converter[document.converter] = result.by_converter.get(document.converter, 0) + 1
         if on_progress:
             on_progress(index, len(paths), relative, document.converter)

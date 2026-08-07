@@ -29,6 +29,7 @@ f2md --tree docs/ docs-md/       # mirror a whole directory tree
 ```bash
 f2md --tree /data/lab /data/lab-md
 f2md --tree /data/lab /data/lab-md --only .pdf,.docx --quiet
+f2md --tree /data/lab /data/lab-md --secret-pattern 'konfidencial|strictly confidential'
 ```
 
 `src/a/b/report.pdf` becomes `out/a/b/report.pdf.md`. The original extension is kept before `.md`,
@@ -55,6 +56,16 @@ warnings: []
 Files with no text layer — CAD meshes, archives, binaries — still get a Markdown file containing
 the front matter and a short stub saying why. Dropping them would leave a tree that silently
 disagrees with its source, which is worse than an explicit "nothing to extract here".
+
+### Marking confidential documents
+
+`--secret-pattern REGEX` (case-insensitive) writes matching documents as `<name>.<ext>.secret.md`
+and sets `confidential: true` in their front matter, so the restriction is visible without opening
+the file and survives tooling that only sees filenames.
+
+There is **no default pattern on purpose.** Guessing confidentiality misfires in both directions:
+an academic paper discussing "confidential peer review" is not confidential, while a marking in a
+language the heuristic does not know would be missed. You state the rule for your corpus.
 
 ## Why another converter
 

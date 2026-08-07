@@ -47,6 +47,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     parser.add_argument("--only", default=None, help="with --tree, restrict to these kinds, e.g. .pdf,.docx")
     parser.add_argument("--quiet", action="store_true", help="with --tree, suppress per-file progress")
+    parser.add_argument(
+        "--secret-pattern",
+        default=None,
+        metavar="REGEX",
+        help="with --tree, write matching documents as <name>.secret.md (case-insensitive regex)",
+    )
     parser.add_argument("--version", action="version", version=f"f2md {__version__}")
     args = parser.parse_args(argv)
 
@@ -59,7 +65,10 @@ def main(argv: Optional[List[str]] = None) -> int:
                 print(f"[{index}/{total}] {relative} -> {note}", file=sys.stderr)
 
         try:
-            result = convert_tree(src, out, docling_url=args.docling_url, on_progress=progress, only=only)
+            result = convert_tree(
+                src, out, docling_url=args.docling_url, on_progress=progress,
+                only=only, secret_pattern=args.secret_pattern,
+            )
         except ConversionError as error:
             print(f"f2md: {error}", file=sys.stderr)
             return 2

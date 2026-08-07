@@ -26,6 +26,7 @@ from f2md import (
     media_type_for,
 )
 from f2md.cli import main
+from f2md.tree import convert_tree
 
 
 # --------------------------------------------------------------------------- detection
@@ -342,3 +343,30 @@ def test_pymupdf_messages_do_not_leak_between_files(tmp_path) -> None:
     # Identical input must give identical provenance, whatever ran before it.
     assert first.ocr == second.ocr
     assert first.warnings == second.warnings, "provenance must not depend on conversion order"
+
+
+def test_tree_marks_confidential_documents_in_the_filename(tmp_path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "public.md").write_text("# Public\n\nNothing sensitive here.\n", encoding="utf-8")
+    (src / "deal.md").write_text("# Offer\n\nKONFIDENCIALU - internal only\n", encoding="utf-8")
+    out = tmp_path / "out"
+
+    result = convert_tree(str(src), str(out), secret_pattern="konfidencial")
+    assert result.confidential == 1
+    assert (out / "deal.md.secret.md").is_file(), sorted(p.name for p in out.iterdir())
+    assert (out / "public.md.md").is_file()
+    assert not (out / "deal.md.md").exists(), "a confidential file must not also land unmarked"
+    assert 'confidential: true' in (out / "deal.md.secret.md").read_text(encoding="utf-8")
+    assert 'confidential: false' in (out / "public.md.md").read_text(encoding="utf-8")
+
+
+def test_tree_without_a_pattern_marks_nothing(tmp_path) -> None:
+    # Guessing confidentiality misfires both ways, so there is deliberately no default pattern.
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "deal.md").write_text("KONFIDENCIALU\n", encoding="utf-8")
+    out = tmp_path / "out"
+    result = convert_tree(str(src), str(out))
+    assert result.confidential == 0
+    assert (out / "deal.md.md").is_file()
