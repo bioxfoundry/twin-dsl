@@ -72,6 +72,56 @@ export function summarizeDevelopment(input:DevelopmentAnalysisInput):Development
   };
 }
 
+/**
+ * Hash only semantic todo2code evidence. Run ids, timestamps and stage durations
+ * identify an execution, not a change in project intent, and must not trigger a
+ * new autonomous Twin revision by themselves.
+ */
+export function developmentAnalysisFingerprint(input:{graph:unknown;diagnostics?:unknown;manifest?:unknown;summary:DevelopmentEvidenceSummary}):string {
+  const graphObject = object(input.graph);
+  const graph = graphObject
+    // todo2code's declared graph fingerprint is an execution artifact in some
+    // versions because it includes generatedAt. Re-hash the semantic graph
+    // below instead of allowing that volatile value to drive a Twin iteration.
+    ? Object.fromEntries(Object.entries(graphObject).filter(([key])=>!["generatedAt","createdAt","runId","fingerprint","graphFingerprint"].includes(key)))
+    : input.graph;
+  const diagnosticsObject = object(input.diagnostics);
+  const diagnostics = diagnosticsObject ? {
+    schemaVersion:diagnosticsObject.schemaVersion ?? null,
+    counts:diagnosticsObject.counts ?? null,
+    diagnostics:array(diagnosticsObject.diagnostics ?? diagnosticsObject.items),
+  } : input.diagnostics ?? [];
+  const manifest = object(input.manifest);
+  const configuration = object(manifest?.configuration);
+  const stages = object(manifest?.stages);
+  const stableStages = Object.fromEntries(Object.entries(stages??{}).map(([name,value])=>{
+    const stage = object(value);
+    return [name,stage ? {
+      status:stage.status ?? null,
+      requestedMode:stage.requestedMode ?? null,
+      effectiveMode:stage.effectiveMode ?? null,
+      degraded:stage.degraded ?? null,
+      recordCount:stage.recordCount ?? null,
+      warningCount:stage.warningCount ?? null,
+      model:stage.model ?? null,
+      reason:stage.reason ?? null,
+    } : value];
+  }));
+  const stableManifest = manifest ? {
+    schemaVersion:manifest.schemaVersion ?? null,
+    status:manifest.status ?? null,
+    runtime:manifest.runtime ?? null,
+    configurationFingerprint:configuration?.fingerprint ?? null,
+    warnings:manifest.warnings ?? [],
+    stages:stableStages,
+  } : {};
+  // Summary.graphFingerprint mirrors the same volatile upstream declaration;
+  // record/relation counts and acceptance remain part of the semantic hash.
+  const {graphFingerprint: _declaredGraphFingerprint, ...summaryFields} = input.summary;
+  const summary = {...summaryFields,evidenceUris:[]};
+  return sha256(canonicalJson({graph,diagnostics,manifest:stableManifest,summary}));
+}
+
 const AUTHORITY_BINDINGS = new Set([
   "ManagerApproved","ResearchEvidencePresent","DevelopmentEvidencePresent","DevelopmentAccepted","RuntimeEvidencePresent",
   "RequireResearch","RequireDevelopment","RequireDevelopmentAcceptance","RequireRuntime","AutoPublishScene",
@@ -148,6 +198,7 @@ export function buildImprovementPlan(input:{
   authorityWarnings:string[];
   failures:string[];
   evidenceUris:string[];
+  repairProcesses?:Array<{failure:string;title:string;processUri:string;evidenceUris:string[]}>;
 }):ImprovementPlan {
   const actions:ImprovementAction[] = [];
   const add = (kind:ImprovementAction["kind"],title:string,reason:string,targetUris:string[],approvalRequired:boolean)=>{
@@ -160,7 +211,12 @@ export function buildImprovementPlan(input:{
   if(!input.project.policy.approved) add("policy","Request manager approval","The project policy is not approved.",[`subactor://project/${input.project.id}/manager`],true);
   if(input.project.policy.allowRuntimeSelfModification && input.project.policy.requireSignedMutationGrant && !input.mutationGrantPresent) add("policy","Obtain signed mutation grant","Runtime self-modification was requested but no signed mutation grant is available.",[`subactor://project/${input.project.id}/policy/mutation-grant`],true);
   for(const warning of input.authorityWarnings) add("validation","Review rejected LLM authority override",warning,[`subactor://project/${input.project.id}/math/authority`],true);
-  for(const failure of input.failures) add("validation","Resolve blocked iteration",failure,[`subactor://project/${input.project.id}/iteration`],true);
+  const routedFailures = new Set<string>();
+  for(const repair of input.repairProcesses??[]) {
+    add("validation",repair.title,repair.failure,[repair.processUri,...repair.evidenceUris],true);
+    routedFailures.add(repair.failure);
+  }
+  for(const failure of input.failures) if(!routedFailures.has(failure)) add("validation","Resolve blocked iteration",failure,[`subactor://project/${input.project.id}/iteration`],true);
   if(actions.length === 0) add("validation","Maintain continuous verification","All current gates pass; rerun on the next source, code or runtime change.",input.evidenceUris,false);
   return validateImprovement({
     schema:"subactor.improvement-plan/v1",
@@ -213,7 +269,16 @@ export async function acquireProjectLease(outDir:string,projectId:string,staleAf
       const code = (error as NodeJS.ErrnoException).code;
       if(code !== "EEXIST") throw error;
       let stale = false;
-      try { stale = Date.now()-(await stat(leaseDirectory)).mtimeMs > staleAfterMs; }
+      try {
+        const ageExpired = Date.now()-(await stat(leaseDirectory)).mtimeMs > staleAfterMs;
+        const owner = JSON.parse(await readFile(join(leaseDirectory,"lease.json"),"utf8")) as {pid?:unknown};
+        let ownerDead = false;
+        if(Number.isInteger(owner.pid) && (owner.pid as number) > 0) {
+          try { process.kill(owner.pid as number,0); }
+          catch(ownerError) { ownerDead = (ownerError as NodeJS.ErrnoException).code === "ESRCH"; }
+        }
+        stale = ageExpired || ownerDead;
+      }
       catch { stale = true; }
       if(!stale) throw new Error("LIVING_PROJECT_LEASE_HELD");
       await rm(leaseDirectory,{recursive:true,force:true});

@@ -1,54 +1,52 @@
-# twin-dsl | 1036 func | 73f | 13747L | typescript | 2026-08-08
+# twin-dsl | 1346 func | 84f | 16791L | typescript | 2026-08-08
 # generated in 0.00s
 
 HEALTH:
-  CC̄=4.7  critical=110 (limit:10)  dup=9  cycles=0
+  CC̄=5.4  critical=175 (limit:10)  dup=9  cycles=0
 
 ALERTS[20]:
-  !!! cc_exceeded      main = 91 (limit:15)
-  !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 82 (limit:15)
-  !!! high_fan_out     main = 71 (limit:10)
-  !!! cc_exceeded      validateSceneBlueprint = 68 (limit:15)
-  !!! cc_exceeded      diagnoseDigitalTwin = 67 (limit:15)
-  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 63 (limit:10)
-  !!! cc_exceeded      validatePhysicalEvidence = 61 (limit:15)
-  !!! cc_exceeded      checkJsonSchema = 60 (limit:15)
-  !!! cc_exceeded      finite = 53 (limit:15)
-  !!! cc_exceeded      flatten = 53 (limit:15)
+  !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 169 (limit:15)
+  !!! cc_exceeded      main = 95 (limit:15)
+  !!! cc_exceeded      validateSceneBlueprint = 91 (limit:15)
+  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 91 (limit:10)
+  !!! cc_exceeded      startDashboard = 81 (limit:15)
+  !!! high_fan_out     main = 77 (limit:10)
+  !!! cc_exceeded      validateGeometryBuild = 76 (limit:15)
+  !!! cc_exceeded      finite = 68 (limit:15)
+  !!! cc_exceeded      flatten = 68 (limit:15)
+  !!! cc_exceeded      analyzeProjectIntegrity = 68 (limit:15)
 
-MODULES[160] (top by size):
+MODULES[178] (top by size):
   M[planfile.yaml] 1319L C:0 F:0 CC↑0 D:0 (yaml)
-  M[src/scene/blueprint.ts] 651L C:0 F:28 CC↑68 D:0 (typescript)
-  M[src/runtime/living-project.ts] 619L C:1 F:114 CC↑82 D:0 (typescript)
-  M[src/core/types.ts] 581L C:46 F:0 CC↑0 D:0 (typescript)
-  M[goal.yaml] 526L C:0 F:0 CC↑0 D:0 (yaml)
+  M[scripts/cad-to-gltf.py] 870L C:0 F:41 CC↑50 D:0 (python)
+  M[src/core/types.ts] 857L C:62 F:0 CC↑0 D:0 (typescript)
+  M[src/runtime/living-project.ts] 816L C:1 F:144 CC↑169 D:0 (typescript)
+  M[src/scene/blueprint.ts] 741L C:0 F:37 CC↑91 D:0 (typescript)
+  M[goal.yaml] 543L C:0 F:0 CC↑0 D:0 (yaml)
   M[py/f2md/src/f2md/converters.py] 466L C:9 F:19 CC↑16 D:0 (python)
+  M[src/serve/dashboard.ts] 459L C:2 F:56 CC↑81 D:3 (typescript)
   M[src/runtime/biofoundry-concept.ts] 435L C:1 F:22 CC↑13 D:0 (typescript)
-  M[src/project/wizard.ts] 358L C:1 F:37 CC↑10 D:0 (typescript)
-  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:2 (typescript)
-  M[src/serve/dashboard.ts] 313L C:2 F:44 CC↑46 D:0 (typescript)
+  M[src/project/wizard.ts] 378L C:1 F:41 CC↑16 D:0 (typescript)
+  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:0 (typescript)
+  M[js/f2md/src/converters.ts] 309L C:6 F:37 CC↑17 D:0 (typescript)
   M[src/runtime/mutation-pipeline.ts] 308L C:2 F:23 CC↑15 D:0 (typescript)
-  M[js/f2md/src/converters.ts] 307L C:6 F:37 CC↑17 D:0 (typescript)
-  M[src/ingestion/scanner.ts] 266L C:2 F:25 CC↑23 D:0 (typescript)
-  M[src/scene/physical-evidence.ts] 257L C:0 F:36 CC↑61 D:0 (typescript)
-  M[py/f2md/src/f2md/translate.py] 247L C:5 F:12 CC↑14 D:1 (python)
-  LANGS: typescript:58/json:51/python:13/proto:12/javascript:9/yaml:5/other:3/txt:3/xml:2/shell:2/yml:1/toml:1
+  M[src/runtime/autonomy.ts] 300L C:2 F:58 CC↑28 D:0 (typescript)
+  M[src/ingestion/scanner.ts] 267L C:2 F:25 CC↑23 D:0 (typescript)
+  LANGS: typescript:69/json:58/python:13/proto:12/javascript:9/yaml:5/other:3/txt:3/xml:2/shell:2/yml:1/toml:1
 
 HOTSPOTS[10]:
-  ★ main fan=71  // Orchestrates 71 calls
-  ★ LivingProjectRuntime.iterateWithLease fan=63  // Orchestrates 63 calls
-  ★ startDashboard fan=48  // Orchestrates 48 calls
-  ★ BiofoundryRuntime.build fan=38  // Orchestrates 38 calls
-  ★ convert_tree fan=37  // Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
-
-``on
+  ★ LivingProjectRuntime.iterateWithLease fan=91  // Orchestrates 91 calls
+  ★ main fan=77  // Orchestrates 77 calls
+  ★ run_scad fan=58  // Orchestrates 58 calls
+  ★ startDashboard fan=50  // Orchestrates 50 calls
+  ★ read_3mf fan=39  // Orchestrates 39 calls
 
 REFACTOR[15]:
   [1] H/L Split main (CC=30)
-  [2] H/L Split checkJsonSchema (CC=60)
-  [3] H/L Split main (CC=91)
-  [4] H/L Split DqlCrawler.crawl (CC=25)
-  [5] H/L Split LivingProjectRuntime.iterateWithLease (CC=82)
+  [2] H/L Split startDashboard (CC=81)
+  [3] H/L Split state (CC=25)
+  [4] H/L Split server (CC=50)
+  [5] H/L Split checkJsonSchema (CC=60)
 
 EVOLUTION:
-  2026-08-08 CC̄=4.7 crit=110 13747L // Automated analysis
+  2026-08-08 CC̄=5.4 crit=175 16791L // Automated analysis

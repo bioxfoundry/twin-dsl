@@ -7,25 +7,27 @@ flowchart TD
     subgraph CLI
         src__cli__main__json["json"]
         src__cli__main__save["save"]
+        src__cli__main__llmMode["llmMode"]
+        src__cli__main__runFile["runFile"]
+        src__cli__main__openScadStatus["openScadStatus"]
+        src__cli__main__moduleDir["moduleDir"]
+        src__cli__main__candidates["candidates"]
+        src__cli__main__localRoot["localRoot"]
+        src__cli__main__multiarch["multiarch"]
+        src__cli__main__localLibrary["localLibrary"]
         src__cli__main__main["main"]
         src__cli__main__t2c["t2c"]
         src__cli__main__report["report"]
         src__cli__main__runtime["runtime"]
         src__cli__main__cycle["cycle"]
-        src__cli__main__iteration["iteration"]
-        src__cli__main__issued["issued"]
-        src__cli__main__result["result"]
-        src__cli__main__project["project"]
-        src__cli__main__base["base"]
-        src__cli__main__receipt["receipt"]
-        src__cli__main__grantPath["grantPath"]
-        src__cli__main__adapter["adapter"]
-        ...["+8 more"]
+        ...["+16 more"]
     end
 
     subgraph Core
         js__f2md__src__types__ExternalConverterRequired__super["super"]
         js__f2md__src__detect__base["base"]
+        js__f2md__src__detect__actual["actual"]
+        js__f2md__src__detect__at["at"]
         js__f2md__src__detect__mediaTypeFor["mediaTypeFor"]
         js__f2md__src__detect__isTextKind["isTextKind"]
         js__f2md__src__cli__chainFor["chainFor"]
@@ -37,9 +39,7 @@ flowchart TD
         js__f2md__src__cli__result["result"]
         js__f2md__src__cli__chain["chain"]
         js__f2md__src__cli__failures["failures"]
-        js__f2md__src__cli__document["document"]
-        js__f2md__src__cli__invokedDirectly["invokedDirectly"]
-        ...["+732 more"]
+        ...["+994 more"]
     end
 
-    class js__f2md__src__types__ExternalConverterRequired__super,js__f2md__src__detect__base,js__f2md__src__detect__mediaTypeFor,js__f2md__src__detect__isTextKind,js__f2md__src__cli__chainFor,js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__f2md__src__cli__arg entry
+    class js__f2md__src__types__ExternalConverterRequired__super,js__f2md__src__detect__base,js__f2md__src__detect__actual,js__f2md__src__detect__at,js__f2md__src__detect__mediaTypeFor,js__f2md__src__detect__isTextKind,js__f2md__src__cli__chainFor,js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect entry

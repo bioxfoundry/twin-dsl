@@ -32,3 +32,32 @@ export function resourceFromBinary(
     createdAt:new Date().toISOString(),
   };
 }
+
+/** Register content-addressed binary evidence when its digest and byte size were computed by streaming. */
+export function resourceFromBinaryDigest(
+  id:string,
+  logicalUri:string,
+  sourcePath:string,
+  digest:string,
+  size:number,
+  mediaType:string,
+  sourceRole?:SourceRole,
+  labels:string[]=[] ,
+):ResourceRecord {
+  if(!/^[a-f0-9]{64}$/.test(digest)) throw new Error(`RESOURCE_DIGEST_INVALID:${sourcePath}`);
+  return {
+    schema:"subactor.resource/v1",
+    id,
+    uri:`urn:subactor:resource:sha256:${digest}`,
+    logicalUri,
+    mediaType,
+    sha256:digest,
+    size,
+    sourcePath,
+    sourceRole,
+    labels:[...new Set(["binary-stub","content-not-extracted",...labels])],
+    derived:false,
+    derivedFrom:[],
+    createdAt:new Date().toISOString(),
+  };
+}

@@ -3,7 +3,7 @@
   "$id": "subactor.geometry-build-receipt/v1",
   "title": "Geometry build execution receipt",
   "type": "object",
-  "required": ["schema", "id", "status", "processUri", "cacheHit", "startedAt", "completedAt", "source", "target", "coordinateSystem", "engine", "dependencies", "parameterSetHash", "validationPolicyHash", "geometryBuildHash", "artifacts", "validation"],
+  "required": ["schema", "id", "status", "processUri", "cacheHit", "startedAt", "completedAt", "source", "target", "coordinateSystem", "engine", "dependencies", "parameterSetHash", "validationPolicyHash", "geometryBuildHash", "geometryHashProfile", "artifacts", "validation"],
   "properties": {
     "schema": {"const": "subactor.geometry-build-receipt/v1"},
     "id": {"type": "string", "minLength": 1},
@@ -21,6 +21,7 @@
     "parameterSetHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "validationPolicyHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "geometryBuildHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "geometryHashProfile": {"const": "subactor.semantic-triangle-soup/v2"},
     "geometryArtifactHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
     "artifacts": {"type": "object"},
     "validation": {"type": "object"},

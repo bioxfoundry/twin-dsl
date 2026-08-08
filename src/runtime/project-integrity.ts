@@ -1,6 +1,7 @@
 import type {
   DevelopmentEvidenceSummary,
   GenerationAudit,
+  GeometryBuildReceipt,
   GeometryValidationReport,
   LivingProjectDocument,
   ObservationDocument,
@@ -26,6 +27,7 @@ export interface ProjectIntegrityInput {
   geometry: GeometryValidationReport;
   physicalEvidence?: PhysicalEvidenceDocument;
   generationAudits?: GenerationAudit[];
+  geometryBuildReceipts?: GeometryBuildReceipt[];
 }
 
 const LAYERS: ProjectIntegrityLayer[] = ["requirements","research","design","development","runtime","twin","scene","validation"];
@@ -36,7 +38,8 @@ const flatten = (components:TwinComponent[]):TwinComponent[] => components.flatM
 export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectIntegrityReport {
   const findings:ProjectIntegrityFinding[]=[];
   const add=(code:string,severity:ProjectIntegrityFinding["severity"],category:ProjectIntegrityCategory,layer:ProjectIntegrityLayer,message:string,subjects:string[],evidenceUris:string[],repairName:string):void=>{
-    findings.push({code,severity,category,layer,message,subjects:[...new Set(subjects)],evidenceUris:[...new Set(evidenceUris)],repairProcess:repair(repairName)});
+    const repairProcess=repairName.startsWith("subactor://")?repairName:repair(repairName);
+    findings.push({code,severity,category,layer,message,subjects:[...new Set(subjects)],evidenceUris:[...new Set(evidenceUris)],repairProcess});
   };
   const components=flatten(input.twin.components);
   const componentIds=new Set(components.map(component=>component.id));
@@ -77,6 +80,20 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   if(unreferencedEvidence.length) add("PHYSICAL_SOURCE_REFERENCE_MISSING","warning","missing-evidence","validation","Physical evidence must identify its survey, drawing, register row or model object.",unreferencedEvidence,[],"ground-physical-evidence");
   if(!input.geometry.complete) add("GEOMETRY_VALIDATION_INCOMPLETE","warning","missing-evidence","validation","Geometry checks pass only for the supplied subset; pose and spatial evidence is incomplete.",[input.geometry.evidenceId],[],"complete-geometry-evidence");
   if(!input.geometry.ok) add("GEOMETRY_VALIDATION_FAILED","error","inconsistency","validation","At least one deterministic geometry constraint failed.",input.geometry.failures,[],"repair-geometry");
+  for(const receipt of input.geometryBuildReceipts??[]) {
+    if(receipt.status==="succeeded"&&receipt.validation.ok) continue;
+    const code=receipt.validation.failures[0]
+      ?? receipt.error?.code.split(":").at(-1)?.replaceAll("-","_").toUpperCase()
+      ?? "GEOMETRY_BUILD_FAILED";
+    const artifactUris=Object.values(receipt.artifacts).map(artifact=>artifact.uri);
+    add(
+      code,"error","inconsistency","validation",
+      receipt.error?.message??`Geometry build ${receipt.id} failed deterministic validation.`,
+      [receipt.target.componentId,receipt.id],
+      [receipt.source.uri,...artifactUris],
+      receipt.repairProcess??"reconcile-geometry-build",
+    );
+  }
   if(input.development.acceptance!=="accepted") add("DEVELOPMENT_EVIDENCE_NOT_ACCEPTED",input.project.policy.requireDevelopmentAcceptance?"error":"warning","missing-evidence","development",`Development evidence acceptance is ${input.development.acceptance}.`,input.development.evidenceUris,input.development.evidenceUris,"repair-development-evidence");
   if(input.project.policy.requireRuntimeEvidence&&input.observations.observations.length===0) add("RUNTIME_EVIDENCE_MISSING","error","missing-evidence","runtime","Runtime evidence is required but no observations were found.",[],[],"connect-runtime-evidence");
   const degraded=(input.generationAudits??[]).filter(audit=>audit.degraded);

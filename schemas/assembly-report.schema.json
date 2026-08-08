@@ -1,0 +1,6 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"subactor.assembly-report/v1",
+  "type":"object","required":["schema","id","projectId","ok","complete","coverage","assemblies","findings"],
+  "properties":{"schema":{"const":"subactor.assembly-report/v1"},"id":{"type":"string"},"projectId":{"type":"string"},"ok":{"type":"boolean"},"complete":{"type":"boolean"},"coverage":{"type":"object"},"assemblies":{"type":"array"},"findings":{"type":"array"}}
+}

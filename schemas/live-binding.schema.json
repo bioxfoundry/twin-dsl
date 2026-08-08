@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.live-binding/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "bindings"],
+  "properties": {
+    "schema": {"const": "subactor.live-binding/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "bindings": {
+      "type": "array", "minItems": 1,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "source", "target", "freshness", "valueStates", "ranges"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "source": {"type":"object","additionalProperties":false,"required":["subjectUri","metric"],"properties":{"subjectUri":{"type":"string","minLength":1},"metric":{"type":"string","minLength":1}}},
+          "target": {"type":"object","additionalProperties":false,"required":["componentId","property"],"properties":{"componentId":{"type":"string","minLength":1},"property":{"type":"string","minLength":1}}},
+          "freshness": {"type":"object","additionalProperties":false,"required":["freshForMs","expireAfterMs","onStale"],"properties":{"freshForMs":{"type":"number","minimum":0},"expireAfterMs":{"type":"number","minimum":0},"onStale":{"type":"string","minLength":1}}},
+          "valueStates": {"type":"object","additionalProperties":{"type":"string"}},
+          "ranges": {"type":"array","items":{"type":"object","additionalProperties":false,"required":["state"],"properties":{"min":{"type":"number"},"max":{"type":"number"},"state":{"type":"string","minLength":1}}}}
+        }
+      }
+    }
+  }
+}

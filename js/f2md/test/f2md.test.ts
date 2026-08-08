@@ -37,6 +37,11 @@ test("document kind survives content-addressed filenames", () => {
   assert.equal(detectDocumentKind("imports/report.pdf-9f2c8ad4"), ".pdf");
   assert.equal(detectDocumentKind("deck.pptx.part"), ".pptx");
   assert.equal(detectDocumentKind("notes.md"), ".md");
+  assert.equal(detectDocumentKind("already-converted/report.pdf.md"), ".md");
+  assert.equal(detectDocumentKind("already-converted/report.pdf.md-d5177023"), ".md");
+  assert.equal(detectDocumentKind("already-converted/deck.pptx.lt.md"), ".md");
+  assert.equal(detectDocumentKind("logs/runtime.log"), ".log");
+  assert.equal(detectDocumentKind("logs/result.testqldsl"), ".testqldsl");
   assert.equal(detectDocumentKind("plain"), "");
 });
 
@@ -55,6 +60,16 @@ test("markdown passes through unchanged", async (t) => {
   assert.equal(doc.markdown, "# Title\n\nbody\n");
   assert.equal(doc.converter, "deterministic-text");
   assert.equal(doc.metadata.source, path);
+});
+
+test("DSL passes through unchanged instead of being nested in a code fence", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "result.testqldsl");
+  const source = "TESTQL_RESULT run-1\nOK true\nEND_TESTQL_RESULT\n";
+  await writeFile(path, source);
+  const doc = await convert(path);
+  assert.equal(doc.markdown, source);
+  assert.equal(doc.inputKind, ".testqldsl");
 });
 
 test("code is fenced with its language", async (t) => {

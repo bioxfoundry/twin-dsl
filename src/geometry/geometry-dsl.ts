@@ -27,7 +27,7 @@ export function renderGeometryDsl(contract: GeometryBuildContract): string {
   );
   if (contract.validations.reference) {
     const reference = contract.validations.reference;
-    lines.push(`REFERENCE ${JSON.stringify(reference.path)} SOURCE ${reference.sourceUri} ARTIFACT ${reference.artifactUri} SHA256 ${reference.sha256} UNIT ${reference.unit} COMPARE ${reference.comparison}`);
+    lines.push(`REFERENCE ${JSON.stringify(reference.path)} SOURCE ${reference.sourceUri} ARTIFACT ${reference.artifactUri} SHA256 ${reference.sha256} UNIT ${reference.unit} COMPARE ${reference.comparison} TOLERANCE_M ${reference.extentToleranceM ?? contract.validations.bboxToleranceM}`);
   }
   lines.push("END_GEOMETRY");
   return "```geometrydsl\n" + lines.join("\n") + "\n```\n";
@@ -40,6 +40,7 @@ export function renderGeometryReceiptDsl(receipt: GeometryBuildReceipt): string 
     `STATUS ${receipt.status.toUpperCase()}`,
     `CACHE ${receipt.cacheHit ? "HIT" : "MISS"}`,
     `BUILD_HASH ${receipt.geometryBuildHash}`,
+    `GEOMETRY_HASH_PROFILE ${receipt.geometryHashProfile}`,
     `PARAMETER_SET_HASH ${receipt.parameterSetHash}`,
     `VALIDATION_POLICY_HASH ${receipt.validationPolicyHash}`,
     `ENGINE ${receipt.engine.name} VERSION ${JSON.stringify(receipt.engine.version)}`,

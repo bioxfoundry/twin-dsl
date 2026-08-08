@@ -2,6 +2,78 @@
 
 ## [Unreleased] - 2026-08-08
 
+### Added
+- Add executable AssemblyDSL and assembly-report DSL/JSON artifacts with device/part identity,
+  grounded asset, placement and completeness gates.
+- Add dashboard assembly metrics and persistent `dashboard-<port>.log` JSONL diagnostics.
+- Extract `@subactor/assembly-dsl` and `@subactor/live-twin-state` as independently built,
+  zero-runtime-dependency packages with contract tests and backwards-compatible application exports.
+- Add a package-boundary gate for export identity, structural contract compatibility, and canonical
+  observation URI parity, plus `packages:check|test|build` commands.
+
+### Fixed
+- Bound the default OpenRouter wait to 30 seconds with one repair retry, preventing a
+  `prefer-llm` dashboard iteration from expanding into repeated two-minute waits per artifact.
+- Update the autonomy demo to prove protected authority-field rejection and then merge only an
+  allowed semantic proposal, matching the fail-closed runtime policy.
+- Feed local DSL parser failures back into OpenRouter structured-output retries and unwrap fenced
+  DSL for weaker models; `llm` CLI alias now maps to fail-safe `prefer-llm`.
+- Recover an iteration lease immediately when its recorded writer PID no longer exists.
+- Bound and compact the resource index supplied to LLM projections.
+- Route already converted names such as `report.pdf.md` and `deck.pptx.lt.md` as Markdown instead
+  of invoking PDF/Office converters again; content-addressed suffixes now use the rightmost known
+  format and TestQL/Assembly DSL remains raw canonical text.
+- Make dashboard video capture negotiate WebM codecs, use a 30 FPS stream with timeslices and
+  report `EMPTY_VIDEO_BLOB` instead of silently downloading an unusable recording.
+- Preserve the detailed application/log/Assembly/presentation index in generated `START.md` when
+  an idempotent iteration exits through `noChange`.
+- Re-ground the BIO-SPEC GL45 part to its current immutable GLB resource URI in Physical Evidence
+  and AssemblyDSL.
+- Fix ast-string-concat issues (ticket-92a0cecc)
+
+## [0.5.5] - 2026-08-08
+
+### Docs
+- Update CHANGELOG.md
+- Update README.md
+- Update TODO.md
+- Update docs/DASHBOARD.md
+- Update docs/DIGITAL_TWIN_DETAIL_AUDIT.md
+- Update docs/DSL_SPEC.md
+- Update docs/GEOMETRY_COMPILATION.md
+- Update docs/NEXT_TEST_PLAN.md
+- Update docs/OPENROUTER_NL_TO_DSL.md
+- Update docs/PACKAGE_ARCHITECTURE.md
+- ... and 6 more files
+
+### Test
+- Update test/assembly.test.ts
+- Update test/autonomy.test.ts
+- Update test/dashboard.test.ts
+- Update test/geometry-build.test.ts
+- Update test/openrouter.test.ts
+- Update test/package-boundaries.test.ts
+- Update test/project-integrity.test.ts
+- Update test/project-observation-dsl.test.ts
+- Update test/schema-drift.test.ts
+- Update test/todo2code-adapter.test.ts
+- ... and 1 more files
+
+### Other
+- Update .env.example
+- Update .gitignore
+- Update app.doql.less
+- Update deploy/runtime/Dockerfile
+- Update js/archive-project-analyzer/package.json
+- Update js/archive-project-analyzer/src/analyze.ts
+- Update js/archive-project-analyzer/src/dsl.ts
+- Update js/archive-project-analyzer/src/index.ts
+- Update js/archive-project-analyzer/src/types.ts
+- Update js/archive-project-analyzer/test/analyze.test.ts
+- ... and 77 more files
+
+## [Unreleased] - 2026-08-08
+
 ### Fixed
 - Fix relative-imports issues (ticket-a48c2c53)
 - Fix ast-unused-imports issues (ticket-7ad3638b)

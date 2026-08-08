@@ -11,5 +11,12 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts", "test/**/*.ts", "js/f2md/src/**/*.ts"]
+  "include": [
+    "src/**/*.ts",
+    "test/**/*.ts",
+    "js/f2md/src/**/*.ts",
+    "js/assembly-dsl/src/**/*.ts",
+    "js/live-twin-state/src/**/*.ts",
+    "js/archive-project-analyzer/src/**/*.ts"
+  ]
 }

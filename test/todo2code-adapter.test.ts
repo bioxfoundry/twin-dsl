@@ -23,3 +23,30 @@ test("todo2code adapter executes configured pipeline and reads graph, diagnostic
     await rm(directory,{recursive:true,force:true});
   }
 });
+
+test("todo2code adapter resolves v0.5 artifact pointers relative to the analyzed root",async()=>{
+  const directory=await mkdtemp(join(tmpdir(),"t2c-adapter-root-relative-"));
+  try{
+    const workspace=join(directory,"project","code");
+    const out=join(directory,"project",".living-runtime","development");
+    const run=join(out,"runs","run-2");
+    await mkdir(workspace,{recursive:true});
+    await mkdir(run,{recursive:true});
+    const rootRelative="../.living-runtime/development/runs/run-2";
+    await writeFile(join(out,"latest.json"),JSON.stringify({runDirectory:rootRelative}));
+    await writeFile(join(run,"manifest.json"),JSON.stringify({
+      schemaVersion:"t2c.run/v1",
+      status:"succeeded",
+      files:{graph:`${rootRelative}/intent.graph.json`,diagnostics:`${rootRelative}/diagnostics.json`},
+    }));
+    await writeFile(join(run,"intent.graph.json"),JSON.stringify({schemaVersion:"t2c.graph/v1",records:[{id:"INT-2"}],relations:[],fingerprint:"def"}));
+    await writeFile(join(run,"diagnostics.json"),JSON.stringify([{id:"DIAG-2",severity:"error"}]));
+    const analysis=await new Todo2CodeAdapter().readLatestAnalysis(workspace,out);
+    assert.equal((analysis?.graph as {schemaVersion?:string}).schemaVersion,"t2c.graph/v1");
+    assert.equal((analysis?.diagnostics as unknown[]).length,1);
+    assert.equal((analysis?.manifest as {schemaVersion?:string}).schemaVersion,"t2c.run/v1");
+    assert.equal(analysis?.runDirectory,run);
+  }finally{
+    await rm(directory,{recursive:true,force:true});
+  }
+});

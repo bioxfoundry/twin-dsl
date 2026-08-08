@@ -90,6 +90,12 @@
     "observationUri": {
       "type": "string"
     },
+    "twinStateUri": {
+      "type": "string"
+    },
+    "assemblyReportUri": {
+      "type": "string"
+    },
     "twinUri": {
       "type": "string"
     },

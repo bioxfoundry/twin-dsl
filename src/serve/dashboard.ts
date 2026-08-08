@@ -5,13 +5,15 @@
  * Dependency-free by design (node:http only), matching the rest of the runtime.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { LlmMode, PhysicalEvidenceDocument, SceneDocument, TwinDocument } from "../core/types.js";
+import type { AssemblyReport, LlmMode, PhysicalEvidenceDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
+import { contentUri } from "../core/canonical.js";
 import { LivingProjectRuntime } from "../runtime/living-project.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 import { renderOpenUsd } from "../scene/openusd.js";
+import { evaluateTwinStateFreshness } from "../runtime/twin-state.js";
 
 /** Locate `public/` from either the compiled (dist/src/serve) or source layout. */
 async function assetRoot(): Promise<string> {
@@ -52,9 +54,17 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "evidence-sets.dsl", "math.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
-    try { documents.push({ name, content: (await readFile(join(current, name), "utf8")).slice(0, 120_000) }); }
+  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
+    try { const content=(await readFile(join(current, name), "utf8")).slice(0, 120_000);if(content.trim())documents.push({ name, content }); }
     catch { /* artifact is optional before the first accepted iteration */ }
+  }
+  // A blocked candidate must remain inspectable even though it is deliberately not
+  // promoted to `current/`. This is where geometry compiler URNs and repair URIs live.
+  for (const name of ["geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl"]) {
+    try {
+      const content=(await readFile(join(dirname(current), "candidate", name), "utf8")).slice(0, 120_000);
+      if(content.trim())documents.push({name:`latest-candidate/${name}`,content});
+    } catch { /* no candidate artifact */ }
   }
   try {
     documents.push({
@@ -134,14 +144,58 @@ export interface DashboardOptions {
   port: number;
   host?: string;
   mode?: LlmMode;
+  /** Inspection replicas must not run iterations or persist physical intake. */
+  readOnly?: boolean;
 }
 
 interface DashboardState {
+  control: { mode: "read-only" | "writer"; mutationsEnabled: boolean };
+  /** The only revision rendered by the dashboard and exported through /api/scene.usda. */
+  active: {
+    scope: "current";
+    status: "accepted" | "unavailable";
+    revisionUri: string | null;
+    sceneRevisionUri: string | null;
+    sourceSnapshotHash: string | null;
+    twin: TwinDocument | null;
+    twinState: TwinStateDocument | null;
+    assemblyReport: AssemblyReport | null;
+    scene: SceneDocument | null;
+    geometryValidation: unknown;
+    geometryBuilds: unknown;
+    projectIntegrity: unknown;
+  };
+  /** A failed proposal remains inspectable, but is never projected as the active scene. */
+  latestCandidate: {
+    scope: "candidate";
+    status: "rejected";
+    iterationUri: string | null;
+    revisionUri: string | null;
+    sceneRevisionUri: string | null;
+    sourceSnapshotHash: string | null;
+    validation: unknown;
+    twin: TwinDocument | null;
+    twinState: TwinStateDocument | null;
+    assemblyReport: AssemblyReport | null;
+    scene: SceneDocument | null;
+    geometryValidation: unknown;
+    geometryBuilds: unknown;
+    projectIntegrity: unknown;
+  } | null;
   twin: TwinDocument | null;
+  twinState: TwinStateDocument | null;
+  assemblyReport: AssemblyReport | null;
+  candidateTwin: TwinDocument | null;
   scene: SceneDocument | null;
   report: unknown;
   geometryValidation: unknown;
+  geometryBuilds: unknown;
   projectIntegrity: unknown;
+  currentProjectIntegrity: unknown;
+  /** @deprecated Rendered artifacts are always current; use diagnosticScope for reports. */
+  artifactScope: "current";
+  renderedScope: "current";
+  diagnosticScope: "current" | "candidate";
   observations: unknown;
   iteration: unknown;
   updatedAt: string;
@@ -152,19 +206,81 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   const current = join(resolve(options.outDir), "current");
   const runtime = new LivingProjectRuntime();
   const mode: LlmMode = options.mode ?? "deterministic";
+  const readOnly = options.readOnly ?? false;
+  const dashboardLogPath = join(dirname(resolve(options.configPath)), "logs", `dashboard-${options.port}.log`);
   let busy = false;
 
+  async function dashboardLog(level:"info"|"warn"|"error",event:string,details:Record<string,unknown>={}):Promise<void>{
+    const record={schema:"subactor.dashboard-log/v1",at:new Date().toISOString(),level,event,port:options.port,mode,readOnly,...details};
+    await mkdir(dirname(dashboardLogPath),{recursive:true});
+    await appendFile(dashboardLogPath,JSON.stringify(record)+"\n").catch(()=>undefined);
+    console[level](`[dashboard] ${event}`,details);
+  }
+
   async function state(): Promise<DashboardState> {
-    const [twin, scene, report, geometryValidation, projectIntegrity, observations, iteration] = await Promise.all([
+    const [twin, candidateTwin, twinState, candidateTwinState, currentAssemblyReport, candidateAssemblyReport, scene, candidateScene, report, currentGeometryValidation, candidateGeometryValidation, currentGeometryBuilds, candidateGeometryBuilds, currentProjectIntegrity, candidateProjectIntegrity, observations, iteration] = await Promise.all([
       readJson<TwinDocument>(join(current, "twin.json")),
+      readJson<TwinDocument>(join(dirname(current), "candidate", "twin.json")),
+      readJson<TwinStateDocument>(join(current, "twin-state.json")),
+      readJson<TwinStateDocument>(join(dirname(current), "candidate", "twin-state.json")),
+      readJson<AssemblyReport>(join(current, "assembly-report.json")),
+      readJson<AssemblyReport>(join(dirname(current), "candidate", "assembly-report.json")),
       readJson<SceneDocument>(join(current, "scene.json")),
+      readJson<SceneDocument>(join(dirname(current), "candidate", "scene.json")),
       readJson(join(current, "physical-evidence.report.json")),
       readJson(join(current, "geometry-validation.json")),
+      readJson(join(dirname(current), "candidate", "geometry-validation.json")),
+      readJson(join(current, "geometry-builds.json")),
+      readJson(join(dirname(current), "candidate", "geometry-builds.json")),
       readJson(join(current, "project-integrity.json")),
+      readJson(join(dirname(current), "candidate", "project-integrity.json")),
       readJson(join(current, "observations.json")),
       readJson(join(resolve(options.outDir), "latest.json")),
     ]);
-    return { twin, scene, report, geometryValidation, projectIntegrity, observations, iteration, updatedAt: new Date().toISOString() };
+    const evaluatedAt=new Date().toISOString();
+    const evaluatedTwinState=twinState?evaluateTwinStateFreshness(twinState,evaluatedAt):null;
+    const evaluatedCandidateTwinState=candidateTwinState?evaluateTwinStateFreshness(candidateTwinState,evaluatedAt):null;
+    const latest=(iteration as {iterationUri?:string;validation?:{ok?:boolean}}|null);
+    const latestRejected=latest?.validation?.ok===false;
+    const active={
+      scope:"current" as const,
+      status:twin&&scene?"accepted" as const:"unavailable" as const,
+      revisionUri:twin?contentUri("twin",twin):null,
+      sceneRevisionUri:scene?contentUri("scene",scene):null,
+      sourceSnapshotHash:twin?.sourceSnapshotHash??null,
+      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,scene,
+      geometryValidation:currentGeometryValidation,
+      geometryBuilds:currentGeometryBuilds,
+      projectIntegrity:currentProjectIntegrity,
+    };
+    const latestCandidate=latestRejected?{
+      scope:"candidate" as const,
+      status:"rejected" as const,
+      iterationUri:latest?.iterationUri??null,
+      revisionUri:candidateTwin?contentUri("twin",candidateTwin):null,
+      sceneRevisionUri:candidateScene?contentUri("scene",candidateScene):null,
+      sourceSnapshotHash:candidateTwin?.sourceSnapshotHash??null,
+      validation:latest?.validation??null,
+      twin:candidateTwin,twinState:evaluatedCandidateTwinState,assemblyReport:candidateAssemblyReport,scene:candidateScene,
+      geometryValidation:candidateGeometryValidation,
+      geometryBuilds:candidateGeometryBuilds,
+      projectIntegrity:candidateProjectIntegrity,
+    }:null;
+    return {
+      control:{mode:readOnly?"read-only":"writer",mutationsEnabled:!readOnly},
+      active,latestCandidate,
+      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,candidateTwin,scene,report,
+      // Compatibility fields describe the scene actually rendered. Candidate diagnostics
+      // have a dedicated namespace above and therefore cannot silently colour ACTIVE red.
+      geometryValidation:currentGeometryValidation,
+      geometryBuilds:currentGeometryBuilds,
+      projectIntegrity:currentProjectIntegrity,
+      currentProjectIntegrity,
+      artifactScope:"current",
+      renderedScope:"current",
+      diagnosticScope:latestRejected?"candidate":"current",
+      observations,iteration,updatedAt:new Date().toISOString(),
+    };
   }
 
   const server = createServer((request, response) => {
@@ -194,25 +310,54 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
           const resource = resources?.find(item => item.uri === wanted);
           if (!resource?.sourcePath) return sendJson(response, 404, { error: "ASSET_NOT_GROUNDED" });
           const bytes = await readFile(resource.sourcePath);
-          return send(response, 200, bytes, resource.sourcePath.toLowerCase().endsWith(".stl") ? "model/stl" : "model/step");
+          const lower = resource.sourcePath.toLowerCase();
+          const type = lower.endsWith(".glb") ? "model/gltf-binary"
+            : lower.endsWith(".gltf") ? "model/gltf+json"
+            : lower.endsWith(".stl") ? "model/stl"
+            : lower.endsWith(".3mf") ? "model/3mf"
+            : lower.endsWith(".usda") ? "model/vnd.usda"
+            : lower.endsWith(".usdc") ? "model/vnd.usdc"
+            : "model/step";
+          return send(response, 200, bytes, type);
         }
         if (request.method === "POST" && url.pathname === "/api/iterate") {
+          if (readOnly) return sendJson(response, 403, {
+            error: "DASHBOARD_READ_ONLY",
+            diagnostic: "DUPLICATE_TWIN_ITERATION_WRITER",
+            message: "This inspection replica cannot write the living runtime; use the elected iteration controller.",
+          });
           if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
           busy = true;
           const started = Date.now();
-          console.info(`[dashboard] iteration:start project=${options.configPath}`);
+          await dashboardLog("info","iteration:start",{project:options.configPath});
           try {
             const receipt = await runtime.iterate(options.configPath, options.outDir, mode);
-            console.info(`[dashboard] iteration:complete durationMs=${Date.now() - started} noChange=${receipt.noChange} ok=${receipt.validation.ok}`);
-            return sendJson(response, 200, { iterationUri: receipt.iterationUri, noChange: receipt.noChange, ok: receipt.validation.ok });
+            await dashboardLog("info","iteration:complete",{durationMs:Date.now()-started,noChange:receipt.noChange,ok:receipt.validation.ok,iterationUri:receipt.iterationUri});
+            if (!receipt.validation.ok) {
+              await dashboardLog("warn","iteration:blocked",{failures:receipt.validation.failures});
+              return sendJson(response, 422, {
+                error: "ITERATION_BLOCKED",
+                iterationUri: receipt.iterationUri,
+                noChange: receipt.noChange,
+                ok: false,
+                failures: receipt.validation.failures,
+                diagnostics: "/api/dsl",
+              });
+            }
+            return sendJson(response, 200, { iterationUri: receipt.iterationUri, noChange: receipt.noChange, ok: true });
           } catch (error) {
-            console.error(`[dashboard] iteration:error durationMs=${Date.now() - started}`, error);
+            await dashboardLog("error","iteration:error",{durationMs:Date.now()-started,error:error instanceof Error?error.message:String(error)});
             throw error;
           } finally {
             busy = false;
           }
         }
         if (request.method === "POST" && url.pathname === "/api/intake") {
+          if (readOnly) return sendJson(response, 403, {
+            error: "DASHBOARD_READ_ONLY",
+            diagnostic: "DUPLICATE_TWIN_ITERATION_WRITER",
+            message: "Physical intake is disabled on an inspection replica.",
+          });
           // Claim the slot before the first await: checking `busy` and then yielding on
           // readBody lets two concurrent requests both pass the check.
           if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
@@ -306,6 +451,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   await new Promise<void>((done) => server.listen(options.port, host, done));
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : options.port;
+  await dashboardLog("info","server:listening",{host,actualPort:port,url:`http://${host}:${port}/`});
   return {
     url: `http://${host}:${port}/`,
     close: () => new Promise<void>((done, fail) => server.close((error) => (error ? fail(error) : done()))),

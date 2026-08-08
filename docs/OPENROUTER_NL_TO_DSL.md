@@ -49,6 +49,10 @@ OpenRouter otrzymuje:
 - runtime context zawierający dozwolone URI, snapshot, manager policy i dane;
 - JSON Schema właściwe dla etapu.
 
+Indeks zasobów jest kompaktowany do pól tożsamości/proweniencji i ograniczony przez
+`DT_LLM_RESOURCE_CONTEXT_LIMIT` (domyślnie 80). Pełny korpus nadal pozostaje wejściem
+deterministycznych walidatorów; limit dotyczy tylko propozycji LLM.
+
 Wysyłane ustawienia:
 
 ```json
@@ -93,6 +97,14 @@ Najpierw OpenRouter. Błąd powoduje jawny fallback:
 }
 ```
 
+Skrót CLI `llm` jest aliasem `prefer-llm`, a nie `require-llm`.
+
+The developer-safe defaults are a 30-second timeout and one retry/repair attempt per artifact
+(`OPENROUTER_TIMEOUT_MS=30000`, `OPENROUTER_MAX_RETRIES=1`). This prevents an unavailable weak
+model from occupying a dashboard iteration for many multiples of two minutes. Production may
+raise the values explicitly; `prefer-llm` still records the timeout and falls back to the locally
+validated deterministic artifact.
+
 ### require-llm
 
 Brak klucza, timeout, niezgodna odpowiedź lub błąd schematu kończą operację błędem. Nie występuje ukryty fallback.
@@ -118,3 +130,29 @@ Dopiero importer odczytuje źródło i materializuje immutable resource URI.
 - `response-healing`;
 - brak klucza API w wyniku;
 - parser `mathDSL` po odpowiedzi.
+- korektę słabszego modelu: kod lokalnego parsera (np. `MATH_HEADER_REQUIRED`) wraca w następnej
+  próbie, a odpowiedź w pojedynczym Markdown fence jest normalizowana do surowego DSL.
+
+## Zweryfikowany GLM-5.2
+
+Przebieg projektu `nanobionic-laboratory-md` z `z-ai/glm-5.2`, limitem 30 s i jedną naprawą:
+
+- MathDSL: LLM PASS, 3.3 s;
+- TwinDSL: timeout, jawny deterministic fallback;
+- SceneDSL: odpowiedź po 22.2 s odrzucona przez grounding, jawny fallback;
+- kompletna iteracja: 124 s, `validation.ok=true`.
+
+Powtórzenie przez dokładnie tę samą ścieżkę co przycisk dashboardu (`POST /api/iterate`) również
+przeszło: MathDSL 9.3 s przez Baidu/OpenRouter, Twin i Scene zakończone kontrolowanym timeoutem i
+fallbackiem, całość 141.6 s, `validation.ok=true`. `logs/dashboard-7445.log` zawiera odpowiadające
+mu zdarzenia `iteration:start` oraz `iteration:complete`.
+
+Po aktywowaniu rzeczywistego providera development `todo2code` zamiast fixture wykonano kolejne
+dwa pełne przebiegi. MathDSL przeszedł przez Together (34.7 s), a potem Baidu (36.4 s); SceneDSL
+został raz odrzucony przez domain grounding, a pozostałe kosztowne projekcje zakończyły się jawnym
+fallbackiem. Obie rewizje miały `validation.ok=true`, po czym pętla osiągnęła `noChange=true` z
+diffem `0/0/0` i stabilnym fingerprintem todo2code.
+
+`generation-audit.json` przechowuje model/provider, czas, tokeny, koszt oraz `degraded/reason`.
+W trybie developerskim dashboard powinien używać `prefer-llm`; 30 s na artefakt jest rozsądnym
+budżetem operacyjnym, podczas gdy deterministyczne CAD/Assembly/TwinState nie zależą od modelu.

@@ -9,12 +9,13 @@ import { basename, extname } from "node:path";
 
 /** Extensions handled without any external tool. */
 export const TEXT_EXTENSIONS: readonly string[] = [
-  ".md", ".markdown", ".txt", ".text", ".json", ".jsonl", ".ndjson", ".yaml", ".yml",
+  ".md", ".markdown", ".txt", ".text", ".log", ".json", ".jsonl", ".ndjson", ".yaml", ".yml",
   ".toml", ".ini", ".cfg", ".csv", ".tsv", ".xml", ".html", ".htm", ".svg", ".tex", ".rst",
   ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".rb", ".php", ".go", ".rs", ".java",
   ".kt", ".c", ".h", ".cpp", ".hpp", ".cs", ".sh", ".bash", ".zsh", ".sql", ".graphql",
   ".dockerfile", ".env", ".properties", ".gradle", ".make", ".cmake",
-  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".dql",
+  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl",
+  ".testqldsl", ".assemblydsl", ".livebindingdsl", ".geometrydsl", ".dql",
 ];
 
 /** Extensions that require an external backend, checked against the whole basename. */
@@ -26,7 +27,7 @@ export const BINARY_EXTENSIONS: readonly string[] = [
 ];
 
 export const MEDIA_TYPES: Record<string, string> = {
-  ".md": "text/markdown", ".markdown": "text/markdown", ".txt": "text/plain",
+  ".md": "text/markdown", ".markdown": "text/markdown", ".txt": "text/plain", ".log": "text/plain",
   ".json": "application/json", ".jsonl": "application/x-ndjson", ".ndjson": "application/x-ndjson",
   ".yaml": "application/yaml", ".yml": "application/yaml", ".toml": "application/toml",
   ".csv": "text/csv", ".tsv": "text/tab-separated-values", ".xml": "application/xml",
@@ -53,21 +54,33 @@ export const MEDIA_TYPES: Record<string, string> = {
   ".sh": "application/x-sh", ".bash": "application/x-sh", ".zsh": "application/x-sh",
   ".sql": "application/sql", ".graphql": "application/graphql", ".rst": "text/x-rst",
   ".tex": "application/x-tex", ".ini": "text/plain", ".cfg": "text/plain", ".env": "text/plain",
+  ".dsl": "text/plain", ".projectdsl": "text/plain", ".mathdsl": "text/plain",
+  ".treedsl": "text/plain", ".twindsl": "text/plain", ".scenedsl": "text/plain",
+  ".resourcedsl": "text/plain", ".testqldsl": "text/plain", ".assemblydsl": "text/plain",
+  ".livebindingdsl": "text/plain", ".geometrydsl": "text/plain", ".dql": "text/plain",
 };
 
 /**
  * Return the logical extension, tolerating hash/part suffixes.
  *
  * `detectDocumentKind("report.pdf-9f2c8a")` -> `".pdf"`.
- * Longer extensions win, so `.tar.gz`-style names do not match `.gz` prematurely.
+ * A real known suffix wins. If a pipeline appended a hash/part suffix, the rightmost known
+ * extension wins. This distinction is important for already converted files such as
+ * `report.pdf.md`: they are Markdown now and must not be sent back through `pdftotext`.
  */
 export function detectDocumentKind(path: string): string {
   const base = basename(path).toLowerCase();
-  let best = "";
-  for (const ext of [...BINARY_EXTENSIONS, ...TEXT_EXTENSIONS]) {
-    if (base.includes(ext) && ext.length > best.length) best = ext;
+  const actual = extname(base);
+  const known = [...BINARY_EXTENSIONS, ...TEXT_EXTENSIONS];
+  if (known.includes(actual)) return actual;
+  let best = "", bestAt = -1;
+  for (const ext of known) {
+    const at = base.lastIndexOf(ext);
+    if (at > bestAt || (at === bestAt && ext.length > best.length)) {
+      if (at >= 0) { best = ext; bestAt = at; }
+    }
   }
-  return best || extname(base);
+  return best || actual;
 }
 
 /** Best-effort IANA media type, falling back to a generic binary type. */

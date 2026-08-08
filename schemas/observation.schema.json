@@ -8,6 +8,6 @@
     "schema":{"const":"subactor.observation/v1"},
     "id":{"type":"string"},
     "sourceSnapshotHash":{"type":"string","pattern":"^[a-f0-9]{64}$"},
-    "observations":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","observedAt","subjectUri","metric","value","severity","sourceUris","labels"],"properties":{"id":{"type":"string"},"observedAt":{"type":"string","format":"date-time"},"subjectUri":{"type":"string"},"metric":{"type":"string"},"value":{},"unit":{"type":"string"},"severity":{"enum":["debug","info","warning","error","critical"]},"sourceUris":{"type":"array","items":{"type":"string"}},"labels":{"type":"array","items":{"type":"string"}}}}}
+    "observations":{"type":"array","items":{"type":"object","additionalProperties":false,"required":["id","observedAt","subjectUri","metric","value","severity","sourceUris","labels"],"properties":{"id":{"type":"string"},"observedAt":{"type":"string","format":"date-time"},"receivedAt":{"type":"string","format":"date-time"},"subjectUri":{"type":"string"},"metric":{"type":"string"},"value":{},"unit":{"type":"string"},"severity":{"enum":["debug","info","warning","error","critical"]},"sourceUris":{"type":"array","items":{"type":"string"}},"labels":{"type":"array","items":{"type":"string"}}}}}
   }
 }

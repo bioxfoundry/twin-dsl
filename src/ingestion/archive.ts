@@ -1,5 +1,9 @@
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
+import { createReadStream } from "node:fs";
+import { stat } from "node:fs/promises";
 import { promisify } from "node:util";
+import type { ArchiveInventoryEntry } from "../../js/archive-project-analyzer/src/index.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -10,8 +14,31 @@ function limit(name: string, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
-function safePath(path: string): boolean {
-  return path.length > 0 && !path.startsWith("/") && !path.includes("..") && !path.includes("\\") && !/^[A-Za-z]:/.test(path);
+export function safeArchivePath(path: string): boolean {
+  const segments = path.split("/");
+  return path.length > 0 && !path.startsWith("/") && !segments.includes("..") && !path.includes("\\") && !/^[A-Za-z]:/.test(path);
+}
+
+export async function sha256File(path: string): Promise<{ sha256: string; size: number }> {
+  const hash = createHash("sha256");
+  for await (const chunk of createReadStream(path)) hash.update(chunk as Buffer);
+  return { sha256: hash.digest("hex"), size: (await stat(path)).size };
+}
+
+/** Inventory a ZIP without extracting it. Unsafe entries are retained as findings, never materialized. */
+export async function inventoryZip(path: string): Promise<ArchiveInventoryEntry[]> {
+  const maxInventory = limit("DT_MAX_ARCHIVE_INVENTORY_FILES", 20_000);
+  const { stdout } = await execFileAsync("unzip", ["-l", path], { maxBuffer: 64 * 1024 * 1024 });
+  const entries: ArchiveInventoryEntry[] = [];
+  for (const line of stdout.split(/\r?\n/)) {
+    const match = /^\s*(\d+)\s+\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}\s+(.+)$/.exec(line);
+    if (!match) continue;
+    const name = match[2];
+    if (name.endsWith("/")) continue;
+    entries.push({ path: name, uncompressedSize: Number(match[1]), safe: safeArchivePath(name) });
+    if (entries.length > maxInventory) throw new Error(`ARCHIVE_INVENTORY_LIMIT:${entries.length}`);
+  }
+  return entries;
 }
 
 /** List zip entry paths without extracting content. */
@@ -21,13 +48,13 @@ export async function listZip(path: string): Promise<string[]> {
   const names = stdout.split(/\r?\n/).filter(Boolean).filter((name) => !name.endsWith("/"));
   if (names.length > maxFiles) throw new Error(`ARCHIVE_FILE_LIMIT:${names.length}`);
   for (const name of names) {
-    if (!safePath(name)) throw new Error(`ARCHIVE_UNSAFE_PATH:${name}`);
+    if (!safeArchivePath(name)) throw new Error(`ARCHIVE_UNSAFE_PATH:${name}`);
   }
   return names;
 }
 
 export async function readZipEntry(path: string, name: string, maxEntry = limit("DT_MAX_ARCHIVE_ENTRY_BYTES", 10 * 1024 * 1024)): Promise<Buffer> {
-  if (!safePath(name)) throw new Error(`ARCHIVE_UNSAFE_PATH:${name}`);
+  if (!safeArchivePath(name)) throw new Error(`ARCHIVE_UNSAFE_PATH:${name}`);
   const { stdout: content } = await execFileAsync("unzip", ["-p", path, name], {
     encoding: "buffer",
     maxBuffer: maxEntry + 1,

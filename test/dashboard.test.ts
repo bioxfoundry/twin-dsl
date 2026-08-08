@@ -4,7 +4,7 @@
  */
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { startDashboard } from "../src/serve/dashboard.js";
@@ -34,12 +34,29 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   const server = await startDashboard({ configPath: created.configPath, outDir, port: 0 });
   t.after(() => server.close());
 
-  const state = (await (await fetch(`${server.url}api/state`)).json()) as { twin: TwinDocument; scene: SceneDocument; projectIntegrity: { schema: string; ok: boolean } };
+  const state = (await (await fetch(`${server.url}api/state`)).json()) as {
+    artifactScope: string;
+    renderedScope: string;
+    diagnosticScope: string;
+    active: { status: string; revisionUri: string; sourceSnapshotHash: string; twin: TwinDocument; scene: SceneDocument };
+    latestCandidate: unknown;
+    twin: TwinDocument;
+    scene: SceneDocument;
+    projectIntegrity: { schema: string; ok: boolean };
+  };
   assert.ok(state.twin.components.length > 0, "no twin components served");
   const flatten=(items:TwinDocument["components"]):TwinDocument["components"]=>items.flatMap(component=>[component,...flatten(component.children)]);
   assert.equal(state.scene.bindings.length, flatten(state.twin.components).length);
   assert.equal(state.scene.sourceTwinId, state.twin.id);
   assert.equal(state.projectIntegrity.schema, "subactor.project-integrity/v1");
+  assert.equal(state.active.status, "accepted");
+  assert.match(state.active.revisionUri, /^urn:subactor:twin:sha256:/);
+  assert.equal(state.active.sourceSnapshotHash, state.twin.sourceSnapshotHash);
+  assert.equal(state.active.scene.id, state.scene.id);
+  assert.equal(state.latestCandidate, null);
+  assert.equal(state.artifactScope, "current");
+  assert.equal(state.renderedScope, "current");
+  assert.equal(state.diagnosticScope, "current");
 
   const dashboardHtml = await (await fetch(server.url)).text();
   assert.match(dashboardHtml, /function highlightJson/);
@@ -53,6 +70,17 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size,o\.orientation\)/);
   assert.match(dashboardHtml, /id="p-validation"/);
   assert.match(dashboardHtml, /state\.projectIntegrity/);
+  assert.match(dashboardHtml, /id="r-active"/);
+  assert.match(dashboardHtml, /id="r-candidate"/);
+  assert.match(dashboardHtml, /id="s-mesh"/);
+  assert.match(dashboardHtml, /id="s-unique-mesh"/);
+  assert.match(dashboardHtml, /id="a-validation"/);
+  assert.match(dashboardHtml, /state\.assemblyReport/);
+  assert.match(dashboardHtml, /canvas\.captureStream\(30\)/);
+  assert.match(dashboardHtml, /MediaRecorder\.isTypeSupported/);
+  assert.match(dashboardHtml, /EMPTY_VIDEO_BLOB/);
+  assert.match(dashboardHtml, /recorder\.start\(1000\)/);
+  assert.ok(dashboardHtml.includes("active ${activeRevision.slice(-12)}"));
 
   const eventLog = (await (await fetch(`${server.url}api/events`)).json()) as {
     schema: string; ok: boolean; count: number; events: unknown[];
@@ -70,6 +98,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
+  const dashboardLog = await readFile(join(created.projectDir, "logs/dashboard-0.log"), "utf8");
+  assert.match(dashboardLog, /"event":"server:listening"/);
 
   const usda = await (await fetch(`${server.url}api/scene.usda`)).text();
   assert.match(usda, /^#usda 1\.0/);
@@ -105,6 +135,80 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.deepEqual(flatten(after.twin.components).map((c) => c.id), before, "intake must not change component identity");
   const bound = after.scene.bindings.find((b) => b.componentId === target);
   assert.deepEqual(bound?.size, [12.4, 14.2, 3.2]);
+});
+
+test("dashboard keeps rejected candidate diagnostics separate from the active scene", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "dt-dashboard-revision-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const created = await createLivingProject({
+    name: "Revision Factory",
+    outDir: join(root, "project"),
+    profile: "biofoundry",
+    managerIntent: "Never render a rejected candidate.",
+  });
+  const outDir = join(root, "runtime");
+  await new LivingProjectRuntime().iterate(created.configPath, outDir, "deterministic");
+  const currentDir=join(outDir,"current"),candidateDir=join(outDir,"candidate");
+  await mkdir(candidateDir,{recursive:true});
+  const activeTwin=JSON.parse(await readFile(join(currentDir,"twin.json"),"utf8")) as TwinDocument;
+  const candidateTwin={...activeTwin,sourceSnapshotHash:"ca".repeat(32)};
+  const copyJson=async(name:string):Promise<void>=>writeFile(join(candidateDir,name),await readFile(join(currentDir,name)));
+  await Promise.all(["scene.json","geometry-validation.json","geometry-builds.json","project-integrity.json"].map(copyJson));
+  await writeFile(join(candidateDir,"twin.json"),JSON.stringify(candidateTwin));
+  await writeFile(join(outDir,"latest.json"),JSON.stringify({
+    iterationUri:"urn:subactor:iteration:sha256:"+"de".repeat(32),
+    validation:{ok:false,failures:["GeometryBuildFailed:test"]},
+  }));
+
+  const server=await startDashboard({configPath:created.configPath,outDir,port:0});
+  t.after(()=>server.close());
+  const state=await (await fetch(`${server.url}api/state`)).json() as any;
+  assert.equal(state.active.status,"accepted");
+  assert.equal(state.active.sourceSnapshotHash,activeTwin.sourceSnapshotHash);
+  assert.equal(state.twin.sourceSnapshotHash,activeTwin.sourceSnapshotHash,"compatibility twin remains ACTIVE");
+  assert.equal(state.scene.id,state.active.scene.id,"rendered scene remains ACTIVE");
+  assert.deepEqual(state.geometryValidation,state.active.geometryValidation,"top-level diagnostics describe ACTIVE");
+  assert.deepEqual(state.projectIntegrity,state.active.projectIntegrity,"top-level integrity describes ACTIVE");
+  assert.equal(state.latestCandidate.status,"rejected");
+  assert.match(state.latestCandidate.revisionUri,/^urn:subactor:twin:sha256:/);
+  assert.notEqual(state.latestCandidate.revisionUri,state.active.revisionUri,"candidate and ACTIVE have distinct content revisions");
+  assert.equal(state.latestCandidate.sourceSnapshotHash,candidateTwin.sourceSnapshotHash);
+  assert.deepEqual(state.latestCandidate.validation.failures,["GeometryBuildFailed:test"]);
+  assert.equal(state.artifactScope,"current");
+  assert.equal(state.renderedScope,"current");
+  assert.equal(state.diagnosticScope,"candidate");
+});
+
+test("read-only dashboard exposes state but rejects every runtime mutation", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "dt-dashboard-read-only-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const created = await createLivingProject({
+    name: "Read Only Factory",
+    outDir: join(root, "project"),
+    profile: "biofoundry",
+    managerIntent: "Expose one inspection replica without a second writer.",
+  });
+  const outDir = join(root, "runtime");
+  await new LivingProjectRuntime().iterate(created.configPath, outDir, "deterministic");
+  const server = await startDashboard({ configPath: created.configPath, outDir, port: 0, readOnly: true });
+  t.after(() => server.close());
+
+  const state = (await (await fetch(`${server.url}api/state`)).json()) as {
+    control: { mode: string; mutationsEnabled: boolean };
+  };
+  assert.deepEqual(state.control, { mode: "read-only", mutationsEnabled: false });
+
+  for (const path of ["api/iterate", "api/intake"]) {
+    const response = await fetch(`${server.url}${path}`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: path.endsWith("intake") ? "{}" : undefined,
+    });
+    const body = await response.json() as { error: string; diagnostic: string };
+    assert.equal(response.status, 403);
+    assert.equal(body.error, "DASHBOARD_READ_ONLY");
+    assert.equal(body.diagnostic, "DUPLICATE_TWIN_ITERATION_WRITER");
+  }
 });
 
 /**

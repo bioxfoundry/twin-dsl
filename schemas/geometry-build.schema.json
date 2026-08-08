@@ -128,7 +128,8 @@
             "artifactUri": {"type": "string", "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$"},
             "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
             "unit": {"enum": ["micron", "millimeter", "centimeter", "meter", "inch", "foot"]},
-            "comparison": {"const": "extent"}
+            "comparison": {"const": "extent"},
+            "extentToleranceM": {"type": "number", "minimum": 0, "maximum": 1}
           }
         }
       }

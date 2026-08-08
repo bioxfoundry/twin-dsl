@@ -72,10 +72,41 @@
     <div class="card">
       <h2>Factory</h2>
       <div class="stat">
-        <div><b id="s-parts">–</b><small>components</small></div>
-        <div><b id="s-physical">–</b><small>physical geometry</small></div>
+        <div><b id="s-parts">–</b><small>Twin components</small></div>
+        <div><b id="s-physical">–</b><small>evidence coverage</small></div>
         <div><b id="s-area">–</b><small>envelope m²</small></div>
       </div>
+      <div class="stat" style="margin-top:8px">
+        <div><b id="s-mesh">–</b><small>mesh bindings</small></div>
+        <div><b id="s-unique-mesh">–</b><small>unique meshes</small></div>
+        <div><b id="s-fallback">–</b><small>primitive fallbacks</small></div>
+      </div>
+      <div class="kv"><span>complete assemblies</span><span id="s-assemblies" class="mono">not modelled</span></div>
+      <div class="kv"><span>complete required parts</span><span id="s-assembly-parts" class="mono">–</span></div>
+      <div class="kv"><span>live-bound components</span><span id="s-live" class="mono">–</span></div>
+    </div>
+    <div class="card">
+      <h2>Assembly completeness</h2>
+      <div class="kv"><span>validation</span><span id="a-validation">–</span></div>
+      <div class="kv"><span>grounded assets</span><span id="a-assets" class="mono">–</span></div>
+      <div class="kv"><span>placed parts</span><span id="a-placed" class="mono">–</span></div>
+      <div id="a-assemblies"></div>
+      <div id="a-findings"></div>
+    </div>
+    <div class="card">
+      <h2>Revision state</h2>
+      <div class="kv"><span>rendered revision</span><span id="r-active">–</span></div>
+      <div class="kv"><span>active twin revision</span><span id="r-active-id" class="mono">–</span></div>
+      <div class="kv"><span>latest candidate</span><span id="r-candidate">–</span></div>
+      <div class="kv"><span>candidate twin revision</span><span id="r-candidate-id" class="mono">–</span></div>
+      <div id="r-failures"></div>
+    </div>
+    <div class="card">
+      <h2>TwinState freshness</h2>
+      <div class="kv"><span>bindings resolved</span><span id="ts-resolved" class="mono">–</span></div>
+      <div class="kv"><span>fresh / stale</span><span id="ts-freshness" class="mono">–</span></div>
+      <div class="kv"><span>expired / unknown</span><span id="ts-missing" class="mono">–</span></div>
+      <div id="ts-properties"></div>
     </div>
     <div class="card">
       <h2>Geometry evidence</h2>
@@ -233,12 +264,27 @@ let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,framed=false;
 let recorder=null,recordedChunks=[],recordingTimer=null;
 const STL_CACHE=new Map();
 function loadGlb(bytes){
-  if(bytes.length<20||new DataView(bytes.buffer).getUint32(0,true)!==0x46546c67)return null;
-  const view=new DataView(bytes.buffer),jsonLength=view.getUint32(12,true),jsonStart=20;
-  const doc=JSON.parse(new TextDecoder().decode(bytes.slice(jsonStart,jsonStart+jsonLength)));let binStart=jsonStart+jsonLength+8;
-  const binLength=view.getUint32(binStart-8,true);const bin=bytes.slice(binStart,binStart+binLength),accessors=doc.accessors||[],views=doc.bufferViews||[];
-  const read=(index)=>{const a=accessors[index],b=views[a.bufferView],count=a.count,components=a.type==='VEC3'?3:1,off=(b.byteOffset||0)+(a.byteOffset||0),stride=b.byteStride||components*4,out=[];for(let i=0;i<count;i++){const q=off+i*stride;for(let c=0;c<components;c++)out.push(new DataView(bin.buffer,bin.byteOffset,bin.byteLength).getFloat32(q+c*4,true));}return out;};
-  const prim=doc.meshes?.[0]?.primitives?.[0];if(prim?.attributes?.POSITION===undefined)return null;const pos=read(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):read(prim.attributes.NORMAL);return upload(normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)}));
+  try{
+    if(bytes.byteLength<28)return null;
+    const view=new DataView(bytes.buffer,bytes.byteOffset,bytes.byteLength);
+    if(view.getUint32(0,true)!==0x46546c67||view.getUint32(4,true)!==2||view.getUint32(8,true)!==bytes.byteLength)return null;
+    const jsonLength=view.getUint32(12,true),jsonType=view.getUint32(16,true),jsonStart=20,jsonEnd=jsonStart+jsonLength;
+    if(jsonType!==0x4e4f534a||jsonEnd+8>bytes.byteLength)return null;
+    const binLength=view.getUint32(jsonEnd,true),binType=view.getUint32(jsonEnd+4,true),binStart=jsonEnd+8;
+    if(binType!==0x004e4942||binStart+binLength>bytes.byteLength)return null;
+    const doc=JSON.parse(new TextDecoder().decode(bytes.subarray(jsonStart,jsonEnd))),accessors=doc.accessors||[],views=doc.bufferViews||[];
+    const binView=new DataView(bytes.buffer,bytes.byteOffset+binStart,binLength);
+    const read=(index)=>{
+      const a=accessors[index],b=a&&views[a.bufferView];
+      if(!a||!b||a.componentType!==5126||a.type!=='VEC3'||!Number.isInteger(a.count)||a.count<1)throw new Error('GLB_ACCESSOR_UNSUPPORTED');
+      const components=3,off=(b.byteOffset||0)+(a.byteOffset||0),stride=b.byteStride||components*4,last=off+(a.count-1)*stride+components*4;
+      if(off<0||stride<components*4||last>binLength)throw new Error('GLB_ACCESSOR_OUT_OF_BOUNDS');
+      const out=[];for(let i=0;i<a.count;i++){const q=off+i*stride;for(let c=0;c<components;c++)out.push(binView.getFloat32(q+c*4,true));}return out;
+    };
+    const prim=doc.meshes?.[0]?.primitives?.[0];if(prim?.attributes?.POSITION===undefined)return null;
+    const pos=read(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):read(prim.attributes.NORMAL);
+    return upload(normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)}));
+  }catch(error){console.warn('[digital-twin] GLB rejected',error);return null;}
 }
 async function loadAsset(uri){
   if(!uri)return null;if(STL_CACHE.has(uri))return STL_CACHE.get(uri);
@@ -265,16 +311,36 @@ document.getElementById('btn-record').onclick=()=>{
     button.textContent='Recording unavailable'; return;
   }
   recordedChunks=[];
-  const captureStream=canvas.captureStream(0), captureTrack=captureStream.getVideoTracks()[0];
-  recorder=new MediaRecorder(captureStream,{mimeType:'video/webm;codecs=vp8'});
+  // A zero-rate capture stream depends entirely on requestFrame(). Headless Chromium and
+  // some software WebGL implementations then produce a zero-byte WebM even though recording
+  // appears to work. A fixed frame rate keeps the encoder clock alive; requestFrame remains
+  // an optional nudge for browsers that expose it.
+  const captureStream=canvas.captureStream(30), captureTrack=captureStream.getVideoTracks()[0];
+  const mimeType=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm']
+    .find(type=>MediaRecorder.isTypeSupported(type));
+  recorder=new MediaRecorder(captureStream,mimeType?{mimeType}:undefined);
   recorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data);};
+  recorder.onerror=e=>{
+    console.error('[digital-twin] recording:error',e.error||e);
+    notify(`recording failed: ${(e.error&&e.error.message)||'media encoder error'}`,'bad');
+  };
   recorder.onstop=()=>{
     if(recordingTimer){clearInterval(recordingTimer);recordingTimer=null;}
     const blob=new Blob(recordedChunks,{type:'video/webm'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+    if(!blob.size){
+      console.error('[digital-twin] recording:error',{error:'EMPTY_VIDEO_BLOB'});
+      notify('recording failed: browser produced an empty video','bad');
+      URL.revokeObjectURL(url);
+      return;
+    }
     a.href=url; a.download=`digital-twin-${new Date().toISOString().replace(/[:.]/g,'-')}.webm`; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url),1000);
+    // Large recordings and automated browsers may still be streaming the object URL after
+    // one second. Early revocation yielded an empty downloaded file despite a non-empty Blob.
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
   };
-  recorder.start(); button.textContent='Stop & download video';
+  // Timeslices avoid relying on one final encoder flush at stop(), which was another source
+  // of empty files in headless and resource-constrained browsers.
+  recorder.start(1000); button.textContent='Stop & download video';
   // WebGL may otherwise remain static and Chromium emits only one frame. Keep the live scene
   // observable during capture without changing its state or revision.
   recordingTimer=setInterval(()=>{render();captureTrack.requestFrame?.();},1000/30);
@@ -295,7 +361,7 @@ async function buildObjects(state){
       label:c.properties.label||b.componentId,
       pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)), orientation:b.orientation||[0,0,0,1], orientationProvided:Array.isArray(b.orientation),
       prim:b.primitive||'cube', grade:g, color:hex2rgb(GRADE_COLOR[g]),
-      props:c.properties, uris:c.sourceUris||[],
+      assetUri:b.assetUri||null, props:c.properties, uris:c.sourceUris||[],
     };
   });
   // Frame the camera on the actual extent so any facility size fits.
@@ -408,12 +474,40 @@ function showSelected(){
     <div class="kv"><span>sourceUris</span><span class="mono">${o.uris.length}</span></div>`;
 }
 function paintStats(state,events){
+  const twinComponents=state.twin?((items=>{const walk=nodes=>nodes.flatMap(node=>[node,...walk(node.children||[])]);return walk(items||[]);})(state.twin.components)):[];
   const physicalObjects=OBJECTS.filter(o=>o.spatialClass==='physical'||o.spatialClass==='hybrid');
   const physical=physicalObjects.filter(o=>o.grade!=='placeholder').length;
-  $('s-parts').textContent=OBJECTS.length;
+  const meshObjects=OBJECTS.filter(o=>o.assetUri);
+  const uniqueMeshes=new Set(meshObjects.map(o=>o.assetUri)).size;
+  const observations=(state.observations&&state.observations.observations)||[];
+  // A runtime metric is a component binding only when the model states the identity
+  // explicitly. Similar names and URI suffixes are deliberately not guessed.
+  const twinState=state.twinState||null;
+  const stateComponents=(twinState&&twinState.components)||[];
+  const liveBound=stateComponents.filter(component=>component.properties.some(property=>property.quality!=='unknown')).length;
+  $('s-parts').textContent=twinComponents.length;
   $('s-physical').textContent=`${physical}/${physicalObjects.length}`;
+  $('s-mesh').textContent=`${meshObjects.length}/${OBJECTS.length}`;
+  $('s-unique-mesh').textContent=String(uniqueMeshes);
+  $('s-fallback').textContent=String(OBJECTS.length-meshObjects.length);
+  const assembly=state.assemblyReport||null,ac=assembly&&assembly.coverage||{};
+  $('s-assemblies').textContent=assembly?`${ac.completeAssemblies??0}/${ac.assemblies??0}`:'not modelled';
+  $('s-assembly-parts').textContent=assembly?`${ac.completeRequiredParts??0}/${ac.requiredParts??0}`:'–';
+  $('a-validation').innerHTML=assembly?(assembly.ok?`<span class="${assembly.complete?'ok':'warn'}">PASS · ${assembly.complete?'COMPLETE':'INCOMPLETE'}</span>`:'<span class="bad">FAIL</span>'):'–';
+  $('a-assets').textContent=assembly?`${ac.availableAssets??0}/${ac.requiredParts??0}`:'–';
+  $('a-placed').textContent=assembly?`${ac.placedParts??0}/${ac.requiredParts??0}`:'–';
+  $('a-assemblies').innerHTML=assembly?(assembly.assemblies||[]).map(item=>`<div class="kv"><span>${escapeCode(item.id)}</span><span class="mono ${item.complete?'ok':'warn'}">${item.parts.filter(part=>part.complete&&part.required).length}/${item.parts.filter(part=>part.required).length} ${item.complete?'complete':'incomplete'}</span></div>`).join(''):'<span class="mono" style="color:var(--muted)">no AssemblyDSL contract</span>';
+  $('a-findings').innerHTML=assembly?(assembly.findings||[]).slice(0,6).map(finding=>`<div class="kv"><span class="${finding.severity==='error'?'bad':'warn'}">${escapeCode(finding.code)}</span><span class="mono">${escapeCode(finding.partId||finding.componentId)}</span></div>`).join(''):'';
+  $('s-live').textContent=`${liveBound}/${twinComponents.length}`;
+  const tc=(twinState&&twinState.coverage)||{};
+  $('ts-resolved').textContent=`${tc.resolved??0}/${tc.bindings??0}`;
+  $('ts-freshness').innerHTML=`<span class="ok">${tc.fresh??0}</span> / <span class="warn">${tc.stale??0}</span>`;
+  $('ts-missing').innerHTML=`<span class="bad">${tc.expired??0}</span> / ${tc.unknown??0}`;
+  const stateProperties=stateComponents.flatMap(component=>component.properties.map(property=>({componentId:component.componentId,...property})));
+  $('ts-properties').innerHTML=stateProperties.map(property=>`<div class="kv"><span>${escapeCode(property.componentId+'.'+property.property)}</span><span class="mono ${property.quality==='fresh'?'ok':property.quality==='stale'?'warn':property.quality==='expired'?'bad':''}">${escapeCode(property.state)} · ${escapeCode(property.quality)}</span></div>`).join('')||'<span class="mono" style="color:var(--muted)">no live bindings</span>';
   const env=OBJECTS.find(o=>o.id==='facility_shell');
   $('s-area').textContent=env?Math.round(env.size[0]*env.size[1]):'–';
+  paintRevisionState(state);
   const r=state.report||{};
   const mark=v=>v===true?'<span class="ok">true</span>':v===false?'<span class="bad">false</span>':'–';
   $('i-ids').innerHTML=mark(r.componentIdsStable);
@@ -430,12 +524,12 @@ function paintStats(state,events){
   $('p-parameters').textContent=`${pc.validParameters??0} / ${pc.parameters??0}`;
   $('p-assumptions').textContent=`${pc.groundedAssumptions??0} / ${pc.assumptions??0}`;
   $('p-findings').innerHTML=(pi.findings||[]).slice(0,6).map(f=>`<div class="kv"><span class="${f.severity==='error'?'bad':f.severity==='warning'?'warn':''}">${escapeCode(f.code)}</span><span class="mono">${escapeCode(f.layer)}</span></div>`).join('')||'<span class="mono ok">no findings</span>';
-  const obs=(state.observations&&state.observations.observations)||[];
+  const obs=observations;
   $('obs').innerHTML=obs.length?obs.slice(-6).map(o=>
     `<div class="kv"><span>${o.metric}</span><span class="mono">${JSON.stringify(o.value)}${o.unit&&o.unit!=='mixed'?' '+o.unit:''}</span></div>`).join('')
     :'<span class="mono" style="color:var(--muted)">none</span>';
-  const uri=(state.iteration&&state.iteration.iterationUri)||'';
-  $('revision').textContent=uri?`twin ${uri.slice(-12)} · ${OBJECTS.length} components`:'no twin revision yet';
+  const activeRevision=state.active&&state.active.revisionUri;
+  $('revision').textContent=activeRevision?`active ${activeRevision.slice(-12)} · ${OBJECTS.length} components`:'no active twin revision yet';
   const latest=(events.events||[]).at(-1);
   const version=latest&&latest.streamVersion;
   const occurred=latest&&(latest.occurredAt||latest.recordedAt);
@@ -445,6 +539,17 @@ function paintStats(state,events){
     :'no iteration recorded';
   $('last-iteration').className='sub '+(valid===true?'ok':valid===false?'bad':'');
   $('last-iteration').title=occurred||'';
+}
+
+function paintRevisionState(state){
+  const active=state.active||{status:state.twin&&state.scene?'accepted':'unavailable',revisionUri:null};
+  const candidate=state.latestCandidate||null;
+  $('r-active').innerHTML=active.status==='accepted'?'<span class="ok">ACTIVE · ACCEPTED</span>':'<span class="bad">UNAVAILABLE</span>';
+  $('r-active-id').textContent=active.revisionUri?active.revisionUri.slice(-12):'–';
+  $('r-candidate').innerHTML=candidate?'<span class="bad">LATEST · REJECTED</span>':'<span class="ok">none rejected</span>';
+  $('r-candidate-id').textContent=candidate&&candidate.revisionUri?candidate.revisionUri.slice(-12):'–';
+  const failures=(candidate&&candidate.validation&&candidate.validation.failures)||[];
+  $('r-failures').innerHTML=failures.slice(0,4).map(f=>`<div class="kv"><span class="bad">reason</span><span class="mono">${escapeCode(f)}</span></div>`).join('');
 }
 
 /* Inline, non-blocking status. `alert()` would freeze the event loop and stall the
@@ -493,7 +598,7 @@ $('btn-iterate').onclick=async()=>{
   try{
     const response=await fetch('/api/iterate',{method:'POST'});
     const out=await response.json().catch(()=>({error:'INVALID_SERVER_RESPONSE'}));
-    if(!response.ok||out.error||out.ok===false) throw new Error(out.error||'ITERATION_BLOCKED_VALIDATION_OR_POLICY');
+    if(!response.ok||out.error||out.ok===false) throw new Error([out.error||'ITERATION_BLOCKED_VALIDATION_OR_POLICY',...(out.failures||[])].join(': '));
     console.info('[digital-twin] iteration:complete',{durationMs:Date.now()-started,...out});
     notify(`iteration ${out.noChange?'no change':'completed'} · ${Date.now()-started} ms`,'ok');
     await refresh();

@@ -1,0 +1,12 @@
+{
+  "$schema":"https://json-schema.org/draft/2020-12/schema",
+  "$id":"subactor.assembly/v1",
+  "type":"object","additionalProperties":false,"required":["schema","id","assemblies"],
+  "properties":{
+    "schema":{"const":"subactor.assembly/v1"},"id":{"type":"string","minLength":1},
+    "assemblies":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["id","rootComponentId","kind","parts"],"properties":{
+      "id":{"type":"string","minLength":1},"rootComponentId":{"type":"string","minLength":1},"kind":{"enum":["device","assembly","module"]},
+      "parts":{"type":"array","minItems":1,"uniqueItems":true,"items":{"type":"object","additionalProperties":false,"required":["id","componentId","required"],"properties":{"id":{"type":"string","minLength":1},"componentId":{"type":"string","minLength":1},"required":{"type":"boolean"},"assetUri":{"type":"string","minLength":1},"scenePath":{"type":"string","pattern":"^/"}}}}
+    }}}
+  }
+}

@@ -14,7 +14,10 @@ const config=parseProjectDsl(await readFile(created.configPath,'utf8'));config.p
 const blocked=await runtime.iterate(created.configPath,out,'deterministic');
 const authoritative=parseMathDsl('MATH authority\nBIND ManagerApproved = false\nBIND RateLimitAvailable = true\nEXPR IterationAllowed = AND(ManagerApproved, RateLimitAvailable)');
 const tampered=parseMathDsl('MATH proposal\nBIND ManagerApproved = true\nBIND RateLimitAvailable = true\nEXPR IterationAllowed = true');
-const merged=mergeAuthorityMath(authoritative,tampered);
+let tamperRejection=null;
+try{mergeAuthorityMath(authoritative,tampered);}catch(error){tamperRejection=error instanceof Error?error.message:String(error);}
+const semantic=parseMathDsl('MATH proposal\nBIND ProposedSetpoint = 37');
+const merged=mergeAuthorityMath(authoritative,semantic);
 const failure=await runtime.recordFailure(created.configPath,out,new Error('EXAMPLE_CONNECTOR_FAILURE'),1,1000);
-const summary={baseline:{ok:baseline.validation.ok,iterationUri:baseline.iterationUri},blocked:{ok:blocked.validation.ok,development:blocked.stages.find(x=>x.name==='development'),improvementUri:blocked.improvementUri},authority:{iterationAllowed:evaluateMath(merged.document,'IterationAllowed'),warnings:merged.warnings},failure:{errorCode:failure.errorCode,retryAfterMs:failure.retryAfterMs}};
+const summary={baseline:{ok:baseline.validation.ok,iterationUri:baseline.iterationUri},blocked:{ok:blocked.validation.ok,development:blocked.stages.find(x=>x.name==='development'),improvementUri:blocked.improvementUri},authority:{tamperRejection,iterationAllowed:evaluateMath(merged.document,'IterationAllowed'),semanticBindingAccepted:merged.document.bindings.some(binding=>binding.name==='ProposedSetpoint'),warnings:merged.warnings},failure:{errorCode:failure.errorCode,retryAfterMs:failure.retryAfterMs}};
 await writeFile(join(root,'summary.json'),JSON.stringify(summary,null,2)+'\n');console.log(JSON.stringify(summary,null,2));

@@ -3,6 +3,8 @@ import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
   DevelopmentEvidenceSummary,
+  AssemblyDocument,
+  AssemblyReport,
   DomainEvent,
   GenerationAudit,
   GeometryValidationReport,
@@ -10,6 +12,7 @@ import type {
   ImprovementPlan,
   LivingFailureReceipt,
   LivingIterationReceipt,
+  LiveBindingDocument,
   LivingProjectDocument,
   LlmMode,
   MathDocument,
@@ -25,6 +28,7 @@ import type {
   TreeDocument,
   TreeNode,
   TwinDocument,
+  TwinStateDocument,
 } from "../core/types.js";
 import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
 import { scanSources } from "../ingestion/scanner.js";
@@ -46,6 +50,7 @@ import {
   acquireProjectLease,
   appendJsonLine,
   buildImprovementPlan,
+  developmentAnalysisFingerprint,
   mergeAuthorityMath,
   semanticMathProjection,
   mutationGrantPresent,
@@ -68,6 +73,10 @@ import { analyzeProjectIntegrity, renderProjectIntegrityDsl } from "./project-in
 import { GeometryService, type GeometryMaterialization } from "../geometry/geometry-service.js";
 import { mergeGeometryEvidence } from "../geometry/physical-evidence-adapter.js";
 import { renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
+import { parseLiveBindingDsl } from "../dsl/live-binding.js";
+import { projectTwinState, renderTwinStateDsl } from "./twin-state.js";
+import { parseAssemblyDsl } from "../dsl/assembly.js";
+import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
@@ -151,14 +160,15 @@ function observationsFromResources(project:LivingProjectDocument,resources:Resou
       if(!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
       const row = raw as Record<string,unknown>;
       const observedAt = typeof row.observedAt === "string" ? row.observedAt : typeof row.timestamp === "string" ? row.timestamp : new Date(0).toISOString();
+      const receivedAt = typeof row.receivedAt === "string" ? row.receivedAt : observedAt;
       const subjectUri = typeof row.subjectUri === "string" ? row.subjectUri : `subactor://project/${project.id}/runtime`;
       const severity = ["debug","info","warning","error","critical"].includes(String(row.severity)) ? String(row.severity) as ObservationRecord["severity"] : "info";
       if (row.unit === "mixed") throw new Error(`OBSERVATION_UNIT_MIXED_FORBIDDEN:${resource.sourcePath}`);
       const units = row.units && typeof row.units === "object" && !Array.isArray(row.units) ? row.units as Record<string, unknown> : {};
       for(const [metric,value] of Object.entries(row)) {
-        if(["observedAt","timestamp","subjectUri","severity","labels","unit","units"].includes(metric)) continue;
+        if(["observedAt","receivedAt","timestamp","subjectUri","severity","labels","unit","units"].includes(metric)) continue;
         const unit = typeof units[metric] === "string" ? String(units[metric]) : typeof row.unit === "string" ? row.unit : undefined;
-        observations.push({id:`obs-${++index}`,observedAt,subjectUri,metric,value:parseObservationValue(value),unit,severity,sourceUris:[resource.uri],labels:Array.isArray(row.labels)?row.labels.filter(item=>typeof item === "string") as string[]:[]});
+        observations.push({id:`obs-${++index}`,observedAt,receivedAt,subjectUri,metric,value:parseObservationValue(value),unit,severity,sourceUris:[resource.uri],labels:Array.isArray(row.labels)?row.labels.filter(item=>typeof item === "string") as string[]:[]});
       }
     }
   }
@@ -286,10 +296,16 @@ export class LivingProjectRuntime {
     const startedAt = new Date().toISOString();
     const traceId = randomUUID();
     const base = dirname(configPath);
-    const dashboardPort = Number(process.env.DT_DASHBOARD_PORT ?? 7445);
+    const dashboardPort = Number(process.env.DT_DASHBOARD_PORT ?? 7444);
     if (!Number.isInteger(dashboardPort) || dashboardPort < 1 || dashboardPort > 65535) throw new Error("DT_DASHBOARD_PORT_INVALID");
     const sceneBlueprint = project.scene.blueprintFile
       ? validateSceneBlueprint(await readJson(resolve(base,project.scene.blueprintFile)))
+      : undefined;
+    const liveBindings:LiveBindingDocument|undefined = project.observations.liveBindingFile
+      ? parseLiveBindingDsl(await readFile(resolve(base,project.observations.liveBindingFile),"utf8"))
+      : undefined;
+    const assemblyDocument:AssemblyDocument|undefined = project.scene.assemblyFile
+      ? parseAssemblyDsl(await readFile(resolve(base,project.scene.assemblyFile),"utf8"))
       : undefined;
     const baselinePhysicalEvidence = project.scene.physicalEvidenceFile
       ? validatePhysicalEvidence(await readJson(resolve(base,project.scene.physicalEvidenceFile)))
@@ -298,7 +314,7 @@ export class LivingProjectRuntime {
     const geometryContracts = await Promise.all(geometryContractPaths.map(path=>readJson<unknown>(path)));
     // Blueprint and physical facts are part of structural identity: a geometry or semantic model
     // change forces a new iteration even when sources and code are untouched.
-    const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,physicalEvidence:baselinePhysicalEvidence,geometryContracts}));
+    const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,liveBindings,assemblyDocument,physicalEvidence:baselinePhysicalEvidence,geometryContracts}));
     const scanned = await scanSources(project.sources.map(source=>({path:resolve(base,source.path),role:source.role,logicalRoot:source.logicalRoot,labels:source.labels})));
     if(project.webResearch) {
       const plan = parseDql(await readFile(resolve(base,project.webResearch.dqlFile),"utf8"));
@@ -360,7 +376,12 @@ export class LivingProjectRuntime {
       evidenceUris:developmentSource === "missing" ? [] : [intentUri],
       fixtureAllowed:project.policy.allowDevelopmentFixture,
     });
-    const developmentFingerprint = sha256(canonicalJson({development,diagnostics:analysis?.diagnostics??[],manifest:analysis?.manifest??{},summary:developmentEvidence}));
+    const developmentFingerprint = developmentAnalysisFingerprint({
+      graph:development,
+      diagnostics:analysis?.diagnostics,
+      manifest:analysis?.manifest,
+      summary:developmentEvidence,
+    });
     const observation = observationsFromResources(project,resources,scanned.texts,researchHash);
     const observationHash = sha256(canonicalJson(observation));
     const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,geometryFingerprint,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
@@ -369,19 +390,58 @@ export class LivingProjectRuntime {
     // has to match too, or a shipped fix would never reach an existing project.
     // DT_FORCE_ITERATION exists for the case where neither moved but a rebuild is wanted.
     const forced = process.env.DT_FORCE_ITERATION === "1";
-    if(!forced && previous && previous.runtimeGeneration===RUNTIME_GENERATION && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) {
+    const previousStableState = await readOptional<{stableKey?:string}>(join(outDir,"state/key.json"));
+    if(!forced && previous && previousStableState?.stableKey===stableKey && previous.runtimeGeneration===RUNTIME_GENERATION && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) {
       const runtimeRoot = resolve(outDir);
       const streamVersion = await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER);
+      const blocked = !previous.validation.ok;
+      const diagnosticScope = blocked ? "candidate" : "current";
+      const diagnosticRoot = join(runtimeRoot,diagnosticScope);
+      const [currentTwinState,currentAssemblyReport] = await Promise.all([
+        readOptional<TwinStateDocument>(join(diagnosticRoot,"twin-state.json")),
+        readOptional<AssemblyReport>(join(diagnosticRoot,"assembly-report.json")),
+      ]);
       await writeFile(resolve(base,"START.md"),[
         `# ${project.name} — START`, "", `Generated: ${new Date().toISOString()}`,
-        "Status: RUNNING / NO CHANGE", `Runtime generation: ${RUNTIME_GENERATION}`, `Event stream version: ${streamVersion}`,
-        `Last completed iteration: ${previous.completedAt}`, `Project DSL: ${configPath}`, `Runtime root: ${runtimeRoot}`, "",
-        `Dashboard: http://127.0.0.1:${dashboardPort}`,
-        `Start: node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} deterministic`, "",
-        `Twin: ${join(runtimeRoot,"current/twin.json")}`, `Scene: ${join(runtimeRoot,"current/scene.usda")}`,
-        `IntentDSL index: ${join(runtimeRoot,"current/intent-dsl.index.json")}`,
-        `Latest receipt: ${join(runtimeRoot,"latest.json")}`, `Events: ${join(runtimeRoot,"events.jsonl")}`,
-        `Feedback: ${resolve(base,"feedback/latest.md")}`, "", `Iteration URI: ${previous.iterationUri}`, "",
+        `Status: ACTIVE / ACCEPTED; LATEST ITERATION / ${blocked ? "REJECTED" : "ACCEPTED"}; NO CHANGE`,
+        `Project: ${project.id}`, `Runtime generation: ${RUNTIME_GENERATION}`,
+        `Event stream version: ${streamVersion}`, `Last completed iteration: ${previous.completedAt}`, "",
+        "## Live application", "",
+        `- Dashboard URL: http://127.0.0.1:${dashboardPort}`,
+        `- Project DSL: ${configPath}`, `- Runtime root: ${runtimeRoot}`,
+        `- Current Twin: ${join(runtimeRoot,"current/twin.json")}`,
+        `- Current scene JSON: ${join(runtimeRoot,"current/scene.json")}`,
+        `- Current OpenUSD: ${join(runtimeRoot,"current/scene.usda")}`,
+        ...(currentTwinState?[`- Current TwinState: ${join(diagnosticRoot,"twin-state.json")}`]:[]),
+        `- Rendered ACTIVE artifact scope: ${join(runtimeRoot,"current")}`,
+        `- Latest diagnostic scope: ${diagnosticRoot}`,
+        `- API state: http://127.0.0.1:${dashboardPort}/api/state`,
+        `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
+        `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`, "", "```bash",
+        `DT_DASHBOARD_HOST=0.0.0.0 DT_DASHBOARD_PORT=${dashboardPort} node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} ${mode}`,
+        "```", "", "## DSL and validation", "",
+        `- intentDSL index: ${join(diagnosticRoot,"intent-dsl.index.json")}`,
+        `- Physical evidence report: ${join(diagnosticRoot,"physical-evidence.report.json")}`,
+        `- Geometry build diagnostics: ${join(diagnosticRoot,"geometry-builds.dsl")}`,
+        `- Geometry validation: ${join(diagnosticRoot,"geometry-validation.dsl")}`,
+        `- Project integrity: ${join(diagnosticRoot,"project-integrity.dsl")}`,
+        `- Evidence sets: ${join(diagnosticRoot,"evidence-sets.dsl")}`,
+        `- Validation: ${blocked ? previous.validation.failures.join(", ") : "passed"}`,
+        "", "## Logs and feedback", "",
+        `- Iteration receipt: ${join(runtimeRoot,"latest.json")}`,
+        `- Event log: ${join(runtimeRoot,"events.jsonl")}`,
+        `- Failure log: ${join(runtimeRoot,"dead-letter.jsonl")}`,
+        `- Dashboard server log: ${resolve(base,"logs",`dashboard-${dashboardPort}.log`)}`,
+        `- Runtime observations: ${join(diagnosticRoot,"observations.json")}`,
+        ...(currentTwinState?[`- Live bindings: ${resolve(base,project.observations.liveBindingFile!)}`,`- TwinState: ${join(diagnosticRoot,"twin-state.json")}`,`- TwinState freshness: ${currentTwinState.coverage.fresh} fresh; ${currentTwinState.coverage.stale} stale; ${currentTwinState.coverage.expired} expired; ${currentTwinState.coverage.unknown} unknown`]:[]),
+        ...(currentAssemblyReport?[`- Assembly contract: ${resolve(base,project.scene.assemblyFile!)}`,`- Assembly report: ${join(diagnosticRoot,"assembly-report.dsl")}`,`- Assembly completeness: ${currentAssemblyReport.coverage.completeAssemblies}/${currentAssemblyReport.coverage.assemblies}; required parts ${currentAssemblyReport.coverage.completeRequiredParts}/${currentAssemblyReport.coverage.requiredParts}`]:[]),
+        `- Feedback: ${resolve(base,"feedback/latest.md")}`,
+        `- Generation audit: ${join(diagnosticRoot,"generation-audit.json")}`,
+        "", "## Presentation assets", "",
+        `- Dashboard screenshot: ${join(runtimeRoot,"current/presentation/digital-twin-dashboard.png")}`,
+        `- 3D orbit video: ${join(runtimeRoot,"current/presentation/digital-twin-orbit.webm")}`,
+        `- Dashboard recording: ${join(runtimeRoot,"current/presentation/digital-twin-dashboard.webm")}`,
+        "", `Iteration URI: ${previous.iterationUri}`, "",
       ].join("\n"),"utf8");
       return {...previous,noChange:true,diff};
     }
@@ -393,7 +453,15 @@ export class LivingProjectRuntime {
     const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable,evidenceSets});
     const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint);
     const deterministicScene = conceptualScene(project,deterministicTwin,sceneBlueprint);
-    const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,intentDsl,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
+    const llmResourceLimit=Math.max(10,Math.min(200,Number(process.env.DT_LLM_RESOURCE_CONTEXT_LIMIT??80)||80));
+    // LLMs receive the immutable evidence index, not scanner implementation timestamps or
+    // absolute host paths. This keeps prompts small enough for weaker models while preserving
+    // every identifier needed for grounding checks performed after generation.
+    const llmResources=resources.slice(0,llmResourceLimit).map(resource=>({
+      id:resource.id,uri:resource.uri,logicalUri:resource.logicalUri,mediaType:resource.mediaType,
+      sourceRole:resource.sourceRole??"project",labels:resource.labels??[],derived:resource.derived,derivedFrom:resource.derivedFrom,
+    }));
+    const context = {project,resources:llmResources,resourceCoverage:{included:llmResources.length,total:resources.length,truncated:llmResources.length<resources.length},development,developmentEvidence,observation,intentDsl,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
     const effectiveMode:LlmMode = rateLimitAvailable ? mode : "deterministic";
 
     const semanticMath = semanticMathProjection(authoritativeMath);
@@ -458,6 +526,13 @@ export class LivingProjectRuntime {
       for(const entry of physicalEvidenceReport.rejected) authorityWarnings.push(`PHYSICAL_EVIDENCE_REJECTED:${entry.componentId}:${entry.reason}`);
     }
 
+    const twinState:TwinStateDocument|undefined = liveBindings
+      ? projectTwinState({projectId:project.id,bindings:liveBindings,observations:observation,twin,projectedAt:startedAt})
+      : undefined;
+    const assemblyReport:AssemblyReport|undefined = assemblyDocument
+      ? analyzeAssemblies({projectId:project.id,document:assemblyDocument,twin,scene,allowedAssetUris:resources.map((resource)=>resource.uri)})
+      : undefined;
+
     const allowed = evaluateMath(math,"IterationAllowed") === true && intentDsl.invalid === 0;
     const scenePolicyAllowed = evaluateMath(math,"ScenePublishAllowed") === true && intentDsl.invalid === 0;
     const geometryReport = geometryValidation ?? validateGeometry(
@@ -469,9 +544,10 @@ export class LivingProjectRuntime {
     const projectIntegrity:ProjectIntegrityReport = analyzeProjectIntegrity({
       project,resources,development:developmentEvidence,observations:observation,twin,scene,
       geometry:geometryReport,physicalEvidence,
+      geometryBuildReceipts:geometryMaterializations.map(item=>item.receipt),
       generationAudits:[mathGeneration.audit,twinGeneration.audit,sceneGeneration.audit],
     });
-    const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok && geometryBuildFailures.length===0;
+    const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok && (assemblyReport?.ok ?? true) && geometryBuildFailures.length===0;
     const failures:string[] = [];
     if(intentDsl.invalid) failures.push(`IntentDslValidationFailed:${intentDsl.invalid}`);
     if(!rateLimitAvailable) failures.push("AutonomyRateLimitExceeded");
@@ -480,9 +556,17 @@ export class LivingProjectRuntime {
     failures.push(...geometryBuildFailures);
     if(!geometryReport.ok) failures.push(`GeometryValidationFailed:${geometryReport.failures.join("|")}`);
     if(!projectIntegrity.ok) failures.push(`ProjectIntegrityFailed:${projectIntegrity.findings.filter(finding=>finding.severity==="error").map(finding=>finding.code).join("|")}`);
+    if(assemblyReport && !assemblyReport.ok) failures.push(`AssemblyValidationFailed:${assemblyReport.findings.filter((finding)=>finding.severity==="error").map((finding)=>finding.code).join("|")}`);
     const researchPresent = resources.some(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole)));
     const runtimePresent = observation.observations.length > 0;
-    const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri]});
+    const geometryRepairProcesses = geometryMaterializations.flatMap(({contract,receipt})=>receipt.status==="failed"&&receipt.repairProcess?[{
+      failure:`GeometryBuildFailed:${contract.id}:${receipt.error?.code??receipt.validation.failures.join("|")}`,
+      title:`Reconcile geometry evidence for ${contract.id}`,
+      processUri:receipt.repairProcess,
+      evidenceUris:[receipt.source.uri,...Object.values(receipt.artifacts).map(artifact=>artifact.uri)],
+    }]:[]);
+    const assemblyRepairProcesses = (assemblyReport?.findings ?? []).map((finding)=>({failure:`${finding.code}:${finding.componentId}`,title:`Repair assembly ${finding.assemblyId}: ${finding.partId??finding.componentId}`,processUri:finding.repairProcess,evidenceUris:[finding.errorUri]}));
+    const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri],repairProcesses:[...geometryRepairProcesses,...assemblyRepairProcesses]});
 
     const candidate = join(outDir,"candidate");
     await writeJson(join(candidate,"project.json"),project);
@@ -496,6 +580,14 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"math.dsl"),renderMathDsl(math));
     await writeJson(join(candidate,"observations.json"),observation);
     await writeFile(join(candidate,"observations.dsl"),renderObservationDsl(observation));
+    if(twinState) {
+      await writeJson(join(candidate,"twin-state.json"),twinState);
+      await writeFile(join(candidate,"twin-state.dsl"),renderTwinStateDsl(twinState));
+    }
+    if(assemblyReport) {
+      await writeJson(join(candidate,"assembly-report.json"),assemblyReport);
+      await writeFile(join(candidate,"assembly-report.dsl"),renderAssemblyReportDsl(assemblyReport));
+    }
     await writeJson(join(candidate,"twin.json"),twin);
     await writeJson(join(candidate,"scene.json"),scene);
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
@@ -512,7 +604,7 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -523,12 +615,14 @@ export class LivingProjectRuntime {
     const treeUri = contentUri("tree",tree);
     const mathUri = contentUri("math",math);
     const observationUri = contentUri("observation",observation);
+    const twinStateUri = twinState ? contentUri("twin-state",twinState) : undefined;
+    const assemblyReportUri = assemblyReport ? contentUri("assembly-report",assemblyReport) : undefined;
     const twinUri = contentUri("twin",twin);
     const sceneUri = contentUri("scene",scene);
     const improvementUri = contentUri("improvement",improvement);
     const iterationId = randomUUID();
     const idempotencyKey = sha256(canonicalJson({projectId:project.id,stableKey,previousIterationUri:previous?.iterationUri??null}));
-    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinUri,sceneUri,improvementUri};
+    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinStateUri:twinStateUri??null,assemblyReportUri:assemblyReportUri??null,twinUri,sceneUri,improvementUri};
     const iterationUri = contentUri("iteration",iterationCore);
 
     const receipt:LivingIterationReceipt = {
@@ -551,6 +645,8 @@ export class LivingProjectRuntime {
       treeUri,
       mathUri,
       observationUri,
+      twinStateUri,
+      assemblyReportUri,
       twinUri,
       sceneUri,
       improvementUri,
@@ -561,9 +657,10 @@ export class LivingProjectRuntime {
         {name:"preflight",status:rateLimitAvailable?"succeeded":"blocked",artifactUris:[],reason:rateLimitAvailable?undefined:"AutonomyRateLimitExceeded"},
         {name:"research",status:researchPresent?"succeeded":"blocked",artifactUris:resources.map(resource=>resource.uri),reason:researchPresent?undefined:"research evidence missing"},
         {name:"development",status:developmentEvidence.acceptance==="accepted"?"succeeded":"blocked",artifactUris:[intentUri,developmentEvidenceUri],reason:developmentEvidence.acceptance==="accepted"?undefined:`development ${developmentEvidence.acceptance}`},
-        {name:"runtime",status:runtimePresent?"succeeded":"blocked",artifactUris:[observationUri],reason:runtimePresent?undefined:"runtime observations missing"},
+        {name:"runtime",status:runtimePresent?"succeeded":"blocked",artifactUris:[observationUri,...(twinStateUri?[twinStateUri]:[])],reason:runtimePresent?undefined:"runtime observations missing"},
         {name:"reasoning",status:allowed?"succeeded":"blocked",artifactUris:[mathUri],reason:allowed?undefined:"IterationAllowed=false"},
         {name:"geometry",status:geometryBuildFailures.length?"blocked":"succeeded",artifactUris:geometryMaterializations.flatMap(item=>Object.values(item.receipt.artifacts).map(artifact=>artifact.uri)),reason:geometryBuildFailures[0]},
+        {name:"assembly",status:assemblyReport?.ok===false?"blocked":"succeeded",artifactUris:assemblyReportUri?[assemblyReportUri]:[],reason:assemblyReport?.ok===false?"AssemblyValidationFailed":undefined},
         {name:"twin",status:allowed?"succeeded":"blocked",artifactUris:[twinUri]},
         {name:"scene",status:publish?"succeeded":"blocked",artifactUris:[sceneUri],reason:publish?undefined:"ScenePublishAllowed=false"},
         {name:"improvement",status:"succeeded",artifactUris:[improvementUri]},
@@ -579,6 +676,8 @@ export class LivingProjectRuntime {
       `Development source: ${developmentEvidence.source}`,
       `Development acceptance: ${developmentEvidence.acceptance}`,
       `Runtime observations: ${observation.observations.length}`,
+      ...(twinState?[`TwinState bindings: ${twinState.coverage.bindings}; fresh: ${twinState.coverage.fresh}; stale: ${twinState.coverage.stale}; expired: ${twinState.coverage.expired}; unknown: ${twinState.coverage.unknown}`]:[]),
+      ...(assemblyReport?[`Assembly completeness: ${assemblyReport.coverage.completeAssemblies}/${assemblyReport.coverage.assemblies}; required parts: ${assemblyReport.coverage.completeRequiredParts}/${assemblyReport.coverage.requiredParts}`]:[]),
       `IntentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       "",
       "## Proposed improvements",
@@ -595,12 +694,13 @@ export class LivingProjectRuntime {
     // runtime artifacts and the exact commands needed to inspect/restart the dashboard.
     const startPath = resolve(base,"START.md");
     const runtimeRoot = resolve(outDir);
+    const latestArtifactRoot = join(runtimeRoot,publish?"current":"candidate");
     const streamVersion = (await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER)) + 1;
     const start = [
       `# ${project.name} — START`,
       "",
       `Generated: ${new Date().toISOString()}`,
-      `Status: ${receipt.validation.ok ? "RUNNING / VALIDATED" : "BLOCKED / VALIDATION FAILED"}`,
+      `Status: ACTIVE / ACCEPTED; LATEST ITERATION / ${receipt.validation.ok ? "ACCEPTED" : "REJECTED"}`,
       `Project: ${project.id}`,
       `Runtime generation: ${RUNTIME_GENERATION}`,
       `Iteration started: ${receipt.startedAt}`,
@@ -613,28 +713,31 @@ export class LivingProjectRuntime {
       `- Project DSL: ${configPath}`,
       `- Runtime root: ${runtimeRoot}`,
       `- Current Twin: ${join(runtimeRoot,"current/twin.json")}`,
+      ...(twinState?[`- Current TwinState: ${join(runtimeRoot,"current/twin-state.json")}`]:[]),
       `- Current scene JSON: ${join(runtimeRoot,"current/scene.json")}`,
       `- Current OpenUSD: ${join(runtimeRoot,"current/scene.usda")}`,
+      `- Rendered ACTIVE artifact scope: ${join(runtimeRoot,"current")}`,
+      `- Latest diagnostic scope: ${latestArtifactRoot}`,
+      `- Iteration artifact scope: ${latestArtifactRoot}${publish?" (published)":" (rejected candidate; current remains last-known-good)"}`,
       `- API state: http://127.0.0.1:${dashboardPort}/api/state`,
       `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
       `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`,
       "",
       "```bash",
-      `node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} deterministic`,
+      `node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} ${mode}`,
       "```",
       "",
       "## DSL and validation",
       "",
-      `- intentDSL index: ${join(runtimeRoot,"current/intent-dsl.index.json")}`,
+      `- intentDSL index: ${join(latestArtifactRoot,"intent-dsl.index.json")}`,
       `- intentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
-      `- Audit report: ${join(runtimeRoot,"current/audit-report.json")}`,
-      `- Physical evidence report: ${join(runtimeRoot,"current/physical-evidence.report.json")}`,
-      `- Geometry builds: ${join(runtimeRoot,"current/geometry-builds.dsl")}`,
+      `- Physical evidence report: ${join(latestArtifactRoot,"physical-evidence.report.json")}`,
+      `- Latest geometry build diagnostics: ${join(latestArtifactRoot,"geometry-builds.dsl")}`,
       `- Geometry build status: ${geometryBuildFailures.length?`FAIL (${geometryBuildFailures.join(", ")})`:`PASS (${geometryMaterializations.length} contract(s))`}`,
-      `- Geometry validation: ${join(runtimeRoot,"current/geometry-validation.dsl")}`,
+      `- Latest geometry validation: ${join(latestArtifactRoot,"geometry-validation.dsl")}`,
       `- Geometry required checks: ${geometryReport.coverage.passedRequiredChecks??"legacy"}/${geometryReport.coverage.requiredChecks??"legacy"} over ${geometryReport.coverage.bindings} physical/hybrid component(s)`,
-      `- Project integrity: ${join(runtimeRoot,"current/project-integrity.dsl")}`,
-      `- Evidence sets: ${join(runtimeRoot,"current/evidence-sets.dsl")}`,
+      `- Latest project integrity: ${join(latestArtifactRoot,"project-integrity.dsl")}`,
+      `- Evidence sets: ${join(latestArtifactRoot,"evidence-sets.dsl")}`,
       `- Project integrity status: ${projectIntegrity.ok?"PASS":"FAIL"} / ${projectIntegrity.complete?"COMPLETE":"INCOMPLETE"}`,
       `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
       "",
@@ -643,9 +746,12 @@ export class LivingProjectRuntime {
       `- Iteration receipt: ${join(runtimeRoot,"latest.json")}`,
       `- Event log: ${join(runtimeRoot,"events.jsonl")}`,
       `- Failure log: ${join(runtimeRoot,"dead-letter.jsonl")}`,
-      `- Runtime observations: ${join(runtimeRoot,"current/observations.json")}`,
+      `- Dashboard server log: ${resolve(base,"logs",`dashboard-${dashboardPort}.log`)}`,
+      `- Runtime observations: ${join(latestArtifactRoot,"observations.json")}`,
+      ...(twinState?[`- Live bindings: ${resolve(base,project.observations.liveBindingFile!)}`,`- TwinState: ${join(latestArtifactRoot,"twin-state.json")}`,`- TwinState freshness: ${twinState.coverage.fresh} fresh; ${twinState.coverage.stale} stale; ${twinState.coverage.expired} expired; ${twinState.coverage.unknown} unknown`]:[]),
+      ...(assemblyReport?[`- Assembly contract: ${resolve(base,project.scene.assemblyFile!)}`,`- Assembly report: ${join(latestArtifactRoot,"assembly-report.dsl")}`,`- Assembly completeness: ${assemblyReport.coverage.completeAssemblies}/${assemblyReport.coverage.assemblies}; required parts ${assemblyReport.coverage.completeRequiredParts}/${assemblyReport.coverage.requiredParts}`]:[]),
       `- Feedback: ${feedbackPath}`,
-      `- Generation audit: ${join(runtimeRoot,"current/generation-audit.json")}`,
+      `- Generation audit: ${join(latestArtifactRoot,"generation-audit.json")}`,
       "",
       "## Presentation assets",
       "",
@@ -675,7 +781,7 @@ export class LivingProjectRuntime {
       intentId:intentUri,
       correlationId:iterationId,
       traceId,
-      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinUri,sceneUri,improvementUri],
+      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,...(twinStateUri?[twinStateUri]:[]),...(assemblyReportUri?[assemblyReportUri]:[]),twinUri,sceneUri,improvementUri],
       payload:{iterationUri,validation:receipt.validation,authorityWarnings},
     };
     await appendJsonLine(join(outDir,"events.jsonl"),event);

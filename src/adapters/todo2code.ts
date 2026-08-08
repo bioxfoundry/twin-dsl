@@ -31,6 +31,17 @@ async function optionalJson(path:string):Promise<unknown|undefined> {
   try { return JSON.parse(await readFile(path,"utf8")); }
   catch { return undefined; }
 }
+function pointerCandidates(pointer:string,bases:string[]):string[] {
+  const paths = isAbsolute(pointer) ? [resolve(pointer)] : bases.map(base=>resolve(base,pointer));
+  return [...new Set(paths)];
+}
+async function firstJson(pointer:string,bases:string[]):Promise<unknown|undefined> {
+  for(const path of pointerCandidates(pointer,bases)) {
+    const value = await optionalJson(path);
+    if(value !== undefined) return value;
+  }
+  return undefined;
+}
 
 export class Todo2CodeAdapter {
   constructor(readonly root=process.env.T2C_ROOT??"",readonly bin=process.env.T2C_BIN??"") {}
@@ -61,13 +72,18 @@ export class Todo2CodeAdapter {
     for(const base of bases) {
       const latest = await optionalJson(join(base,"latest.json")) as {runDirectory?:string}|undefined;
       if(!latest?.runDirectory) continue;
-      const runBase = join(base,latest.runDirectory);
-      const manifest = await optionalJson(join(runBase,"manifest.json"));
-      const manifestObject = manifest && typeof manifest === "object" ? manifest as {files?:{graph?:string;diagnostics?:string}} : undefined;
-      const graph = await optionalJson(join(runBase,manifestObject?.files?.graph??"intent.graph.json"));
-      if(!graph) continue;
-      const diagnostics = await optionalJson(join(runBase,manifestObject?.files?.diagnostics??"diagnostics.json")) ?? [];
-      return {graph,diagnostics,manifest:manifest??{},runDirectory:latest.runDirectory};
+      // todo2code v0.5 emits paths relative to the analyzed project root, while
+      // older releases and fixtures use paths relative to the output directory.
+      // Resolve both contracts and only accept a candidate that contains a graph.
+      for(const runBase of pointerCandidates(latest.runDirectory,[base,analyzedRoot])) {
+        const manifest = await optionalJson(join(runBase,"manifest.json"));
+        const manifestObject = manifest && typeof manifest === "object" ? manifest as {files?:{graph?:string;diagnostics?:string}} : undefined;
+        const artifactBases = [runBase,analyzedRoot,base];
+        const graph = await firstJson(manifestObject?.files?.graph??"intent.graph.json",artifactBases);
+        if(!graph) continue;
+        const diagnostics = await firstJson(manifestObject?.files?.diagnostics??"diagnostics.json",artifactBases) ?? [];
+        return {graph,diagnostics,manifest:manifest??{},runDirectory:runBase};
+      }
     }
     return undefined;
   }

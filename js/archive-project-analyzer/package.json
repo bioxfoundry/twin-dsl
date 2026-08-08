@@ -1,0 +1,30 @@
+{
+  "name": "@subactor/archive-project-analyzer",
+  "version": "0.1.0",
+  "description": "Deterministic, safe ZIP project inventory and Digital Twin evidence candidate analyzer.",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "check": "tsc -p tsconfig.json --noEmit",
+    "test": "tsc -p tsconfig.test.json && node --test dist-test/test/*.test.js",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": ">=22 <25",
+    "typescript": ">=5.8 <7"
+  }
+}

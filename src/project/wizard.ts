@@ -5,6 +5,8 @@ import type { LivingProjectDocument, SourceRole } from "../core/types.js";
 import { parseProjectDsl, renderProjectDsl, validateProject } from "../dsl/project.js";
 import { sha256 } from "../core/canonical.js";
 import { biofoundryLiveBlueprintV02 } from "../scene/blueprint.js";
+import { parseLiveBindingDsl } from "../dsl/live-binding.js";
+import { parseAssemblyDsl } from "../dsl/assembly.js";
 
 export type ProjectProfile = "generic" | "biofoundry";
 export interface CreateProjectOptions { name:string; outDir:string; profile?:ProjectProfile; managerIntent?:string; }
@@ -345,6 +347,24 @@ export async function verifyLivingProject(configPath:string):Promise<{ok:boolean
     const path = resolve(base,source.path);
     const ok = await exists(path);
     checks.push({name:`source:${source.role}:${source.path}`,ok,message:ok?"available":`missing ${path}`});
+  }
+  if(document.observations.liveBindingFile) {
+    const bindingPath = resolve(base,document.observations.liveBindingFile);
+    try {
+      const bindings = parseLiveBindingDsl(await readFile(bindingPath,"utf8"));
+      checks.push({name:`live-bindings:${document.observations.liveBindingFile}`,ok:true,message:`valid (${bindings.bindings.length} bindings)`});
+    } catch(error) {
+      checks.push({name:`live-bindings:${document.observations.liveBindingFile}`,ok:false,message:error instanceof Error?error.message:String(error)});
+    }
+  }
+  if(document.scene.assemblyFile) {
+    const assemblyPath = resolve(base,document.scene.assemblyFile);
+    try {
+      const assemblies = parseAssemblyDsl(await readFile(assemblyPath,"utf8"));
+      checks.push({name:`assemblies:${document.scene.assemblyFile}`,ok:true,message:`valid (${assemblies.assemblies.length} assemblies)`});
+    } catch(error) {
+      checks.push({name:`assemblies:${document.scene.assemblyFile}`,ok:false,message:error instanceof Error?error.message:String(error)});
+    }
   }
   for(const path of ["docker-compose.yml","vendor/runtime/dist/src/cli/main.js",".github/workflows/ci.yml",".github/workflows/release.yml","scripts/bootstrap-todo2code.sh"]) {
     const ok = await exists(join(base,path));

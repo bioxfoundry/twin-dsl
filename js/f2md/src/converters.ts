@@ -70,7 +70,9 @@ export class TextConverter implements Converter {
     if (raw.includes(0)) throw new ExternalConverterRequired(kind);
     const text = raw.toString("utf8");
     const metadata = { ...(await statMetadata(path)), extractedChars: text.length };
-    if (kind === ".md" || kind === ".markdown") {
+    // Markdown and executable/validation DSL documents are already canonical text. Wrapping a
+    // TestQLDSL file in another fence corrupts its grammar and breaks the feedback loop.
+    if (kind === ".md" || kind === ".markdown" || kind.endsWith("dsl") || kind === ".dql") {
       return { markdown: text, metadata, assets: [], converter: this.name, version: this.version,
         backendType: this.backendType, inputKind: kind, ocr: false, fallbackDepth: 0, durationMs: 0, warnings: [] };
     }

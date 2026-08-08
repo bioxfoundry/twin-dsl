@@ -1,4 +1,4 @@
-# Subactor Digital Twin Runtime Starter 0.5.1
+# Subactor Digital Twin Runtime Starter 0.5.4
 
 ## Iterations
 
@@ -14,6 +14,9 @@
 ### 4
 ![img_3.png](img_3.png)
 
+### 5
+
+
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
 ```text
@@ -21,7 +24,9 @@ research: pliki / katalogi / ZIP / WWW → resourceDSL → treeDSL/queryDSL/math
     ↓
 development: wymagania + kod + Git + testy → todo2code t2c.intent/v1 + diagnostics
     ↓
-runtime: observationDSL + event log + dane środowiskowe
+runtime: observationDSL → liveBindingDSL → TwinState (fresh/stale/expired/unknown) + event log
+    ↓
+structure: AssemblyDSL → device/part identity → grounded/placed/completeness report
     ↓
 authority: deterministyczne bramki mathDSL + projectDSL + signed-grant policy
     ↓
@@ -40,7 +45,7 @@ System rozdziela trzy pętle:
 
 ## Co zmieniło się ostatnio
 
-Najnowsze (jeszcze nie wydane, ponad 0.5.1) — pełna lista w [`CHANGELOG.md`](CHANGELOG.md):
+Najnowsze zmiany w 0.5.4 — pełna lista w [`CHANGELOG.md`](CHANGELOG.md):
 
 - **Dashboard 3D** (`dashboard`): twin/scene po HTTP + własny renderer WebGL, bez zależności i bez build stepu;
 - **Physical Evidence Intake** (`subactor.physical-evidence/v1`): geometria placeholder ustępuje faktom
@@ -48,6 +53,14 @@ Najnowsze (jeszcze nie wydane, ponad 0.5.1) — pełna lista w [`CHANGELOG.md`](
 - CLI `physical-intake` i `scene-render` (renderer OpenUSD nie miał wcześniej wejścia z CLI);
 - **schema drift guard** — `schemas/*.json` i ręczne walidatory runtime muszą się zgadzać, inaczej testy padają;
 - **f2md 0.2/0.3** wydzielone jako osobne paczki (`py/f2md`, `js/f2md`) z jedną wspólną kopertą proweniencji.
+- **deterministic geometry compilation**: SCAD → OpenSCAD → canonical 3MF → GLB/USDA,
+  content-addressed dependencies, receipts, reference-mesh validation and fail-closed Twin binding;
+- **live state projection**: jawny `subjectUri + metric → componentId.property`, TTL, `observedAt`
+  i `receivedAt`; stare dane pozostają dowodem, ale nie udają bieżącego stanu;
+- **AssemblyDSL**: część nie może udawać całego urządzenia; runtime rozdziela ugruntowany asset,
+  placement i kompletność oraz wystawia naprawialne URN/URI findings;
+- **package boundaries**: AssemblyDSL oraz LiveBinding/TwinState są teraz niezależnie budowanymi,
+  zero-dependency pakietami z testami kontraktowymi; `src/` zachowuje zgodne eksporty aplikacji.
 
 W 0.5.1 doszedł Semantic Scene Blueprint (`subactor.scene-blueprint/v1`) ze stabilnymi ID komponentów,
 domyślny blueprint Biofoundry Live v0.2.1 (30 komponentów) i most do concept twina.
@@ -65,7 +78,11 @@ na Node 20, ale wspieraną wersją jest 22.
 ```bash
 npm install
 npm run verify          # typecheck, proto, compose, testy, f2md conformance, wszystkie dema
+npm run packages:test   # niezależne testy AssemblyDSL i LiveBinding/TwinState
 ```
+
+Granice pakietów, ich odpowiedzialności i reguła kontraktów plikowych są opisane w
+[`docs/PACKAGE_ARCHITECTURE.md`](docs/PACKAGE_ARCHITECTURE.md).
 
 Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
 
@@ -358,6 +375,9 @@ Kilka przykładowych trafień: `build` 51 zasobów, `enzyme_screen_01` 66, `flag
 
 Nazewnictwo `f2md` (`<oryginał>.<ext>.md`) jest tu istotne: `lid_UNF.step.md` nadal mówi, że pod
 spodem jest STEP, więc `pathIncludes` w blueprint trafiają tak samo jak na korpusie binarnym.
+Routing konwertera patrzy jednak na **końcowy** znany format: `report.pdf.md` jest już Markdownem
+i nie trafia ponownie do `pdftotext`; dla `report.pdf.md-<hash>` wybierany jest najbardziej
+prawostronny znany sufiks (`.md`). Dzięki temu nazwa zachowuje provenance bez ponownej konwersji.
 Jeden wyjątek — patrz [Naprawione defekty](#naprawione-defekty).
 
 ## NL → wszystkie DSL
@@ -384,12 +404,17 @@ prefer-llm
 require-llm
 ```
 
+Alias CLI `llm` oznacza bezpieczne `prefer-llm`. Dla słabszych modeli ustaw
+`DT_LLM_RESOURCE_CONTEXT_LIMIT` (domyślnie 80) oraz budżet `OPENROUTER_TIMEOUT_MS`; po błędzie lub
+timeout `prefer-llm` publikuje wyłącznie zwalidowany fallback deterministyczny i zapisuje
+`degraded/reason` w `generation-audit.json`.
+
 Granica wykonawcza:
 
 ```text
 NL
 → OpenRouter structured output
-→ parser
+→ lokalna pętla parsera (błąd walidacji wraca do modelu jako repair feedback)
 → canonical DSL AST
 → walidacja domenowa
 → hash
@@ -453,14 +478,14 @@ Pełna autonomia kodu wymaga jeszcze promocji z izolacji do drzewa głównego, c
 npm run verify
 ```
 
-Ostatni pełny przebieg: **exit 0, 55/55 testów Node**, 12 kontraktów Proto, 4 fixture f2md zgodne
+Ostatni pełny przebieg: **exit 0, 95/95 testów Node**, 12 kontraktów Proto, 4 fixture f2md zgodne
 co do koperty, wszystkie dema zielone.
 
 Sprawdzone lokalnie:
 
 - TypeScript strict;
 - 12 kontraktów Proto z kontrolą duplikatów numerów pól;
-- 55/55 testów Node (`node --test dist/test/*.test.js`);
+- 95/95 testów Node (`node --test dist/test/*.test.js`);
 - NL → 11 DSL;
 - OpenRouter strict structured-output mock;
 - DQL sitemap/context;
@@ -533,19 +558,26 @@ napraw wskazują m.in. tessellację CAD do glTF, ponowne generowanie sceny, napr
 ponowienie konwersji Docling. Lokalny `.env` jest automatycznie ładowany (bez nadpisywania
 zmiennych środowiskowych), więc `doctor` pokazuje aktywny model OpenRouter bez ujawniania klucza.
 
-### CAD → GLB
+### CAD/SCAD → executable geometry
 
-`scripts/cad-to-gltf.py` konwertuje binary i ASCII STL do minimalnego, walidowalnego GLB bez
-zależności od systemowego CAD. Jeżeli `CADQUERY_PATH` wskazuje środowisko CadQuery/OCP, STEP jest
-importowany przez OpenCascade i tessellowany do GLB. F3D/SCAD bez backendu pozostają jawnie
-oznaczone jako `CAD_TESSELLATOR_BACKEND_REQUIRED` — nie są udawane jako geometria.
+`scripts/cad-to-gltf.py` konwertuje binary/ASCII STL i 3MF do walidowalnego GLB. Jeżeli
+`CADQUERY_PATH` wskazuje środowisko CadQuery/OCP, STEP jest importowany przez OpenCascade.
+SCAD ma osobny, wykonywalny kontrakt `subactor.geometry-build/v1`: prawdziwy OpenSCAD generuje
+kanoniczny 3MF, z którego runtime tworzy GLB i USDA oraz receipt. F3D nadal wymaga jawnego
+backendu — nie jest udawany jako geometria.
 
 ```bash
 CADQUERY_PATH=/path/to/cadquery-deps python3 scripts/cad-to-gltf.py <source-cad-root> <derived-geometry-root> --report cad-tessellation.report.json
+
+node dist/src/cli/main.js geometry-build \
+  ../nanobionic-laboratory-md-dsl/geometry/lid-unf.geometry-build.json \
+  .geometry-build nanobionic-laboratory-md
 ```
 
 Dashboard ładuje zarówno STL, jak i GLB (`loadGlb`), a URI GLB jest sprawdzany przez te same
-bramki zasobów co pozostałe evidence.
+bramki zasobów co pozostałe evidence. Nieudany receipt pozostaje widoczny w candidate DSL/logach,
+ale nie zastępuje ostatniej poprawnej sceny. Szczegóły i rzeczywisty wynik lid_UNF:
+[`docs/GEOMETRY_COMPILATION.md`](docs/GEOMETRY_COMPILATION.md).
 
 Podgląd żywego twina w przeglądarce — bez zależności, własny renderer WebGL:
 
@@ -559,7 +591,9 @@ twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`
 `measured`, zielony `cad`, fioletowy `ifc`, miętowy `verified`. Obok sceny raportowane są
 niezmienniki tożsamości (`componentIdsStable`, `scenePathsStable`).
 
-Endpointy: `/api/state`, `/api/scene.usda` (eksport OpenUSD), `POST /api/iterate`, `POST /api/intake`.
+Endpointy: `/api/state`, `/api/dsl`, `/api/scene.usda` (eksport OpenUSD), `POST /api/iterate`,
+`POST /api/intake`. Zablokowana iteracja zwraca HTTP 422 z dokładną listą failures; browser i
+server console pokazują ten sam kod URN zamiast ogólnego „iteration failed”.
 
 > Usługa **nie ma uwierzytelniania ani ochrony CSRF**, a `/api/iterate` i `/api/intake` modyfikują
 > projekt na dysku. Słucha tylko na `127.0.0.1` — to narzędzie do lokalnej inspekcji, nie wystawiaj
@@ -678,6 +712,8 @@ Najważniejsze materiały:
 | [`docs/DSL_SPEC.md`](docs/DSL_SPEC.md) | składnia wszystkich DSL |
 | [`docs/SEMANTIC_SCENE_BLUEPRINT.md`](docs/SEMANTIC_SCENE_BLUEPRINT.md) | blueprint: tożsamość vs stan |
 | [`docs/PHYSICAL_EVIDENCE_INTAKE.md`](docs/PHYSICAL_EVIDENCE_INTAKE.md) | placeholder → measured → cad → ifc → verified |
+| [`docs/GEOMETRY_COMPILATION.md`](docs/GEOMETRY_COMPILATION.md) | SCAD → 3MF/GLB/USD, geometryDSL, receipts and validation |
+| [`docs/DIGITAL_TWIN_DETAIL_AUDIT.md`](docs/DIGITAL_TWIN_DETAIL_AUDIT.md) | measured detail/render-fidelity gaps, repair URIs and acceptance gates |
 | [`docs/DASHBOARD.md`](docs/DASHBOARD.md) | dashboard 3D, endpointy, model bezpieczeństwa |
 | [`docs/PROJECT_WIZARD.md`](docs/PROJECT_WIZARD.md) | generator izolowanego projektu |
 | [`docs/QUICK_SOURCE_RECIPES.md`](docs/QUICK_SOURCE_RECIPES.md) | przepisy na dodawanie źródeł |

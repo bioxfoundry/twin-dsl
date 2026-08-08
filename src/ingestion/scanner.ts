@@ -2,13 +2,15 @@ import { readdir, readFile, stat } from "node:fs/promises";
 import { extname, join, relative, resolve } from "node:path";
 import type { ResourceRecord, SourceRole } from "../core/types.js";
 import { CompositeDocumentConverter, detectDocumentKind } from "../adapters/document-converter.js";
-import { resourceFromBinary, resourceFromText } from "../dsl/resource.js";
-import { listZip, readZipEntry } from "./archive.js";
+import { resourceFromBinary, resourceFromBinaryDigest, resourceFromText } from "../dsl/resource.js";
+import { inventoryZip, readZipEntry, sha256File } from "./archive.js";
+import { analyzeArchiveProject, renderArchiveAnalysisMarkdown, type ArchiveProjectAnalysis } from "../../js/archive-project-analyzer/src/index.js";
 
 const TEXT_EXT = new Set([
-  ".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".csv",
+  ".md", ".rst", ".adoc", ".tex", ".txt", ".log", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".csv",
   ".ts", ".js", ".mjs", ".py", ".php", ".go", ".rs", ".java", ".xml", ".html", ".htm",
-  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".testqldsl", ".dql",
+  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl",
+  ".testqldsl", ".assemblydsl", ".livebindingdsl", ".geometrydsl", ".dql",
 ]);
 const MEDIA: Record<string, string> = {
   ".pdf": "application/pdf",
@@ -31,7 +33,7 @@ const MEDIA: Record<string, string> = {
 };
 
 export interface ScanSource { path: string; role: SourceRole; logicalRoot: string; labels?: string[]; }
-export interface ScanResult { resources: ResourceRecord[]; texts: Map<string, string>; warnings: string[]; }
+export interface ScanResult { resources: ResourceRecord[]; texts: Map<string, string>; warnings: string[]; archiveAnalyses: ArchiveProjectAnalysis[]; }
 
 async function walk(root: string): Promise<string[]> {
   const out: string[] = [];
@@ -78,6 +80,7 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
   const resources: ResourceRecord[] = [];
   const texts = new Map<string, string>();
   const warnings: string[] = [];
+  const archiveAnalyses: ArchiveProjectAnalysis[] = [];
   // Prefer composite (text → pdftotext/pandoc → optional Docling) so PDF body enters the graph offline.
   const converter = new CompositeDocumentConverter();
 
@@ -93,56 +96,37 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
 
       if (ext === ".zip") {
         try {
-          // Always register the container, then list entries. Binary entries are path-stubs (no extract).
-          const zipStat = await stat(file);
-          pushBinary(
-            resources,
-            texts,
-            `res-${resources.length + 1}`,
-            logical,
-            file,
-            `zip-container:${file}:size:${zipStat.size}`,
-            source.role,
-            [...labels, "zip-container"],
-            `ZIP_CONTAINER_STUB:${file}`,
-            warnings,
+          // Hash the real archive bytes by streaming; entry metadata must never masquerade as an asset hash.
+          const digest = await sha256File(file);
+          const container = resourceFromBinaryDigest(
+            `res-${resources.length + 1}`, logical, file, digest.sha256, digest.size,
+            "application/zip", source.role, [...labels, "zip-container", "archive-project"],
           );
-          const names = await listZip(file);
-          for (const name of names) {
+          resources.push(container);
+          texts.set(container.uri, `ZIP_CONTAINER ${file}\nsha256:${digest.sha256}\nsize:${digest.size}\n`);
+          const inventory = await inventoryZip(file);
+          const analysis = analyzeArchiveProject({
+            archivePath:file, archiveSha256:digest.sha256, archiveSize:digest.size, entries:inventory,
+            maxTextEntries:Number(process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES ?? 64),
+            maxGeometryEntries:Number(process.env.DT_MAX_ARCHIVE_GEOMETRY_ENTRIES ?? 32),
+          });
+          archiveAnalyses.push(analysis);
+          const analysisMarkdown = renderArchiveAnalysisMarkdown(analysis);
+          const analysisResource = resourceFromText(
+            `res-${resources.length + 1}`, `${logical}.analysis.md`, `${file}!/.subactor/archive-project-analysis.md`,
+            analysisMarkdown, container.uri, "archive", [source.role, ...labels, "archive-analysis", "derived-metadata"],
+          );
+          resources.push(analysisResource);
+          texts.set(analysisResource.uri, analysisMarkdown);
+          for (const finding of analysis.findings) warnings.push(`${finding.code}:${file}${finding.entryPath ? `!/${finding.entryPath}` : ""}:${finding.repairProcess}`);
+          for (const name of analysis.selectedTextEntries) {
             const entryLogical = `${source.logicalRoot}/archive/${encodeURIComponent(name)}`;
             const entryPath = `${file}!/${name}`;
-            const entryExt = extname(name).toLowerCase();
-            if (!TEXT_EXT.has(entryExt)) {
-              pushBinary(
-                resources,
-                texts,
-                `res-${resources.length + 1}`,
-                entryLogical,
-                entryPath,
-                `zip-entry:${name}`,
-                "archive",
-                [source.role, ...labels, "zip-entry"],
-                `ARCHIVE_ENTRY_BINARY_STUB:${name}`,
-                warnings,
-              );
-              continue;
-            }
             try {
               const content = await readZipEntry(file, name);
               const text = textFromBuffer(content, name);
               if (text === undefined) {
-                pushBinary(
-                  resources,
-                  texts,
-                  `res-${resources.length + 1}`,
-                  entryLogical,
-                  entryPath,
-                  `zip-entry:${name}:size:${content.length}`,
-                  "archive",
-                  [source.role, ...labels, "zip-entry"],
-                  `ARCHIVE_ENTRY_BINARY_STUB:${name}`,
-                  warnings,
-                );
+                warnings.push(`ARCHIVE_SELECTED_TEXT_NOT_TEXT:${entryPath}`);
                 continue;
               }
               const r = resourceFromText(
@@ -152,24 +136,12 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
                 text,
                 undefined,
                 "archive",
-                [source.role, ...labels],
+                [source.role, ...labels, "archive-entry", "archive-text-evidence"],
               );
               resources.push(r);
               texts.set(r.uri, text);
             } catch (entryError) {
               warnings.push(entryError instanceof Error ? entryError.message : String(entryError));
-              pushBinary(
-                resources,
-                texts,
-                `res-${resources.length + 1}`,
-                entryLogical,
-                entryPath,
-                `zip-entry-error:${name}`,
-                "archive",
-                [source.role, ...labels, "zip-entry"],
-                `ARCHIVE_ENTRY_ERROR:${name}`,
-                warnings,
-              );
             }
           }
         } catch (error) {
@@ -262,5 +234,5 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
       }
     }
   }
-  return { resources, texts, warnings };
+  return { resources, texts, warnings, archiveAnalyses };
 }

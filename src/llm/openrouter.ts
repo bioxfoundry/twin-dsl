@@ -42,8 +42,10 @@ export function openRouterConfigFromEnv():OpenRouterConfig{return{
   httpReferer:process.env.OPENROUTER_HTTP_REFERER,
   appTitle:process.env.OPENROUTER_APP_TITLE??'Subactor Digital Twin Runtime',
   dataCollection:(process.env.OPENROUTER_DATA_COLLECTION==='allow'?'allow':'deny'),
-  timeoutMs:envInt('OPENROUTER_TIMEOUT_MS',120000),
-  maxRetries:envInt('OPENROUTER_MAX_RETRIES',3),
+  // Developer-safe defaults keep prefer-llm responsive: one initial request plus one repair
+  // attempt. Production deployments can raise both values explicitly.
+  timeoutMs:envInt('OPENROUTER_TIMEOUT_MS',30000),
+  maxRetries:envInt('OPENROUTER_MAX_RETRIES',1),
   jsonObjectFallback:envBool('OPENROUTER_JSON_OBJECT_FALLBACK',false),
   responseHealing:envBool('OPENROUTER_RESPONSE_HEALING',false),
 };}
@@ -61,10 +63,28 @@ export class OpenRouterStructuredClient {
 
   async generate<T>(input:{schemaName:string;schema:Record<string,unknown>;system:string;user:string;validate:(x:unknown)=>T}):Promise<StructuredOutput<T>>{
     if(!this.configured())throw new Error('OPENROUTER_NOT_CONFIGURED');
-    const started=Date.now();let lastError:unknown;
+    const started=Date.now();let lastError:unknown;let validationFeedback:string|undefined;
     for(let attempt=0;attempt<=this.config.maxRetries;attempt++){
-      try{return await this.request(input,started,'json_schema');}
-      catch(error){lastError=error;const message=error instanceof Error?error.message:String(error);const retryable=/OPENROUTER_HTTP:(429|500|502|503|504)/.test(message)||/fetch|timeout|aborted/i.test(message);if(!retryable||attempt===this.config.maxRetries)break;await sleep(Math.min(1000*2**attempt,8000));}
+      const repairInstruction=validationFeedback?[
+        '',
+        `LOCAL_VALIDATION_REPAIR attempt=${attempt + 1}`,
+        `The previous structured response was rejected by the local DSL parser: ${validationFeedback}`,
+        'Return a corrected response matching the same JSON schema.',
+        'When the schema contains a `dsl` field, its value must be raw DSL text: no Markdown fence, language label, preface or explanation.',
+      ].join('\n'):'';
+      try{return await this.request({...input,system:input.system+repairInstruction},started,'json_schema');}
+      catch(error){
+        lastError=error;
+        const message=error instanceof Error?error.message:String(error);
+        const retryableTransport=/OPENROUTER_HTTP:(429|500|502|503|504)/.test(message)||/fetch|timeout|aborted/i.test(message);
+        // HTTP 4xx means the request/credential/provider contract is invalid. Every other
+        // response-side failure (JSON envelope, strict schema or local DSL parser) can be
+        // repaired by showing the deterministic validator code to the model.
+        const retryableValidation=!message.startsWith('OPENROUTER_HTTP:')&&!retryableTransport;
+        if(retryableValidation)validationFeedback=message.replace(/[\r\n]+/g,' ').slice(0,300);
+        if((!retryableTransport&&!retryableValidation)||attempt===this.config.maxRetries)break;
+        if(retryableTransport)await sleep(Math.min(1000*2**attempt,8000));
+      }
     }
     if(this.config.jsonObjectFallback){try{return await this.request(input,started,'json_object');}catch(error){lastError=error;}}
     throw lastError instanceof Error?lastError:new Error(String(lastError));

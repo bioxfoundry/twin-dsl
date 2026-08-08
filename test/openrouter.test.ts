@@ -12,3 +12,18 @@ test('OpenRouter NL -> mathDSL uses strict structured output',async()=>{
   assert.equal(requestBody.response_format.type,'json_schema');assert.equal(requestBody.response_format.json_schema.strict,true);assert.equal(requestBody.provider.require_parameters,true);assert.equal(requestBody.provider.data_collection,'deny');assert.deepEqual(requestBody.plugins,[{id:'response-healing'}]);
   assert.equal(JSON.stringify(result).includes('secret-test-key'),false);
 });
+
+test('OpenRouter feeds local DSL parser errors back to a weaker model and accepts the repaired response',async()=>{
+  const prompts:string[]=[];let calls=0;
+  const fetcher:typeof fetch=async(_input,init)=>{
+    const body=JSON.parse(String(init?.body));prompts.push(body.messages[0].content);calls++;
+    const dsl=calls===1?'This is a semantic readiness model.':'```mathdsl\nMATH repaired\nBIND EvidencePresent = true FROM [urn:test:evidence]\nEXPR Ready = AND(EvidencePresent)\n```';
+    return new Response(JSON.stringify({id:`repair-${calls}`,model:'mock/model',provider:'mock',choices:[{message:{content:JSON.stringify({dsl})}}]}),{status:200});
+  };
+  const client=new OpenRouterStructuredClient({...config,maxRetries:1},fetcher),compiler=new NlDslCompiler(client);
+  const result=await compiler.compile({kind:'math',text:'Create readiness semantics',mode:'require-llm'});
+  assert.equal(calls,2);
+  assert.match(prompts[1]!,/MATH_HEADER_REQUIRED/);
+  assert.equal((result.value as any).id,'repaired');
+  assert.equal(result.audit.responseId,'repair-2');
+});

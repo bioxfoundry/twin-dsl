@@ -1278,19 +1278,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-6383a634
-    name: Fix ast-missing-return-type issues
-    description: Resolve 1 ast-missing-return-type issues in scripts/cad-to-gltf.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - scripts/cad-to-gltf.py
-    rule_id: ast-missing-return-type
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-24b0eac4
     name: Fix ruff-print-statements issues
     description: Resolve 1 ruff-print-statements issues in scripts/cad-to-gltf.py
@@ -1314,6 +1301,19 @@ sprints:
     - scripts/cad-to-gltf.py
     rule_id: ruff-sorted-imports
     count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-92a0cecc
+    name: Fix ast-string-concat issues
+    description: Resolve 5 ast-string-concat issues in scripts/scad-to-markdown.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - scripts/scad-to-markdown.py
+    rule_id: ast-string-concat
+    count: 5
     model_hints:
       planning: balanced
       implementation: balanced

@@ -304,12 +304,17 @@ def read_3mf(source: Path) -> tuple[str, list[tuple[float, float, float]], list[
 
 
 def geometry_hash(unit: str, vertices: Iterable[tuple[float, float, float]], triangles: Iterable[tuple[int, int, int]]) -> str:
-    hasher = hashlib.sha256(f"subactor.normalized-mesh/v1\0{unit}\0".encode())
-    for vertex in vertices:
-        hasher.update(struct.pack("<3d", *(round(value, 12) for value in vertex)))
-    hasher.update(b"\0triangles\0")
+    # OpenSCAD may serialize the same triangle soup using a different vertex/index order.
+    # A physical identity hash must therefore follow geometry, not container ordering.
+    vertex_table = list(vertices)
+    faces: list[bytes] = []
     for triangle in triangles:
-        hasher.update(struct.pack("<3Q", *triangle))
+        points = sorted(tuple(round(value, 9) for value in vertex_table[index]) for index in triangle)
+        faces.append(struct.pack("<9d", *(value for point in points for value in point)))
+    faces.sort()
+    hasher = hashlib.sha256(f"subactor.semantic-triangle-soup/v2\0{unit}\0".encode())
+    for face in faces:
+        hasher.update(face)
     return hasher.hexdigest()
 
 
@@ -395,14 +400,29 @@ def extent_delta(first: dict[str, list[float]], second: dict[str, list[float]]) 
 
 def openscad_binary() -> str:
     configured = os.environ.get("OPENSCAD_BIN")
-    candidate = configured if configured else shutil.which("openscad")
-    if not candidate or not Path(candidate).is_file():
+    local = Path(__file__).resolve().parent.parent / ".geometry-toolchain" / "openscad-2021.01" / "root" / "usr" / "bin" / "openscad"
+    candidate = configured if configured else (shutil.which("openscad") or (str(local) if local.is_file() else None))
+    if not candidate or not Path(candidate).is_file() or not os.access(candidate, os.X_OK):
         raise RuntimeError("GEOMETRY_OPENSCAD_BACKEND_REQUIRED")
     return candidate
 
 
+def openscad_runtime_environment(binary: str, extra: dict[str, str] | None = None) -> dict[str, str]:
+    environment = {**os.environ, **(extra or {})}
+    path = Path(binary).resolve()
+    # Unprivileged local bootstrap layout: <cache>/root/usr/bin/openscad. Dynamic
+    # libraries stay next to that root and never need system-wide installation.
+    if len(path.parents) >= 3 and path.parent.name == "bin" and path.parent.parent.name == "usr" and path.parents[2].name == "root":
+        root = path.parents[2]
+        library_dirs = sorted(str(item) for item in (root / "usr" / "lib").glob("*-linux-gnu") if item.is_dir())
+        library_dirs += sorted(str(item) for item in (root / "lib").glob("*-linux-gnu") if item.is_dir())
+        existing = environment.get("LD_LIBRARY_PATH")
+        environment["LD_LIBRARY_PATH"] = ":".join([*library_dirs, *([existing] if existing else [])])
+    return environment
+
+
 def openscad_version(binary: str) -> str:
-    process = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=15, check=False)
+    process = subprocess.run([binary, "--version"], capture_output=True, text=True, timeout=15, check=False, env=openscad_runtime_environment(binary))
     value = (process.stdout or process.stderr).strip()
     if process.returncode or not value:
         raise RuntimeError("GEOMETRY_OPENSCAD_VERSION_UNAVAILABLE")
@@ -553,11 +573,10 @@ def compile_scad_to_3mf(
         for name, value in sorted(values.items()):
             command.extend(["-D", f"{name}={scad_literal(value)}"])
         command.append(str(worker_source))
-        environment = {
-            **os.environ,
+        environment = openscad_runtime_environment(binary, {
             "OPENSCADPATH": str(library_root),
             "QT_QPA_PLATFORM": os.environ.get("QT_QPA_PLATFORM", "offscreen"),
-        }
+        })
         try:
             process = subprocess.run(
                 command,
@@ -647,7 +666,7 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
                 and sha256_file(Path(item["path"])) == item["sha256"]
                 for item in required_artifacts
             )
-            if intact and cached.get("status") == "succeeded" and cached.get("validationPolicyHash") == validation_hash:
+            if intact and cached.get("status") == "succeeded" and cached.get("validationPolicyHash") == validation_hash and cached.get("geometryHashProfile") == "subactor.semantic-triangle-soup/v2":
                 cached.update({"cacheHit": True, "startedAt": started, "completedAt": utc_now()})
                 receipt_path.parent.mkdir(parents=True, exist_ok=True)
                 receipt_path.write_text(json.dumps(cached, indent=2) + "\n", encoding="utf-8")
@@ -694,7 +713,11 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
                 for key in ("min", "max")
             }
             reference_delta = extent_delta(mesh["bboxM"], reference_bbox_m)
-            reference_match = reference_delta <= float(contract["validations"]["bboxToleranceM"])
+            # An independent STEP tessellation is not the same operation as serializing our
+            # canonical 3MF into GLB. Keep its explicit comparison tolerance separate so a
+            # justified CAD-kernel discretization budget never weakens the internal round trip.
+            reference_tolerance = float(reference.get("extentToleranceM", contract["validations"]["bboxToleranceM"]))
+            reference_match = reference_delta <= reference_tolerance
             if not reference_match:
                 actual_extent = ",".join(f"{value:.9g}" for value in bbox_extent(mesh["bboxM"]))
                 expected_extent = ",".join(f"{value:.9g}" for value in bbox_extent(reference_bbox_m))
@@ -715,6 +738,7 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
             "parameterSetHash": parameter_hash,
             "validationPolicyHash": validation_hash,
             "geometryBuildHash": build_hash,
+            "geometryHashProfile": "subactor.semantic-triangle-soup/v2",
             "geometryArtifactHash": mesh["geometryArtifactHash"],
             "artifacts": artifacts,
             "validation": {
@@ -757,6 +781,7 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
             "parameterSetHash": parameter_hash,
             "validationPolicyHash": validation_hash,
             "geometryBuildHash": build_hash,
+            "geometryHashProfile": "subactor.semantic-triangle-soup/v2",
             **({"geometryArtifactHash": mesh["geometryArtifactHash"]} if mesh else {}),
             "artifacts": artifacts,
             "validation": {

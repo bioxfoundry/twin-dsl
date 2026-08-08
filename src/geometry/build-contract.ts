@@ -109,9 +109,10 @@ export function validateGeometryBuild(value: unknown): GeometryBuildContract {
   if (validations.nonEmpty !== true || validations.finiteBbox !== true || validations.dependencyClosure !== true || validations.glbLoad !== true || typeof validations.usdStageOpen !== "boolean" || typeof validations.bboxToleranceM !== "number" || !Number.isFinite(validations.bboxToleranceM) || validations.bboxToleranceM < 0 || validations.bboxToleranceM > 1) throw new Error("GEOMETRY_BUILD_VALIDATIONS_INVALID");
   if (validations.reference !== undefined) {
     const reference = object(validations.reference, "GEOMETRY_BUILD_REFERENCE_INVALID");
-    exact(reference, ["path", "sourceUri", "artifactUri", "sha256", "unit", "comparison"], "GEOMETRY_BUILD_REFERENCE_UNKNOWN_KEY");
+    exact(reference, ["path", "sourceUri", "artifactUri", "sha256", "unit", "comparison", "extentToleranceM"], "GEOMETRY_BUILD_REFERENCE_UNKNOWN_KEY");
     const referenceHash = hash(reference.sha256, "GEOMETRY_BUILD_REFERENCE_HASH_INVALID");
     if (typeof reference.path !== "string" || !reference.path || typeof reference.sourceUri !== "string" || !RESOURCE_URI.test(reference.sourceUri) || reference.artifactUri !== `urn:subactor:resource:sha256:${referenceHash}` || !UNITS.has(String(reference.unit)) || reference.comparison !== "extent") throw new Error("GEOMETRY_BUILD_REFERENCE_INVALID");
+    if (reference.extentToleranceM !== undefined && (typeof reference.extentToleranceM !== "number" || !Number.isFinite(reference.extentToleranceM) || reference.extentToleranceM < 0 || reference.extentToleranceM > 1)) throw new Error("GEOMETRY_BUILD_REFERENCE_TOLERANCE_INVALID");
   }
   return value as GeometryBuildContract;
 }
@@ -122,6 +123,7 @@ export function validateGeometryBuildReceipt(value: unknown): GeometryBuildRecei
   hash(d.parameterSetHash, "GEOMETRY_BUILD_RECEIPT_PARAMETER_HASH_INVALID");
   hash(d.validationPolicyHash, "GEOMETRY_BUILD_RECEIPT_VALIDATION_POLICY_HASH_INVALID");
   hash(d.geometryBuildHash, "GEOMETRY_BUILD_RECEIPT_BUILD_HASH_INVALID");
+  if (d.geometryHashProfile !== "subactor.semantic-triangle-soup/v2") throw new Error("GEOMETRY_BUILD_RECEIPT_GEOMETRY_HASH_PROFILE_INVALID");
   if (d.geometryArtifactHash !== undefined) hash(d.geometryArtifactHash, "GEOMETRY_BUILD_RECEIPT_ARTIFACT_HASH_INVALID");
   const validation = object(d.validation, "GEOMETRY_BUILD_RECEIPT_VALIDATION_REQUIRED");
   if (typeof validation.ok !== "boolean" || !Array.isArray(validation.failures) || !validation.failures.every((failure) => typeof failure === "string")) throw new Error("GEOMETRY_BUILD_RECEIPT_VALIDATION_INVALID");

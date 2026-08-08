@@ -1,6 +1,6 @@
 {
   "name": "@subactor/digital-twin-runtime-starter",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "private": true,
   "type": "module",
   "engines": {
@@ -14,7 +14,7 @@
     "demo": "npm run build && node dist/src/cli/main.js demo examples .dt-run",
     "demo:research": "npm run build && rm -rf .research-run && node dist/src/cli/main.js researcher-demo examples/researcher .research-run",
     "demo:biofoundry": "npm run build && rm -rf .biofoundry-run && node dist/src/cli/main.js biofoundry-build examples/biofoundry/biofoundry.config.json .biofoundry-run deterministic",
-    "verify": "npm run check && npm run proto:check && npm run compose:check && npm test && npm run f2md:conformance && npm run demo && npm run demo:nl-dsl && npm run demo:research && npm run demo:biofoundry && npm run demo:realtime && npm run demo:living && npm run demo:physical && npm run demo:autonomy && npm run demo:mutation",
+    "verify": "npm run check && npm run proto:check && npm run compose:check && npm test && npm run packages:test && npm run f2md:conformance && npm run demo && npm run demo:nl-dsl && npm run demo:research && npm run demo:biofoundry && npm run demo:realtime && npm run demo:living && npm run demo:physical && npm run demo:autonomy && npm run demo:mutation",
     "proto:check": "node scripts/check-proto-contracts.mjs",
     "doctor": "npm run build && node dist/src/cli/main.js doctor",
     "demo:nl-dsl": "npm run build && node scripts/run-nl-dsl-examples.mjs",
@@ -26,7 +26,10 @@
     "demo:mutation": "npm run build && node scripts/demo-mutation.mjs",
     "verify:dist": "node --test dist/test/*.test.js && node scripts/demo-autonomy.mjs",
     "f2md:build": "cd js/f2md && npm install --no-audit --no-fund && npm run build",
-    "f2md:conformance": "npm run f2md:build && node scripts/f2md-conformance.mjs"
+    "f2md:conformance": "npm run f2md:build && node scripts/f2md-conformance.mjs",
+    "packages:check": "npm --prefix js/assembly-dsl run check && npm --prefix js/live-twin-state run check && npm --prefix js/archive-project-analyzer run check",
+    "packages:build": "npm --prefix js/assembly-dsl run build && npm --prefix js/live-twin-state run build && npm --prefix js/archive-project-analyzer run build",
+    "packages:test": "npm --prefix js/assembly-dsl test && npm --prefix js/live-twin-state test && npm --prefix js/archive-project-analyzer test"
   },
   "devDependencies": {
     "@types/node": ">=22 <25",

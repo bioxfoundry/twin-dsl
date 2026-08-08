@@ -13,6 +13,8 @@ import { checkJsonSchema, matchesJsonSchema } from "../src/core/json-schema.js";
 import { biofoundryLiveBlueprintV02, validateSceneBlueprint } from "../src/scene/blueprint.js";
 import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
 import { validateGeometryBuild } from "../src/geometry/build-contract.js";
+import { validateLiveBinding } from "../src/dsl/live-binding.js";
+import { validateAssembly } from "../src/dsl/assembly.js";
 
 const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
 async function schema(name: string): Promise<unknown> {
@@ -138,6 +140,45 @@ test("physical-evidence schema and runtime validator agree", async () => {
     { name: "unknown document key", document: { ...evidenceBase, note: "hi" } },
     { name: "missing coordinateSystem", document: { schema: evidenceBase.schema, id: "e", records: [] } },
     { name: "wrong schema id", document: { ...evidenceBase, schema: "subactor.physical-evidence/v2" } },
+  ]);
+});
+
+const liveBindingBase = {
+  schema: "subactor.live-binding/v1", id: "live-v1", bindings: [{
+    id: "temperature", source: { subjectUri: "urn:component:reactor", metric: "temperature" },
+    target: { componentId: "reactor", property: "thermal_state" },
+    freshness: { freshForMs: 10_000, expireAfterMs: 30_000, onStale: "unknown" },
+    valueStates: {}, ranges: [{ min: 20, max: 40, state: "nominal" }],
+  }],
+};
+
+test("live-binding schema and runtime validator agree", async () => {
+  await assertNoDrift("live-binding.schema.json", validateLiveBinding, [
+    { name: "valid", document: liveBindingBase },
+    { name: "empty bindings", document: { ...liveBindingBase, bindings: [] } },
+    { name: "empty id", document: { ...liveBindingBase, id: "" } },
+    { name: "unknown target key", document: { ...liveBindingBase, bindings: [{ ...liveBindingBase.bindings[0], target: { ...liveBindingBase.bindings[0].target, guessed: true } }] } },
+    { name: "invalid range", document: { ...liveBindingBase, bindings: [{ ...liveBindingBase.bindings[0], ranges: [{ min: "cold", state: "nominal" }] }] } },
+    { name: "unknown document key", document: { ...liveBindingBase, note: "not allowed" } },
+  ]);
+});
+
+const assemblyBase = {
+  schema: "subactor.assembly/v1", id: "lab-assemblies", assemblies: [{
+    id: "reactor", rootComponentId: "reactor_01", kind: "device", parts: [
+      { id: "lid", componentId: "reactor_lid", required: true, assetUri: "urn:asset:lid", scenePath: "/Lab/Reactor/Lid" },
+    ],
+  }],
+};
+
+test("assembly schema and runtime validator agree", async () => {
+  await assertNoDrift("assembly.schema.json", validateAssembly, [
+    { name: "valid", document: assemblyBase },
+    { name: "empty assemblies", document: { ...assemblyBase, assemblies: [] } },
+    { name: "duplicate assembly id", document: { ...assemblyBase, assemblies: [assemblyBase.assemblies[0], assemblyBase.assemblies[0]] } },
+    { name: "relative scene path", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], parts: [{ ...assemblyBase.assemblies[0].parts[0], scenePath: "Lab/Lid" }] }] } },
+    { name: "unknown kind", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], kind: "workflow" }] } },
+    { name: "unknown part key", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], parts: [{ ...assemblyBase.assemblies[0].parts[0], guessed: true }] }] } },
   ]);
 });
 

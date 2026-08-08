@@ -48,3 +48,26 @@ test("cross-layer integrity separates contradictions from incomplete assumptions
   assert.ok(report.findings.some(finding=>finding.code==="GEOMETRY_VALIDATION_INCOMPLETE"&&finding.severity==="warning"));
   assert.ok(report.repairProcesses.every(process=>process.uri.startsWith("subactor://process/repair/project-integrity/")));
 });
+
+test("failed geometry receipt becomes an exact repairable integrity finding",()=>{
+  const input=validInput();
+  input.geometryBuildReceipts=[{
+    schema:"subactor.geometry-build-receipt/v1",id:"lid-build",status:"failed",
+    processUri:"subactor://process/geometry/openscad/compile",
+    repairProcess:"subactor://process/repair/geometry/reconcile-source-evidence",cacheHit:true,
+    startedAt:"2026-01-01T00:00:00Z",completedAt:"2026-01-01T00:00:01Z",
+    source:{path:"lid.scad",uri:"urn:source:lid",sha256:"a".repeat(64),format:"scad"},
+    target:{componentId:"a",scenePath:"/A",kind:"equipment"},
+    coordinateSystem:{unit:"millimeter",upAxis:"Z",handedness:"right"},
+    engine:{name:"openscad",version:"2021.01"},
+    dependencies:{expected:[],actual:[],dependencySetHash:"b".repeat(64),drift:[]},
+    parameterSetHash:"c".repeat(64),validationPolicyHash:"d".repeat(64),geometryBuildHash:"e".repeat(64),geometryHashProfile:"subactor.semantic-triangle-soup/v2",artifacts:{},
+    validation:{ok:false,nonEmpty:true,finite:true,dependencyClosure:true,triangleCount:1,unit:"millimeter",glbLoad:true,usdStageOpen:false,usdValidationAvailable:false,failures:["GEOMETRY_REFERENCE_EXTENT_DRIFT"]},
+    error:{code:"urn:subactor:error:geometry:geometry-reference-extent-drift",message:"actual height 14 mm differs from reference 18 mm"},
+  }];
+  const report=analyzeProjectIntegrity(input);
+  const finding=report.findings.find(item=>item.code==="GEOMETRY_REFERENCE_EXTENT_DRIFT");
+  assert.equal(report.ok,false);
+  assert.equal(finding?.repairProcess,"subactor://process/repair/geometry/reconcile-source-evidence");
+  assert.deepEqual(finding?.subjects,["a","lid-build"]);
+});

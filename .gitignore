@@ -9,6 +9,7 @@ coverage/
 .DS_Store
 __pycache__/
 *.pyc
+.geometry-toolchain/
 .idea
 .vscode/
 package-lock.json
