@@ -133,8 +133,13 @@ at the top of this document. `npm run demo:physical` fails the build if either g
 The geometry report has two independent decisions:
 
 - `ok`: every check that could be run passed;
-- `complete`: every non-scope scene binding has position, size and orientation evidence,
-  and the document defines at least one spatial constraint.
+- `complete`: every check required by the component's spatial type contract passes. Only
+  `spatialClass=physical|hybrid` participates in physical completeness. A `cyber` or `logical`
+  marker may have a display transform without creating a geometry-evidence obligation.
+
+Coverage exposes both facts (`positionEvidence`, `sizeEvidence`, `orientationEvidence`) and
+contract denominators (`positionRequired`, `sizeRequired`, `orientationRequired`,
+`constraintsRequired`, `requiredChecks`, `passedRequiredChecks`).
 
 Therefore `PASS · INCOMPLETE` is valid and important: supplied facts were translated
 correctly, but the scene is not certified as a complete physical twin. The runtime publishes

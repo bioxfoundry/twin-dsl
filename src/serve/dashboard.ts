@@ -52,7 +52,7 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "math.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
+  for (const name of ["observations.dsl", "evidence-sets.dsl", "math.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
     try { documents.push({ name, content: (await readFile(join(current, name), "utf8")).slice(0, 120_000) }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }

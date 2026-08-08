@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.geometry-build/v1",
+  "title": "Deterministic geometry build",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "source", "engine", "target", "coordinateSystem", "dependencies", "parameters", "compilerOptions", "outputs", "validations"],
+  "properties": {
+    "schema": {"const": "subactor.geometry-build/v1"},
+    "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,126}$"},
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "uri", "sha256", "format"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "uri": {"type": "string", "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$"},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "format": {"const": "scad"}
+      }
+    },
+    "engine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {"const": "openscad"},
+        "version": {"type": "string", "minLength": 1},
+        "imageDigest": {"type": "string", "pattern": "^sha256:[a-f0-9]{64}$"}
+      }
+    },
+    "target": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["componentId", "scenePath", "kind"],
+      "properties": {
+        "componentId": {"type": "string", "minLength": 1},
+        "scenePath": {"type": "string", "pattern": "^/"},
+        "kind": {"enum": ["space", "equipment", "utility"]}
+      }
+    },
+    "coordinateSystem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["unit", "upAxis", "handedness"],
+      "properties": {
+        "unit": {"enum": ["micron", "millimeter", "centimeter", "meter", "inch", "foot"]},
+        "upAxis": {"enum": ["X", "Y", "Z"]},
+        "handedness": {"const": "right"}
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "mountPath", "uri", "sha256", "sourcePath"],
+        "properties": {
+          "path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*\\.\\.).+"},
+          "mountPath": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*\\.\\.).+"},
+          "uri": {"type": "string", "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$"},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "sourcePath": {"type": "string", "minLength": 1}
+          ,"fetch": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "repository", "revision", "subpath"],
+            "properties": {
+              "type": {"const": "git"},
+              "repository": {"type": "string", "pattern": "^https://"},
+              "revision": {"type": "string", "pattern": "^[a-f0-9]{40}$"},
+              "subpath": {"type": "string", "minLength": 1}
+            }
+          }
+        }
+      }
+    },
+    "parameters": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["presetId", "values"],
+      "properties": {
+        "presetId": {"type": "string", "minLength": 1},
+        "values": {"type": "object"}
+      }
+    },
+    "compilerOptions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["hardWarnings", "timeoutSeconds", "maxTriangles"],
+      "properties": {
+        "hardWarnings": {"type": "boolean"},
+        "timeoutSeconds": {"type": "integer", "minimum": 1, "maximum": 3600},
+        "maxTriangles": {"type": "integer", "minimum": 1, "maximum": 100000000},
+        "fa": {"type": "number", "exclusiveMinimum": 0},
+        "fs": {"type": "number", "exclusiveMinimum": 0},
+        "fn": {"type": "integer", "minimum": 3}
+      }
+    },
+    "outputs": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["canonical", "web", "scene"],
+      "properties": {
+        "canonical": {"const": "3mf"},
+        "web": {"const": "glb"},
+        "scene": {"enum": ["usda", "usdc"]}
+      }
+    },
+    "validations": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["nonEmpty", "finiteBbox", "dependencyClosure", "glbLoad", "usdStageOpen", "bboxToleranceM"],
+      "properties": {
+        "nonEmpty": {"const": true},
+        "finiteBbox": {"const": true},
+        "dependencyClosure": {"const": true},
+        "glbLoad": {"const": true},
+        "usdStageOpen": {"type": "boolean"},
+        "bboxToleranceM": {"type": "number", "minimum": 0, "maximum": 1}
+        ,"reference": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["path", "sourceUri", "artifactUri", "sha256", "unit", "comparison"],
+          "properties": {
+            "path": {"type": "string", "minLength": 1},
+            "sourceUri": {"type": "string", "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$"},
+            "artifactUri": {"type": "string", "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$"},
+            "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "unit": {"enum": ["micron", "millimeter", "centimeter", "meter", "inch", "foot"]},
+            "comparison": {"const": "extent"}
+          }
+        }
+      }
+    }
+  }
+}

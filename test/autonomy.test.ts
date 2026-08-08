@@ -56,10 +56,11 @@ test("LLM cannot override authority-owned math gates",async()=>{
     const runtime=new LivingProjectRuntime(undefined,new TamperingCompiler() as never);
     const receipt=await runtime.iterate(created.configPath,join(temp,"out"),"require-llm");
     assert.equal(receipt.validation.ok,false);
-    assert.ok(receipt.authorityWarnings.some(warning=>warning.includes("ManagerApproved")));
-    assert.ok(receipt.authorityWarnings.some(warning=>warning.includes("IterationAllowed")));
+    assert.ok(!receipt.authorityWarnings.some(warning=>warning.startsWith("LLM_AUTHORITY_")));
     const math=JSON.parse(await readFile(join(temp,"out/candidate/math.json"),"utf8")) as MathDocument;
     assert.equal(math.bindings.find(binding=>binding.name==="ManagerApproved")?.value,false);
+    const audit=JSON.parse(await readFile(join(temp,"out/candidate/generation-audit.json"),"utf8"));
+    assert.equal(audit.math.reason,"semantic_math_authority_field_forbidden");
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 
@@ -76,6 +77,23 @@ test("development fixture requires explicit policy",async()=>{
     const summary=JSON.parse(await readFile(join(temp,"out/candidate/development.evidence.json"),"utf8"));
     assert.equal(summary.source,"fixture");
     assert.equal(summary.acceptance,"review_required");
+  }finally{await rm(temp,{recursive:true,force:true});}
+});
+
+test("runtime observations reject UNIT mixed and accept per-metric units",async()=>{
+  const temp=await mkdtemp(join(tmpdir(),"observation-units-"));
+  try{
+    const created=await createLivingProject({name:"Typed Observation Twin",outDir:join(temp,"project")});
+    const environmentPath=join(temp,"project/environment/current.json");
+    const valid=JSON.parse(await readFile(environmentPath,"utf8"));
+    assert.deepEqual(valid.units,{temperatureC:"Cel",availability:"none"});
+    delete valid.units;
+    valid.unit="mixed";
+    await writeFile(environmentPath,JSON.stringify(valid,null,2));
+    await assert.rejects(
+      ()=>new LivingProjectRuntime().iterate(created.configPath,join(temp,"out"),"deterministic"),
+      /OBSERVATION_UNIT_MIXED_FORBIDDEN/,
+    );
   }finally{await rm(temp,{recursive:true,force:true});}
 });
 

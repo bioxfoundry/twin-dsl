@@ -90,7 +90,13 @@ function emitNode(lines:string[],node:SceneNode,depth:number,components:Map<stri
   const component=binding.componentId?components.get(binding.componentId):undefined;
   const label=typeof component?.properties?.label==='string'?component.properties.label:node.name;
   const sourceUris=component?.sourceUris??[];
-  lines.push(`${pad}def Xform "${node.name}" {`, `${inner}double3 xformOp:translate = ${vec(binding.position,[0,0,0])}`);
+  const usdAssetPath=typeof component?.properties?.geometryUsdAssetPath==='string'&&
+    !component.properties.geometryUsdAssetPath.includes('@')&&!/[\r\n]/.test(component.properties.geometryUsdAssetPath)
+    ? component.properties.geometryUsdAssetPath
+    : undefined;
+  if(usdAssetPath) lines.push(`${pad}def Xform "${node.name}" (`,`${pad}    prepend references = @${usdAssetPath}@`,`${pad})`,`${pad}{`);
+  else lines.push(`${pad}def Xform "${node.name}" {`);
+  lines.push(`${inner}double3 xformOp:translate = ${vec(binding.position,[0,0,0])}`);
   if(binding.orientation) lines.push(`${inner}quatd xformOp:orient = ${quat(binding.orientation)}`);
   lines.push(`${inner}uniform token[] xformOpOrder = ["xformOp:translate"${binding.orientation?', "xformOp:orient"':''}]`);
   const emitted=new Set<string>();
@@ -110,7 +116,9 @@ function emitNode(lines:string[],node:SceneNode,depth:number,components:Map<stri
       emitAttribute(lines,inner,emitted,binding.propertyMap?.[key]??`subactor:${key}`,value);
     }
   }
-  emitGeometry(lines,inner,binding,component?.type);
+  // A compiled USD asset is the geometry. Emitting the old primitive as well would render a
+  // second placeholder over the real mesh and falsely suggest that compilation had no effect.
+  if(!usdAssetPath) emitGeometry(lines,inner,binding,component?.type);
   for(const child of node.children.values()) emitNode(lines,child,depth+1,components);
   lines.push(`${pad}}`);
 }

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.geometry-build-receipt/v1",
+  "title": "Geometry build execution receipt",
+  "type": "object",
+  "required": ["schema", "id", "status", "processUri", "cacheHit", "startedAt", "completedAt", "source", "target", "coordinateSystem", "engine", "dependencies", "parameterSetHash", "validationPolicyHash", "geometryBuildHash", "artifacts", "validation"],
+  "properties": {
+    "schema": {"const": "subactor.geometry-build-receipt/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "status": {"enum": ["succeeded", "failed"]},
+    "processUri": {"const": "subactor://process/geometry/openscad/compile"},
+    "repairProcess": {"type": "string", "pattern": "^subactor://process/repair/geometry/"},
+    "cacheHit": {"type": "boolean"},
+    "startedAt": {"type": "string"},
+    "completedAt": {"type": "string"},
+    "source": {"type": "object"},
+    "target": {"type": "object"},
+    "coordinateSystem": {"type": "object"},
+    "engine": {"type": "object"},
+    "dependencies": {"type": "object"},
+    "parameterSetHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "validationPolicyHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "geometryBuildHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "geometryArtifactHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "artifacts": {"type": "object"},
+    "validation": {"type": "object"},
+    "error": {"type": "object"}
+  }
+}

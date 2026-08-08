@@ -14,9 +14,9 @@ const blueprint = validateSceneBlueprint({
   id: "biofoundry",
   twinKind: "physical",
   components: [
-    { id: "design", type: "system-layer", label: "Design", sourceRoles: ["customer"] },
-    { id: "build", type: "system-layer", label: "Build", sourceRoles: ["customer", "project"], includeDevelopmentEvidence: true },
-    { id: "learn", type: "system-layer", label: "Learn", sourceRoles: ["customer"], includeRuntimeObservations: true },
+    { id: "design", type: "system-layer", spatialClass: "logical", label: "Design", sourceRoles: ["customer"] },
+    { id: "build", type: "system-layer", spatialClass: "hybrid", label: "Build", sourceRoles: ["customer", "project"], includeDevelopmentEvidence: true },
+    { id: "learn", type: "system-layer", spatialClass: "cyber", label: "Learn", sourceRoles: ["customer"], includeRuntimeObservations: true },
   ],
   bindings: [
     { componentId: "design", scenePath: "/Biofoundry/Design", position: [0, 0, 0], size: [4, 4, 2] },
@@ -193,6 +193,10 @@ test("biofoundry live detailed blueprint keeps v0.2 IDs and adds corpus modules"
     assert.ok(bp.components.some((c) => c.id === id), `missing ${id}`);
   }
   assert.ok(bp.components.some((c) => (c.pathIncludes?.length ?? 0) > 0));
+  assert.equal(bp.components.find((c) => c.id === "mission_requirements")?.spatialClass, "logical");
+  assert.equal(bp.components.find((c) => c.id === "chemos_planner_01")?.spatialClass, "cyber");
+  assert.equal(bp.components.find((c) => c.id === "biospec_bioreactor_01")?.spatialClass, "physical");
+  assert.equal(bp.components.find((c) => c.id === "biospec_cad_lid_unf")?.parentId, "biospec_bioreactor_01");
 });
 
 /**
@@ -208,7 +212,7 @@ test("CAD assets are counted in both a binary corpus and its f2md Markdown mirro
     schema: "subactor.scene-blueprint/v1",
     id: "cad",
     twinKind: "physical",
-    components: [{ id: "printer", type: "equipment", label: "Printer", sourceRoles: ["project"], pathIncludes: ["bioprint"] }],
+    components: [{ id: "printer", type: "equipment", spatialClass: "physical", label: "Printer", sourceRoles: ["project"], pathIncludes: ["bioprint"] }],
     bindings: [{ componentId: "printer", scenePath: "/F/Printer", position: [0, 0, 0], size: [1, 1, 1] }],
   });
 

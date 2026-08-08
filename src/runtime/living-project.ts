@@ -6,6 +6,7 @@ import type {
   DomainEvent,
   GenerationAudit,
   GeometryValidationReport,
+  GeometryBuildReceipt,
   ImprovementPlan,
   LivingFailureReceipt,
   LivingIterationReceipt,
@@ -46,6 +47,7 @@ import {
   appendJsonLine,
   buildImprovementPlan,
   mergeAuthorityMath,
+  semanticMathProjection,
   mutationGrantPresent,
   recentIterationCount,
   summarizeDevelopment,
@@ -61,13 +63,27 @@ import {
 import { RUNTIME_GENERATION } from "../core/generation.js";
 import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
+import { geometryRequirementsFromTwin, validateGeometry } from "../scene/geometry-validation.js";
 import { analyzeProjectIntegrity, renderProjectIntegrityDsl } from "./project-integrity.js";
+import { GeometryService, type GeometryMaterialization } from "../geometry/geometry-service.js";
+import { mergeGeometryEvidence } from "../geometry/physical-evidence-adapter.js";
+import { renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
 async function writeJson(path:string,value:unknown):Promise<void> { await mkdir(dirname(path),{recursive:true}); await writeFile(path,JSON.stringify(value,null,2)+"\n"); }
 function sourceSnapshot(resources:ResourceRecord[]):string {
   return sha256(canonicalJson(resources.map(resource=>({uri:resource.uri,path:resource.sourcePath,role:resource.sourceRole,sha256:resource.sha256})).sort((a,b)=>a.path.localeCompare(b.path))));
+}
+type EvidenceSetRecord={schema:"subactor.evidence-set/v1";id:string;uri:string;queryUri:string;members:number;membersHash:string;memberUris:string[]};
+function evidenceSet(id:string,memberUris:string[]):EvidenceSetRecord {
+  const members=[...new Set(memberUris)].sort();
+  const membersHash=sha256(canonicalJson(members));
+  const queryHash=sha256(canonicalJson({id,membersHash,members:members.length}));
+  return {schema:"subactor.evidence-set/v1",id,uri:`urn:subactor:evidence-set:sha256:${membersHash}`,queryUri:`urn:subactor:query-result:sha256:${queryHash}`,members:members.length,membersHash:`sha256:${membersHash}`,memberUris:members};
+}
+function renderEvidenceSets(sets:EvidenceSetRecord[]):string {
+  return sets.map(set=>["```evidencesetdsl",`EVIDENCE_SET ${set.id}`,`URI ${set.uri}`,`QUERY ${set.queryUri}`,`MEMBERS ${set.members}`,`HASH ${set.membersHash}`,"END_EVIDENCE_SET","```"].join("\n")).join("\n\n")+"\n";
 }
 type IntentDslIndex = { packs:number; records:number; invalid:number; sourceUris:string[] };
 async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslIndex> {
@@ -137,16 +153,19 @@ function observationsFromResources(project:LivingProjectDocument,resources:Resou
       const observedAt = typeof row.observedAt === "string" ? row.observedAt : typeof row.timestamp === "string" ? row.timestamp : new Date(0).toISOString();
       const subjectUri = typeof row.subjectUri === "string" ? row.subjectUri : `subactor://project/${project.id}/runtime`;
       const severity = ["debug","info","warning","error","critical"].includes(String(row.severity)) ? String(row.severity) as ObservationRecord["severity"] : "info";
+      if (row.unit === "mixed") throw new Error(`OBSERVATION_UNIT_MIXED_FORBIDDEN:${resource.sourcePath}`);
+      const units = row.units && typeof row.units === "object" && !Array.isArray(row.units) ? row.units as Record<string, unknown> : {};
       for(const [metric,value] of Object.entries(row)) {
-        if(["observedAt","timestamp","subjectUri","severity","labels","unit"].includes(metric)) continue;
-        observations.push({id:`obs-${++index}`,observedAt,subjectUri,metric,value:parseObservationValue(value),unit:typeof row.unit === "string"?row.unit:undefined,severity,sourceUris:[resource.uri],labels:Array.isArray(row.labels)?row.labels.filter(item=>typeof item === "string") as string[]:[]});
+        if(["observedAt","timestamp","subjectUri","severity","labels","unit","units"].includes(metric)) continue;
+        const unit = typeof units[metric] === "string" ? String(units[metric]) : typeof row.unit === "string" ? row.unit : undefined;
+        observations.push({id:`obs-${++index}`,observedAt,subjectUri,metric,value:parseObservationValue(value),unit,severity,sourceUris:[resource.uri],labels:Array.isArray(row.labels)?row.labels.filter(item=>typeof item === "string") as string[]:[]});
       }
     }
   }
   return validateObservation({schema:"subactor.observation/v1",id:`${project.id}-observations`,sourceSnapshotHash:snapshot,observations});
 }
-function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord[];development:DevelopmentEvidenceSummary;observations:ObservationDocument;grantPresent:boolean;rateLimitAvailable:boolean}):MathDocument {
-  const {project,resources,development,observations,grantPresent,rateLimitAvailable} = input;
+function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord[];development:DevelopmentEvidenceSummary;observations:ObservationDocument;grantPresent:boolean;rateLimitAvailable:boolean;evidenceSets:{research:EvidenceSetRecord;runtime:EvidenceSetRecord;all:EvidenceSetRecord}}):MathDocument {
+  const {project,resources,development,observations,grantPresent,rateLimitAvailable,evidenceSets} = input;
   const roles = new Set(resources.map(resource=>resource.sourceRole));
   const researchUris = resources.filter(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole))).map(resource=>resource.uri);
   const managerUris = resources.filter(resource=>resource.sourceRole === "manager").map(resource=>resource.uri);
@@ -163,10 +182,10 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
     id:`${project.id}-iteration-gates`,
     bindings:[
       {name:"ManagerApproved",value:project.policy.approved,sourceUris:managerUris},
-      {name:"ResearchEvidencePresent",value:researchPresent,sourceUris:researchUris},
+      {name:"ResearchEvidencePresent",value:researchPresent,sourceUris:[evidenceSets.research.uri]},
       {name:"DevelopmentEvidencePresent",value:developmentPresent,sourceUris:development.evidenceUris},
       {name:"DevelopmentAccepted",value:developmentAccepted,sourceUris:development.evidenceUris},
-      {name:"RuntimeEvidencePresent",value:runtimePresent,sourceUris:runtimeUris},
+      {name:"RuntimeEvidencePresent",value:runtimePresent,sourceUris:[evidenceSets.runtime.uri]},
       {name:"RequireResearch",value:project.policy.requireResearch,sourceUris:managerUris},
       {name:"RequireDevelopment",value:project.policy.requireDevelopmentEvidence,sourceUris:managerUris},
       {name:"RequireDevelopmentAcceptance",value:project.policy.requireDevelopmentAcceptance,sourceUris:managerUris},
@@ -177,8 +196,10 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
       {name:"RequireSignedMutationGrant",value:project.policy.requireSignedMutationGrant,sourceUris:managerUris},
       {name:"SignedMutationGrantPresent",value:grantPresent,sourceUris:managerUris},
       {name:"RateLimitAvailable",value:rateLimitAvailable,sourceUris:managerUris},
-      {name:"SourceRoleCount",value:roles.size,unit:"count",sourceUris:resources.map(resource=>resource.uri)},
-      ...readiness.bindings,
+      {name:"SourceRoleCount",value:roles.size,unit:"count",sourceUris:[evidenceSets.all.uri]},
+      // Readiness bindings may be derived from the full corpus. Bind the immutable set URI,
+      // not hundreds of members repeated once per scalar.
+      ...readiness.bindings.map(binding=>({...binding,sourceUris:[evidenceSets.all.uri]})),
     ],
     expressions:{
       ResearchGate:{kind:"or",args:[{kind:"not",arg:{kind:"ref",name:"RequireResearch"}},{kind:"ref",name:"ResearchEvidencePresent"}]},
@@ -245,7 +266,7 @@ function fallbackAudit(audit:GenerationAudit,reason:string):GenerationAudit {
 }
 
 export class LivingProjectRuntime {
-  constructor(readonly todo2code=new Todo2CodeAdapter(),readonly compiler=new NlDslCompiler()) {}
+  constructor(readonly todo2code=new Todo2CodeAdapter(),readonly compiler=new NlDslCompiler(),readonly geometryService=new GeometryService()) {}
 
   async load(configPath:string):Promise<LivingProjectDocument> {
     const text = await readFile(configPath,"utf8");
@@ -265,15 +286,19 @@ export class LivingProjectRuntime {
     const startedAt = new Date().toISOString();
     const traceId = randomUUID();
     const base = dirname(configPath);
+    const dashboardPort = Number(process.env.DT_DASHBOARD_PORT ?? 7445);
+    if (!Number.isInteger(dashboardPort) || dashboardPort < 1 || dashboardPort > 65535) throw new Error("DT_DASHBOARD_PORT_INVALID");
     const sceneBlueprint = project.scene.blueprintFile
       ? validateSceneBlueprint(await readJson(resolve(base,project.scene.blueprintFile)))
       : undefined;
-    const physicalEvidence = project.scene.physicalEvidenceFile
+    const baselinePhysicalEvidence = project.scene.physicalEvidenceFile
       ? validatePhysicalEvidence(await readJson(resolve(base,project.scene.physicalEvidenceFile)))
       : undefined;
+    const geometryContractPaths = (project.scene.geometryBuildFiles ?? []).map(path=>resolve(base,path));
+    const geometryContracts = await Promise.all(geometryContractPaths.map(path=>readJson<unknown>(path)));
     // Blueprint and physical facts are part of structural identity: a geometry or semantic model
     // change forces a new iteration even when sources and code are untouched.
-    const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,physicalEvidence}));
+    const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,physicalEvidence:baselinePhysicalEvidence,geometryContracts}));
     const scanned = await scanSources(project.sources.map(source=>({path:resolve(base,source.path),role:source.role,logicalRoot:source.logicalRoot,labels:source.labels})));
     if(project.webResearch) {
       const plan = parseDql(await readFile(resolve(base,project.webResearch.dqlFile),"utf8"));
@@ -285,6 +310,24 @@ export class LivingProjectRuntime {
       scanned.warnings.push(...web.warnings);
     }
     const resources = scanned.resources;
+    const geometryMaterializations:GeometryMaterialization[] = geometryContractPaths.length
+      ? await this.geometryService.materializeFiles(geometryContractPaths,join(outDir,"geometry"),project.id)
+      : [];
+    for(const materialization of geometryMaterializations) {
+      if(materialization.resource) resources.push(materialization.resource);
+      if(materialization.receipt.status === "failed") scanned.warnings.push(`GEOMETRY_BUILD_FAILED:${materialization.contract.id}:${materialization.receipt.error?.code??"unknown"}`);
+    }
+    const geometryFingerprint = sha256(canonicalJson(geometryMaterializations.map(({receipt})=>({
+      id:receipt.id,status:receipt.status,buildHash:receipt.geometryBuildHash,artifactHash:receipt.geometryArtifactHash??null,
+      validation:receipt.validation.ok,error:receipt.error?.code??null,
+    }))));
+    const researchResourceUris=resources.filter(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole))).map(resource=>resource.uri);
+    const runtimeResourceUris=resources.filter(resource=>resource.sourceRole==="runtime").map(resource=>resource.uri);
+    const evidenceSets={
+      research:evidenceSet(`${project.id}-research`,researchResourceUris),
+      runtime:evidenceSet(`${project.id}-runtime`,runtimeResourceUris),
+      all:evidenceSet(`${project.id}-all`,resources.map(resource=>resource.uri)),
+    };
     // Derived Markdown→intentDSL is an active, validated input to every iteration. Invalid packs
     // never reach the LLM/twin stages and are reported as a hard validation failure.
     const intentDsl = await indexIntentDsl(resources, scanned.texts);
@@ -320,7 +363,7 @@ export class LivingProjectRuntime {
     const developmentFingerprint = sha256(canonicalJson({development,diagnostics:analysis?.diagnostics??[],manifest:analysis?.manifest??{},summary:developmentEvidence}));
     const observation = observationsFromResources(project,resources,scanned.texts,researchHash);
     const observationHash = sha256(canonicalJson(observation));
-    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
+    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,geometryFingerprint,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
     // Unchanged inputs alone are not enough to skip: a runtime whose generation semantics
     // changed derives a different twin from the very same sources, so RUNTIME_GENERATION
     // has to match too, or a shipped fix would never reach an existing project.
@@ -328,11 +371,13 @@ export class LivingProjectRuntime {
     const forced = process.env.DT_FORCE_ITERATION === "1";
     if(!forced && previous && previous.runtimeGeneration===RUNTIME_GENERATION && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) {
       const runtimeRoot = resolve(outDir);
+      const streamVersion = await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER);
       await writeFile(resolve(base,"START.md"),[
         `# ${project.name} — START`, "", `Generated: ${new Date().toISOString()}`,
-        "Status: RUNNING / NO CHANGE", `Project DSL: ${configPath}`, `Runtime root: ${runtimeRoot}`, "",
-        "Dashboard: http://127.0.0.1:7445",
-        `Start: node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} 7445 deterministic`, "",
+        "Status: RUNNING / NO CHANGE", `Runtime generation: ${RUNTIME_GENERATION}`, `Event stream version: ${streamVersion}`,
+        `Last completed iteration: ${previous.completedAt}`, `Project DSL: ${configPath}`, `Runtime root: ${runtimeRoot}`, "",
+        `Dashboard: http://127.0.0.1:${dashboardPort}`,
+        `Start: node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} deterministic`, "",
         `Twin: ${join(runtimeRoot,"current/twin.json")}`, `Scene: ${join(runtimeRoot,"current/scene.usda")}`,
         `IntentDSL index: ${join(runtimeRoot,"current/intent-dsl.index.json")}`,
         `Latest receipt: ${join(runtimeRoot,"latest.json")}`, `Events: ${join(runtimeRoot,"events.jsonl")}`,
@@ -345,14 +390,21 @@ export class LivingProjectRuntime {
     const rateLimitAvailable = iterationsLastHour < project.policy.maxIterationsPerHour;
     const grantPresent = await mutationGrantPresent(project,base);
     const tree = groupTree(project,resources);
-    const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable});
+    const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable,evidenceSets});
     const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint);
     const deterministicScene = conceptualScene(project,deterministicTwin,sceneBlueprint);
     const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,intentDsl,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
     const effectiveMode:LlmMode = rateLimitAvailable ? mode : "deterministic";
 
-    const mathGeneration = await this.compiler.compile({kind:"math",text:`Evaluate the iteration gates for ${project.managerIntent}`,context,mode:effectiveMode,deterministicValue:{dsl:renderMathDsl(authoritativeMath)}});
-    const mergedMath = mergeAuthorityMath(authoritativeMath,mathGeneration.value as MathDocument);
+    const semanticMath = semanticMathProjection(authoritativeMath);
+    let mathGeneration = await this.compiler.compile({kind:"math",text:`Derive semantic, non-authoritative project relations for ${project.managerIntent}`,context:{resources:context.resources,development:context.development,developmentEvidence:context.developmentEvidence,observation:context.observation,intentDsl:context.intentDsl,sceneBlueprint:context.sceneBlueprint},mode:effectiveMode,deterministicValue:{dsl:renderMathDsl(semanticMath)}});
+    let mergedMath;
+    try { mergedMath = mergeAuthorityMath(authoritativeMath,mathGeneration.value as MathDocument); }
+    catch(error) {
+      if(!(error instanceof Error)||!error.message.startsWith("SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN:")) throw error;
+      mathGeneration = {...mathGeneration,value:semanticMath,audit:fallbackAudit(mathGeneration.audit,"semantic_math_authority_field_forbidden")};
+      mergedMath = mergeAuthorityMath(authoritativeMath,semanticMath);
+    }
     const math = mergedMath.document;
     const authorityWarnings = [...mergedMath.warnings];
 
@@ -377,6 +429,22 @@ export class LivingProjectRuntime {
       sceneGeneration = {...sceneGeneration,value:scene,audit:fallbackAudit(sceneGeneration.audit,"domain_grounding_failed")};
     }
 
+    const geometryBuildFailures = geometryMaterializations
+      .filter(({receipt})=>receipt.status!=="succeeded"||!receipt.validation.ok)
+      .map(({contract,receipt})=>`GeometryBuildFailed:${contract.id}:${receipt.error?.code??receipt.validation.failures.join("|")}`);
+    const validGeometryEvidence = [] as NonNullable<GeometryMaterialization["evidence"]>[];
+    for(const materialization of geometryMaterializations) {
+      if(!materialization.evidence || materialization.receipt.status!=="succeeded") continue;
+      const binding = scene.bindings.find(item=>item.componentId===materialization.receipt.target.componentId);
+      if(!binding || binding.scenePath!==materialization.receipt.target.scenePath) {
+        geometryBuildFailures.push(`GeometryScenePathDrift:${materialization.contract.id}:${binding?.scenePath??"missing"}:${materialization.receipt.target.scenePath}`);
+        continue;
+      }
+      validGeometryEvidence.push(materialization.evidence);
+    }
+    const mergedPhysicalEvidence = mergeGeometryEvidence(baselinePhysicalEvidence,validGeometryEvidence);
+    const physicalEvidence = mergedPhysicalEvidence ? validatePhysicalEvidence(mergedPhysicalEvidence) : undefined;
+
     // Physical facts are authoritative and deterministic: they are folded in after the model is
     // settled, so no LLM proposal can talk the twin out of a surveyed dimension.
     let physicalEvidenceReport:PhysicalEvidenceReport|undefined;
@@ -392,18 +460,24 @@ export class LivingProjectRuntime {
 
     const allowed = evaluateMath(math,"IterationAllowed") === true && intentDsl.invalid === 0;
     const scenePolicyAllowed = evaluateMath(math,"ScenePublishAllowed") === true && intentDsl.invalid === 0;
-    const geometryReport = geometryValidation??{schema:"subactor.geometry-validation/v1",evidenceId:"none",method:"world-aabb",ok:true,complete:false,coverage:{bindings:scene.bindings.length,positionEvidence:0,sizeEvidence:0,orientationEvidence:0,constraints:0},checks:[],failures:[]} as GeometryValidationReport;
+    const geometryReport = geometryValidation ?? validateGeometry(
+      scene,
+      {schema:"subactor.physical-evidence/v1",id:"none",coordinateSystem:{unit:"m",upAxis:"Z"},records:[]},
+      undefined,
+      geometryRequirementsFromTwin(twin),
+    );
     const projectIntegrity:ProjectIntegrityReport = analyzeProjectIntegrity({
       project,resources,development:developmentEvidence,observations:observation,twin,scene,
       geometry:geometryReport,physicalEvidence,
       generationAudits:[mathGeneration.audit,twinGeneration.audit,sceneGeneration.audit],
     });
-    const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok;
+    const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok && geometryBuildFailures.length===0;
     const failures:string[] = [];
     if(intentDsl.invalid) failures.push(`IntentDslValidationFailed:${intentDsl.invalid}`);
     if(!rateLimitAvailable) failures.push("AutonomyRateLimitExceeded");
     if(!allowed) failures.push("IterationAllowed=false");
     if(!scenePolicyAllowed) failures.push("ScenePublishAllowed=false");
+    failures.push(...geometryBuildFailures);
     if(!geometryReport.ok) failures.push(`GeometryValidationFailed:${geometryReport.failures.join("|")}`);
     if(!projectIntegrity.ok) failures.push(`ProjectIntegrityFailed:${projectIntegrity.findings.filter(finding=>finding.severity==="error").map(finding=>finding.code).join("|")}`);
     const researchPresent = resources.some(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole)));
@@ -413,6 +487,8 @@ export class LivingProjectRuntime {
     const candidate = join(outDir,"candidate");
     await writeJson(join(candidate,"project.json"),project);
     await writeJson(join(candidate,"resources.json"),resources);
+    await writeJson(join(candidate,"evidence-sets.json"),Object.values(evidenceSets));
+    await writeFile(join(candidate,"evidence-sets.dsl"),renderEvidenceSets(Object.values(evidenceSets)));
     await writeJson(join(candidate,"development.intent.json"),development);
     await writeJson(join(candidate,"development.evidence.json"),developmentEvidence);
     await writeJson(join(candidate,"tree.json"),tree);
@@ -425,6 +501,8 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
     await writeJson(join(candidate,"scene.diff.json"),sceneDiff(await readOptional<SceneDocument>(join(outDir,"current/scene.json")),scene));
     await writeJson(join(candidate,"physical-evidence.report.json"),physicalEvidenceReport??{schema:"subactor.physical-evidence-report/v1",applied:[],rejected:[],componentIdsStable:true,scenePathsStable:true});
+    await writeJson(join(candidate,"geometry-builds.json"),{schema:"subactor.geometry-build-index/v1",fingerprint:geometryFingerprint,receipts:geometryMaterializations.map(item=>item.receipt)});
+    await writeFile(join(candidate,"geometry-builds.dsl"),geometryMaterializations.map(item=>renderGeometryReceiptDsl(item.receipt)).join("\n"));
     await writeJson(join(candidate,"geometry-validation.json"),geometryReport);
     await writeFile(join(candidate,"geometry-validation.dsl"),renderGeometryValidationDsl(geometryReport));
     await writeJson(join(candidate,"project-integrity.json"),projectIntegrity);
@@ -434,7 +512,7 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -485,6 +563,7 @@ export class LivingProjectRuntime {
         {name:"development",status:developmentEvidence.acceptance==="accepted"?"succeeded":"blocked",artifactUris:[intentUri,developmentEvidenceUri],reason:developmentEvidence.acceptance==="accepted"?undefined:`development ${developmentEvidence.acceptance}`},
         {name:"runtime",status:runtimePresent?"succeeded":"blocked",artifactUris:[observationUri],reason:runtimePresent?undefined:"runtime observations missing"},
         {name:"reasoning",status:allowed?"succeeded":"blocked",artifactUris:[mathUri],reason:allowed?undefined:"IterationAllowed=false"},
+        {name:"geometry",status:geometryBuildFailures.length?"blocked":"succeeded",artifactUris:geometryMaterializations.flatMap(item=>Object.values(item.receipt.artifacts).map(artifact=>artifact.uri)),reason:geometryBuildFailures[0]},
         {name:"twin",status:allowed?"succeeded":"blocked",artifactUris:[twinUri]},
         {name:"scene",status:publish?"succeeded":"blocked",artifactUris:[sceneUri],reason:publish?undefined:"ScenePublishAllowed=false"},
         {name:"improvement",status:"succeeded",artifactUris:[improvementUri]},
@@ -516,24 +595,32 @@ export class LivingProjectRuntime {
     // runtime artifacts and the exact commands needed to inspect/restart the dashboard.
     const startPath = resolve(base,"START.md");
     const runtimeRoot = resolve(outDir);
+    const streamVersion = (await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER)) + 1;
     const start = [
       `# ${project.name} — START`,
       "",
       `Generated: ${new Date().toISOString()}`,
       `Status: ${receipt.validation.ok ? "RUNNING / VALIDATED" : "BLOCKED / VALIDATION FAILED"}`,
       `Project: ${project.id}`,
+      `Runtime generation: ${RUNTIME_GENERATION}`,
+      `Iteration started: ${receipt.startedAt}`,
+      `Iteration completed: ${receipt.completedAt}`,
+      `Event stream version: ${streamVersion}`,
       "",
       "## Live application",
       "",
-      "- Dashboard URL: http://127.0.0.1:7445 (start command below)",
+      `- Dashboard URL: http://127.0.0.1:${dashboardPort} (start command below)`,
       `- Project DSL: ${configPath}`,
       `- Runtime root: ${runtimeRoot}`,
       `- Current Twin: ${join(runtimeRoot,"current/twin.json")}`,
       `- Current scene JSON: ${join(runtimeRoot,"current/scene.json")}`,
       `- Current OpenUSD: ${join(runtimeRoot,"current/scene.usda")}`,
+      `- API state: http://127.0.0.1:${dashboardPort}/api/state`,
+      `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
+      `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`,
       "",
       "```bash",
-      `node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} 7445 deterministic`,
+      `node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} ${dashboardPort} deterministic`,
       "```",
       "",
       "## DSL and validation",
@@ -542,8 +629,12 @@ export class LivingProjectRuntime {
       `- intentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       `- Audit report: ${join(runtimeRoot,"current/audit-report.json")}`,
       `- Physical evidence report: ${join(runtimeRoot,"current/physical-evidence.report.json")}`,
+      `- Geometry builds: ${join(runtimeRoot,"current/geometry-builds.dsl")}`,
+      `- Geometry build status: ${geometryBuildFailures.length?`FAIL (${geometryBuildFailures.join(", ")})`:`PASS (${geometryMaterializations.length} contract(s))`}`,
       `- Geometry validation: ${join(runtimeRoot,"current/geometry-validation.dsl")}`,
+      `- Geometry required checks: ${geometryReport.coverage.passedRequiredChecks??"legacy"}/${geometryReport.coverage.requiredChecks??"legacy"} over ${geometryReport.coverage.bindings} physical/hybrid component(s)`,
       `- Project integrity: ${join(runtimeRoot,"current/project-integrity.dsl")}`,
+      `- Evidence sets: ${join(runtimeRoot,"current/evidence-sets.dsl")}`,
       `- Project integrity status: ${projectIntegrity.ok?"PASS":"FAIL"} / ${projectIntegrity.complete?"COMPLETE":"INCOMPLETE"}`,
       `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
       "",
@@ -575,7 +666,7 @@ export class LivingProjectRuntime {
     const event:DomainEvent = {
       eventId:randomUUID(),
       streamId:`living-project-${project.id}`,
-      streamVersion:(await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER)),
+      streamVersion,
       eventType:"LivingIterationCompleted",
       schemaVersion:"subactor.event/v1",
       occurredAt:receipt.completedAt,

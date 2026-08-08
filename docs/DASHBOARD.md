@@ -28,7 +28,9 @@ triggered from the page run under.
 - **Identity invariants** — `componentIdsStable` / `scenePathsStable` straight from
   `physical-evidence.report.json`, alongside applied/rejected counts.
 - **Geometry validation** — a separate `PASS`/`FAIL` result and `COMPLETE`/`INCOMPLETE`
-  evidence decision, with position/size/orientation coverage and constraint count. Missing
+  evidence decision, with position/size/orientation requirements and constraint count. Coverage
+  is calculated only for `physical` and `hybrid` components; cyber/logical marker placement is
+  display layout, not a physical claim. Missing
   orientation is shown as an identity fallback, never silently presented as measured.
 - **Cross-layer integrity** — coverage of requirements through validation, dependency links,
   parameters and assumptions, plus stable finding codes that lead to repair-process URIs.

@@ -34,6 +34,35 @@
 - Fix ruff-print-statements issues (ticket-24b0eac4)
 - Fix ruff-sorted-imports issues (ticket-3fcf9308)
 
+## [0.5.4] - 2026-08-08
+
+### Docs
+- Update docs/DASHBOARD.md
+- Update docs/PHYSICAL_EVIDENCE_INTAKE.md
+- Update docs/SEMANTIC_SCENE_BLUEPRINT.md
+
+### Test
+- Update test/autonomy.test.ts
+- Update test/dashboard.test.ts
+- Update test/geometry-build.test.ts
+- Update test/geometry-validation.test.ts
+- Update test/openusd-render.test.ts
+- Update test/scene-blueprint.test.ts
+- Update test/schema-drift.test.ts
+
+### Other
+- Update .env.example
+- Update public/dashboard.html
+- Update schemas/geometry-build-receipt.schema.json
+- Update schemas/geometry-build.schema.json
+- Update schemas/project.schema.json
+- Update schemas/scene-blueprint.schema.json
+- Update scripts/cad-to-gltf.py
+- Update src/adapters/openscad.ts
+- Update src/cli/main.ts
+- Update src/core/generation.ts
+- ... and 18 more files
+
 ## [0.5.3] - 2026-08-08
 
 ### Docs

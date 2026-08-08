@@ -37,6 +37,11 @@ The blueprint is included in the project configuration hash. Changing it creates
 {
   "id": "build",
   "type": "system-layer",
+  "spatialClass": "hybrid",
+  "spatialRequirements": {
+    "require": ["position", "size", "orientation"],
+    "optional": ["constraints"]
+  },
   "label": "Build / Molecular Construction",
   "sourceRoles": ["customer", "project"],
   "includeDevelopmentEvidence": true,
@@ -48,6 +53,12 @@ The blueprint is included in the project configuration hash. Changing it creates
 ```
 
 At runtime, `sourceRoles` are resolved to the immutable URIs of the current evidence. Development and runtime evidence may be attached without changing the component ID.
+
+`spatialClass` is mandatory and distinguishes an object's ontology from its visual marker:
+
+- `physical` and `hybrid` participate in physical geometry completeness;
+- `cyber` and `logical` may be rendered as overlays but their transforms are not physical facts;
+- `spatialRequirements` can override the class defaults without changing component identity.
 
 ## Invariant
 

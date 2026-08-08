@@ -10,7 +10,7 @@ import { join } from "node:path";
 import { startDashboard } from "../src/serve/dashboard.js";
 import { createLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
-import type { SceneDocument, TwinDocument } from "../src/core/types.js";
+import type { MathDocument, SceneDocument, TwinDocument } from "../src/core/types.js";
 
 test("dashboard serves the live twin, scene and USD, and applies intake durably", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "dt-dashboard-"));
@@ -24,6 +24,11 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   });
   const outDir = join(root, "runtime");
   await new LivingProjectRuntime().iterate(created.configPath, outDir, "deterministic");
+  const math = JSON.parse(await readFile(join(outDir, "current/math.json"), "utf8")) as MathDocument;
+  for (const binding of math.bindings.filter((item) => item.name.startsWith("Has") || item.name.endsWith("Ready"))) {
+    assert.equal(binding.sourceUris.length, 1, `${binding.name} must cite one immutable EvidenceSet instead of the full corpus`);
+    assert.match(binding.sourceUris[0], /^urn:subactor:evidence-set:sha256:/);
+  }
 
   // Port 0 lets the OS pick a free port so the suite never collides with a running dashboard.
   const server = await startDashboard({ configPath: created.configPath, outDir, port: 0 });
@@ -31,7 +36,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
 
   const state = (await (await fetch(`${server.url}api/state`)).json()) as { twin: TwinDocument; scene: SceneDocument; projectIntegrity: { schema: string; ok: boolean } };
   assert.ok(state.twin.components.length > 0, "no twin components served");
-  assert.equal(state.scene.bindings.length, state.twin.components.length);
+  const flatten=(items:TwinDocument["components"]):TwinDocument["components"]=>items.flatMap(component=>[component,...flatten(component.children)]);
+  assert.equal(state.scene.bindings.length, flatten(state.twin.components).length);
   assert.equal(state.scene.sourceTwinId, state.twin.id);
   assert.equal(state.projectIntegrity.schema, "subactor.project-integrity/v1");
 
@@ -62,6 +68,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.equal(dslLog.schema, "subactor.dsl-log-view/v1");
   assert.ok(dslLog.documents.some((document) => document.name === "observations.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
 
   const usda = await (await fetch(`${server.url}api/scene.usda`)).text();
@@ -70,7 +77,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
     assert.ok(usda.includes(binding.scenePath), `USD is missing ${binding.scenePath}`);
   }
 
-  const before = state.twin.components.map((c) => c.id);
+  const before = flatten(state.twin.components).map((c) => c.id);
   const target = before.includes("build") ? "build" : before[0];
   const intake = await fetch(`${server.url}api/intake`, {
     method: "POST",
@@ -95,7 +102,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   // Durable: the evidence file and the projectDSL key survive, so a reload shows the same geometry.
   assert.match(await readFile(created.configPath, "utf8"), /SCENE_PHYSICAL_EVIDENCE_FILE/);
   const after = (await (await fetch(`${server.url}api/state`)).json()) as { twin: TwinDocument; scene: SceneDocument };
-  assert.deepEqual(after.twin.components.map((c) => c.id), before, "intake must not change component identity");
+  assert.deepEqual(flatten(after.twin.components).map((c) => c.id), before, "intake must not change component identity");
   const bound = after.scene.bindings.find((b) => b.componentId === target);
   assert.deepEqual(bound?.size, [12.4, 14.2, 3.2]);
 });

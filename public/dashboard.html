@@ -285,12 +285,13 @@ const cam={yaw:-0.95,pitch:0.30,dist:78};
 async function buildObjects(state){
   const twin=state.twin,scene=state.scene;
   if(!twin||!scene)return[];
-  const byId=new Map(twin.components.map(c=>[c.id,c]));
+  const flatten=items=>items.flatMap(c=>[c,...flatten(c.children||[])]);
+  const byId=new Map(flatten(twin.components).map(c=>[c.id,c]));
   const objs=scene.bindings.map((b,i)=>{
     const c=byId.get(b.componentId)||{type:'',properties:{},sourceUris:[]};
     const g=grade(c.properties.geometryEvidence);
     return {
-      idx:i, id:b.componentId, path:b.scenePath, type:c.type,
+      idx:i, id:b.componentId, path:b.scenePath, type:c.type, spatialClass:c.properties.spatialClass||'physical',
       label:c.properties.label||b.componentId,
       pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)), orientation:b.orientation||[0,0,0,1], orientationProvided:Array.isArray(b.orientation),
       prim:b.primitive||'cube', grade:g, color:hex2rgb(GRADE_COLOR[g]),
@@ -385,7 +386,7 @@ function paintList(){
     `<li data-i="${o.idx}" class="${SELECTED===o.idx?'sel':''}">
        <span class="dot" style="background:${GRADE_COLOR[o.grade]}"></span>
        <span class="grow">${o.label}</span>
-       <span class="mono" style="color:var(--muted)">${o.grade}</span>
+       <span class="mono" style="color:var(--muted)">${o.spatialClass} · ${o.grade}</span>
      </li>`).join('');
   for(const li of $('parts').children)li.onclick=()=>{SELECTED=+li.dataset.i;render();showSelected();paintList();};
 }
@@ -399,6 +400,7 @@ function showSelected(){
     <div class="kv"><span>componentId</span><span class="mono">${o.id}</span></div>
     <div class="kv"><span>scenePath</span><span class="mono">${o.path}</span></div>
     <div class="kv"><span>type</span><span class="mono">${o.type}</span></div>
+    <div class="kv"><span>spatial class</span><span class="mono">${o.spatialClass}</span></div>
     <div class="kv"><span>size m</span><span class="mono">${o.size.map(v=>v.toFixed(2)).join(' × ')}</span></div>
     <div class="kv"><span>orientation xyzw</span><span class="mono">${o.orientationProvided?o.orientation.map(v=>v.toFixed(4)).join(', '):'not evidenced (identity fallback)'}</span></div>
     <div class="kv"><span>evidence</span><span class="badge" style="background:${GRADE_COLOR[o.grade]}">${o.grade}</span></div>
@@ -406,9 +408,10 @@ function showSelected(){
     <div class="kv"><span>sourceUris</span><span class="mono">${o.uris.length}</span></div>`;
 }
 function paintStats(state,events){
-  const physical=OBJECTS.filter(o=>o.grade!=='placeholder').length;
+  const physicalObjects=OBJECTS.filter(o=>o.spatialClass==='physical'||o.spatialClass==='hybrid');
+  const physical=physicalObjects.filter(o=>o.grade!=='placeholder').length;
   $('s-parts').textContent=OBJECTS.length;
-  $('s-physical').textContent=`${physical}/${OBJECTS.length}`;
+  $('s-physical').textContent=`${physical}/${physicalObjects.length}`;
   const env=OBJECTS.find(o=>o.id==='facility_shell');
   $('s-area').textContent=env?Math.round(env.size[0]*env.size[1]):'–';
   const r=state.report||{};
@@ -418,8 +421,8 @@ function paintStats(state,events){
   $('i-app').innerHTML=`<span class="ok">${(r.applied||[]).length}</span> / <span class="${(r.rejected||[]).length?'warn':''}">${(r.rejected||[]).length}</span>`;
   const gv=state.geometryValidation||{},coverage=gv.coverage||{};
   $('g-validation').innerHTML=gv.ok===true?`<span class="${gv.complete?'ok':'warn'}">${gv.complete?'PASS · COMPLETE':'PASS · INCOMPLETE'}</span>`:gv.ok===false?'<span class="bad">FAIL</span>':'–';
-  $('g-coverage').textContent=`${coverage.positionEvidence??0} / ${coverage.sizeEvidence??0} / ${coverage.orientationEvidence??0} of ${coverage.bindings??0}`;
-  $('g-constraints').textContent=String(coverage.constraints??0);
+  $('g-coverage').textContent=`P ${coverage.positionEvidence??0}/${coverage.positionRequired??coverage.bindings??0} · S ${coverage.sizeEvidence??0}/${coverage.sizeRequired??coverage.bindings??0} · O ${coverage.orientationEvidence??0}/${coverage.orientationRequired??coverage.bindings??0}`;
+  $('g-constraints').textContent=`${coverage.constraints??0}/${coverage.constraintsRequired??1} · required checks ${coverage.passedRequiredChecks??'legacy'}/${coverage.requiredChecks??'legacy'}`;
   const pi=state.projectIntegrity||{},pc=pi.coverage||{};
   $('p-validation').innerHTML=pi.ok===true?`<span class="${pi.complete?'ok':'warn'}">${pi.complete?'PASS · COMPLETE':'PASS · INCOMPLETE'}</span>`:pi.ok===false?'<span class="bad">FAIL</span>':'–';
   $('p-layers').textContent=`${pc.evidencedLayers??0} / ${pc.layers??0}`;

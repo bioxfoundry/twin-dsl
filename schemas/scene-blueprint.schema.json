@@ -12,10 +12,20 @@
       "type":"array","minItems":1,
       "items": {
         "type":"object","additionalProperties":false,
-        "required":["id","type","sourceRoles"],
+        "required":["id","type","spatialClass","sourceRoles"],
         "properties": {
           "id":{"type":"string","minLength":1},
           "type":{"type":"string","minLength":1},
+          "parentId":{"type":"string","minLength":1},
+          "spatialClass":{"enum":["physical","cyber","logical","hybrid"]},
+          "spatialRequirements":{
+            "type":"object","additionalProperties":false,"required":["require"],
+            "properties":{
+              "require":{"type":"array","uniqueItems":true,"items":{"enum":["position","size","orientation","constraints","logical-endpoint","runtime-status"]}},
+              "optional":{"type":"array","uniqueItems":true,"items":{"enum":["position","size","orientation","constraints","logical-endpoint","runtime-status"]}},
+              "forbid":{"type":"array","uniqueItems":true,"items":{"enum":["position","size","orientation","constraints","logical-endpoint","runtime-status"]}}
+            }
+          },
           "label":{"type":"string"},
           "sourceRoles":{"type":"array","items":{"enum":["manager","customer","project","internet","archive","derived","runtime","development"]},"uniqueItems":true},
           "pathIncludes":{"type":"array","items":{"type":"string"}},

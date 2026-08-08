@@ -88,6 +88,8 @@ test("USD prim hierarchy mirrors scenePath so component identity stays addressab
     },
     sourceSnapshotHash: "b".repeat(64),
   });
+  const reactor = twin.components.find((component) => component.id === "biospec_bioreactor_01");
+  assert.deepEqual(reactor?.children.map((component) => component.id), ["biospec_cad_lid_unf", "biospec_cad_gl45", "biospec_cad_plate"]);
   const scene = materializeBlueprintScene({ blueprint, projectId: "bf", format: "openusd", twin });
   const paths = new Set(primPaths(renderOpenUsd(scene, twin)));
   for (const binding of scene.bindings) {
@@ -158,4 +160,18 @@ test("binding assetUri and propertyMap reach the USD layer", () => {
   assert.match(usd, /custom asset subactor:assetUri = @\.\/cad\/reactor\.usdz@/);
   assert.match(usd, /custom string subactor:health = "running"/);
   assert.doesNotMatch(usd, /subactor:status/);
+});
+
+test("compiled geometry is referenced as real USD content and replaces the placeholder primitive", () => {
+  const scene: SceneDocument = {
+    schema: "subactor.scene/v1",
+    id: "s",
+    format: "openusd",
+    sourceTwinId: "t",
+    bindings: [{ twinUri: "u#lid", componentId: "lid", scenePath: "/Biofoundry/Lid", primitive: "cylinder", size: [0.072, 0.072, 0.014], propertyMap: {}, assetUri: "urn:subactor:resource:sha256:abc" }],
+  };
+  const usd = renderOpenUsd(scene, twinOf({ id: "lid", properties: { geometryUsdAssetPath: "/runtime/geometry/model.usda" } }));
+  assert.match(usd, /prepend references = @\/runtime\/geometry\/model\.usda@/);
+  assert.doesNotMatch(usd, /def Cylinder "Geometry"/, "compiled mesh and placeholder must not be emitted together");
+  assert.match(usd, /custom asset subactor:assetUri = @urn:subactor:resource:sha256:abc@/);
 });

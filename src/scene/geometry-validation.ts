@@ -4,11 +4,15 @@ import type {
   PhysicalEvidenceDocument,
   SceneBinding,
   SceneDocument,
+  TwinComponent,
+  TwinDocument,
 } from "../core/types.js";
 
 type Vec3 = [number, number, number];
 type Quat = [number, number, number, number];
 type Bounds = { min: Vec3; max: Vec3 };
+export type GeometryRequirementKind = "position" | "size" | "orientation" | "constraints";
+export type GeometryRequirementMap = ReadonlyMap<string, ReadonlySet<GeometryRequirementKind>>;
 
 const DEFAULT_POSITION_TOLERANCE_M = 0.001;
 const DEFAULT_SIZE_TOLERANCE_M = 0.001;
@@ -53,10 +57,27 @@ function missing(id: string, kind: GeometryValidationCheck["kind"], subjectId: s
   return { id, kind, subjectId, objectId, ok: false, actual: -1, limit: 0, unit: "boolean", message: "binding_not_found" };
 }
 
+function flatten(components: TwinComponent[]): TwinComponent[] {
+  return components.flatMap((component) => [component, ...flatten(component.children)]);
+}
+
+/** Project semantic type contracts into the physical validation boundary. */
+export function geometryRequirementsFromTwin(twin: TwinDocument): Map<string, Set<GeometryRequirementKind>> {
+  const result = new Map<string, Set<GeometryRequirementKind>>();
+  for (const component of flatten(twin.components)) {
+    const spatialClass = String(component.properties.spatialClass ?? "physical");
+    if (spatialClass !== "physical" && spatialClass !== "hybrid") continue;
+    const declared = String(component.properties.spatialRequire ?? "position|size|orientation").split("|");
+    result.set(component.id, new Set(declared.filter((item): item is GeometryRequirementKind => ["position", "size", "orientation", "constraints"].includes(item))));
+  }
+  return result;
+}
+
 export function validateGeometry(
   scene: SceneDocument,
   evidence: PhysicalEvidenceDocument,
   acceptedComponents?: ReadonlySet<string>,
+  requirements?: GeometryRequirementMap,
 ): GeometryValidationReport {
   const bindings = new Map(scene.bindings.map((binding) => [binding.componentId, binding]));
   const checks: GeometryValidationCheck[] = [];
@@ -107,15 +128,42 @@ export function validateGeometry(
     }
   }
   const failures = checks.filter((check) => !check.ok).map((check) => check.id);
-  const acceptedRecords = evidence.records.filter((record) => !acceptedComponents || acceptedComponents.has(record.componentId));
+  const eligible = requirements ? new Set(requirements.keys()) : undefined;
+  const acceptedRecords = evidence.records.filter((record) =>
+    (!acceptedComponents || acceptedComponents.has(record.componentId)) && (!eligible || eligible.has(record.componentId))
+  );
+  const required = (kind: GeometryRequirementKind): number => requirements
+    ? [...requirements.values()].filter((items) => items.has(kind)).length
+    : kind === "constraints" ? 1 : scene.bindings.filter((binding) => binding.primitive !== "scope").length;
+  const requiredCheckPasses = requirements ? [...requirements].reduce((count, [componentId, items]) => {
+    for (const kind of items) {
+      if (kind === "constraints") {
+        const spatial = checks.filter((check) => ["inside", "clearance", "no-overlap"].includes(check.kind) && (check.subjectId === componentId || check.objectId === componentId));
+        if (spatial.length > 0 && spatial.every((check) => check.ok)) count++;
+      } else {
+        const check = checks.find((candidate) => candidate.id === `${kind}:${componentId}`);
+        if (check?.ok) count++;
+      }
+    }
+    return count;
+  }, 0) : 0;
+  const requiredChecks = required("position") + required("size") + required("orientation") + required("constraints");
   const coverage = {
-    bindings: scene.bindings.filter((binding) => binding.primitive !== "scope").length,
+    bindings: requirements ? requirements.size : scene.bindings.filter((binding) => binding.primitive !== "scope").length,
     positionEvidence: acceptedRecords.filter((record) => Boolean(record.position)).length,
     sizeEvidence: acceptedRecords.filter((record) => Boolean(record.size)).length,
     orientationEvidence: acceptedRecords.filter((record) => Boolean(record.orientation)).length,
     constraints: evidence.constraints?.length ?? 0,
+    positionRequired: required("position"),
+    sizeRequired: required("size"),
+    orientationRequired: required("orientation"),
+    constraintsRequired: required("constraints"),
+    requiredChecks,
+    passedRequiredChecks: requirements ? requiredCheckPasses : 0,
   };
-  const complete = coverage.bindings > 0 && coverage.positionEvidence >= coverage.bindings && coverage.sizeEvidence >= coverage.bindings && coverage.orientationEvidence >= coverage.bindings && coverage.constraints > 0;
+  const complete = requirements
+    ? requiredChecks > 0 && requiredCheckPasses === requiredChecks
+    : coverage.bindings > 0 && coverage.positionEvidence >= coverage.bindings && coverage.sizeEvidence >= coverage.bindings && coverage.orientationEvidence >= coverage.bindings && coverage.constraints > 0;
   return { schema: "subactor.geometry-validation/v1", evidenceId: evidence.id, method: "world-aabb", ok: failures.length === 0, complete, coverage, checks, failures };
 }
 
@@ -123,7 +171,8 @@ export function renderGeometryValidationDsl(report: GeometryValidationReport): s
   const rows = [
     "GEOMETRY_VALIDATION " + report.evidenceId,
     "METHOD " + report.method,
-    `COVERAGE BINDINGS ${report.coverage.bindings} POSITION ${report.coverage.positionEvidence} SIZE ${report.coverage.sizeEvidence} ORIENTATION ${report.coverage.orientationEvidence} CONSTRAINTS ${report.coverage.constraints}`,
+    `COVERAGE BINDINGS ${report.coverage.bindings} POSITION ${report.coverage.positionEvidence}/${report.coverage.positionRequired ?? report.coverage.bindings} SIZE ${report.coverage.sizeEvidence}/${report.coverage.sizeRequired ?? report.coverage.bindings} ORIENTATION ${report.coverage.orientationEvidence}/${report.coverage.orientationRequired ?? report.coverage.bindings} CONSTRAINTS ${report.coverage.constraints}/${report.coverage.constraintsRequired ?? 1}`,
+    `REQUIRED_CHECKS ${report.coverage.passedRequiredChecks ?? "legacy"}/${report.coverage.requiredChecks ?? "legacy"}`,
     `COMPLETENESS ${report.complete ? "COMPLETE" : "INCOMPLETE"}`,
   ];
   for (const check of report.checks) {

@@ -14,13 +14,14 @@ import type {
   PhysicalEvidenceRecord,
   PhysicalEvidenceReport,
   SceneDocument,
+  TwinComponent,
   TwinDocument,
 } from "../core/types.js";
 import { GEOMETRY_EVIDENCE_ORDER } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
 import { validateScene } from "../dsl/scene.js";
-import { validateTwin } from "../dsl/twin.js";
-import { validateGeometry } from "./geometry-validation.js";
+import { flattenTwin, validateTwin } from "../dsl/twin.js";
+import { geometryRequirementsFromTwin, validateGeometry } from "./geometry-validation.js";
 
 const EVIDENCE_KINDS = new Set<string>(GEOMETRY_EVIDENCE_ORDER);
 const RECORD_KINDS = new Set(["space", "equipment", "utility"]);
@@ -157,7 +158,7 @@ export function applyPhysicalEvidence(input: {
   const applied: PhysicalEvidenceReport["applied"] = [];
   const rejected: PhysicalEvidenceReport["rejected"] = [];
 
-  const componentById = new Map(twin.components.map((c) => [c.id, c]));
+  const componentById = new Map(flattenTwin(twin).map((c) => [c.id, c]));
   const boundIds = new Set(scene.bindings.map((b) => b.componentId).filter((x): x is string => Boolean(x)));
   const accepted = new Map<string, PhysicalEvidenceRecord>();
 
@@ -191,30 +192,31 @@ export function applyPhysicalEvidence(input: {
     applied.push({ componentId: record.componentId, from: current, to: record.evidence, fields });
   }
 
+  const updateComponent = (component: TwinComponent): TwinComponent => {
+    const record = accepted.get(component.id);
+    const children = component.children.map(updateComponent);
+    if (!record) return children === component.children ? component : { ...component, children };
+    const properties: Record<string, unknown> = {
+      ...component.properties,
+      ...(record.properties ?? {}),
+      geometryEvidence: record.evidence,
+      geometryUnit: evidence.coordinateSystem.unit,
+      geometryUpAxis: evidence.coordinateSystem.upAxis,
+      physicalEvidenceId: evidence.id,
+    };
+    if (record.sourceRef) properties.geometrySourceRef = record.sourceRef;
+    if (evidence.coordinateSystem.origin) properties.geometryOrigin = evidence.coordinateSystem.origin;
+    if (record.position) properties.position = record.position;
+    if (record.size) properties.size = record.size;
+    if (record.orientation) properties.orientation = record.orientation;
+    if (typeof properties.label === "string" && normalizeGeometryEvidence(record.evidence) !== "placeholder") {
+      properties.label = labelWithoutPlaceholderClaim(properties.label);
+    }
+    return { ...component, properties, children };
+  };
   const nextTwin: TwinDocument = {
     ...twin,
-    components: twin.components.map((component) => {
-      const record = accepted.get(component.id);
-      if (!record) return component;
-      const properties: Record<string, unknown> = {
-        ...component.properties,
-        ...(record.properties ?? {}),
-        geometryEvidence: record.evidence,
-        geometryUnit: evidence.coordinateSystem.unit,
-        geometryUpAxis: evidence.coordinateSystem.upAxis,
-        physicalEvidenceId: evidence.id,
-      };
-      if (record.sourceRef) properties.geometrySourceRef = record.sourceRef;
-      if (evidence.coordinateSystem.origin) properties.geometryOrigin = evidence.coordinateSystem.origin;
-      if (record.position) properties.position = record.position;
-      if (record.size) properties.size = record.size;
-      if (record.orientation) properties.orientation = record.orientation;
-      // A component that has been hardened must stop advertising the placeholder it replaced.
-      if (typeof properties.label === "string" && normalizeGeometryEvidence(record.evidence) !== "placeholder") {
-        properties.label = labelWithoutPlaceholderClaim(properties.label);
-      }
-      return { ...component, properties };
-    }),
+    components: twin.components.map(updateComponent),
   };
 
   // Evidence changes the twin's content hash, so every binding has to re-point at the new revision
@@ -248,10 +250,15 @@ export function applyPhysicalEvidence(input: {
     applied,
     rejected,
     componentIdsStable:
-      JSON.stringify(twin.components.map((c) => c.id)) === JSON.stringify(nextTwin.components.map((c) => c.id)),
+      JSON.stringify(flattenTwin(twin).map((c) => c.id)) === JSON.stringify(flattenTwin(nextTwin).map((c) => c.id)),
     scenePathsStable:
       JSON.stringify(scene.bindings.map((b) => b.scenePath)) === JSON.stringify(nextScene.bindings.map((b) => b.scenePath)),
   };
-  const geometryValidation = validateGeometry(nextScene, evidence, new Set(applied.map((entry) => entry.componentId)));
+  const geometryValidation = validateGeometry(
+    nextScene,
+    evidence,
+    new Set(applied.map((entry) => entry.componentId)),
+    geometryRequirementsFromTwin(nextTwin),
+  );
   return { twin: nextTwin, scene: nextScene, report, geometryValidation };
 }

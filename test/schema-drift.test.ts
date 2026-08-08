@@ -12,6 +12,7 @@ import { dirname, join } from "node:path";
 import { checkJsonSchema, matchesJsonSchema } from "../src/core/json-schema.js";
 import { biofoundryLiveBlueprintV02, validateSceneBlueprint } from "../src/scene/blueprint.js";
 import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
+import { validateGeometryBuild } from "../src/geometry/build-contract.js";
 
 const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
 async function schema(name: string): Promise<unknown> {
@@ -49,7 +50,7 @@ const blueprintBase = {
   schema: "subactor.scene-blueprint/v1",
   id: "bp",
   twinKind: "physical",
-  components: [{ id: "a", type: "zone", sourceRoles: ["project"] }],
+  components: [{ id: "a", type: "zone", spatialClass: "physical", sourceRoles: ["project"] }],
   bindings: [{ componentId: "a", scenePath: "/Root/A" }],
 };
 
@@ -57,7 +58,7 @@ test("scene-blueprint schema and runtime validator agree", async () => {
   await assertNoDrift("scene-blueprint.schema.json", validateSceneBlueprint, [
     { name: "minimal valid", document: blueprintBase },
     { name: "full valid", document: { ...blueprintBase,
-      components: [{ id: "a", type: "zone", label: "A", sourceRoles: ["project", "customer"], pathIncludes: ["x"], pathExcludes: ["y"], maxSourceUris: 5, properties: { k: 1 }, includeDevelopmentEvidence: true, includeRuntimeObservations: true }],
+      components: [{ id: "a", type: "zone", spatialClass: "physical", spatialRequirements: { require: ["position", "size", "orientation"], optional: ["constraints"] }, label: "A", sourceRoles: ["project", "customer"], pathIncludes: ["x"], pathExcludes: ["y"], maxSourceUris: 5, properties: { k: 1 }, includeDevelopmentEvidence: true, includeRuntimeObservations: true }],
       bindings: [{ componentId: "a", scenePath: "/Root/A", primitive: "cylinder", position: [1, 2, 3], size: [1, 2, 3], propertyMap: { a: "subactor:a" } }] } },
     { name: "empty components", document: { ...blueprintBase, components: [] } },
     { name: "empty bindings", document: { ...blueprintBase, bindings: [] } },
@@ -92,6 +93,30 @@ const evidenceBase = {
   coordinateSystem: { unit: "m", upAxis: "Z" },
   records: [{ componentId: "a", kind: "equipment", evidence: "measured" }],
 };
+
+const geometryBuildBase = {
+  schema: "subactor.geometry-build/v1",
+  id: "lid-unf-v1",
+  source: { path: "lid_UNF.scad", uri: `urn:subactor:resource:sha256:${"a".repeat(64)}`, sha256: "a".repeat(64), format: "scad" },
+  engine: { type: "openscad" },
+  target: { componentId: "lid", scenePath: "/Biofoundry/Lid", kind: "equipment" },
+  coordinateSystem: { unit: "millimeter", upAxis: "Z", handedness: "right" },
+  dependencies: [{ path: "threadlib/threadlib.scad", mountPath: "threadlib", sourcePath: "libs/threadlib", uri: `urn:subactor:resource:sha256:${"b".repeat(64)}`, sha256: "b".repeat(64) }],
+  parameters: { presetId: "production-v1", values: { diameter: 72 } },
+  compilerOptions: { hardWarnings: true, timeoutSeconds: 120, maxTriangles: 1000000 },
+  outputs: { canonical: "3mf", web: "glb", scene: "usda" },
+  validations: { nonEmpty: true, finiteBbox: true, dependencyClosure: true, glbLoad: true, usdStageOpen: false, bboxToleranceM: 0.000001 },
+};
+
+test("geometry-build schema and runtime validator agree", async () => {
+  await assertNoDrift("geometry-build.schema.json", validateGeometryBuild, [
+    { name: "valid", document: geometryBuildBase },
+    { name: "unknown unit", document: { ...geometryBuildBase, coordinateSystem: { ...geometryBuildBase.coordinateSystem, unit: "parsec" } } },
+    { name: "mount traversal", document: { ...geometryBuildBase, dependencies: [{ ...geometryBuildBase.dependencies[0], mountPath: "../threadlib" }] } },
+    { name: "unbounded timeout", document: { ...geometryBuildBase, compilerOptions: { ...geometryBuildBase.compilerOptions, timeoutSeconds: 3601 } } },
+    { name: "unknown key", document: { ...geometryBuildBase, note: "not allowed" } },
+  ]);
+});
 
 test("physical-evidence schema and runtime validator agree", async () => {
   await assertNoDrift("physical-evidence.schema.json", validatePhysicalEvidence, [

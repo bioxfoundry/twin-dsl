@@ -254,7 +254,7 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
   await text(join(projectDir,"code/README.md"),`# ${options.name} code workspace\n`);
   await text(join(projectDir,"code/src/index.ts"),"export const runtimeModel = \"living-digital-twin\";\n");
   await text(join(projectDir,"logs/runtime.jsonl"),JSON.stringify({observedAt:"2026-01-01T00:00:00.000Z",subjectUri:`subactor://project/${id}/runtime`,status:"ready",severity:"info",labels:["bootstrap"]})+"\n");
-  await text(join(projectDir,"environment/current.json"),JSON.stringify({observedAt:"2026-01-01T00:00:00.000Z",subjectUri:`subactor://project/${id}/environment`,temperatureC:22,availability:true,severity:"info",unit:"mixed"},null,2)+"\n");
+  await text(join(projectDir,"environment/current.json"),JSON.stringify({observedAt:"2026-01-01T00:00:00.000Z",subjectUri:`subactor://project/${id}/environment`,temperatureC:22,availability:true,severity:"info",units:{temperatureC:"Cel",availability:"none"}},null,2)+"\n");
   await text(join(projectDir,"config/development.intent.fixture.json"),JSON.stringify([
     {schema:"t2c.intent/v1",id:`${id}-request-1`,type:"request",text:managerIntent,actor:"human:manager",targetUris:[`subactor://project/${id}`]},
     {schema:"t2c.intent/v1",id:`${id}-plan-1`,type:"plan",text:"Research, develop, validate and publish the next Digital Twin projection.",actor:"agent:project-operator",targetUris:["twin://project/runtime/state/rebuild"]},

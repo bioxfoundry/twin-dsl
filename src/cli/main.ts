@@ -25,6 +25,8 @@ import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
 import type { SceneDocument, TwinDocument } from "../core/types.js";
 import { diagnoseDigitalTwin, writeDiagnostics } from "../runtime/digital-twin-diagnostics.js";
+import { GeometryService } from "../geometry/geometry-service.js";
+import { renderGeometryDsl, renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -132,7 +134,19 @@ async function main():Promise<void>{
     if(result.report.rejected.length||!result.geometryValidation.ok)process.exitCode=1;
     return;
   }
+  if(cmd==='geometry-build'){
+    const[contractPath,outDir='.geometry-build',projectId='geometry-build']=args;
+    if(!contractPath)throw new Error('usage: geometry-build <geometry-build.json> [out-dir] [project-id]');
+    const result=await new GeometryService().materializeFile(resolve(contractPath),resolve(outDir),projectId);
+    await save(`${outDir}/latest/${result.contract.id}.geometry-build.json`,result.contract);
+    await mkdir(resolve(outDir,'latest'),{recursive:true});
+    await writeFile(resolve(outDir,'latest',`${result.contract.id}.geometry.dsl`),renderGeometryDsl(result.contract));
+    await writeFile(resolve(outDir,'latest',`${result.contract.id}.geometry-build-receipt.dsl`),renderGeometryReceiptDsl(result.receipt));
+    console.log(JSON.stringify({contract:result.contract.id,receipt:result.receipt,evidence:result.evidence,resource:result.resource},null,2));
+    if(result.receipt.status!=='succeeded')process.exitCode=1;
+    return;
+  }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
 }
 await main();

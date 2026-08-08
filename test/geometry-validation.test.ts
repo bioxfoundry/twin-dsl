@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import type { PhysicalEvidenceDocument, SceneDocument } from "../src/core/types.js";
-import { renderGeometryValidationDsl, validateGeometry } from "../src/scene/geometry-validation.js";
+import type { PhysicalEvidenceDocument, SceneDocument, TwinDocument } from "../src/core/types.js";
+import { geometryRequirementsFromTwin, renderGeometryValidationDsl, validateGeometry } from "../src/scene/geometry-validation.js";
 import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
 
 const scene: SceneDocument = {
@@ -61,4 +61,19 @@ test("physical evidence rejects a non-normalized quaternion", () => {
   const document = evidence([]);
   document.records[0].orientation = [0, 0, 1, 1];
   assert.throws(() => validatePhysicalEvidence(document), /ORIENTATION_INVALID/);
+});
+
+test("physical completeness excludes cyber and logical display markers", () => {
+  const classified: TwinDocument = {
+    schema: "subactor.twin/v1", id: "classified", kind: "conceptual", observedAt: "2026-08-08T00:00:00Z", sourceSnapshotHash: "a".repeat(64),
+    components: [
+      { id: "robot", type: "equipment", sourceUris: ["urn:robot"], properties: { spatialClass: "physical", spatialRequire: "position|size|orientation" }, children: [] },
+      { id: "planner", type: "service", sourceUris: ["urn:planner"], properties: { spatialClass: "cyber", spatialRequire: "logical-endpoint|runtime-status", spatialForbid: "position|size|orientation|constraints" }, children: [] },
+    ],
+  };
+  const report = validateGeometry(scene, evidence([]), undefined, geometryRequirementsFromTwin(classified));
+  assert.equal(report.coverage.bindings, 1, "only the physical robot belongs to physical geometry coverage");
+  assert.equal(report.coverage.requiredChecks, 3);
+  assert.equal(report.coverage.passedRequiredChecks, 3);
+  assert.equal(report.complete, true);
 });

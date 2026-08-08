@@ -9,6 +9,7 @@ import type {
   ResourceRecord,
   SceneBlueprint,
   SceneDocument,
+  TwinComponent,
   TwinDocument,
 } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
@@ -22,8 +23,10 @@ function unique<T>(values: T[]): T[] {
 /** Mirrors schemas/scene-blueprint.schema.json; test/schema-drift.test.ts keeps the two in step. */
 const SOURCE_ROLES = ["manager", "customer", "project", "internet", "archive", "derived", "runtime", "development"];
 const PRIMITIVES = ["cube", "cylinder", "sphere", "scope"];
+const SPATIAL_CLASSES = ["physical", "cyber", "logical", "hybrid"];
+const SPATIAL_REQUIREMENTS = ["position", "size", "orientation", "constraints", "logical-endpoint", "runtime-status"];
 const COMPONENT_KEYS = new Set([
-  "id", "type", "label", "sourceRoles", "pathIncludes", "pathExcludes",
+  "id", "type", "parentId", "label", "spatialClass", "spatialRequirements", "sourceRoles", "pathIncludes", "pathExcludes",
   "maxSourceUris", "properties", "includeDevelopmentEvidence", "includeRuntimeObservations",
 ]);
 const BINDING_KEYS = new Set(["componentId", "scenePath", "primitive", "position", "size", "orientation", "propertyMap"]);
@@ -68,12 +71,32 @@ export function validateSceneBlueprint(value: unknown): SceneBlueprint {
       !c.id ||
       typeof c.type !== "string" ||
       !c.type ||
+      !SPATIAL_CLASSES.includes(String(c.spatialClass)) ||
       !Array.isArray(c.sourceRoles) ||
       !c.sourceRoles.every((x) => typeof x === "string" && SOURCE_ROLES.includes(x))
     ) {
       throw new Error("SCENE_BLUEPRINT_COMPONENT_INVALID");
     }
     rejectUnknownKeys(c, COMPONENT_KEYS, `SCENE_BLUEPRINT_COMPONENT_UNKNOWN_KEY:${c.id}`);
+    if (c.spatialRequirements !== undefined) {
+      if (!c.spatialRequirements || typeof c.spatialRequirements !== "object" || Array.isArray(c.spatialRequirements)) {
+        throw new Error(`SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_INVALID:${c.id}`);
+      }
+      const requirements = c.spatialRequirements as Record<string, unknown>;
+      rejectUnknownKeys(requirements, new Set(["require", "optional", "forbid"]), `SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_UNKNOWN_KEY:${c.id}`);
+      if (!Array.isArray(requirements.require)) throw new Error(`SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_INVALID:${c.id}`);
+      const sets = ["require", "optional", "forbid"] as const;
+      for (const key of sets) {
+        const values = requirements[key];
+        if (values === undefined) continue;
+        if (!Array.isArray(values) || !values.every((item) => typeof item === "string" && SPATIAL_REQUIREMENTS.includes(item)) || new Set(values).size !== values.length) {
+          throw new Error(`SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_INVALID:${c.id}:${key}`);
+        }
+      }
+      const required = new Set(requirements.require as string[]);
+      const forbidden = new Set((requirements.forbid ?? []) as string[]);
+      if ([...required].some((item) => forbidden.has(item))) throw new Error(`SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_CONTRADICTORY:${c.id}`);
+    }
     if (c.label !== undefined && typeof c.label !== "string") throw new Error(`SCENE_BLUEPRINT_LABEL_INVALID:${c.id}`);
     if (c.maxSourceUris !== undefined && (!Number.isInteger(c.maxSourceUris) || (c.maxSourceUris as number) < 1 || (c.maxSourceUris as number) > 500)) {
       throw new Error(`SCENE_BLUEPRINT_MAX_SOURCE_URIS_INVALID:${c.id}`);
@@ -95,6 +118,20 @@ export function validateSceneBlueprint(value: unknown): SceneBlueprint {
     }
     if (ids.has(c.id)) throw new Error(`SCENE_BLUEPRINT_COMPONENT_DUPLICATE:${c.id}`);
     ids.add(c.id);
+  }
+  const componentsById = new Map((d.components as Array<Record<string, unknown>>).map((component) => [String(component.id), component]));
+  for (const component of componentsById.values()) {
+    if (component.parentId === undefined) continue;
+    if (typeof component.parentId !== "string" || !componentsById.has(component.parentId) || component.parentId === component.id) {
+      throw new Error(`SCENE_BLUEPRINT_PARENT_INVALID:${component.id}`);
+    }
+    const visited = new Set([String(component.id)]);
+    let parent = component.parentId;
+    while (parent) {
+      if (visited.has(parent)) throw new Error(`SCENE_BLUEPRINT_PARENT_CYCLE:${component.id}`);
+      visited.add(parent);
+      parent = String(componentsById.get(parent)?.parentId ?? "");
+    }
   }
   const paths = new Set<string>();
   for (const raw of d.bindings) {
@@ -162,7 +199,7 @@ export function materializeBlueprintTwin(input: {
   const latestByMetric = new Map<string, unknown>();
   for (const observation of observations.observations) latestByMetric.set(observation.metric, observation.value);
 
-  const components = blueprint.components.map((component) => {
+  const flatComponents: TwinComponent[] = blueprint.components.map((component) => {
     const matched = matchResources(resources, component.sourceRoles, component.pathIncludes, component.pathExcludes);
     let sourceUris = matched.map((resource) => resource.uri);
     if (component.includeDevelopmentEvidence) sourceUris.push(...development.evidenceUris);
@@ -182,6 +219,10 @@ export function materializeBlueprintTwin(input: {
 
     const properties: Record<string, unknown> = {
       ...(component.properties ?? {}),
+      spatialClass: component.spatialClass,
+      spatialRequire: (component.spatialRequirements?.require ?? defaultSpatialRequirements(component.spatialClass).require).join("|"),
+      spatialOptional: (component.spatialRequirements?.optional ?? defaultSpatialRequirements(component.spatialClass).optional ?? []).join("|"),
+      spatialForbid: (component.spatialRequirements?.forbid ?? defaultSpatialRequirements(component.spatialClass).forbid ?? []).join("|"),
       matchedResourceCount: matched.length,
       evidenceFidelity: matched.length > 0 ? (component.properties?.geometryEvidence === "placeholder" ? "semantic+path" : "semantic") : "role-fallback",
     };
@@ -226,6 +267,11 @@ export function materializeBlueprintTwin(input: {
       children: [],
     };
   });
+  const byId = new Map(flatComponents.map((component) => [component.id, component]));
+  for (const definition of blueprint.components) {
+    if (definition.parentId) byId.get(definition.parentId)!.children.push(byId.get(definition.id)!);
+  }
+  const components = blueprint.components.filter((component) => !component.parentId).map((component) => byId.get(component.id)!);
 
   const twin: TwinDocument = {
     schema: "subactor.twin/v1",
@@ -237,6 +283,17 @@ export function materializeBlueprintTwin(input: {
   };
   validateTwin(twin);
   return twin;
+}
+
+function defaultSpatialRequirements(spatialClass: SceneBlueprint["components"][number]["spatialClass"]): NonNullable<SceneBlueprint["components"][number]["spatialRequirements"]> {
+  if (spatialClass === "physical" || spatialClass === "hybrid") {
+    return { require: ["position", "size", "orientation"], optional: ["constraints"] };
+  }
+  return {
+    require: spatialClass === "cyber" ? ["logical-endpoint", "runtime-status"] : [],
+    optional: spatialClass === "logical" ? ["runtime-status"] : [],
+    forbid: ["position", "size", "orientation", "constraints"],
+  };
 }
 
 export function materializeBlueprintScene(input: {
@@ -286,6 +343,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "facility_shell",
       type: "facility",
+      spatialClass: "physical",
       label: "Facility envelope (placeholder 60×36 m)",
       sourceRoles: ["manager", "customer", "project"],
       pathIncludes: ["architecture", "cleanroom", "specifikacija", "studija", "facility", "whitepaper"],
@@ -300,6 +358,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "mission_requirements",
       type: "system-layer",
+      spatialClass: "logical",
       label: "Mission & Requirements",
       sourceRoles: ["manager", "customer"],
       pathIncludes: ["policy", "manager", "mission", "lmt", "paraiskas", "studija", "intent", "partneryst"],
@@ -309,6 +368,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "design",
       type: "system-layer",
+      spatialClass: "logical",
       label: "Design / Bioinformatics",
       sourceRoles: ["customer", "project"],
       pathIncludes: ["design", "architecture", "opentwins", "bioinfo", "construct", "pathway", "specifikacija"],
@@ -319,6 +379,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "build",
       type: "system-layer",
+      spatialClass: "hybrid",
       label: "Build / Molecular Construction",
       sourceRoles: ["customer", "project", "development"],
       pathIncludes: ["build", "assembly", "dna", "oscar", "pipette", "sila", "bioreactor", "cad"],
@@ -329,6 +390,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "test",
       type: "system-layer",
+      spatialClass: "hybrid",
       label: "Test / Analytics & QC",
       sourceRoles: ["customer", "project", "runtime"],
       pathIncludes: ["test", "assay", "qc", "microscop", "analytics", "sequenc", "quality"],
@@ -339,6 +401,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "learn",
       type: "system-layer",
+      spatialClass: "cyber",
       label: "Learn / AI / Modeling",
       sourceRoles: ["customer", "project", "runtime"],
       pathIncludes: ["learn", "model", "ml", "ai", "chemos", "whitepaper", "article", "active"],
@@ -349,6 +412,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "orchestration_data",
       type: "system-layer",
+      spatialClass: "cyber",
       label: "Orchestration / Data / LIMS",
       sourceRoles: ["manager", "customer", "project", "development", "runtime"],
       pathIncludes: ["orchestr", "lims", "sila", "ros", "chemos", "data", "workflow", "api"],
@@ -360,6 +424,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "governance_translation",
       type: "system-layer",
+      spatialClass: "logical",
       label: "Governance / QA / Translation",
       sourceRoles: ["manager", "customer"],
       pathIncludes: ["governance", "biosafety", "regulatory", "audit", "qa", "lmt", "sutartis", "dark-factory", "partneryst"],
@@ -369,6 +434,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "flagship_cellfree_enzyme",
       type: "reference-workflow",
+      spatialClass: "logical",
       label: "Flagship Cell-Free / Protein-Enzyme Workflow",
       sourceRoles: ["manager", "customer", "project", "development", "runtime"],
       pathIncludes: ["cell-free", "cellfree", "enzyme", "protein", "bioreactor", "biospec", "flagship", "main_control"],
@@ -381,6 +447,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "liquid_handler_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "Liquid Handler",
       sourceRoles: ["project", "development"],
       pathIncludes: ["pipette", "liquid", "handler", "oscar"],
@@ -390,6 +457,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "dna_assembly_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "DNA Assembly Station",
       sourceRoles: ["project", "development"],
       pathIncludes: ["assembly", "dna", "molecular", "construct"],
@@ -399,6 +467,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "sequencing_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "Sequencing / Validation",
       sourceRoles: ["project", "runtime"],
       pathIncludes: ["sequenc", "validation", "ngs", "sanger"],
@@ -409,6 +478,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "analytics_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "Analytical Instrumentation",
       sourceRoles: ["project", "runtime"],
       pathIncludes: ["analytic", "assay", "qc", "microscop"],
@@ -419,6 +489,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "lims_01",
       type: "equipment-placeholder",
+      spatialClass: "cyber",
       label: "LIMS",
       sourceRoles: ["manager", "project", "runtime"],
       pathIncludes: ["lims", "sample", "eln", "data"],
@@ -429,6 +500,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "compute_01",
       type: "equipment-placeholder",
+      spatialClass: "hybrid",
       label: "AI Compute",
       sourceRoles: ["project", "runtime"],
       pathIncludes: ["compute", "ai", "model", "chemos", "learn"],
@@ -439,6 +511,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "cellfree_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "Cell-Free Automation",
       sourceRoles: ["project", "development", "runtime"],
       pathIncludes: ["cellfree", "cell-free", "bioreactor", "biospec"],
@@ -449,6 +522,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "enzyme_screen_01",
       type: "equipment-placeholder",
+      spatialClass: "physical",
       label: "Protein / Enzyme Screening",
       sourceRoles: ["project", "development", "runtime"],
       // Paths rarely contain "enzyme"; bind to flagship labware + assay/QC literature present in corpus.
@@ -466,6 +540,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "biospec_bioreactor_01",
       type: "equipment",
+      spatialClass: "physical",
       label: "BIO-SPEC Bioreactor (control SW + CAD)",
       sourceRoles: ["project", "development"],
       pathIncludes: ["bioreactor", "biospec", "main_control", "gl45", "lid_unf", "aluminium_plate", "osfstorage", "bill_of_materials"],
@@ -482,6 +557,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "oscar_robot_01",
       type: "equipment",
+      spatialClass: "physical",
       label: "OSCAR robot platform",
       sourceRoles: ["project", "development"],
       pathIncludes: ["oscar", "pipette-tool", "sb5c00733", "31570286"],
@@ -497,6 +573,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "microscope_module_01",
       type: "equipment",
+      spatialClass: "physical",
       label: "Microscopy module",
       sourceRoles: ["project"],
       pathIncludes: ["microscop", "7561142"],
@@ -506,6 +583,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "microfluidic_assembly_01",
       type: "equipment",
+      spatialClass: "physical",
       label: "Microfluidic assembly",
       sourceRoles: ["project"],
       pathIncludes: ["microfluid", "mmc1"],
@@ -515,6 +593,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "bioprinter_mos3s_01",
       type: "equipment",
+      spatialClass: "physical",
       label: "MOS3S / 3D microfluidic bioprinting",
       sourceRoles: ["project"],
       pathIncludes: ["bioprint", "mos3s", "syringe", "carriage", "3d-microfluidic", "3d microfluidic"],
@@ -529,6 +608,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "cleanroom_base_01",
       type: "facility-module",
+      spatialClass: "physical",
       label: "Open-source cleanroom base",
       sourceRoles: ["project"],
       pathIncludes: ["cleanroom", "clean room", "open source ecology"],
@@ -538,6 +618,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "chemos_planner_01",
       type: "software-service",
+      spatialClass: "cyber",
       label: "ChemOS 2.0-class experiment planner",
       sourceRoles: ["project"],
       pathIncludes: ["chemos", "chem os", "experiment"],
@@ -547,6 +628,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "sila_orchestrator_01",
       type: "software-service",
+      spatialClass: "cyber",
       label: "SiLA 2 device orchestrator",
       sourceRoles: ["customer", "project"],
       pathIncludes: ["sila"],
@@ -556,6 +638,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "ros2_robotics_01",
       type: "software-service",
+      spatialClass: "cyber",
       label: "ROS 2 robotics layer",
       sourceRoles: ["customer", "project"],
       pathIncludes: ["ros", "ros2", "robot"],
@@ -566,6 +649,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "opentwins_state_01",
       type: "software-service",
+      spatialClass: "cyber",
       label: "OpenTwins state model",
       sourceRoles: ["customer", "project"],
       pathIncludes: ["opentwins", "open twins", "digital twin"],
@@ -576,6 +660,8 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "biospec_cad_lid_unf",
       type: "cad-part",
+      parentId: "biospec_bioreactor_01",
+      spatialClass: "physical",
       label: "BIO-SPEC lid UNF",
       sourceRoles: ["project"],
       pathIncludes: ["lid_unf", "lid_unf.step", "lid_unf.f3d", "lid_unf.scad"],
@@ -585,6 +671,8 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "biospec_cad_gl45",
       type: "cad-part",
+      parentId: "biospec_bioreactor_01",
+      spatialClass: "physical",
       label: "BIO-SPEC GL45 ports",
       sourceRoles: ["project"],
       pathIncludes: ["gl45"],
@@ -594,6 +682,8 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     {
       id: "biospec_cad_plate",
       type: "cad-part",
+      parentId: "biospec_bioreactor_01",
+      spatialClass: "physical",
       label: "BIO-SPEC aluminium plate",
       sourceRoles: ["project"],
       pathIncludes: ["aluminium_plate"],

@@ -82,29 +82,31 @@ const AUTHORITY_EXPRESSIONS = new Set([
 ]);
 
 export function mergeAuthorityMath(authoritative:MathDocument,proposal:MathDocument):{document:MathDocument;warnings:string[]} {
-  const warnings:string[] = [];
   const proposalBindings = new Map(proposal.bindings.map(binding=>[binding.name,binding]));
-  const authoritativeBindings = new Map(authoritative.bindings.map(binding=>[binding.name,binding]));
   for(const name of AUTHORITY_BINDINGS) {
-    const expected = authoritativeBindings.get(name);
-    const actual = proposalBindings.get(name);
-    if(actual && canonicalJson(actual) !== canonicalJson(expected)) warnings.push(`LLM_AUTHORITY_BINDING_IGNORED:${name}`);
+    if(proposalBindings.has(name)) throw new Error(`SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN:${name}`);
   }
   for(const name of AUTHORITY_EXPRESSIONS) {
-    const expected = authoritative.expressions[name];
-    const actual = proposal.expressions[name];
-    if(actual && canonicalJson(actual) !== canonicalJson(expected)) warnings.push(`LLM_AUTHORITY_EXPRESSION_IGNORED:${name}`);
+    if(proposal.expressions[name]) throw new Error(`SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN:${name}`);
   }
-  const extraBindings = proposal.bindings.filter(binding=>!AUTHORITY_BINDINGS.has(binding.name));
-  const extraExpressions = Object.fromEntries(Object.entries(proposal.expressions).filter(([name])=>!AUTHORITY_EXPRESSIONS.has(name)));
   return {
     document:{
       schema:"subactor.math/v1",
       id:authoritative.id,
-      bindings:[...authoritative.bindings,...extraBindings],
-      expressions:{...authoritative.expressions,...extraExpressions},
+      bindings:[...authoritative.bindings,...proposal.bindings],
+      expressions:{...authoritative.expressions,...proposal.expressions},
     },
-    warnings,
+    warnings:[],
+  };
+}
+
+/** LLM-visible semantic projection. Authority bindings and gates never enter its output space. */
+export function semanticMathProjection(authoritative:MathDocument):MathDocument {
+  return {
+    schema:"subactor.math/v1",
+    id:`${authoritative.id}-semantic`,
+    bindings:authoritative.bindings.filter(binding=>!AUTHORITY_BINDINGS.has(binding.name)),
+    expressions:Object.fromEntries(Object.entries(authoritative.expressions).filter(([name])=>!AUTHORITY_EXPRESSIONS.has(name))),
   };
 }
 
