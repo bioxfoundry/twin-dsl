@@ -222,8 +222,20 @@ git:
     prefix: v
     format: '{prefix}{version}'
 publishing:
-  enabled: true
+  # This package is deliberately unpublished: package.json sets "private": true, and the
+  # tarball is a 16 MB development tree (.intent, project/, .idea/, .code2llm_cache/*.pkl,
+  # screenshots) with no files[] allowlist — a working repository, not a distributable.
+  #
+  # Leaving this enabled made every release run go red on a step that was never meant to
+  # succeed, and a failed publish also skips the version tag and the git push. Turning it
+  # off is what restores tagging, not what disables it.
+  #
+  # To publish later: remove "private" from package.json, add a files[] allowlist so the
+  # tarball carries dist/ and schemas/ rather than the whole tree, then re-enable here.
+  enabled: false
   registries:
+  # `pypi` for a Node project could never have worked; the GitHub fallback that follows it
+  # only ever fired because the PyPI step ahead of it failed first.
   - pypi
   dry_run: false
   fallback:
@@ -249,7 +261,11 @@ strategies:
     test: npm test
     build: npm run build
     publish: npm publish
-    publish_enabled: true
+    # Off independently of `publishing.enabled` above, so re-enabling the publish phase for
+    # another channel cannot silently start pushing this package to the public npm registry.
+    # `npm publish` on a "private": true package is refused anyway — the ENEEDAUTH seen in
+    # the logs was only the auth check happening to run first.
+    publish_enabled: false
     dependencies:
       file: package-lock.json
       lock: npm install
