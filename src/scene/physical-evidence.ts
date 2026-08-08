@@ -85,6 +85,22 @@ export function validatePhysicalEvidence(value: unknown): PhysicalEvidenceDocume
   return value as PhysicalEvidenceDocument;
 }
 
+/**
+ * Blueprint labels carry the placeholder they were written for — "Facility envelope
+ * (placeholder 60×36 m)". Once evidence supersedes that geometry the parenthetical is a
+ * false claim, sitting in the dashboard next to an `ifc` badge and the real 58.2 × 34.6 m.
+ *
+ * Only the placeholder clause is removed; the component's name is what makes it findable
+ * and must survive. The label is not identity — `componentId` and `scenePath` are — so
+ * rewriting it does not touch the contract intake exists to protect.
+ */
+export function labelWithoutPlaceholderClaim(label: string): string {
+  return label
+    .replace(/\s*\((?:[^()]*\bplaceholder\b[^()]*)\)/gi, "")
+    .replace(/\s{2,}/g, " ")
+    .trim();
+}
+
 function fieldsOf(record: PhysicalEvidenceRecord): string[] {
   const fields: string[] = [];
   if (record.position) fields.push("position");
@@ -160,6 +176,10 @@ export function applyPhysicalEvidence(input: {
       if (evidence.coordinateSystem.origin) properties.geometryOrigin = evidence.coordinateSystem.origin;
       if (record.position) properties.position = record.position;
       if (record.size) properties.size = record.size;
+      // A component that has been hardened must stop advertising the placeholder it replaced.
+      if (typeof properties.label === "string" && normalizeGeometryEvidence(record.evidence) !== "placeholder") {
+        properties.label = labelWithoutPlaceholderClaim(properties.label);
+      }
       return { ...component, properties };
     }),
   };

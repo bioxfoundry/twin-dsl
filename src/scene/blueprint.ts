@@ -167,7 +167,10 @@ export function materializeBlueprintTwin(input: {
     }
 
     const cadAssets = matched
-      .filter((r) => /\.(step|stp|stl|f3d|scad|glb|usda)$/i.test(r.sourcePath) || /cad|zip-entry/i.test(r.sourcePath))
+      // The `.md` tail is optional because an f2md corpus mirrors `part.stl` to `part.stl.md`.
+      // Anchoring on the real end of the name matched nothing there, so CAD parts were only
+      // counted when the path happened to contain the literal substring "cad".
+      .filter((r) => /\.(step|stp|stl|f3d|scad|glb|usda)(\.[a-z]{2})?(\.md)?$/i.test(r.sourcePath) || /cad|zip-entry/i.test(r.sourcePath))
       .map((r) => r.sourcePath.split("/").at(-1) ?? r.sourcePath)
       .slice(0, 40);
 

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   applyPhysicalEvidence,
   geometryEvidenceRank,
+  labelWithoutPlaceholderClaim,
   normalizeGeometryEvidence,
   validatePhysicalEvidence,
 } from "../src/scene/physical-evidence.js";
@@ -178,4 +179,80 @@ test("validator refuses malformed intake documents", () => {
     /UNKNOWN_RECORD_KEY:a:heightM/,
   );
   assert.ok(validatePhysicalEvidence({ ...base, records: [{ componentId: "a", kind: "space", evidence: "measured", size: [1, 2, 3] }] }));
+});
+
+/**
+ * Regression: a hardened component must stop advertising the placeholder it replaced.
+ *
+ * The dashboard showed "Facility envelope (placeholder 60×36 m)" beside an `ifc` badge and
+ * a real size of 58.2 × 34.6 m — the label contradicted the two fields next to it.
+ */
+test("hardening geometry strips the placeholder claim but keeps the component name", () => {
+  assert.equal(
+    labelWithoutPlaceholderClaim("Facility envelope (placeholder 60×36 m)"),
+    "Facility envelope",
+  );
+  assert.equal(labelWithoutPlaceholderClaim("Liquid Handler"), "Liquid Handler", "an honest label is untouched");
+  assert.equal(
+    labelWithoutPlaceholderClaim("Bioreactor (BIO-SPEC) (placeholder 2×2 m)"),
+    "Bioreactor (BIO-SPEC)",
+    "only the placeholder clause is removed",
+  );
+
+  const twin: TwinDocument = {
+    schema: "subactor.twin/v1",
+    id: "t",
+    kind: "physical",
+    observedAt: "2026-08-08T00:00:00Z",
+    sourceSnapshotHash: "a".repeat(64),
+    components: [
+      {
+        id: "facility_shell",
+        type: "facility",
+        sourceUris: ["urn:x"],
+        properties: { label: "Facility envelope (placeholder 60×36 m)", geometryEvidence: "placeholder" },
+        children: [],
+      },
+      {
+        id: "still_placeholder",
+        type: "facility",
+        sourceUris: ["urn:x"],
+        properties: { label: "Annex (placeholder 10×10 m)", geometryEvidence: "placeholder" },
+        children: [],
+      },
+    ],
+  };
+  const scene: SceneDocument = {
+    schema: "subactor.scene/v1",
+    id: "s",
+    format: "openusd",
+    sourceTwinId: "t",
+    bindings: [
+      { twinUri: `${contentUri("twin", twin)}#component=facility_shell`, componentId: "facility_shell", scenePath: "/F/Envelope", primitive: "cube", propertyMap: { label: "subactor:label" } },
+      { twinUri: `${contentUri("twin", twin)}#component=still_placeholder`, componentId: "still_placeholder", scenePath: "/F/Annex", primitive: "cube", propertyMap: { label: "subactor:label" } },
+    ],
+  };
+
+  const result = applyPhysicalEvidence({
+    twin,
+    scene,
+    evidence: {
+      schema: "subactor.physical-evidence/v1",
+      id: "plan",
+      coordinateSystem: { unit: "m", upAxis: "Z" },
+      records: [{ componentId: "facility_shell", kind: "space", evidence: "ifc", size: [58.2, 34.6, 0.2] }],
+    },
+  });
+
+  const hardened = result.twin.components.find((c) => c.id === "facility_shell")!;
+  assert.equal(hardened.properties.label, "Facility envelope");
+  assert.equal(hardened.properties.geometryEvidence, "ifc");
+  assert.deepEqual(hardened.properties.size, [58.2, 34.6, 0.2]);
+
+  const untouched = result.twin.components.find((c) => c.id === "still_placeholder")!;
+  assert.equal(
+    untouched.properties.label,
+    "Annex (placeholder 10×10 m)",
+    "a component with no evidence keeps its honest placeholder label",
+  );
 });

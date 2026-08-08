@@ -194,3 +194,67 @@ test("biofoundry live detailed blueprint keeps v0.2 IDs and adds corpus modules"
   }
   assert.ok(bp.components.some((c) => (c.pathIncludes?.length ?? 0) > 0));
 });
+
+/**
+ * Regression: CAD parts must be recognised in an f2md corpus.
+ *
+ * f2md mirrors `part.stl` to `part.stl.md`, so an extension test anchored on the true end of
+ * the name matched nothing there. CAD assets were then counted only when the path happened
+ * to contain the literal substring "cad" — `bioprinter_mos3s_01` reported none despite 14
+ * `*.stl.md` parts under `IV. 3D microfluidic bioprinting/mmc2/`.
+ */
+test("CAD assets are counted in both a binary corpus and its f2md Markdown mirror", () => {
+  const cadBlueprint = validateSceneBlueprint({
+    schema: "subactor.scene-blueprint/v1",
+    id: "cad",
+    twinKind: "physical",
+    components: [{ id: "printer", type: "equipment", label: "Printer", sourceRoles: ["project"], pathIncludes: ["bioprint"] }],
+    bindings: [{ componentId: "printer", scenePath: "/F/Printer", position: [0, 0, 0], size: [1, 1, 1] }],
+  });
+
+  const resource = (id: string, sourcePath: string): ResourceRecord => ({
+    schema: "subactor.resource/v1",
+    id,
+    uri: `urn:${id}`,
+    logicalUri: `subactor://${id}`,
+    mediaType: "text/markdown",
+    sha256: "d".repeat(64),
+    size: 1,
+    sourcePath,
+    sourceRole: "project",
+    derived: false,
+    derivedFrom: [],
+    createdAt: "2026-08-08T00:00:00Z",
+  });
+
+  const build = (records: ResourceRecord[]): Record<string, unknown> =>
+    materializeBlueprintTwin({
+      blueprint: cadBlueprint,
+      projectId: "p",
+      resources: records,
+      observations: observations(20),
+      development,
+      sourceSnapshotHash: "e".repeat(64),
+    }).components[0].properties;
+
+  // Binary corpus: extensions are terminal.
+  const binary = build([
+    resource("a", "bioprint/mmc2/Carriage.stl"),
+    resource("b", "bioprint/mmc2/lid_UNF.step"),
+    resource("c", "bioprint/notes.pdf"),
+  ]);
+  assert.equal(binary.cadAssetCount, 2, "binary corpus still counts its CAD parts");
+
+  // f2md mirror: the same parts carry a trailing `.md`.
+  const mirrored = build([
+    resource("a", "bioprint/mmc2/Carriage.stl.md"),
+    resource("b", "bioprint/mmc2/lid_UNF.step.md"),
+    resource("c", "bioprint/notes.pdf.md"),
+  ]);
+  assert.equal(mirrored.cadAssetCount, 2, "the Markdown mirror must count the same parts");
+  assert.match(String(mirrored.cadAssets), /Carriage\.stl\.md/);
+
+  // A document that merely mentions a format is not a CAD asset.
+  const prose = build([resource("d", "bioprint/installation-steps.md"), resource("e", "bioprint/report.pdf.md")]);
+  assert.equal(prose.cadAssetCount, undefined, "prose must not be mistaken for geometry");
+});
