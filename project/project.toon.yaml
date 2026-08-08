@@ -1,52 +1,54 @@
-# twin-dsl | 556 func | 46f | 5544L | json | 2026-08-06
+# twin-dsl | 885 func | 66f | 10570L | typescript | 2026-08-08
 # generated in 0.00s
 
 HEALTH:
-  CC̄=4.1  critical=53 (limit:10)  dup=0  cycles=0
+  CC̄=4.4  critical=92 (limit:10)  dup=9  cycles=0
 
 ALERTS[20]:
-  !!! cc_exceeded      main = 58 (limit:15)
-  !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 57 (limit:15)
-  !!! high_fan_out     main = 55 (limit:10)
-  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 55 (limit:10)
-  !!! cc_exceeded      validateProject = 47 (limit:15)
-  !!! cc_exceeded      parseProjectDsl = 46 (limit:15)
+  !!! cc_exceeded      main = 68 (limit:15)
+  !!! cc_exceeded      validateSceneBlueprint = 66 (limit:15)
+  !!! high_fan_out     main = 64 (limit:10)
+  !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 62 (limit:15)
+  !!! cc_exceeded      checkJsonSchema = 60 (limit:15)
+  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 58 (limit:10)
+  !!! cc_exceeded      validateProject = 51 (limit:15)
+  !!! cc_exceeded      parseProjectDsl = 48 (limit:15)
   !!! high_fan_out     BiofoundryRuntime.build = 38 (limit:10)
-  !!! cc_exceeded      validateImprovement = 29 (limit:15)
-  !!! high_fan_out     runResearcherDemo = 29 (limit:10)
-  !!! cc_exceeded      validateObservation = 28 (limit:15)
+  !!! high_fan_out     convert_tree = 37 (limit:10)
 
-MODULES[119] (top by size):
-  M[src/runtime/living-project.ts] 458L C:1 F:100 CC↑57 D:0 (typescript)
-  M[src/core/types.ts] 423L C:34 F:0 CC↑0 D:0 (typescript)
-  M[src/project/wizard.ts] 351L C:1 F:37 CC↑10 D:0 (typescript)
-  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:0 (typescript)
+MODULES[151] (top by size):
+  M[src/scene/blueprint.ts] 641L C:0 F:27 CC↑66 D:0 (typescript)
+  M[src/runtime/living-project.ts] 498L C:1 F:104 CC↑62 D:0 (typescript)
+  M[src/core/types.ts] 494L C:40 F:0 CC↑0 D:0 (typescript)
+  M[src/runtime/biofoundry-concept.ts] 435L C:1 F:22 CC↑13 D:0 (typescript)
+  M[py/f2md/src/f2md/converters.py] 405L C:8 F:18 CC↑9 D:0 (python)
+  M[src/project/wizard.ts] 358L C:1 F:37 CC↑10 D:0 (typescript)
+  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:1 (typescript)
   M[src/runtime/mutation-pipeline.ts] 308L C:2 F:23 CC↑15 D:0 (typescript)
+  M[js/f2md/src/converters.ts] 278L C:5 F:34 CC↑17 D:0 (typescript)
+  M[src/ingestion/scanner.ts] 250L C:2 F:25 CC↑22 D:0 (typescript)
   M[src/runtime/autonomy.ts] 233L C:2 F:49 CC↑20 D:0 (typescript)
+  M[py/f2md/src/f2md/tree.py] 227L C:1 F:5 CC↑26 D:1 (python)
+  M[py/f2md/src/f2md/translate.py] 215L C:5 F:12 CC↑10 D:1 (python)
+  M[src/scene/physical-evidence.ts] 202L C:0 F:28 CC↑33 D:0 (typescript)
   M[schemas/project.schema.json] 172L C:0 F:0 CC↑0 D:0 (json)
-  M[src/adapters/twin-probes.ts] 149L C:5 F:19 CC↑15 D:0 (typescript)
-  M[verification/dist-smoke.txt] 146L C:0 F:0 CC↑0 D:0 (txt)
-  M[src/adapters/todo2code.ts] 122L C:3 F:22 CC↑19 D:0 (typescript)
-  M[schemas/living-iteration.schema.json] 121L C:0 F:0 CC↑0 D:0 (json)
-  M[src/runtime/isolated-worktree.ts] 116L C:1 F:15 CC↑5 D:0 (typescript)
-  M[schemas/dsl-generation-result.schema.json] 97L C:0 F:0 CC↑0 D:0 (json)
-  M[schemas/improvement.schema.json] 96L C:0 F:0 CC↑0 D:0 (json)
-  M[prefact.yaml] 94L C:0 F:0 CC↑0 D:0 (yaml)
-  LANGS: json:44/typescript:41/proto:12/javascript:7/yaml:4/other:3/xml:2/shell:2/txt:2/python:1/yml:1
+  LANGS: typescript:54/json:51/proto:12/python:9/javascript:9/yaml:4/other:3/txt:3/xml:2/shell:2/yml:1/toml:1
 
 HOTSPOTS[10]:
-  ★ main fan=55  // Orchestrates 55 calls
-  ★ LivingProjectRuntime.iterateWithLease fan=55  // Orchestrates 55 calls
+  ★ main fan=64  // Orchestrates 64 calls
+  ★ LivingProjectRuntime.iterateWithLease fan=58  // Orchestrates 58 calls
   ★ BiofoundryRuntime.build fan=38  // Orchestrates 38 calls
-  ★ runResearcherDemo fan=29  // Orchestrates 29 calls
-  ★ DqlCrawler.crawl fan=26  // Orchestrates 26 calls
+  ★ convert_tree fan=37  // Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
+
+``on
+  ★ startDashboard fan=33  // Orchestrates 33 calls
 
 REFACTOR[15]:
   [1] H/L Split DqlCrawler.crawl (CC=25)
-  [2] H/L Split main (CC=58)
-  [3] H/L Split validateImprovement (CC=29)
-  [4] H/L Split parseObservationDsl (CC=25)
-  [5] H/L Split validateObservation (CC=28)
+  [2] H/L Split validateImprovement (CC=29)
+  [3] H/L Split parseObservationDsl (CC=25)
+  [4] H/L Split validateObservation (CC=28)
+  [5] H/L Split main (CC=68)
 
 EVOLUTION:
-  2026-08-06 CC̄=4.1 crit=53 5544L // Automated analysis
+  2026-08-08 CC̄=4.4 crit=92 10570L // Automated analysis

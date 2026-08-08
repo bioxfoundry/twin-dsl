@@ -1,7 +1,7 @@
 /** The fallback chain: cheapest backend that can do the job wins. */
 import { stat } from "node:fs/promises";
 import { extname } from "node:path";
-import { DoclingHttpConverter, LocalToolConverter, MammothConverter, TextConverter, TurndownConverter } from "./converters.js";
+import { DoclingHttpConverter, LocalToolConverter, MammothConverter, ScadSourceConverter, TextConverter, TurndownConverter } from "./converters.js";
 import { ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
 
 /**
@@ -64,6 +64,7 @@ export function defaultChain(doclingUrl?: string): ConverterChain {
     // dependency is absent Turndown declines and TextConverter still produces something usable.
     new TurndownConverter(),
     new MammothConverter(),
+    new ScadSourceConverter(),
     new TextConverter(),
     new LocalToolConverter(),
   ];

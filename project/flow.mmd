@@ -18,6 +18,9 @@ flowchart TD
         src__cli__main__receipt["receipt"]
         src__cli__main__grantPath["grantPath"]
         src__cli__main__adapter["adapter"]
+        src__cli__main__server["server"]
+        src__cli__main__stop["stop"]
+        ...["+4 more"]
     end
 
     subgraph Core
@@ -36,7 +39,7 @@ flowchart TD
         src__research__crawler__DqlCrawler__crawl["crawl"]
         src__research__crawler__DqlCrawler__robots["robots"]
         src__research__researcher__runResearcherDemo["runResearcherDemo"]
-        ...["+395 more"]
+        ...["+625 more"]
     end
 
     class src__core__uri__assertProcessUri,src__core__uri__assertResourceUri,src__core__uri__isImmutableResourceUri,src__core__canonical__contentUri,src__research__crawler__p,src__research__crawler__assertPublic,src__research__crawler__title,src__research__crawler__DqlCrawler__crawl,src__research__crawler__DqlCrawler__robots,src__research__researcher__runResearcherDemo entry

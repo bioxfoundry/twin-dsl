@@ -10,6 +10,7 @@ stays stdlib-only and a missing extra degrades to "not my job" rather than an Im
 from __future__ import annotations
 
 import contextlib
+import struct
 import io
 import json
 import os
@@ -115,6 +116,10 @@ class TextConverter:
 
     def convert(self, path: str) -> ConvertedDocument:
         kind = detect_document_kind(path)
+        # LaTeX is text syntactically, but it is a document format. Give Pandoc a chance to
+        # preserve headings, lists, tables and mathematics; only fence it when Pandoc is absent.
+        if kind == ".tex" and shutil.which("pandoc"):
+            raise ExternalConverterRequired(kind)
         if not is_text_kind(kind):
             raise ExternalConverterRequired(kind)
         with open(path, "rb") as handle:
@@ -138,6 +143,60 @@ class TextConverter:
         )
 
 
+class STLMetadataConverter:
+    """Extract deterministic, text-friendly geometry metadata from STL meshes.
+
+    STL contains triangles rather than semantic prose.  A local parser keeps conversion useful
+    when Docling is unavailable (or rejects a mesh) without pretending that a mesh is a document.
+    """
+
+    name = "stl-metadata"
+    backend_type = "stdlib"
+    version = "1.0.0"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        if detect_document_kind(path) != ".stl":
+            raise ExternalConverterRequired(detect_document_kind(path))
+        raw = open(path, "rb").read()
+        vertices: List[Tuple[float, float, float]] = []
+        triangles = 0
+        # Binary STL: 80-byte header, uint32 facet count, 50 bytes per facet.
+        if len(raw) >= 84:
+            count = struct.unpack_from("<I", raw, 80)[0]
+            expected = 84 + count * 50
+            if count and expected <= len(raw):
+                triangles = count
+                for offset in range(84, expected, 50):
+                    for vertex_offset in (12, 24, 36):
+                        vertices.append(struct.unpack_from("<fff", raw, offset + vertex_offset))
+        if not triangles:
+            # Minimal ASCII STL fallback for hand-authored meshes.
+            text = raw.decode("utf-8", errors="ignore")
+            vals = re.findall(r"vertex\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)\s+([-+0-9.eE]+)", text, re.I)
+            vertices = [(float(x), float(y), float(z)) for x, y, z in vals]
+            triangles = len(vertices) // 3
+        if not triangles or not vertices:
+            raise ConversionError("STL_INVALID_OR_EMPTY")
+        mins = tuple(min(v[i] for v in vertices) for i in range(3))
+        maxs = tuple(max(v[i] for v in vertices) for i in range(3))
+        size = tuple(maxs[i] - mins[i] for i in range(3))
+        body = (
+            f"# {os.path.basename(path)}\n\n"
+            "## Mesh metadata\n\n"
+            f"- triangles: {triangles}\n"
+            f"- vertices: {len(vertices)}\n"
+            f"- bounding box min (x, y, z): {mins[0]:.6f}, {mins[1]:.6f}, {mins[2]:.6f}\n"
+            f"- bounding box max (x, y, z): {maxs[0]:.6f}, {maxs[1]:.6f}, {maxs[2]:.6f}\n"
+            f"- dimensions (x, y, z): {size[0]:.6f}, {size[1]:.6f}, {size[2]:.6f}\n"
+        )
+        metadata = _stat_metadata(path)
+        metadata["extractedChars"] = len(body)
+        metadata["triangles"] = triangles
+        metadata["dimensions"] = list(size)
+        return ConvertedDocument(body, metadata, [], self.name, self.version,
+                                 backend_type=self.backend_type, input_kind=".stl")
+
+
 class LocalToolConverter:
     """`pdftotext` (poppler) and `pandoc`, so PDFs and Office files work with no daemon.
 
@@ -149,7 +208,9 @@ class LocalToolConverter:
     backend_type = "binary"
     version = "1.0.0"
 
-    PANDOC_FORMATS = {".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".pptx": "pptx", ".epub": "epub"}
+    PANDOC_FORMATS = {
+        ".tex": "latex", ".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".pptx": "pptx", ".epub": "epub",
+    }
 
     def __init__(self, max_chars: int = DEFAULT_MAX_CHARS, timeout_s: int = DEFAULT_TIMEOUT_S) -> None:
         self.max_chars = max_chars

@@ -1,18 +1,9 @@
 flowchart TD
 %% generated in 0.01s
-    deploy__docling["deploy.docling<br/>2 funcs"]
-    scripts__check_compose["scripts.check-compose<br/>3 funcs"]
-    scripts__check_proto_contracts["scripts.check-proto-contracts<br/>6 funcs"]
-    scripts__demo_autonomy["scripts.demo-autonomy<br/>9 funcs"]
-    scripts__demo_mutation["scripts.demo-mutation<br/>5 funcs"]
-    scripts__demo_realtime_biofoundry["scripts.demo-realtime-biofoundry<br/>1 funcs"]
-    src__adapters["src.adapters<br/>52 funcs"]
-    src__cli["src.cli<br/>11 funcs"]
-    src__core["src.core<br/>7 funcs"]
-    src__dsl["src.dsl<br/>72 funcs"]
-    src__ingestion["src.ingestion<br/>9 funcs"]
-    src__llm["src.llm<br/>33 funcs"]
-    src__project["src.project<br/>37 funcs"]
-    src__research["src.research<br/>24 funcs"]
-    src__runtime["src.runtime<br/>278 funcs"]
-    src__scene["src.scene<br/>7 funcs"]
+    js__f2md["js.f2md<br/>76 funcs"]
+    py__f2md["py.f2md<br/>49 funcs"]
+    src__dsl["src.dsl<br/>76 funcs"]
+    src__runtime["src.runtime<br/>304 funcs"]
+    py__f2md ==>|11| src__dsl
+    py__f2md -->|2| src__runtime
+    py__f2md -->|1| js__f2md

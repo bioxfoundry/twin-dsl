@@ -52,7 +52,7 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "math.dsl", "improvement.dsl"]) {
+  for (const name of ["observations.dsl", "math.dsl", "geometry-validation.dsl", "improvement.dsl"]) {
     try { documents.push({ name, content: (await readFile(join(current, name), "utf8")).slice(0, 120_000) }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }
@@ -87,7 +87,9 @@ export function mergeEvidence(
 
   const byComponent = new Map(stored.records.map((record) => [record.componentId, record]));
   for (const record of incoming.records) byComponent.set(record.componentId, record);
-  return { ...incoming, records: [...byComponent.values()] };
+  const byConstraint = new Map((stored.constraints ?? []).map((constraint) => [constraint.id, constraint]));
+  for (const constraint of incoming.constraints ?? []) byConstraint.set(constraint.id, constraint);
+  return { ...incoming, records: [...byComponent.values()], constraints: [...byConstraint.values()] };
 }
 
 /**
@@ -138,6 +140,7 @@ interface DashboardState {
   twin: TwinDocument | null;
   scene: SceneDocument | null;
   report: unknown;
+  geometryValidation: unknown;
   observations: unknown;
   iteration: unknown;
   updatedAt: string;
@@ -151,14 +154,15 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   let busy = false;
 
   async function state(): Promise<DashboardState> {
-    const [twin, scene, report, observations, iteration] = await Promise.all([
+    const [twin, scene, report, geometryValidation, observations, iteration] = await Promise.all([
       readJson<TwinDocument>(join(current, "twin.json")),
       readJson<SceneDocument>(join(current, "scene.json")),
       readJson(join(current, "physical-evidence.report.json")),
+      readJson(join(current, "geometry-validation.json")),
       readJson(join(current, "observations.json")),
       readJson(join(resolve(options.outDir), "latest.json")),
     ]);
-    return { twin, scene, report, observations, iteration, updatedAt: new Date().toISOString() };
+    return { twin, scene, report, geometryValidation, observations, iteration, updatedAt: new Date().toISOString() };
   }
 
   const server = createServer((request, response) => {
@@ -222,7 +226,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
             // Judge the posted document on its own against the live twin. Evaluating the
             // merged set instead would report NO_CHANGE for records already applied in an
             // earlier intake, and they would then look like failures.
-            const report = applyPhysicalEvidence({
+            const previewResult = applyPhysicalEvidence({
               twin: preview.twin,
               scene: preview.scene,
               evidence: incoming,
@@ -231,7 +235,8 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
               // and only then refused — which is how the baseline got clobbered by an
               // intake that was ultimately rejected.
               allowedAssetUris: await ingestedResourceUris(current),
-            }).report;
+            });
+            const report = previewResult.report;
 
             const accepted = new Set(report.applied.map((entry) => entry.componentId));
             if (accepted.size === 0) {
@@ -241,6 +246,14 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
                 error: "PHYSICAL_EVIDENCE_REJECTED",
                 report,
                 hint: "nothing was written; fix the rejected records and post again",
+              });
+            }
+            if (!previewResult.geometryValidation.ok) {
+              return sendJson(response, 422, {
+                error: "GEOMETRY_VALIDATION_FAILED",
+                report,
+                geometryValidation: previewResult.geometryValidation,
+                hint: "nothing was written; correct pose, dimensions or spatial constraints",
               });
             }
 
@@ -268,6 +281,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
               // `report` describes the posted document; `baseline` describes what the
               // project now holds, which includes records from earlier intakes.
               report,
+              geometryValidation: previewResult.geometryValidation,
               baseline: { records: evidence.records.length, acceptedFromThisPost: accepted.size },
               twin: next.twin,
               scene: next.scene,

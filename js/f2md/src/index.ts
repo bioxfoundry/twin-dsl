@@ -21,6 +21,7 @@ export {
   DoclingHttpConverter,
   LocalToolConverter,
   MammothConverter,
+  ScadSourceConverter,
   TextConverter,
   TurndownConverter,
 } from "./converters.js";

@@ -1,60 +1,144 @@
 # code2llm call graph | /home/tom/github/bioxfoundry/twin-dsl
-# generated in 0.13s
-# nodes: 261 | edges: 248 | modules: 33
-# CC̄=4.1
+# generated in 0.19s
+# nodes: 418 | edges: 421 | modules: 54
+# CC̄=4.4
 
 HUBS[20]:
+  py.f2md.src.f2md.tree.convert_tree
+    CC=26  in:1  out:66  total:67
   src.runtime.living-project.LivingProjectRuntime.iterateWithLease
-    CC=57  in:2  out:55  total:57
-  src.runtime.living-project.map
-    CC=3  in:28  out:5  total:33
+    CC=62  in:2  out:58  total:60
+  py.f2md.src.f2md.converters.DoclingHttpConverter.convert
+    CC=9  in:0  out:34  total:34
+  src.serve.dashboard.startDashboard
+    CC=30  in:0  out:33  total:33
   src.research.researcher.runResearcherDemo
     CC=9  in:0  out:29  total:29
+  py.f2md.src.f2md.converters.PyMuPDFConverter.convert
+    CC=9  in:0  out:26  total:26
   src.research.crawler.DqlCrawler.crawl
     CC=25  in:0  out:26  total:26
+  src.ingestion.scanner.scanSources
+    CC=22  in:0  out:26  total:26
+  src.ingestion.scanner.texts
+    CC=22  in:0  out:24  total:24
   src.project.wizard.addProjectSource
     CC=7  in:0  out:24  total:24
+  src.ingestion.scanner.converter
+    CC=22  in:0  out:24  total:24
   src.runtime.mutation-pipeline.proposeCodeMutation
     CC=15  in:0  out:23  total:23
+  src.serve.dashboard.server
+    CC=25  in:0  out:22  total:22
+  src.runtime.living-project.map
+    CC=3  in:17  out:5  total:22
+  js.f2md.src.tree.convertTree
+    CC=22  in:0  out:22  total:22
   src.runtime.mutation-pipeline.applyCodeMutation
     CC=13  in:0  out:22  total:22
-  src.ingestion.scanner.scanSources
-    CC=15  in:0  out:21  total:21
+  src.scene.physical-evidence.applyPhysicalEvidence
+    CC=24  in:0  out:19  total:19
+  py.f2md.src.f2md.converters._quiet_stdout
+    CC=1  in:3  out:16  total:19
+  src.core.json-schema.checkJsonSchema
+    CC=60  in:1  out:17  total:18
   src.project.wizard.createLivingProject
-    CC=7  in:0  out:17  total:17
-  src.scene.openusd.components
-    CC=26  in:0  out:17  total:17
-  src.scene.openusd.renderOpenUsd
-    CC=26  in:0  out:17  total:17
-  src.llm.openrouter.OpenRouterStructuredClient.request
-    CC=19  in:2  out:14  total:16
-  src.research.crawler.htmlToMarkdown
-    CC=5  in:1  out:14  total:15
-  src.runtime.service-check.checkExternalServices
-    CC=15  in:0  out:14  total:14
-  src.dsl.query.parseQueryDsl
-    CC=13  in:0  out:14  total:14
-  src.adapters.todo2code.Todo2CodeAdapter.extractNl
-    CC=4  in:0  out:14  total:14
-  src.adapters.todo2code.run
-    CC=2  in:7  out:7  total:14
-  src.runtime.autonomy.acquireProjectLease
-    CC=5  in:0  out:13  total:13
-  src.dsl.dql.parseDql
-    CC=22  in:0  out:13  total:13
-  src.runtime.autonomy.acquire
-    CC=5  in:2  out:11  total:13
+    CC=9  in:0  out:18  total:18
 
 MODULES:
+  js.f2md.src.chain  [5 funcs]
+    convert  CC=2  out:1
+    convertToMarkdown  CC=2  out:1
+    defaultChain  CC=4  out:7
+    lastKind  CC=6  out:2
+    started  CC=6  out:2
+  js.f2md.src.converters  [16 funcs]
+    convert  CC=4  out:7
+    Turndown  CC=3  out:1
+    clipped  CC=1  out:1
+    convert  CC=5  out:9
+    convertToHtml  CC=1  out:0
+    htmlToDocument  CC=7  out:7
+    kind  CC=1  out:1
+    mammoth  CC=1  out:1
+    convert  CC=6  out:10
+    fence  CC=1  out:1
+  js.f2md.src.detect  [2 funcs]
+    detectDocumentKind  CC=5  out:4
+    mediaTypeFor  CC=3  out:3
+  js.f2md.src.tree  [5 funcs]
+    convertTree  CC=22  out:22
+    entries  CC=1  out:3
+    frontMatter  CC=5  out:5
+    walkFiles  CC=6  out:9
+    yamlScalar  CC=5  out:3
+  js.f2md.src.types  [1 funcs]
+    super  CC=1  out:0
+  py.f2md.src.f2md.chain  [4 funcs]
+    __init__  CC=2  out:2
+    convert  CC=1  out:2
+    convert_to_markdown  CC=1  out:1
+    default_chain  CC=3  out:9
+  py.f2md.src.f2md.cli  [1 funcs]
+    _build_chain  CC=5  out:10
+  py.f2md.src.f2md.converters  [13 funcs]
+    convert  CC=9  out:34
+    __init__  CC=2  out:3
+    convert  CC=2  out:8
+    convert  CC=6  out:14
+    __init__  CC=2  out:1
+    convert  CC=8  out:17
+    __init__  CC=1  out:1
+    convert  CC=9  out:26
+    convert  CC=5  out:13
+    _clip  CC=3  out:2
+  py.f2md.src.f2md.detect  [4 funcs]
+    detect_document_kind  CC=4  out:4
+    is_prose_kind  CC=2  out:1
+    is_text_kind  CC=1  out:0
+    media_type_for  CC=3  out:5
+  py.f2md.src.f2md.translate  [5 funcs]
+    _pair  CC=10  out:7
+    translate  CC=2  out:6
+    available  CC=1  out:1
+    translate  CC=4  out:8
+    _chunks  CC=7  out:5
+  py.f2md.src.f2md.tree  [3 funcs]
+    _yaml_scalar  CC=4  out:6
+    convert_tree  CC=26  out:66
+    front_matter  CC=5  out:10
+  py.f2md.src.f2md.types  [2 funcs]
+    to_dict  CC=1  out:3
+    __init__  CC=1  out:2
+  scripts.check-compose  [3 funcs]
+    credentialCount  CC=2  out:4
+    secretLine  CC=9  out:9
+    value  CC=9  out:9
   scripts.check-proto-contracts  [2 funcs]
     checkMessageFields  CC=5  out:8
     files  CC=3  out:4
-  src.adapters.clickhouse  [5 funcs]
+  scripts.demo-physical-intake  [2 funcs]
+    evidenceOf  CC=1  out:3
+    sizeOf  CC=1  out:3
+  scripts.f2md-conformance  [6 funcs]
+    convertWithNode  CC=1  out:3
+    convertWithPython  CC=1  out:3
+    execFileAsync  CC=1  out:2
+    fixtures  CC=1  out:3
+    path  CC=2  out:5
+    root  CC=1  out:3
+  src.adapters.clickhouse  [6 funcs]
     all  CC=1  out:6
-    query  CC=2  out:4
+    query  CC=2  out:5
     search  CC=1  out:7
-    upsert  CC=2  out:2
+    upsert  CC=2  out:3
+    clickHouseDateTime64  CC=2  out:6
     sqlString  CC=1  out:1
+  src.adapters.document-converter  [4 funcs]
+    convert  CC=1  out:0
+    DeterministicMarkdownConverter  CC=3  out:6
+    DoclingHttpAdapter  CC=3  out:6
+    LocalToolDocumentConverter  CC=3  out:6
   src.adapters.todo2code  [14 funcs]
     applySourcePatch  CC=11  out:9
     available  CC=3  out:1
@@ -75,18 +159,23 @@ MODULES:
     object  CC=4  out:1
     summarizeProbeCycle  CC=7  out:7
     validateAutonomCycle  CC=15  out:6
-  src.cli.main  [6 funcs]
+  src.cli.main  [5 funcs]
     base  CC=2  out:3
     grantPath  CC=2  out:3
     json  CC=1  out:2
     project  CC=2  out:3
     receipt  CC=2  out:3
-    result  CC=1  out:2
   src.core.canonical  [4 funcs]
     canonicalJson  CC=1  out:2
     contentUri  CC=1  out:1
     norm  CC=5  out:7
     sha256  CC=2  out:4
+  src.core.json-schema  [5 funcs]
+    checkJsonSchema  CC=60  out:17
+    matchesJsonSchema  CC=1  out:1
+    matchesType  CC=5  out:3
+    typeOf  CC=3  out:1
+    types  CC=2  out:5
   src.dsl.dql  [2 funcs]
     parseDql  CC=22  out:13
     positiveInt  CC=4  out:3
@@ -115,8 +204,8 @@ MODULES:
     list  CC=2  out:5
     unquote  CC=3  out:4
   src.dsl.project  [2 funcs]
-    renderProjectDsl  CC=11  out:6
-    validateProject  CC=47  out:8
+    renderProjectDsl  CC=13  out:6
+    validateProject  CC=51  out:8
   src.dsl.query  [4 funcs]
     id  CC=11  out:8
     match  CC=2  out:1
@@ -130,15 +219,28 @@ MODULES:
   src.dsl.twin  [2 funcs]
     validateTwin  CC=6  out:4
     visit  CC=7  out:4
-  src.ingestion.archive  [5 funcs]
+  src.ingestion.archive  [11 funcs]
     execFileAsync  CC=1  out:0
     limit  CC=3  out:2
-    maxFiles  CC=2  out:4
-    readZip  CC=7  out:8
+    listZip  CC=4  out:7
+    maxEntry  CC=3  out:3
+    maxFiles  CC=1  out:1
+    maxTotal  CC=3  out:3
+    names  CC=3  out:3
+    readZip  CC=3  out:5
+    readZipEntry  CC=3  out:4
     safePath  CC=5  out:3
-  src.ingestion.scanner  [2 funcs]
-    scanSources  CC=15  out:21
-    walk  CC=6  out:7
+  src.ingestion.scanner  [14 funcs]
+    content  CC=2  out:1
+    converter  CC=22  out:24
+    entryExt  CC=2  out:2
+    labels  CC=11  out:14
+    mediaTypeFor  CC=3  out:3
+    message  CC=5  out:4
+    names  CC=6  out:11
+    pushBinary  CC=1  out:5
+    raw  CC=2  out:1
+    scanSources  CC=22  out:26
   src.llm.dsl-schemas  [9 funcs]
     component  CC=4  out:6
     exact  CC=5  out:3
@@ -168,7 +270,7 @@ MODULES:
   src.project.wizard  [14 funcs]
     addProjectSource  CC=7  out:24
     basePort  CC=2  out:1
-    createLivingProject  CC=7  out:17
+    createLivingProject  CC=9  out:18
     exists  CC=2  out:1
     id  CC=3  out:3
     port  CC=3  out:3
@@ -212,21 +314,30 @@ MODULES:
     buildScene  CC=5  out:4
     buildTree  CC=6  out:7
     buildTwin  CC=3  out:3
+  src.runtime.biofoundry-concept  [8 funcs]
+    biofoundryConceptTree  CC=8  out:12
+    biofoundryConceptTwin  CC=2  out:8
+    biofoundryReadinessBindings  CC=4  out:7
+    fallbackResearchUris  CC=1  out:4
+    haystack  CC=2  out:2
+    matchZoneResources  CC=1  out:5
+    matched  CC=2  out:3
+    zoneSourceUris  CC=3  out:5
   src.runtime.isolated-worktree  [3 funcs]
     add  CC=5  out:5
     isGitToplevel  CC=4  out:3
     run  CC=2  out:5
-  src.runtime.living-project  [45 funcs]
+  src.runtime.living-project  [35 funcs]
     allowed  CC=3  out:2
     authoritativeMath  CC=1  out:1
-    base  CC=1  out:3
-    candidate  CC=1  out:2
+    candidate  CC=2  out:2
     crawler  CC=1  out:3
     feedbackUri  CC=1  out:2
     grantPresent  CC=1  out:1
+    grounded  CC=1  out:2
     improvement  CC=3  out:2
     iterate  CC=2  out:7
-    iterateWithLease  CC=57  out:55
+    iterateWithLease  CC=62  out:58
   src.runtime.living-watcher  [9 funcs]
     failure  CC=1  out:1
     failureExponent  CC=1  out:1
@@ -237,17 +348,17 @@ MODULES:
     schedule  CC=1  out:1
     stop  CC=2  out:1
     tick  CC=8  out:8
-  src.runtime.mutation-grant  [11 funcs]
+  src.runtime.mutation-grant  [12 funcs]
     b64url  CC=1  out:2
     b64urlJson  CC=1  out:3
     canonicalGrantClaims  CC=3  out:1
     data  CC=1  out:1
     iatMs  CC=3  out:5
+    next  CC=6  out:0
     path  CC=1  out:1
     sig  CC=1  out:1
     signingPayload  CC=1  out:2
     verified  CC=5  out:1
-    verifyMutationGrantDocument  CC=8  out:0
   src.runtime.mutation-pipeline  [9 funcs]
     applyCodeMutation  CC=13  out:22
     grantResult  CC=1  out:1
@@ -270,10 +381,50 @@ MODULES:
     text  CC=2  out:2
     timed  CC=1  out:2
     timeoutMs  CC=4  out:7
-  src.scene.openusd  [3 funcs]
-    components  CC=26  out:17
-    ident  CC=2  out:1
-    renderOpenUsd  CC=26  out:17
+  src.scene.blueprint  [13 funcs]
+    biofoundryLiveBlueprintV02  CC=3  out:7
+    components  CC=22  out:13
+    ids  CC=34  out:9
+    isVec3  CC=4  out:3
+    latestByMetric  CC=22  out:13
+    matchResources  CC=7  out:5
+    materializeBlueprintTwin  CC=23  out:17
+    paths  CC=22  out:11
+    rejectUnknownKeys  CC=2  out:5
+    resourceHaystack  CC=2  out:2
+  src.scene.openusd  [20 funcs]
+    assignNames  CC=3  out:4
+    attrName  CC=2  out:4
+    buildTree  CC=6  out:6
+    colorFor  CC=10  out:0
+    component  CC=12  out:11
+    components  CC=1  out:1
+    emitAttribute  CC=8  out:10
+    emitGeometry  CC=10  out:6
+    emitNode  CC=20  out:12
+    fallbackRoot  CC=1  out:1
+  src.scene.physical-evidence  [14 funcs]
+    accepted  CC=10  out:7
+    allowedAssets  CC=10  out:7
+    applyPhysicalEvidence  CC=24  out:19
+    boundIds  CC=10  out:7
+    componentById  CC=10  out:7
+    current  CC=2  out:2
+    fieldsOf  CC=4  out:1
+    geometryEvidenceRank  CC=1  out:2
+    isVec3  CC=4  out:3
+    normalizeGeometryEvidence  CC=18  out:4
+  src.serve.dashboard  [15 funcs]
+    assetRoot  CC=3  out:6
+    busy  CC=1  out:6
+    current  CC=1  out:6
+    evidence  CC=3  out:1
+    next  CC=1  out:1
+    preview  CC=3  out:1
+    publicDir  CC=1  out:6
+    readJson  CC=2  out:2
+    receipt  CC=1  out:1
+    runtime  CC=1  out:6
 
 EDGES:
   src.core.canonical.canonicalJson → src.core.canonical.norm
@@ -291,6 +442,16 @@ EDGES:
   src.research.crawler.DqlCrawler.crawl → src.research.crawler.fetchText
   src.research.crawler.DqlCrawler.robots → src.research.crawler.robotsDisallow
   src.research.researcher.runResearcherDemo → src.research.researcher.fixtureFetch
+  src.runtime.mutation-pipeline.planHashOf → src.runtime.mutation-pipeline.object
+  src.runtime.mutation-pipeline.proposeCodeMutation → src.runtime.mutation-pipeline.loadPlan
+  src.runtime.mutation-pipeline.proposeCodeMutation → src.runtime.mutation-pipeline.planHashOf
+  src.runtime.mutation-pipeline.proposeCodeMutation → src.runtime.mutation-pipeline.resolveGrant
+  src.runtime.mutation-pipeline.plan → src.runtime.mutation-pipeline.resolveGrant
+  src.runtime.mutation-pipeline.planHash → src.runtime.mutation-pipeline.resolveGrant
+  src.runtime.mutation-pipeline.grantResult → src.runtime.mutation-pipeline.resolveGrant
+  src.runtime.mutation-pipeline.applyCodeMutation → src.runtime.mutation-pipeline.loadPlan
+  src.runtime.mutation-pipeline.applyCodeMutation → src.runtime.mutation-pipeline.planHashOf
+  src.runtime.mutation-pipeline.applyCodeMutation → src.runtime.mutation-pipeline.resolveGrant
   src.runtime.biofoundry.BiofoundryRuntime.changes → src.runtime.biofoundry.diff
   src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildTree
   src.runtime.biofoundry.BiofoundryRuntime.policyPath → src.runtime.biofoundry.buildMath
@@ -306,23 +467,13 @@ EDGES:
   src.runtime.biofoundry.BiofoundryRuntime.policyResource → src.runtime.biofoundry.buildScene
   src.runtime.biofoundry.BiofoundryRuntime.allowed → src.runtime.biofoundry.writeJson
   src.runtime.biofoundry.BiofoundryRuntime.candidate → src.runtime.biofoundry.writeJson
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.start → src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.start → src.runtime.realtime-watcher.RealtimeTwinWatcher.tick
-  src.runtime.realtime-watcher.RealtimeTwinWatcher.tick → src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce
-  src.llm.openrouter.openRouterConfigFromEnv → src.llm.openrouter.envInt
-  src.llm.openrouter.openRouterConfigFromEnv → src.llm.openrouter.envBool
-  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.OpenRouterStructuredClient.configured
-  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.OpenRouterStructuredClient.request
-  src.llm.openrouter.OpenRouterStructuredClient.generate → src.llm.openrouter.sleep
-  src.llm.openrouter.OpenRouterStructuredClient.started → src.llm.openrouter.OpenRouterStructuredClient.request
-  src.llm.openrouter.OpenRouterStructuredClient.started → src.llm.openrouter.sleep
-  src.llm.openrouter.OpenRouterStructuredClient.request → src.llm.openrouter.OpenRouterStructuredClient.text
-  src.llm.openrouter.OpenRouterStructuredClient.controller → src.llm.openrouter.OpenRouterStructuredClient.text
-  src.llm.openrouter.OpenRouterStructuredClient.controller → src.llm.openrouter.contentText
-  src.llm.openrouter.OpenRouterStructuredClient.envelope → src.llm.openrouter.contentText
-  src.llm.openrouter.OpenRouterStructuredClient.message → src.llm.openrouter.contentText
-  src.llm.nl-dsl-compiler.NlDslCompiler.compile → src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
-  src.llm.nl-dsl-compiler.NlDslCompiler.started → src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
-  src.llm.nl-dsl-compiler.NlDslCompiler.contract → src.llm.nl-dsl-compiler.NlDslCompiler.deterministic
-  src.adapters.clickhouse.ClickHouseHttpProjection.upsert → src.adapters.clickhouse.ClickHouseHttpProjection.query
-  src.adapters.clickhouse.ClickHouseHttpProjection.search → src.adapters.clickhouse.ClickHouseHttpProjection.query
+  src.runtime.service-check.checkExternalServices → src.runtime.service-check.timed
+  src.runtime.service-check.clickhouseUrl → src.runtime.service-check.timed
+  src.runtime.service-check.doclingUrl → src.runtime.service-check.timed
+  src.runtime.service-check.timeoutMs → src.runtime.service-check.timed
+  src.runtime.service-check.result → src.runtime.service-check.timed
+  src.runtime.service-check.result → src.runtime.service-check.text
+  src.runtime.autonomy.diagnosticSeverity → src.runtime.autonomy.object
+  src.runtime.autonomy.manifestStatus → src.runtime.autonomy.object
+  src.runtime.autonomy.summarizeDevelopment → src.runtime.autonomy.object
+  src.runtime.autonomy.summarizeDevelopment → src.runtime.autonomy.array

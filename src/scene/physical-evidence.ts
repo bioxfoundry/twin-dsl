@@ -9,6 +9,7 @@
  */
 import type {
   GeometryEvidenceKind,
+  GeometryValidationReport,
   PhysicalEvidenceDocument,
   PhysicalEvidenceRecord,
   PhysicalEvidenceReport,
@@ -19,12 +20,15 @@ import { GEOMETRY_EVIDENCE_ORDER } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
+import { validateGeometry } from "./geometry-validation.js";
 
 const EVIDENCE_KINDS = new Set<string>(GEOMETRY_EVIDENCE_ORDER);
 const RECORD_KINDS = new Set(["space", "equipment", "utility"]);
 // Kept in lockstep with schemas/physical-evidence.schema.json, which declares additionalProperties:false.
 const DOCUMENT_KEYS = new Set(["schema", "id", "coordinateSystem", "records"]);
-const RECORD_KEYS = new Set(["componentId", "kind", "evidence", "position", "size", "assetUri", "sourceRef", "properties"]);
+const RECORD_KEYS = new Set(["componentId", "kind", "evidence", "position", "size", "orientation", "positionToleranceM", "sizeToleranceM", "angleToleranceDeg", "assetUri", "sourceRef", "properties"]);
+const CONSTRAINT_KEYS = new Set(["id", "relation", "subjectId", "objectId", "marginM", "minDistanceM"]);
+const CONSTRAINT_RELATIONS = new Set(["inside", "clearance", "no-overlap"]);
 
 function rejectUnknownKeys(value: Record<string, unknown>, allowed: Set<string>, error: string): void {
   const unknown = Object.keys(value).filter((key) => !allowed.has(key));
@@ -54,13 +58,22 @@ function isVec3(value: unknown): boolean {
   return Array.isArray(value) && value.length === 3 && value.every((x) => typeof x === "number" && Number.isFinite(x));
 }
 
+function isQuaternion(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length !== 4 || !value.every((x) => typeof x === "number" && Number.isFinite(x))) return false;
+  return Math.abs(Math.hypot(...value) - 1) <= 1e-6;
+}
+
+function isNonNegative(value: unknown): boolean {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
+}
+
 export function validatePhysicalEvidence(value: unknown): PhysicalEvidenceDocument {
   if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("PHYSICAL_EVIDENCE_REQUIRED");
   const d = value as Record<string, unknown>;
   if (d.schema !== "subactor.physical-evidence/v1" || typeof d.id !== "string" || !d.id || !Array.isArray(d.records)) {
     throw new Error("PHYSICAL_EVIDENCE_INVALID");
   }
-  rejectUnknownKeys(d, DOCUMENT_KEYS, "PHYSICAL_EVIDENCE_UNKNOWN_KEY");
+  rejectUnknownKeys(d, new Set([...DOCUMENT_KEYS, "constraints"]), "PHYSICAL_EVIDENCE_UNKNOWN_KEY");
   const cs = d.coordinateSystem as Record<string, unknown> | undefined;
   // Refusing anything but metres/Z-up keeps millimetre CAD from silently entering a metre scene.
   if (!cs || cs.unit !== "m" || cs.upAxis !== "Z" || (cs.origin !== undefined && typeof cs.origin !== "string")) {
@@ -77,10 +90,28 @@ export function validatePhysicalEvidence(value: unknown): PhysicalEvidenceDocume
     if (r.position !== undefined && !isVec3(r.position)) throw new Error(`PHYSICAL_EVIDENCE_POSITION_INVALID:${r.componentId}`);
     if (r.size !== undefined && !isVec3(r.size)) throw new Error(`PHYSICAL_EVIDENCE_SIZE_INVALID:${r.componentId}`);
     if (r.size !== undefined && (r.size as number[]).some((x) => x <= 0)) throw new Error(`PHYSICAL_EVIDENCE_SIZE_NOT_POSITIVE:${r.componentId}`);
+    if (r.orientation !== undefined && !isQuaternion(r.orientation)) throw new Error(`PHYSICAL_EVIDENCE_ORIENTATION_INVALID:${r.componentId}`);
+    for (const tolerance of ["positionToleranceM", "sizeToleranceM", "angleToleranceDeg"] as const) {
+      if (r[tolerance] !== undefined && !isNonNegative(r[tolerance])) throw new Error(`PHYSICAL_EVIDENCE_TOLERANCE_INVALID:${r.componentId}:${tolerance}`);
+    }
+    if (typeof r.angleToleranceDeg === "number" && r.angleToleranceDeg > 180) throw new Error(`PHYSICAL_EVIDENCE_TOLERANCE_INVALID:${r.componentId}:angleToleranceDeg`);
     if (r.assetUri !== undefined && (typeof r.assetUri !== "string" || !r.assetUri)) throw new Error(`PHYSICAL_EVIDENCE_ASSET_INVALID:${r.componentId}`);
     if (r.sourceRef !== undefined && typeof r.sourceRef !== "string") throw new Error(`PHYSICAL_EVIDENCE_SOURCE_REF_INVALID:${r.componentId}`);
     if (seen.has(r.componentId)) throw new Error(`PHYSICAL_EVIDENCE_DUPLICATE:${r.componentId}`);
     seen.add(r.componentId);
+  }
+  if (d.constraints !== undefined && !Array.isArray(d.constraints)) throw new Error("PHYSICAL_EVIDENCE_CONSTRAINTS_INVALID");
+  const constraintIds = new Set<string>();
+  for (const raw of (d.constraints as unknown[] | undefined) ?? []) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("PHYSICAL_EVIDENCE_CONSTRAINT_INVALID");
+    const c = raw as Record<string, unknown>;
+    rejectUnknownKeys(c, CONSTRAINT_KEYS, "PHYSICAL_EVIDENCE_CONSTRAINT_UNKNOWN_KEY");
+    if (typeof c.id !== "string" || !c.id || constraintIds.has(c.id)) throw new Error("PHYSICAL_EVIDENCE_CONSTRAINT_ID_INVALID");
+    if (!CONSTRAINT_RELATIONS.has(String(c.relation)) || typeof c.subjectId !== "string" || !c.subjectId || typeof c.objectId !== "string" || !c.objectId) throw new Error(`PHYSICAL_EVIDENCE_CONSTRAINT_INVALID:${c.id}`);
+    if (c.marginM !== undefined && !isNonNegative(c.marginM)) throw new Error(`PHYSICAL_EVIDENCE_CONSTRAINT_MARGIN_INVALID:${c.id}`);
+    if (c.minDistanceM !== undefined && !isNonNegative(c.minDistanceM)) throw new Error(`PHYSICAL_EVIDENCE_CONSTRAINT_DISTANCE_INVALID:${c.id}`);
+    if (c.relation === "clearance" && c.minDistanceM === undefined) throw new Error(`PHYSICAL_EVIDENCE_CONSTRAINT_DISTANCE_REQUIRED:${c.id}`);
+    constraintIds.add(c.id);
   }
   return value as PhysicalEvidenceDocument;
 }
@@ -105,6 +136,7 @@ function fieldsOf(record: PhysicalEvidenceRecord): string[] {
   const fields: string[] = [];
   if (record.position) fields.push("position");
   if (record.size) fields.push("size");
+  if (record.orientation) fields.push("orientation");
   if (record.assetUri) fields.push("assetUri");
   return fields;
 }
@@ -119,7 +151,7 @@ export function applyPhysicalEvidence(input: {
   evidence: PhysicalEvidenceDocument;
   /** Ingested resource URIs; when given, a mesh/CAD reference outside the corpus is refused. */
   allowedAssetUris?: Iterable<string>;
-}): { twin: TwinDocument; scene: SceneDocument; report: PhysicalEvidenceReport } {
+}): { twin: TwinDocument; scene: SceneDocument; report: PhysicalEvidenceReport; geometryValidation: GeometryValidationReport } {
   const { twin, scene, evidence } = input;
   const allowedAssets = input.allowedAssetUris ? new Set(input.allowedAssetUris) : undefined;
   const applied: PhysicalEvidenceReport["applied"] = [];
@@ -176,6 +208,7 @@ export function applyPhysicalEvidence(input: {
       if (evidence.coordinateSystem.origin) properties.geometryOrigin = evidence.coordinateSystem.origin;
       if (record.position) properties.position = record.position;
       if (record.size) properties.size = record.size;
+      if (record.orientation) properties.orientation = record.orientation;
       // A component that has been hardened must stop advertising the placeholder it replaced.
       if (typeof properties.label === "string" && normalizeGeometryEvidence(record.evidence) !== "placeholder") {
         properties.label = labelWithoutPlaceholderClaim(properties.label);
@@ -201,6 +234,7 @@ export function applyPhysicalEvidence(input: {
         twinUri,
         position: record.position ?? binding.position,
         size: record.size ?? binding.size,
+        orientation: record.orientation ?? binding.orientation,
         assetUri: record.assetUri ?? binding.assetUri,
       };
     }),
@@ -218,5 +252,6 @@ export function applyPhysicalEvidence(input: {
     scenePathsStable:
       JSON.stringify(scene.bindings.map((b) => b.scenePath)) === JSON.stringify(nextScene.bindings.map((b) => b.scenePath)),
   };
-  return { twin: nextTwin, scene: nextScene, report };
+  const geometryValidation = validateGeometry(nextScene, evidence, new Set(applied.map((entry) => entry.componentId)));
+  return { twin: nextTwin, scene: nextScene, report, geometryValidation };
 }

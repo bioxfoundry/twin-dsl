@@ -147,3 +147,783 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-a66ce302
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-db4bd1e8
+    name: Fix ast-missing-return-type issues
+    description: Resolve 2 ast-missing-return-type issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-missing-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6efe5406
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6e41a4fe
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-beb6ea71
+    name: Fix import-optimization issues
+    description: Resolve 4 import-optimization issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: import-optimization
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-14a0d2b1
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1768316a
+    name: Fix ast-missing-return-type issues
+    description: Resolve 2 ast-missing-return-type issues in .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-missing-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d8f9b94c
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-51ee4182
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-4149d3ed
+    name: Fix import-optimization issues
+    description: Resolve 4 import-optimization issues in .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - .factory-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: import-optimization
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6086ee9d
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a44ba391
+    name: Fix ast-missing-return-type issues
+    description: Resolve 2 ast-missing-return-type issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ast-missing-return-type
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cadce839
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e07494f4
+    name: Fix smart-return-type issues
+    description: Resolve 1 smart-return-type issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: smart-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8b13a479
+    name: Fix import-optimization issues
+    description: Resolve 4 import-optimization issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: import-optimization
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-939493a6
+    name: Fix relative-imports issues
+    description: Resolve 10 relative-imports issues in py/f2md/src/f2md/__init__.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: relative-imports
+    count: 10
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d890c16f
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3c9f1f73
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1ed89356
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in py/f2md/src/f2md/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-64abd0d6
+    name: Fix import-optimization issues
+    description: Resolve 5 import-optimization issues in py/f2md/src/f2md/__init__.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: import-optimization
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0f048ade
+    name: Fix no-relative-imports issues
+    description: Resolve 5 no-relative-imports issues in py/f2md/src/f2md/__init__.py
+    task_type: bugfix
+    priority: critical
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/__init__.py
+    rule_id: no-relative-imports
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3062e250
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in py/f2md/src/f2md/chain.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/chain.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2111b556
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/chain.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/chain.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0b24e836
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/chain.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/chain.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9f47dfd1
+    name: Fix no-relative-imports issues
+    description: Resolve 2 no-relative-imports issues in py/f2md/src/f2md/chain.py
+    task_type: bugfix
+    priority: critical
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/chain.py
+    rule_id: no-relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8446bf5a
+    name: Fix relative-imports issues
+    description: Resolve 12 relative-imports issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: relative-imports
+    count: 12
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-feecd95a
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9d9ce8d8
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5d088ffe
+    name: Fix ast-print-statements issues
+    description: Resolve 8 ast-print-statements issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: ast-print-statements
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d8810eac
+    name: Fix ruff-print-statements issues
+    description: Resolve 8 ruff-print-statements issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: ruff-print-statements
+    count: 8
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-35b197b0
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d38231f7
+    name: Fix import-optimization issues
+    description: Resolve 5 import-optimization issues in py/f2md/src/f2md/cli.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: import-optimization
+    count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-843fb4a9
+    name: Fix no-relative-imports issues
+    description: Resolve 6 no-relative-imports issues in py/f2md/src/f2md/cli.py
+    task_type: bugfix
+    priority: critical
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/cli.py
+    rule_id: no-relative-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f0aca0fa
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/detect.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/detect.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-aea81bf5
+    name: Fix import-optimization issues
+    description: Resolve 1 import-optimization issues in py/f2md/src/f2md/detect.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/detect.py
+    rule_id: import-optimization
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f542174a
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bad016a3
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1d0dbe39
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7b87d701
+    name: Fix string-concat-fstring issues
+    description: Resolve 4 string-concat-fstring issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: string-concat-fstring
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-491fde45
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-67c59b94
+    name: Fix import-optimization issues
+    description: Resolve 3 import-optimization issues in py/f2md/src/f2md/translate.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: import-optimization
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7d23f762
+    name: Fix no-relative-imports issues
+    description: Resolve 1 no-relative-imports issues in py/f2md/src/f2md/translate.py
+    task_type: bugfix
+    priority: critical
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/translate.py
+    rule_id: no-relative-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5d920f61
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-64978555
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d429c339
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-26238385
+    name: Fix ast-string-concat issues
+    description: Resolve 1 ast-string-concat issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: ast-string-concat
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d418a18d
+    name: Fix string-concat-fstring issues
+    description: Resolve 10 string-concat-fstring issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: string-concat-fstring
+    count: 10
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d0095c81
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d0010dc2
+    name: Fix import-optimization issues
+    description: Resolve 3 import-optimization issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: import-optimization
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c9f68d0e
+    name: Fix no-relative-imports issues
+    description: Resolve 2 no-relative-imports issues in py/f2md/src/f2md/converters.py
+    task_type: bugfix
+    priority: critical
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: no-relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-f2541169
+    name: Fix relative-imports issues
+    description: Resolve 4 relative-imports issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: relative-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9585a50a
+    name: Fix ast-unused-imports issues
+    description: Resolve 2 ast-unused-imports issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: ast-unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-92a61418
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c8f5a4f0
+    name: Fix ast-string-concat issues
+    description: Resolve 7 ast-string-concat issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: ast-string-concat
+    count: 7
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-2e735b76
+    name: Fix string-concat-fstring issues
+    description: Resolve 36 string-concat-fstring issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: string-concat-fstring
+    count: 36
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-bee5c514
+    name: Fix magic-numbers issues
+    description: Resolve 0 magic-numbers issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: magic-numbers
+    count: 0
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-100f330b
+    name: Fix import-optimization issues
+    description: Resolve 0 import-optimization issues in py/f2md/src/f2md/tree.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: import-optimization
+    count: 0
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-050eccbb
+    name: Fix no-relative-imports issues
+    description: Resolve 0 no-relative-imports issues in py/f2md/src/f2md/tree.py
+    task_type: bugfix
+    priority: critical
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/tree.py
+    rule_id: no-relative-imports
+    count: 0
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ca2d94e9
+    name: Fix ast-unused-imports issues
+    description: Resolve 3 ast-unused-imports issues in py/f2md/src/f2md/types.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/types.py
+    rule_id: ast-unused-imports
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-febb2b06
+    name: Fix import-optimization issues
+    description: Resolve 1 import-optimization issues in py/f2md/src/f2md/types.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/types.py
+    rule_id: import-optimization
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced

@@ -5,6 +5,8 @@ import os
 import subprocess
 import sys
 import threading
+import shutil
+import struct
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 import pytest
@@ -19,6 +21,7 @@ from f2md import (
     LocalToolConverter,
     MarkItDownConverter,
     PyMuPDFConverter,
+    STLMetadataConverter,
     TextConverter,
     convert,
     convert_to_markdown,
@@ -68,6 +71,29 @@ def test_code_is_fenced_with_its_language(tmp_path) -> None:
     markdown = convert_to_markdown(str(src))
     assert markdown.startswith("# main.py")
     assert "```py\nprint('hi')\n\n```" in markdown or "```py" in markdown
+
+
+def test_binary_stl_fallback_extracts_mesh_metadata(tmp_path) -> None:
+    src = tmp_path / "mesh.stl"
+    header = b"test".ljust(80, b" ")
+    # One triangle: normal, three vertices, attribute byte count.
+    facet = struct.pack("<12fH", 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0)
+    src.write_bytes(header + struct.pack("<I", 1) + facet)
+    doc = STLMetadataConverter().convert(str(src))
+    assert doc.converter == "stl-metadata"
+    assert "triangles: 1" in doc.markdown
+    assert "dimensions (x, y, z): 1.000000, 1.000000, 0.000000" in doc.markdown
+
+
+def test_latex_uses_pandoc_when_available(tmp_path) -> None:
+    if shutil.which("pandoc") is None:
+        pytest.skip("pandoc is not installed")
+    src = tmp_path / "report.tex"
+    src.write_text(r"\documentclass{article}\begin{document}\section{Intro}Text\end{document}", encoding="utf-8")
+    doc = convert(str(src))
+    assert doc.converter == "pandoc"
+    assert "# Intro" in doc.markdown
+    assert "```tex" not in doc.markdown
 
 
 def test_envelope_round_trips_to_json(tmp_path) -> None:

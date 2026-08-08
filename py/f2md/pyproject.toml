@@ -54,6 +54,8 @@ Issues = "https://github.com/bioxfoundry/twin-dsl/issues"
 
 [project.scripts]
 f2md = "f2md.cli:main"
+f2md-audit = "f2md.audit:main"
+f2md-intent = "f2md.intent_compile:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/f2md"]

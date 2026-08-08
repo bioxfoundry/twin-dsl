@@ -4,18 +4,18 @@
 ## Overview
 
 - **Project**: /home/tom/github/bioxfoundry/twin-dsl
-- **Primary Language**: json
-- **Languages**: json: 44, typescript: 41, proto: 12, javascript: 7, yaml: 4
+- **Primary Language**: typescript
+- **Languages**: typescript: 54, json: 51, proto: 12, python: 9, javascript: 9
 - **Analysis Mode**: static
-- **Total Functions**: 556
-- **Total Classes**: 81
-- **Modules**: 119
-- **Entry Points**: 424
+- **Total Functions**: 885
+- **Total Classes**: 118
+- **Modules**: 151
+- **Entry Points**: 675
 
 ## Architecture by Module
 
 ### src.runtime.living-project
-- **Functions**: 100
+- **Functions**: 104
 - **Classes**: 1
 - **File**: `living-project.ts`
 
@@ -34,10 +34,43 @@
 - **Classes**: 1
 - **File**: `wizard.ts`
 
+### js.f2md.src.converters
+- **Functions**: 34
+- **Classes**: 5
+- **File**: `converters.ts`
+
+### src.scene.openusd
+- **Functions**: 30
+- **Classes**: 1
+- **File**: `openusd.ts`
+
+### src.scene.physical-evidence
+- **Functions**: 29
+- **File**: `physical-evidence.ts`
+
 ### src.runtime.mutation-pipeline
 - **Functions**: 28
 - **Classes**: 2
 - **File**: `mutation-pipeline.ts`
+
+### src.ingestion.scanner
+- **Functions**: 28
+- **Classes**: 2
+- **File**: `scanner.ts`
+
+### src.serve.dashboard
+- **Functions**: 27
+- **Classes**: 2
+- **File**: `dashboard.ts`
+
+### src.scene.blueprint
+- **Functions**: 27
+- **File**: `blueprint.ts`
+
+### src.runtime.biofoundry-concept
+- **Functions**: 24
+- **Classes**: 1
+- **File**: `biofoundry-concept.ts`
 
 ### src.runtime.biofoundry
 - **Functions**: 23
@@ -48,6 +81,10 @@
 - **Functions**: 23
 - **Classes**: 3
 - **File**: `todo2code.ts`
+
+### src.cli.main
+- **Functions**: 21
+- **File**: `main.ts`
 
 ### src.adapters.twin-probes
 - **Functions**: 19
@@ -64,49 +101,15 @@
 - **Classes**: 3
 - **File**: `openrouter.ts`
 
-### src.dsl.math
-- **Functions**: 17
-- **File**: `math.ts`
+### js.f2md.src.tree
+- **Functions**: 18
+- **Classes**: 2
+- **File**: `tree.ts`
 
-### src.runtime.isolated-worktree
-- **Functions**: 15
-- **Classes**: 1
-- **File**: `isolated-worktree.ts`
-
-### src.cli.main
-- **Functions**: 14
-- **File**: `main.ts`
-
-### src.runtime.living-watcher
-- **Functions**: 12
-- **Classes**: 1
-- **File**: `living-watcher.ts`
-
-### src.dsl.improvement
-- **Functions**: 11
-- **File**: `improvement.ts`
-
-### src.runtime.service-check
-- **Functions**: 11
-- **Classes**: 1
-- **File**: `service-check.ts`
-
-### src.dsl.observation
-- **Functions**: 9
-- **File**: `observation.ts`
-
-### src.llm.dsl-schemas
-- **Functions**: 9
-- **File**: `dsl-schemas.ts`
-
-### scripts.demo-autonomy
-- **Functions**: 9
-- **File**: `demo-autonomy.mjs`
-
-### src.adapters.clickhouse
-- **Functions**: 8
-- **Classes**: 4
-- **File**: `clickhouse.ts`
+### py.f2md.src.f2md.converters
+- **Functions**: 18
+- **Classes**: 8
+- **File**: `converters.py`
 
 ## Key Entry Points
 
@@ -118,14 +121,35 @@ Main execution flows into the system:
 ### src.runtime.biofoundry.BiofoundryRuntime.build
 - **Calls**: src.runtime.biofoundry.resolve, src.runtime.biofoundry.dirname, src.runtime.biofoundry.Error, src.runtime.biofoundry.map, src.runtime.biofoundry.scanSources, src.runtime.biofoundry.parseDql, src.runtime.biofoundry.readFile, src.runtime.biofoundry.String
 
+### py.f2md.src.f2md.cli.main
+- **Calls**: argparse.ArgumentParser, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument, parser.add_argument
+
+### py.f2md.src.f2md.converters.DoclingHttpConverter.convert
+- **Calls**: py.f2md.src.f2md.detect.detect_document_kind, os.path.basename, None.encode, urllib.request.Request, data.get, ConvertedDocument, open, handle.read
+
+### src.serve.dashboard.startDashboard
+- **Calls**: src.serve.dashboard.assetRoot, src.serve.dashboard.join, src.serve.dashboard.resolve, src.serve.dashboard.LivingProjectRuntime, src.serve.dashboard.all, src.serve.dashboard.readJson, src.serve.dashboard.Date, src.serve.dashboard.toISOString
+
 ### src.research.researcher.runResearcherDemo
 - **Calls**: src.research.researcher.mkdir, src.research.researcher.parse, src.research.researcher.readFile, src.research.researcher.join, src.research.researcher.fixtureFetch, src.research.researcher.parseDql, src.research.researcher.DqlCrawler, src.research.researcher.crawl
 
 ### src.research.crawler.DqlCrawler.crawl
 - **Calls**: src.research.crawler.shift, src.research.crawler.URL, src.research.crawler.includes, src.research.crawler.toLowerCase, src.research.crawler.Error, src.research.crawler.networkGuard, src.research.crawler.fetchText, src.research.crawler.toString
 
+### src.ingestion.scanner.scanSources
+- **Calls**: src.ingestion.scanner.composite, src.ingestion.scanner.CompositeDocumentConverter, src.ingestion.scanner.resolve, src.ingestion.scanner.stat, src.ingestion.scanner.isDirectory, src.ingestion.scanner.walk, src.ingestion.scanner.relative, src.ingestion.scanner.split
+
+### py.f2md.src.f2md.converters.PyMuPDFConverter.convert
+- **Calls**: py.f2md.src.f2md.detect.detect_document_kind, chatter.text.strip, py.f2md.src.f2md.converters._clip, src.dsl.improvement.bool, py.f2md.src.f2md.converters._stat_metadata, len, ConvertedDocument, ExternalConverterRequired
+
 ### src.runtime.pipeline.runDemo
 - **Calls**: src.runtime.pipeline.mkdir, src.runtime.pipeline.DeterministicMarkdownConverter, src.runtime.pipeline.InMemorySearchProjection, src.runtime.pipeline.readdir, src.runtime.pipeline.join, src.runtime.pipeline.convert, src.runtime.pipeline.resourceFromText, src.runtime.pipeline.push
+
+### src.ingestion.scanner.texts
+- **Calls**: src.ingestion.scanner.resolve, src.ingestion.scanner.stat, src.ingestion.scanner.isDirectory, src.ingestion.scanner.walk, src.ingestion.scanner.relative, src.ingestion.scanner.split, src.ingestion.scanner.at, src.ingestion.scanner.extname
+
+### src.ingestion.scanner.converter
+- **Calls**: src.ingestion.scanner.resolve, src.ingestion.scanner.stat, src.ingestion.scanner.isDirectory, src.ingestion.scanner.walk, src.ingestion.scanner.relative, src.ingestion.scanner.split, src.ingestion.scanner.at, src.ingestion.scanner.extname
 
 ### src.project.wizard.addProjectSource
 - **Calls**: src.project.wizard.resolve, src.project.wizard.dirname, src.project.wizard.parseProjectDsl, src.project.wizard.readFile, src.project.wizard.exists, src.project.wizard.Error, src.project.wizard.relative, src.project.wizard.startsWith
@@ -136,71 +160,50 @@ Main execution flows into the system:
 ### src.runtime.mutation-pipeline.applyCodeMutation
 - **Calls**: src.runtime.mutation-pipeline.Error, src.runtime.mutation-pipeline.trim, src.runtime.mutation-pipeline.loadPlan, src.runtime.mutation-pipeline.planHashOf, src.runtime.mutation-pipeline.resolveGrant, src.runtime.mutation-pipeline.join, src.runtime.mutation-pipeline.resolve, src.runtime.mutation-pipeline.consumeMutationGrantJti
 
-### src.ingestion.scanner.scanSources
-- **Calls**: src.ingestion.scanner.CompositeDocumentConverter, src.ingestion.scanner.DeterministicMarkdownConverter, src.ingestion.scanner.resolve, src.ingestion.scanner.stat, src.ingestion.scanner.isDirectory, src.ingestion.scanner.walk, src.ingestion.scanner.relative, src.ingestion.scanner.split
+### src.serve.dashboard.server
+- **Calls**: src.serve.dashboard.createServer, src.serve.dashboard.URL, src.serve.dashboard.send, src.serve.dashboard.readFile, src.serve.dashboard.join, src.serve.dashboard.sendJson, src.serve.dashboard.state, src.serve.dashboard.renderOpenUsd
+
+### js.f2md.src.tree.convertTree
+- **Calls**: js.f2md.src.tree.resolve, js.f2md.src.tree.stat, js.f2md.src.tree.isDirectory, js.f2md.src.tree.ConversionError, js.f2md.src.tree.startsWith, js.f2md.src.tree.defaultChain, js.f2md.src.tree.walkFiles, js.f2md.src.tree.relative
+
+### src.ingestion.scanner.absolute
+- **Calls**: src.ingestion.scanner.isDirectory, src.ingestion.scanner.relative, src.ingestion.scanner.split, src.ingestion.scanner.at, src.ingestion.scanner.extname, src.ingestion.scanner.toLowerCase, src.ingestion.scanner.map, src.ingestion.scanner.join
+
+### src.ingestion.scanner.s
+- **Calls**: src.ingestion.scanner.isDirectory, src.ingestion.scanner.relative, src.ingestion.scanner.split, src.ingestion.scanner.at, src.ingestion.scanner.extname, src.ingestion.scanner.toLowerCase, src.ingestion.scanner.map, src.ingestion.scanner.join
+
+### src.ingestion.scanner.files
+- **Calls**: src.ingestion.scanner.isDirectory, src.ingestion.scanner.relative, src.ingestion.scanner.split, src.ingestion.scanner.at, src.ingestion.scanner.extname, src.ingestion.scanner.toLowerCase, src.ingestion.scanner.map, src.ingestion.scanner.join
 
 ### src.dsl.project.parseProjectDsl
 - **Calls**: src.dsl.project.lines, src.dsl.project.shift, src.dsl.project.match, src.dsl.project.Error, src.dsl.project.indexOf, src.dsl.project.slice, src.dsl.project.toUpperCase, src.dsl.project.trim
 
-### src.scene.openusd.renderOpenUsd
-- **Calls**: src.scene.openusd.Map, src.scene.openusd.flattenTwin, src.scene.openusd.map, src.scene.openusd.toLowerCase, src.scene.openusd.includes, src.scene.openusd.get, src.scene.openusd.ident, src.scene.openusd.split
-
-### src.scene.openusd.components
-- **Calls**: src.scene.openusd.Map, src.scene.openusd.flattenTwin, src.scene.openusd.map, src.scene.openusd.toLowerCase, src.scene.openusd.includes, src.scene.openusd.get, src.scene.openusd.ident, src.scene.openusd.split
+### src.scene.physical-evidence.applyPhysicalEvidence
+- **Calls**: src.scene.physical-evidence.Set, src.scene.physical-evidence.Map, src.scene.physical-evidence.map, src.scene.physical-evidence.filter, src.scene.physical-evidence.Boolean, src.scene.physical-evidence.get, src.scene.physical-evidence.push, src.scene.physical-evidence.has
 
 ### src.project.wizard.createLivingProject
 - **Calls**: src.project.wizard.slug, src.project.wizard.resolve, src.project.wizard.basePort, src.project.wizard.exists, src.project.wizard.readdir, src.project.wizard.Error, src.project.wizard.mkdir, src.project.wizard.join
 
+### js.f2md.src.tree.paths
+- **Calls**: js.f2md.src.tree.relative, js.f2md.src.tree.detectDocumentKind, js.f2md.src.tree.includes, js.f2md.src.tree.join, js.f2md.src.tree.mkdir, js.f2md.src.tree.dirname, js.f2md.src.tree.resolve, js.f2md.src.tree.mediaTypeFor
+
+### js.f2md.src.converters.DoclingHttpConverter.convert
+- **Calls**: js.f2md.src.converters.detectDocumentKind, js.f2md.src.converters.readFile, js.f2md.src.converters.FormData, js.f2md.src.converters.set, js.f2md.src.converters.Blob, js.f2md.src.converters.Uint8Array, js.f2md.src.converters.basename, js.f2md.src.converters.fetch
+
+### src.scene.blueprint.materializeBlueprintTwin
+- **Calls**: src.scene.blueprint.filter, src.scene.blueprint.map, src.scene.blueprint.set, src.scene.blueprint.matchResources, src.scene.blueprint.push, src.scene.blueprint.unique, src.scene.blueprint.slice, src.scene.blueprint.test
+
+### py.f2md.src.f2md.converters.MarkItDownConverter.convert
+- **Calls**: py.f2md.src.f2md.detect.detect_document_kind, py.f2md.src.f2md.converters._clip, py.f2md.src.f2md.converters._stat_metadata, len, getattr, ConvertedDocument, ExternalConverterRequired, MarkItDown
+
+### py.f2md.src.f2md.chain.ConverterChain.convert
+- **Calls**: time.monotonic, enumerate, ExternalConverterRequired, os.path.isfile, ConversionError, os.path.splitext, int, document.with_routing
+
 ### src.dsl.observation.parseObservationDsl
 - **Calls**: src.dsl.observation.lines, src.dsl.observation.shift, src.dsl.observation.startsWith, src.dsl.observation.Error, src.dsl.observation.match, src.dsl.observation.slice, src.dsl.observation.trim, src.dsl.observation.push
 
-### src.runtime.living-project.index
-- **Calls**: src.runtime.living-project.filter, src.runtime.living-project.get, src.runtime.living-project.match, src.runtime.living-project.trim, src.runtime.living-project.parse, src.runtime.living-project.isArray, src.runtime.living-project.split, src.runtime.living-project.flatMap
-
-### src.runtime.query-runtime.QueryRuntime.execute
-- **Calls**: src.runtime.query-runtime.randomUUID, src.runtime.query-runtime.sha256, src.runtime.query-runtime.find, src.runtime.query-runtime.search, src.runtime.query-runtime.map, src.runtime.query-runtime.canonicalJson, src.runtime.query-runtime.contentUri, src.runtime.query-runtime.startsWith
-
-### src.dsl.query.parseQueryDsl
-- **Calls**: src.dsl.query.lines, src.dsl.query.startsWith, src.dsl.query.Error, src.dsl.query.slice, src.dsl.query.trim, src.dsl.query.kv, src.dsl.query.unquote, src.dsl.query.push
-
-### src.runtime.service-check.checkExternalServices
-- **Calls**: src.runtime.service-check.replace, src.runtime.service-check.timed, src.runtime.service-check.ClickHouseHttpProjection, src.runtime.service-check.query, src.runtime.service-check.parse, src.runtime.service-check.trim, src.runtime.service-check.push, src.runtime.service-check.String
-
-### src.adapters.todo2code.Todo2CodeAdapter.extractNl
-- **Calls**: src.adapters.todo2code.Todo2CodeAdapter.available, src.adapters.todo2code.Error, src.adapters.todo2code.mkdtemp, src.adapters.todo2code.join, src.adapters.todo2code.tmpdir, src.adapters.todo2code.writeFile, src.adapters.todo2code.run, src.adapters.todo2code.Todo2CodeAdapter.cwd
-
-### src.project.wizard.projectPath
-- **Calls**: src.project.wizard.startsWith, src.project.wizard.basename, src.project.wizard.replace, src.project.wizard.sha256, src.project.wizard.slice, src.project.wizard.join, src.project.wizard.mkdir, src.project.wizard.dirname
-
-### src.project.wizard.relativeCandidate
-- **Calls**: src.project.wizard.startsWith, src.project.wizard.basename, src.project.wizard.replace, src.project.wizard.sha256, src.project.wizard.slice, src.project.wizard.join, src.project.wizard.mkdir, src.project.wizard.dirname
-
-### src.project.wizard.addProjectWebsite
-- **Calls**: src.project.wizard.resolve, src.project.wizard.dirname, src.project.wizard.parseProjectDsl, src.project.wizard.readFile, src.project.wizard.URL, src.project.wizard.Error, src.project.wizard.stringify, src.project.wizard.toString
-
-### src.dsl.dql.parseDql
-- **Calls**: src.dsl.dql.lines, src.dsl.dql.match, src.dsl.dql.Error, src.dsl.dql.slice, src.dsl.dql.kv, src.dsl.dql.push, src.dsl.dql.list, src.dsl.dql.positiveInt
-
-### src.runtime.autonomy.acquireProjectLease
-- **Calls**: src.runtime.autonomy.join, src.runtime.autonomy.mkdir, src.runtime.autonomy.now, src.runtime.autonomy.stat, src.runtime.autonomy.Error, src.runtime.autonomy.rm, src.runtime.autonomy.acquire, src.runtime.autonomy.randomUUID
-
-### src.dsl.math.evaluateMath
-- **Calls**: src.dsl.math.Map, src.dsl.math.map, src.dsl.math.get, src.dsl.math.ev, src.dsl.math.Error, src.dsl.math.every, src.dsl.math.truth, src.dsl.math.some
-
-### scripts.demo-realtime-biofoundry.tmp
-- **Calls**: scripts.demo-realtime-biofoundry.mkdtemp, scripts.demo-realtime-biofoundry.join, scripts.demo-realtime-biofoundry.tmpdir, scripts.demo-realtime-biofoundry.rm, scripts.demo-realtime-biofoundry.cp, scripts.demo-realtime-biofoundry.BiofoundryRuntime, scripts.demo-realtime-biofoundry.build, scripts.demo-realtime-biofoundry.parse
-
-### src.dsl.improvement.parseImprovementDsl
-- **Calls**: src.dsl.improvement.lines, src.dsl.improvement.shift, src.dsl.improvement.match, src.dsl.improvement.Error, src.dsl.improvement.split, src.dsl.improvement.join, src.dsl.improvement.unquote, src.dsl.improvement.list
-
-### src.runtime.mutation-grant.consumeMutationGrantJti
-- **Calls**: src.runtime.mutation-grant.mkdir, src.runtime.mutation-grant.join, src.runtime.mutation-grant.sha256, src.runtime.mutation-grant.readFile, src.runtime.mutation-grant.parse, src.runtime.mutation-grant.isFinite, src.runtime.mutation-grant.open, src.runtime.mutation-grant.writeFile
-
-### src.adapters.document-converter.DoclingHttpAdapter.convert
-- **Calls**: src.adapters.document-converter.readFile, src.adapters.document-converter.FormData, src.adapters.document-converter.set, src.adapters.document-converter.Blob, src.adapters.document-converter.basename, src.adapters.document-converter.fetch, src.adapters.document-converter.replace, src.adapters.document-converter.timeout
-
-### src.runtime.mutation-pipeline.applyId
-- **Calls**: src.runtime.mutation-pipeline.join, src.runtime.mutation-pipeline.resolve, src.runtime.mutation-pipeline.applySourcePatch, src.runtime.mutation-pipeline.Date, src.runtime.mutation-pipeline.toISOString, src.runtime.mutation-pipeline.contentUri, src.runtime.mutation-pipeline.mkdir, src.runtime.mutation-pipeline.dirname
+### js.f2md.src.cli.main
+- **Calls**: js.f2md.src.cli.split, js.f2md.src.cli.map, js.f2md.src.cli.trim, js.f2md.src.cli.filter, js.f2md.src.cli.log, js.f2md.src.cli.startsWith, js.f2md.src.cli.error, js.f2md.src.cli.push
 
 ## Process Flows
 
@@ -216,50 +219,52 @@ main [src.cli.main]
 build [src.runtime.biofoundry.BiofoundryRuntime]
 ```
 
-### Flow 3: runResearcherDemo
+### Flow 3: convert
+```
+convert [py.f2md.src.f2md.converters.DoclingHttpConverter]
+  └─ →> detect_document_kind
+```
+
+### Flow 4: startDashboard
+```
+startDashboard [src.serve.dashboard]
+  └─> assetRoot
+```
+
+### Flow 5: runResearcherDemo
 ```
 runResearcherDemo [src.research.researcher]
 ```
 
-### Flow 4: crawl
+### Flow 6: crawl
 ```
 crawl [src.research.crawler.DqlCrawler]
 ```
 
-### Flow 5: runDemo
-```
-runDemo [src.runtime.pipeline]
-```
-
-### Flow 6: addProjectSource
-```
-addProjectSource [src.project.wizard]
-```
-
-### Flow 7: proposeCodeMutation
-```
-proposeCodeMutation [src.runtime.mutation-pipeline]
-```
-
-### Flow 8: applyCodeMutation
-```
-applyCodeMutation [src.runtime.mutation-pipeline]
-```
-
-### Flow 9: scanSources
+### Flow 7: scanSources
 ```
 scanSources [src.ingestion.scanner]
 ```
 
-### Flow 10: parseProjectDsl
+### Flow 8: runDemo
 ```
-parseProjectDsl [src.dsl.project]
+runDemo [src.runtime.pipeline]
+```
+
+### Flow 9: texts
+```
+texts [src.ingestion.scanner]
+```
+
+### Flow 10: converter
+```
+converter [src.ingestion.scanner]
 ```
 
 ## Key Classes
 
 ### src.runtime.living-project.LivingProjectRuntime
-- **Methods**: 65
+- **Methods**: 68
 - **Key Methods**: src.runtime.living-project.LivingProjectRuntime.load, src.runtime.living-project.LivingProjectRuntime.text, src.runtime.living-project.LivingProjectRuntime.iterate, src.runtime.living-project.LivingProjectRuntime.absolute, src.runtime.living-project.LivingProjectRuntime.project, src.runtime.living-project.LivingProjectRuntime.lease, src.runtime.living-project.LivingProjectRuntime.iterateWithLease, src.runtime.living-project.LivingProjectRuntime.startedAt, src.runtime.living-project.LivingProjectRuntime.traceId, src.runtime.living-project.LivingProjectRuntime.base
 
 ### src.adapters.todo2code.Todo2CodeAdapter
@@ -278,6 +283,14 @@ parseProjectDsl [src.dsl.project]
 - **Methods**: 12
 - **Key Methods**: src.runtime.living-watcher.LivingProjectWatcher.runOnce, src.runtime.living-watcher.LivingProjectWatcher.maxRetryMs, src.runtime.living-watcher.LivingProjectWatcher.schedule, src.runtime.living-watcher.LivingProjectWatcher.tick, src.runtime.living-watcher.LivingProjectWatcher.result, src.runtime.living-watcher.LivingProjectWatcher.schedule, src.runtime.living-watcher.LivingProjectWatcher.project, src.runtime.living-watcher.LivingProjectWatcher.failureExponent, src.runtime.living-watcher.LivingProjectWatcher.retryAfterMs, src.runtime.living-watcher.LivingProjectWatcher.failure
 
+### js.f2md.src.converters.MammothConverter
+- **Methods**: 9
+- **Key Methods**: js.f2md.src.converters.MammothConverter.convert, js.f2md.src.converters.MammothConverter.kind, js.f2md.src.converters.MammothConverter.mammoth, js.f2md.src.converters.MammothConverter.convertToHtml, js.f2md.src.converters.MammothConverter.warnings, js.f2md.src.converters.MammothConverter.htmlToDocument, js.f2md.src.converters.MammothConverter.mod, js.f2md.src.converters.MammothConverter.Turndown, js.f2md.src.converters.MammothConverter.clipped
+
+### js.f2md.src.chain.ConverterChain
+- **Methods**: 8
+- **Key Methods**: js.f2md.src.chain.ConverterChain.convert, js.f2md.src.chain.ConverterChain.started, js.f2md.src.chain.ConverterChain.lastKind, js.f2md.src.chain.ConverterChain.document, js.f2md.src.chain.ConverterChain.defaultChain, js.f2md.src.chain.ConverterChain.url, js.f2md.src.chain.ConverterChain.convert, js.f2md.src.chain.ConverterChain.convertToMarkdown
+
 ### src.llm.nl-dsl-compiler.NlDslCompiler
 - **Methods**: 6
 - **Key Methods**: src.llm.nl-dsl-compiler.NlDslCompiler.compile, src.llm.nl-dsl-compiler.NlDslCompiler.started, src.llm.nl-dsl-compiler.NlDslCompiler.contract, src.llm.nl-dsl-compiler.NlDslCompiler.response, src.llm.nl-dsl-compiler.NlDslCompiler.deterministic, src.llm.nl-dsl-compiler.NlDslCompiler.value
@@ -285,6 +298,22 @@ parseProjectDsl [src.dsl.project]
 ### src.adapters.twin-probes.TwinProbesAdapter
 - **Methods**: 6
 - **Key Methods**: src.adapters.twin-probes.TwinProbesAdapter.available, src.adapters.twin-probes.TwinProbesAdapter.loadCycle, src.adapters.twin-probes.TwinProbesAdapter.cycle, src.adapters.twin-probes.TwinProbesAdapter.run, src.adapters.twin-probes.TwinProbesAdapter.out, src.adapters.twin-probes.TwinProbesAdapter.writeSummary
+
+### src.adapters.clickhouse.InMemorySearchProjection
+- **Methods**: 6
+- **Key Methods**: src.adapters.clickhouse.InMemorySearchProjection.upsert, src.adapters.clickhouse.InMemorySearchProjection.search, src.adapters.clickhouse.InMemorySearchProjection.all, src.adapters.clickhouse.InMemorySearchProjection.sqlString, src.adapters.clickhouse.InMemorySearchProjection.clickHouseDateTime64, src.adapters.clickhouse.InMemorySearchProjection.at
+
+### js.f2md.src.converters.TextConverter
+- **Methods**: 5
+- **Key Methods**: js.f2md.src.converters.TextConverter.convert, js.f2md.src.converters.TextConverter.kind, js.f2md.src.converters.TextConverter.raw, js.f2md.src.converters.TextConverter.text, js.f2md.src.converters.TextConverter.fence
+
+### js.f2md.src.converters.LocalToolConverter
+- **Methods**: 5
+- **Key Methods**: js.f2md.src.converters.LocalToolConverter.code, js.f2md.src.converters.LocalToolConverter.detail, js.f2md.src.converters.LocalToolConverter.text, js.f2md.src.converters.LocalToolConverter.convert, js.f2md.src.converters.LocalToolConverter.kind
+
+### js.f2md.src.converters.DoclingHttpConverter
+- **Methods**: 5
+- **Key Methods**: js.f2md.src.converters.DoclingHttpConverter.convert, js.f2md.src.converters.DoclingHttpConverter.kind, js.f2md.src.converters.DoclingHttpConverter.bytes, js.f2md.src.converters.DoclingHttpConverter.form, js.f2md.src.converters.DoclingHttpConverter.response
 
 ### src.runtime.event-store.InMemoryEventStore
 - **Methods**: 4
@@ -298,41 +327,25 @@ parseProjectDsl [src.dsl.project]
 - **Methods**: 4
 - **Key Methods**: src.runtime.realtime-watcher.RealtimeTwinWatcher.runOnce, src.runtime.realtime-watcher.RealtimeTwinWatcher.start, src.runtime.realtime-watcher.RealtimeTwinWatcher.tick, src.runtime.realtime-watcher.RealtimeTwinWatcher.stop
 
-### src.adapters.clickhouse.InMemorySearchProjection
-- **Methods**: 4
-- **Key Methods**: src.adapters.clickhouse.InMemorySearchProjection.upsert, src.adapters.clickhouse.InMemorySearchProjection.search, src.adapters.clickhouse.InMemorySearchProjection.all, src.adapters.clickhouse.InMemorySearchProjection.sqlString
-
 ### src.adapters.clickhouse.ClickHouseHttpProjection
 - **Methods**: 4
 - **Key Methods**: src.adapters.clickhouse.ClickHouseHttpProjection.query, src.adapters.clickhouse.ClickHouseHttpProjection.upsert, src.adapters.clickhouse.ClickHouseHttpProjection.search, src.adapters.clickhouse.ClickHouseHttpProjection.all
 
-### src.research.crawler.DqlCrawler
-- **Methods**: 2
-- **Key Methods**: src.research.crawler.DqlCrawler.crawl, src.research.crawler.DqlCrawler.robots
+### py.f2md.src.f2md.translate.OpenRouterTranslator
+> Hosted LLM translation. The text leaves this machine — never use for confidential input.
+- **Methods**: 4
+- **Key Methods**: py.f2md.src.f2md.translate.OpenRouterTranslator.__init__, py.f2md.src.f2md.translate.OpenRouterTranslator.available, py.f2md.src.f2md.translate.OpenRouterTranslator._call, py.f2md.src.f2md.translate.OpenRouterTranslator.translate
 
-### src.adapters.document-converter.DeterministicMarkdownConverter
-- **Methods**: 1
-- **Key Methods**: src.adapters.document-converter.DeterministicMarkdownConverter.convert
+### js.f2md.src.converters.TurndownConverter
+- **Methods**: 3
+- **Key Methods**: js.f2md.src.converters.TurndownConverter.convert, js.f2md.src.converters.TurndownConverter.kind, js.f2md.src.converters.TurndownConverter.html
 
-### src.adapters.document-converter.DoclingHttpAdapter
-- **Methods**: 1
-- **Key Methods**: src.adapters.document-converter.DoclingHttpAdapter.convert
+### py.f2md.src.f2md.converters.LocalToolConverter
+> `pdftotext` (poppler) and `pandoc`, so PDFs and Office files work with no daemon.
 
-### src.adapters.document-converter.CompositeDocumentConverter
-- **Methods**: 1
-- **Key Methods**: src.adapters.document-converter.CompositeDocumentConverter.convert
-
-### src.research.crawler.CrawledPage
-- **Methods**: 0
-
-### src.research.crawler.CrawlResult
-- **Methods**: 0
-
-### src.runtime.biofoundry.BiofoundryConfig
-- **Methods**: 0
-
-### src.runtime.biofoundry.ManagerPolicy
-- **Methods**: 0
+Both are looked u
+- **Methods**: 3
+- **Key Methods**: py.f2md.src.f2md.converters.LocalToolConverter.__init__, py.f2md.src.f2md.converters.LocalToolConverter._run, py.f2md.src.f2md.converters.LocalToolConverter.convert
 
 ## Data Transformation Functions
 
@@ -344,10 +357,43 @@ Key functions that process and transform data:
 ### src.research.crawler.decode
 - **Output to**: src.research.crawler.replace
 
+### src.runtime.service-check.parsed
+- **Output to**: src.runtime.service-check.parse, src.runtime.service-check.trim
+
+### src.runtime.autonomy.validateTwinGrounding
+- **Output to**: src.runtime.autonomy.Error, src.runtime.autonomy.Set, src.runtime.autonomy.map, src.runtime.autonomy.flattenComponents, src.runtime.autonomy.flatMap
+
+### src.runtime.autonomy.validateSceneGrounding
+- **Output to**: src.runtime.autonomy.Error, src.runtime.autonomy.Set, src.runtime.autonomy.flattenComponents, src.runtime.autonomy.map, src.runtime.autonomy.contentUri
+
+### src.runtime.mutation-grant.parseB64urlJson
+- **Output to**: src.runtime.mutation-grant.parse, src.runtime.mutation-grant.from, src.runtime.mutation-grant.toString
+
 ### src.llm.openrouter.OpenRouterStructuredClient.responseFormat
+
+### src.llm.dsl-schemas.validateResourcePlan
+- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.Error, src.llm.dsl-schemas.isArray, src.llm.dsl-schemas.map
+
+### src.llm.dsl-schemas.validateTwinEnvelope
+- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.isArray, src.llm.dsl-schemas.map, src.llm.dsl-schemas.validateTwin
+
+### src.llm.dsl-schemas.validateSceneEnvelope
+- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.keys, src.llm.dsl-schemas.includes, src.llm.dsl-schemas.Error
+
+### src.adapters.twin-probes.validateAutonomCycle
+- **Output to**: src.adapters.twin-probes.object, src.adapters.twin-probes.Error, src.adapters.twin-probes.trim, src.adapters.twin-probes.isArray, src.adapters.twin-probes.every
+
+### src.adapters.todo2code.processHandle
+- **Output to**: src.adapters.todo2code.spawn
 
 ### src.dsl.intent.validateT2cIntent
 - **Output to**: src.dsl.intent.isArray, src.dsl.intent.Error, src.dsl.intent.map
+
+### src.dsl.improvement.parseImprovementDsl
+- **Output to**: src.dsl.improvement.lines, src.dsl.improvement.shift, src.dsl.improvement.match, src.dsl.improvement.Error, src.dsl.improvement.split
+
+### src.dsl.improvement.validateImprovement
+- **Output to**: src.dsl.improvement.isArray, src.dsl.improvement.Error, src.dsl.improvement.keys, src.dsl.improvement.includes, src.dsl.improvement.every
 
 ### src.dsl.query.parseQueryDsl
 - **Output to**: src.dsl.query.lines, src.dsl.query.startsWith, src.dsl.query.Error, src.dsl.query.slice, src.dsl.query.trim
@@ -361,27 +407,6 @@ Key functions that process and transform data:
 ### src.dsl.tree.parseTreeDsl
 - **Output to**: src.dsl.tree.lines, src.dsl.tree.match, src.dsl.tree.Error, src.dsl.tree.split, src.dsl.tree.slice
 
-### src.dsl.scene.validateScene
-- **Output to**: src.dsl.scene.includes, src.dsl.scene.Error, src.dsl.scene.startsWith, src.dsl.scene.has, src.dsl.scene.add
-
-### src.dsl.dql.parseDql
-- **Output to**: src.dsl.dql.lines, src.dsl.dql.match, src.dsl.dql.Error, src.dsl.dql.slice, src.dsl.dql.kv
-
-### deploy.docling.server.convert
-- **Output to**: app.post, pathlib.Path, tempfile.NamedTemporaryFile, f.write, f.flush
-
-### src.dsl.improvement.parseImprovementDsl
-- **Output to**: src.dsl.improvement.lines, src.dsl.improvement.shift, src.dsl.improvement.match, src.dsl.improvement.Error, src.dsl.improvement.split
-
-### src.dsl.improvement.validateImprovement
-- **Output to**: src.dsl.improvement.isArray, src.dsl.improvement.Error, src.dsl.improvement.keys, src.dsl.improvement.includes, src.dsl.improvement.every
-
-### src.runtime.mutation-grant.parseB64urlJson
-- **Output to**: src.runtime.mutation-grant.parse, src.runtime.mutation-grant.from, src.runtime.mutation-grant.toString
-
-### src.runtime.service-check.parsed
-- **Output to**: src.runtime.service-check.parse, src.runtime.service-check.trim
-
 ### src.dsl.observation.parseValue
 - **Output to**: src.dsl.observation.trim, src.dsl.observation.test, src.dsl.observation.Number, src.dsl.observation.parse, src.dsl.observation.unquote
 
@@ -391,71 +416,59 @@ Key functions that process and transform data:
 ### src.dsl.observation.validateObservation
 - **Output to**: src.dsl.observation.isArray, src.dsl.observation.Error, src.dsl.observation.keys, src.dsl.observation.includes, src.dsl.observation.test
 
-### src.adapters.document-converter.DeterministicMarkdownConverter.convert
-- **Output to**: src.adapters.document-converter.extname, src.adapters.document-converter.toLowerCase, src.adapters.document-converter.includes, src.adapters.document-converter.Error, src.adapters.document-converter.readFile
+### src.dsl.scene.validateScene
+- **Output to**: src.dsl.scene.includes, src.dsl.scene.Error, src.dsl.scene.startsWith, src.dsl.scene.has, src.dsl.scene.add
 
-### src.adapters.document-converter.DoclingHttpAdapter.convert
-- **Output to**: src.adapters.document-converter.readFile, src.adapters.document-converter.FormData, src.adapters.document-converter.set, src.adapters.document-converter.Blob, src.adapters.document-converter.basename
+### src.dsl.dql.parseDql
+- **Output to**: src.dsl.dql.lines, src.dsl.dql.match, src.dsl.dql.Error, src.dsl.dql.slice, src.dsl.dql.kv
 
-### src.adapters.document-converter.CompositeDocumentConverter.convert
-- **Output to**: src.adapters.document-converter.startsWith
-
-### src.llm.dsl-schemas.validateResourcePlan
-- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.Error, src.llm.dsl-schemas.isArray, src.llm.dsl-schemas.map
-
-### src.llm.dsl-schemas.validateTwinEnvelope
-- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.isArray, src.llm.dsl-schemas.map, src.llm.dsl-schemas.validateTwin
-
-### src.llm.dsl-schemas.validateSceneEnvelope
-- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.keys, src.llm.dsl-schemas.includes, src.llm.dsl-schemas.Error
-
-### src.adapters.todo2code.processHandle
-- **Output to**: src.adapters.todo2code.spawn
+### deploy.docling.server.convert
+- **Output to**: app.post, pathlib.Path, tempfile.NamedTemporaryFile, f.write, f.flush
 
 ## Public API Surface
 
 Functions exposed as public API (no underscore prefix):
 
-- `src.cli.main.main` - 55 calls
-- `src.runtime.living-project.LivingProjectRuntime.iterateWithLease` - 55 calls
+- `py.f2md.src.f2md.tree.convert_tree` - 66 calls
+- `src.cli.main.main` - 64 calls
+- `src.runtime.living-project.LivingProjectRuntime.iterateWithLease` - 58 calls
 - `src.runtime.biofoundry.BiofoundryRuntime.build` - 38 calls
+- `py.f2md.src.f2md.cli.main` - 37 calls
+- `py.f2md.src.f2md.converters.DoclingHttpConverter.convert` - 34 calls
+- `src.serve.dashboard.startDashboard` - 33 calls
 - `src.research.researcher.runResearcherDemo` - 29 calls
 - `src.research.crawler.DqlCrawler.crawl` - 26 calls
+- `src.ingestion.scanner.scanSources` - 26 calls
+- `py.f2md.src.f2md.converters.PyMuPDFConverter.convert` - 26 calls
 - `src.runtime.pipeline.runDemo` - 24 calls
+- `src.ingestion.scanner.texts` - 24 calls
+- `src.ingestion.scanner.converter` - 24 calls
 - `src.project.wizard.addProjectSource` - 24 calls
 - `src.runtime.mutation-pipeline.proposeCodeMutation` - 23 calls
 - `src.runtime.mutation-pipeline.applyCodeMutation` - 22 calls
-- `src.ingestion.scanner.scanSources` - 21 calls
+- `src.serve.dashboard.server` - 22 calls
+- `js.f2md.src.tree.convertTree` - 22 calls
+- `src.ingestion.scanner.absolute` - 22 calls
+- `src.ingestion.scanner.s` - 22 calls
+- `src.ingestion.scanner.files` - 22 calls
 - `src.dsl.project.parseProjectDsl` - 20 calls
-- `src.scene.openusd.renderOpenUsd` - 17 calls
-- `src.scene.openusd.components` - 17 calls
-- `src.project.wizard.createLivingProject` - 17 calls
+- `src.scene.physical-evidence.applyPhysicalEvidence` - 19 calls
+- `src.project.wizard.createLivingProject` - 18 calls
+- `src.core.json-schema.checkJsonSchema` - 17 calls
+- `js.f2md.src.tree.paths` - 17 calls
+- `js.f2md.src.converters.DoclingHttpConverter.convert` - 17 calls
+- `src.scene.blueprint.materializeBlueprintTwin` - 17 calls
+- `py.f2md.src.f2md.converters.MarkItDownConverter.convert` - 17 calls
 - `src.runtime.living-project.observationsFromResources` - 16 calls
+- `py.f2md.src.f2md.chain.ConverterChain.convert` - 16 calls
 - `src.dsl.observation.parseObservationDsl` - 15 calls
+- `js.f2md.src.cli.main` - 15 calls
 - `src.runtime.living-project.index` - 15 calls
 - `src.research.crawler.htmlToMarkdown` - 14 calls
+- `src.runtime.service-check.checkExternalServices` - 14 calls
 - `src.runtime.query-runtime.QueryRuntime.execute` - 14 calls
 - `src.llm.openrouter.OpenRouterStructuredClient.request` - 14 calls
-- `src.dsl.query.parseQueryDsl` - 14 calls
-- `src.runtime.service-check.checkExternalServices` - 14 calls
 - `src.adapters.todo2code.Todo2CodeAdapter.extractNl` - 14 calls
-- `src.project.wizard.projectPath` - 14 calls
-- `src.project.wizard.relativeCandidate` - 14 calls
-- `src.project.wizard.addProjectWebsite` - 14 calls
-- `src.dsl.dql.parseDql` - 13 calls
-- `src.runtime.autonomy.acquireProjectLease` - 13 calls
-- `src.dsl.math.evaluateMath` - 12 calls
-- `scripts.demo-realtime-biofoundry.tmp` - 12 calls
-- `src.dsl.improvement.parseImprovementDsl` - 12 calls
-- `src.runtime.mutation-grant.consumeMutationGrantJti` - 12 calls
-- `src.adapters.document-converter.DoclingHttpAdapter.convert` - 12 calls
-- `src.runtime.mutation-pipeline.applyId` - 12 calls
-- `src.runtime.autonomy.leaseDirectory` - 12 calls
-- `src.llm.openrouter.OpenRouterStructuredClient.controller` - 11 calls
-- `src.dsl.math.expr` - 11 calls
-- `src.dsl.math.renderMathDsl` - 11 calls
-- `src.dsl.tree.parseTreeDsl` - 11 calls
-- `src.dsl.observation.validateObservation` - 11 calls
 
 ## System Interactions
 
@@ -473,6 +486,18 @@ graph TD
     build --> Error
     build --> map
     build --> scanSources
+    main --> ArgumentParser
+    main --> add_argument
+    convert --> detect_document_kind
+    convert --> basename
+    convert --> encode
+    convert --> Request
+    convert --> get
+    startDashboard --> assetRoot
+    startDashboard --> join
+    startDashboard --> resolve
+    startDashboard --> LivingProjectRuntime
+    startDashboard --> all
     runResearcherDemo --> mkdir
     runResearcherDemo --> parse
     runResearcherDemo --> readFile
@@ -481,18 +506,6 @@ graph TD
     crawl --> shift
     crawl --> URL
     crawl --> includes
-    crawl --> toLowerCase
-    crawl --> Error
-    runDemo --> mkdir
-    runDemo --> DeterministicMarkdow
-    runDemo --> InMemorySearchProjec
-    runDemo --> readdir
-    runDemo --> join
-    addProjectSource --> resolve
-    addProjectSource --> dirname
-    addProjectSource --> parseProjectDsl
-    addProjectSource --> readFile
-    addProjectSource --> exists
 ```
 
 ## Reverse Engineering Guidelines

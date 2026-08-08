@@ -1,4 +1,6 @@
 import type { GenerationAudit, LlmMode } from "../core/types.js";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
 export interface OpenRouterConfig {
   apiKey: string;
@@ -19,7 +21,21 @@ type FetchLike = typeof fetch;
 
 function envInt(name:string,fallback:number):number { const n=Number(process.env[name]);return Number.isFinite(n)&&n>0?Math.trunc(n):fallback; }
 function envBool(name:string,fallback=false):boolean { const v=process.env[name];return v===undefined?fallback:/^(1|true|yes)$/i.test(v); }
+/** Load local development secrets without overwriting an explicitly exported variable. */
+export function loadDotEnv():void {
+  for(const file of [join(process.cwd(),".env"),join(process.cwd(),"twin-dsl",".env")]) {
+    try {
+      for(const line of readFileSync(file,"utf8").split(/\r?\n/)) {
+        const match=line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+        if(!match || match[1] in process.env) continue;
+        const value=match[2].replace(/^(['"])(.*)\1$/,"$2");
+        process.env[match[1]]=value;
+      }
+    } catch { /* .env is optional; production should use the process environment */ }
+  }
+}
 export function openRouterConfigFromEnv():OpenRouterConfig{return{
+  ...(() => { loadDotEnv(); return {}; })(),
   apiKey:process.env.OPENROUTER_API_KEY??'',
   baseUrl:(process.env.OPENROUTER_BASE_URL??'https://openrouter.ai/api/v1').replace(/\/$/,''),
   model:process.env.OPENROUTER_MODEL??'mistralai/codestral-2508',

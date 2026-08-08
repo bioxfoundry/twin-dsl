@@ -1,5 +1,5 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { dirname, resolve, join } from "node:path";
 import type { DslKind, LlmMode, SourceRole } from "../core/types.js";
 import { runDemo } from "../runtime/pipeline.js";
 import { runResearcherDemo } from "../research/researcher.js";
@@ -24,6 +24,7 @@ import { renderOpenUsd } from "../scene/openusd.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
 import type { SceneDocument, TwinDocument } from "../core/types.js";
+import { diagnoseDigitalTwin, writeDiagnostics } from "../runtime/digital-twin-diagnostics.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -43,6 +44,23 @@ async function main():Promise<void>{
   if(cmd==='project-add-website'){const[config,url,...terms]=args;if(!config||!url)throw new Error('usage: project-add-website <project.projectdsl> <url> [context terms]');console.log(JSON.stringify(await addProjectWebsite(config,url,terms.join(' ').split(',').map(x=>x.trim()).filter(Boolean)),null,2));return;}
   if(cmd==='project-verify'){const[config='project.projectdsl']=args;const result=await verifyLivingProject(config);console.log(JSON.stringify(result,null,2));if(!result.ok)process.exitCode=1;return;}
   if(cmd==='project-status'){const[out='.living-runtime']=args;const latest=await json(`${out}/latest.json`).catch(()=>null),failures=await readFile(`${out}/dead-letter.jsonl`,'utf8').then(x=>x.trim().split(/\r?\n/).filter(Boolean).slice(-10).map(line=>JSON.parse(line))).catch(()=>[]),improvement=await json(`${out}/candidate/improvement.json`).catch(()=>null),mutation=await json(`${out}/mutations/latest.json`).catch(()=>null);console.log(JSON.stringify({latest,failures,improvement,mutation},null,2));return;}
+  if(cmd==='project-diagnose'){
+    const[sourceRoot,markdownRoot,dslRoot,runtimeRoot=`.living-runtime`,out=`${runtimeRoot}/current/digital-twin-diagnostics.json`]=args;
+    if(!sourceRoot||!markdownRoot||!dslRoot)throw new Error('usage: project-diagnose <source-root> <markdown-root> <dsl-root> [runtime-root] [report.json]');
+    const report=await diagnoseDigitalTwin({sourceRoot:resolve(sourceRoot),markdownRoot:resolve(markdownRoot),dslRoot:resolve(dslRoot),runtimeRoot:resolve(runtimeRoot),dashboardSource:resolve('public/dashboard.html')});
+    await writeDiagnostics(resolve(out),report);console.log(JSON.stringify(report,null,2));if(report.status==='error')process.exitCode=1;return;
+  }
+  if(cmd==='project-autonomous'){
+    const[config='project.projectdsl',out='.living-runtime',mode='prefer-llm',interval='60000',sourceRoot,markdownRoot,dslRoot]=args;
+    const runtime=new LivingProjectRuntime(); let busy=false;
+    const cycle=async():Promise<void>=>{if(busy)return;busy=true;try{
+      const iteration=await runtime.iterate(resolve(config),resolve(out),mode as LlmMode);
+      const report=(sourceRoot&&markdownRoot&&dslRoot)?await diagnoseDigitalTwin({sourceRoot:resolve(sourceRoot),markdownRoot:resolve(markdownRoot),dslRoot:resolve(dslRoot),runtimeRoot:resolve(out),dashboardSource:resolve('public/dashboard.html')}):null;
+      if(report)await writeDiagnostics(join(resolve(out),'current/digital-twin-diagnostics.json'),report);
+      console.log(JSON.stringify({autonomous:true,iteration,diagnostics:report?.summary??null}));
+    }catch(error){console.error(JSON.stringify({autonomous:true,error:error instanceof Error?error.message:String(error)}));}finally{busy=false;}};
+    await cycle();const timer=setInterval(()=>void cycle(),Math.max(5000,Number(interval)||60000));const stop=():void=>{clearInterval(timer);process.exit(0);};process.once('SIGINT',stop);process.once('SIGTERM',stop);return;
+  }
   if(cmd==='project-iterate'){const[config='project.projectdsl',out='.living-runtime',mode='deterministic']=args;console.log(JSON.stringify(await new LivingProjectRuntime().iterate(config,out,mode as LlmMode),null,2));return;}
   if(cmd==='project-watch'){const[config='project.projectdsl',out='.living-runtime',mode='prefer-llm']=args;const watcher=new LivingProjectWatcher();watcher.start(config,out,mode as LlmMode,Number(process.env.DT_WATCH_INTERVAL_MS??5000),r=>console.log(JSON.stringify(r)));process.once('SIGINT',()=>{watcher.stop();process.exit(0);});process.once('SIGTERM',()=>{watcher.stop();process.exit(0);});return;}
   if(cmd==='grant-issue'){
@@ -107,13 +125,14 @@ async function main():Promise<void>{
     await save(`${outDir}/twin.json`,result.twin);
     await save(`${outDir}/scene.json`,result.scene);
     await save(`${outDir}/physical-evidence.report.json`,result.report);
+    await save(`${outDir}/geometry-validation.json`,result.geometryValidation);
     await mkdir(outDir,{recursive:true});
     await writeFile(`${outDir}/scene.usda`,renderOpenUsd(result.scene,result.twin));
-    console.log(JSON.stringify(result.report,null,2));
-    if(result.report.rejected.length)process.exitCode=1;
+    console.log(JSON.stringify({physicalEvidence:result.report,geometryValidation:result.geometryValidation},null,2));
+    if(result.report.rejected.length||!result.geometryValidation.ok)process.exitCode=1;
     return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
 }
 await main();

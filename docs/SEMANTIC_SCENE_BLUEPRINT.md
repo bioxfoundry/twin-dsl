@@ -60,3 +60,26 @@ A state change may change:
 - observation values.
 
 It should **not** change semantic component IDs or scene paths unless the blueprint itself changes.
+
+## Matching against an f2md corpus
+
+`pathIncludes` / `pathExcludes` are substring tests over `sourcePath + logicalUri + id + labels`, so
+they behave the same on a binary corpus and on the Markdown mirror `f2md --tree` produces: the
+mirror keeps the original extension before `.md`, and `lid_UNF.step.md` still contains `step`.
+
+One derived property does **not** survive that translation. `cadAssetCount` / `cadAssets` come from
+an end-anchored extension test in `src/scene/blueprint.ts`:
+
+```ts
+/\.(step|stp|stl|f3d|scad|glb|usda)$/i.test(r.sourcePath) || /cad|zip-entry/i.test(r.sourcePath)
+```
+
+Every file in an f2md tree ends in `.md`, so the first branch never fires and only the literal
+substring `cad` in the path can classify an asset. Components whose CAD happens to sit under a
+directory named `CAD files` are counted; components whose parts sit elsewhere are not. Measured on
+`nanobionic-laboratory-md`: `biospec_bioreactor_01` reports 19 CAD assets, while
+`bioprinter_mos3s_01` reports none despite 16 `*.stl.md` parts under `IV. 3D microfluidic
+bioprinting/mmc2/`.
+
+Allowing the mirrored suffix — `/\.(step|stp|stl|f3d|scad|glb|usda)(\.md)?$/i` — makes the two
+corpora agree. Component identity is unaffected either way; only the reported asset count is.

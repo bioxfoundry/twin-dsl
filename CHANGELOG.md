@@ -1,6 +1,190 @@
 # Changelog
 
-## [Unreleased] - 2026-08-07
+## [Unreleased] - 2026-08-08
+
+### Fixed
+- Fix ast-sorted-imports issues (ticket-a66ce302)
+- Fix ast-missing-return-type issues (ticket-db4bd1e8)
+- Fix ruff-sorted-imports issues (ticket-6efe5406)
+- Fix smart-return-type issues (ticket-6e41a4fe)
+- Fix import-optimization issues (ticket-beb6ea71)
+- Fix ast-sorted-imports issues (ticket-14a0d2b1)
+- Fix ast-missing-return-type issues (ticket-1768316a)
+- Fix ruff-sorted-imports issues (ticket-d8f9b94c)
+- Fix smart-return-type issues (ticket-51ee4182)
+- Fix import-optimization issues (ticket-4149d3ed)
+- Fix ast-sorted-imports issues (ticket-6086ee9d)
+- Fix ast-missing-return-type issues (ticket-a44ba391)
+- Fix ruff-sorted-imports issues (ticket-cadce839)
+- Fix smart-return-type issues (ticket-e07494f4)
+- Fix import-optimization issues (ticket-8b13a479)
+- Fix relative-imports issues (ticket-939493a6)
+- Fix ast-unused-imports issues (ticket-d890c16f)
+- Fix ast-sorted-imports issues (ticket-3c9f1f73)
+- Fix ruff-sorted-imports issues (ticket-1ed89356)
+- Fix import-optimization issues (ticket-64abd0d6)
+- Fix no-relative-imports issues (ticket-0f048ade)
+- Fix relative-imports issues (ticket-3062e250)
+- Fix ast-unused-imports issues (ticket-2111b556)
+- Fix ast-sorted-imports issues (ticket-0b24e836)
+- Fix no-relative-imports issues (ticket-9f47dfd1)
+- Fix relative-imports issues (ticket-8446bf5a)
+- Fix ast-unused-imports issues (ticket-feecd95a)
+- Fix ast-sorted-imports issues (ticket-9d9ce8d8)
+- Fix ast-print-statements issues (ticket-5d088ffe)
+- Fix ruff-print-statements issues (ticket-d8810eac)
+- Fix ai-boilerplate issues (ticket-35b197b0)
+- Fix import-optimization issues (ticket-d38231f7)
+- Fix no-relative-imports issues (ticket-843fb4a9)
+- Fix ast-unused-imports issues (ticket-f0aca0fa)
+- Fix import-optimization issues (ticket-aea81bf5)
+- Fix relative-imports issues (ticket-f542174a)
+- Fix ast-unused-imports issues (ticket-bad016a3)
+- Fix ast-sorted-imports issues (ticket-1d0dbe39)
+- Fix string-concat-fstring issues (ticket-7b87d701)
+- Fix magic-numbers issues (ticket-491fde45)
+- Fix import-optimization issues (ticket-67c59b94)
+- Fix no-relative-imports issues (ticket-7d23f762)
+- Fix relative-imports issues (ticket-5d920f61)
+- Fix ast-unused-imports issues (ticket-64978555)
+- Fix ast-sorted-imports issues (ticket-d429c339)
+- Fix ast-string-concat issues (ticket-26238385)
+- Fix string-concat-fstring issues (ticket-d418a18d)
+- Fix magic-numbers issues (ticket-d0095c81)
+- Fix import-optimization issues (ticket-d0010dc2)
+- Fix no-relative-imports issues (ticket-c9f68d0e)
+- Fix relative-imports issues (ticket-f2541169)
+- Fix ast-unused-imports issues (ticket-9585a50a)
+- Fix ast-sorted-imports issues (ticket-92a61418)
+- Fix ast-string-concat issues (ticket-c8f5a4f0)
+- Fix string-concat-fstring issues (ticket-2e735b76)
+- Fix magic-numbers issues (ticket-bee5c514)
+- Fix import-optimization issues (ticket-100f330b)
+- Fix no-relative-imports issues (ticket-050eccbb)
+- Fix ast-unused-imports issues (ticket-ca2d94e9)
+- Fix import-optimization issues (ticket-febb2b06)
+
+## [0.5.2] - 2026-08-08
+
+### Docs
+- Update CHANGELOG.md
+- Update README.md
+- Update TODO.md
+- Update docs/AUDIT_AND_INTENT_VALIDATION.md
+- Update docs/DASHBOARD.md
+- Update docs/DSL_SPEC.md
+- Update docs/NEXT_TEST_PLAN.md
+- Update docs/PHYSICAL_EVIDENCE_INTAKE.md
+- Update docs/SEMANTIC_SCENE_BLUEPRINT.md
+- Update js/f2md/README.md
+- ... and 3 more files
+
+### Test
+- Update test/dashboard.test.ts
+- Update test/geometry-validation.test.ts
+- Update test/openusd-render.test.ts
+- Update test/physical-evidence.test.ts
+- Update test/scanner-testql.test.ts
+
+### Other
+- Update .env.example
+- Update app.doql.less
+- Update img_3.png
+- Update js/f2md/src/chain.ts
+- Update js/f2md/src/converters.ts
+- Update js/f2md/src/index.ts
+- Update planfile.yaml
+- Update project/analysis.toon.yaml
+- Update project/calls.mmd
+- Update project/calls.png
+- ... and 40 more files
+
+## [Unreleased]
+
+Covers everything after 0.5.1. Newest entries first.
+
+## 2026-08-08 — defect fixes (unreleased)
+
+### Fixed
+
+- **Intake no longer destroys established evidence.** `POST /api/intake` replaced
+  `baseline/physical-evidence.json` wholesale before the runtime validated it, so the
+  `placeholder < document < measured < cad < ifc < verified` rule held only *within* one
+  document. A rejected — or merely smaller — intake discarded every previously applied record
+  and reverted those components to `placeholder`, while still answering 200. Reproduced against
+  the live service: six hardened components lost at once.
+  The handler now judges the posted document on its own against the live twin, writes **only
+  accepted records**, merged by `componentId` onto what the project already holds, and answers
+  **422** without writing when nothing was accepted. The pre-check receives `allowedAssetUris`
+  from `current/resources.json`, so `ASSET_NOT_GROUNDED` is caught before any write rather than
+  only inside the runtime. Partial application is unchanged: valid records still apply while
+  invalid ones are reported.
+- **`cadAssetCount` sees f2md corpora.** The extension test was anchored on the true end of the
+  name, which never matches a mirror where every file ends in `.md`; CAD parts were counted only
+  when the path happened to contain the substring `cad`. `bioprinter_mos3s_01` reported none
+  despite 14 `*.stl.md` parts. It now reports 14, `microfluidic_assembly_01` 14 and
+  `biospec_bioreactor_01` 19. Prose such as `installation-steps.md` is still not geometry.
+- **A hardened component stops advertising its placeholder.** `applyPhysicalEvidence` updated
+  geometry but not `label`, so the dashboard showed an `ifc` badge beside "Facility envelope
+  (placeholder 60×36 m)" and a real 58.2 × 34.6 m. The placeholder clause is now dropped when
+  evidence supersedes it; the component name survives, and identity (`componentId`, `scenePath`)
+  is untouched.
+- **A runtime fix now reaches existing projects.** Iterations were skipped whenever the four
+  input hashes matched, and the runtime was not part of that key — so a change to how the twin
+  is *derived* from unchanged inputs never propagated: the fix shipped, every hash stayed
+  identical, and every existing twin kept the old values. `RUNTIME_GENERATION`
+  (`src/core/generation.ts`) now participates in the short-circuit; `DT_FORCE_ITERATION=1`
+  forces a re-derivation without bumping it. Found while verifying the `cadAssetCount` fix,
+  which silently did not apply.
+- **`/api/intake` race**: `busy` is claimed before the first `await`, so two concurrent posts no
+  longer both pass the guard.
+- **`alert()` removed** from the dashboard in favour of an inline status line; a modal froze the
+  event loop, stalling the 5 s refresh and any automation driving the page.
+- **`engines.node`** relaxed from `>=22` to `>=20.19`, matching the version `verify` demonstrably
+  passes on.
+
+### Tests
+
+58 Node tests (was 55). New regressions pin: evidence accumulating across intakes with a fully
+rejected document changing nothing; CAD detection across a binary corpus and its Markdown
+mirror; and placeholder-claim removal leaving honest labels alone.
+
+## 2026-08-08 — documentation and verification (unreleased)
+
+### Documentation
+
+- README brought in line with the code it describes: version 0.5.1 (was 0.5.0), 55/55 Node tests
+  (was 17/17), the `dashboard` command's fourth `mode` argument, Node 22 in `engines`, and a docs
+  index covering the 12 files under `docs/` that nothing linked to.
+- Corpus figures re-measured against `nanobionic-laboratory-md` rather than an older snapshot:
+  146 generated files, 53 with `ocr: true` (was "52 of 101"), 33 no-text-layer stubs (was "33 of 134").
+- f2md package parity spelled out: `--secret-pattern`, `--translate` and `--translation-policy` are
+  Python-only, so a corpus with a confidentiality policy cannot be built with the npm package.
+- New worked example: feeding a living project from an f2md Markdown corpus, with the grounding
+  result of a real run (30/30 components grounded, none falling back to role-only evidence).
+- **Known limitations** section in the README, and matching warnings in `docs/DASHBOARD.md` and
+  `docs/SEMANTIC_SCENE_BLUEPRINT.md`, covering the three defects found while verifying that run
+  (see below). None of them are fixed yet — they are documented so they are not rediscovered.
+
+### Known issues recorded (not yet fixed)
+
+- `POST /api/intake` overwrites `baseline/physical-evidence.json` before the runtime validates it.
+  The evidence file is replaced rather than merged, so a rejected or smaller document discards every
+  previously applied record and reverts those components to `placeholder` — while still answering
+  `200`. `docs/DASHBOARD.md` claimed such a document is "refused before anything is written"; that
+  holds only for the checks the dashboard's own pre-check performs, not for `ASSET_NOT_GROUNDED`.
+- `cadAssetCount` in `src/scene/blueprint.ts` tests extensions with an end-anchored regex, which
+  never matches an f2md corpus (`*.stl.md`). CAD assets are counted only when the path happens to
+  contain the substring `cad`.
+- `applyPhysicalEvidence` updates geometry but not `label`, so a hardened component still advertises
+  its placeholder dimensions next to an `ifc` badge.
+
+### Fixed
+
+- `CHANGELOG.md` had two `[Unreleased]` headings; the 2026-08-06 one sat above the released 0.5.1
+  and so belonged to no version. It is now `0.5.1a`.
+
+## 2026-08-07 — dashboard, physical intake, f2md split (unreleased)
 
 ### Added
 
@@ -117,7 +301,10 @@
   is no longer tracked in git — 112 generated files were committed, so every `npm run verify` dirtied
   the working tree. All of it is regenerated by `verify` and removed by `clean`.
 
-## [Unreleased] - 2026-08-06
+## 0.5.1a — 2026-08-06 (lint sweep, folded into 0.5.1)
+
+Previously headed `[Unreleased]`, which placed it above the already-released 0.5.1 and left it
+belonging to no version at all.
 
 ### Fixed
 - Fix ast-sorted-imports issues (ticket-6c18b3f3)

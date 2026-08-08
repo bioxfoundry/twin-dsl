@@ -12,6 +12,7 @@ from .converters import (
     LocalToolConverter,
     MarkItDownConverter,
     PyMuPDFConverter,
+    STLMetadataConverter,
     TextConverter,
 )
 from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
@@ -74,6 +75,8 @@ def default_chain(docling_url: Optional[str] = None) -> ConverterChain:
         # and TextConverter then still produces something usable.
         MarkItDownConverter(kinds=MarkItDownConverter.MARKUP),
         TextConverter(),
+        # Meshes have no prose; retain deterministic triangle/bounds evidence locally.
+        STLMetadataConverter(),
         # Structured Markdown from PDFs that have a text layer; declines scans.
         PyMuPDFConverter(),
         LocalToolConverter(),

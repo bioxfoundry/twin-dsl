@@ -1,55 +1,56 @@
-# code2llm/evolution | 532 func | 41f | 2026-08-06
+# code2llm/evolution | 840 func | 59f | 2026-08-08
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
-  [1] !! SPLIT-FUNC      main  CC=58  fan=55
-      WHY: CC=58 exceeds 15
-      EFFORT: ~1h  IMPACT: 3190
+  [1] !! SPLIT           src/scene/blueprint.ts
+      WHY: 641L, 0 classes, max CC=66
+      EFFORT: ~4h  IMPACT: 42306
 
-  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=57  fan=55
-      WHY: CC=57 exceeds 15
-      EFFORT: ~1h  IMPACT: 3135
+  [2] !! SPLIT-FUNC      main  CC=68  fan=64
+      WHY: CC=68 exceeds 15
+      EFFORT: ~1h  IMPACT: 4352
 
-  [3] !! SPLIT-FUNC      parseProjectDsl  CC=46  fan=20
-      WHY: CC=46 exceeds 15
-      EFFORT: ~1h  IMPACT: 920
+  [3] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=62  fan=58
+      WHY: CC=62 exceeds 15
+      EFFORT: ~1h  IMPACT: 3596
 
-  [4] !  SPLIT-FUNC      BiofoundryRuntime.build  CC=20  fan=38
+  [4] !! SPLIT-FUNC      checkJsonSchema  CC=60  fan=17
+      WHY: CC=60 exceeds 15
+      EFFORT: ~1h  IMPACT: 1020
+
+  [5] !! SPLIT-FUNC      startDashboard  CC=30  fan=33
+      WHY: CC=30 exceeds 15
+      EFFORT: ~1h  IMPACT: 990
+
+  [6] !! SPLIT-FUNC      convert_tree  CC=26  fan=37
+      WHY: CC=26 exceeds 15
+      EFFORT: ~1h  IMPACT: 962
+
+  [7] !! SPLIT-FUNC      parseProjectDsl  CC=48  fan=20
+      WHY: CC=48 exceeds 15
+      EFFORT: ~1h  IMPACT: 960
+
+  [8] !! SPLIT-FUNC      validateSceneBlueprint  CC=66  fan=13
+      WHY: CC=66 exceeds 15
+      EFFORT: ~1h  IMPACT: 858
+
+  [9] !  SPLIT-FUNC      BiofoundryRuntime.build  CC=20  fan=38
       WHY: CC=20 exceeds 15
       EFFORT: ~1h  IMPACT: 760
 
-  [5] !! SPLIT-FUNC      DqlCrawler.crawl  CC=25  fan=26
+  [10] !! SPLIT-FUNC      DqlCrawler.crawl  CC=25  fan=26
       WHY: CC=25 exceeds 15
       EFFORT: ~1h  IMPACT: 650
 
-  [6] !! SPLIT-FUNC      renderOpenUsd  CC=26  fan=17
-      WHY: CC=26 exceeds 15
-      EFFORT: ~1h  IMPACT: 442
 
-  [7] !! SPLIT-FUNC      components  CC=26  fan=17
-      WHY: CC=26 exceeds 15
-      EFFORT: ~1h  IMPACT: 442
-
-  [8] !! SPLIT-FUNC      validateProject  CC=47  fan=8
-      WHY: CC=47 exceeds 15
-      EFFORT: ~1h  IMPACT: 376
-
-  [9] !! SPLIT-FUNC      parseObservationDsl  CC=25  fan=15
-      WHY: CC=25 exceeds 15
-      EFFORT: ~1h  IMPACT: 375
-
-  [10] !  SPLIT-FUNC      proposeCodeMutation  CC=15  fan=23
-      WHY: CC=15 exceeds 15
-      EFFORT: ~1h  IMPACT: 345
-
-
-RISKS[0]: none
+RISKS[1]:
+  ⚠ Splitting src/scene/blueprint.ts may break 27 import paths
 
 METRICS-TARGET:
-  CC̄:          4.2 → ≤2.9
-  max-CC:      58 → ≤20
-  god-modules: 0 → 0
-  high-CC(≥15): 31 → ≤15
+  CC̄:          4.5 → ≤3.1
+  max-CC:      68 → ≤20
+  god-modules: 1 → 0
+  high-CC(≥15): 57 → ≤28
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -77,4 +78,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=4.6 → now CC̄=4.2
+  prev CC̄=4.2 → now CC̄=4.5

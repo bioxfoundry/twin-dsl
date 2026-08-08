@@ -52,6 +52,18 @@ export class TextConverter implements Converter {
 
   async convert(path: string): Promise<ConvertedDocument> {
     const kind = detectDocumentKind(path);
+    // LaTeX is text syntactically, but it is a document format. Give Pandoc a chance to preserve
+    // headings, lists, tables and mathematics; if Pandoc is unavailable it remains recoverable
+    // through the deterministic text backend.
+    if (kind === ".tex") {
+      try {
+        await execFileAsync("pandoc", ["--version"], { timeout: 5_000 });
+        throw new ExternalConverterRequired(kind);
+      } catch (error) {
+        if (error instanceof ExternalConverterRequired) throw error;
+        // Pandoc absence is handled by LocalToolConverter below.
+      }
+    }
     if (!isTextKind(kind)) throw new ExternalConverterRequired(kind);
     const raw = await readFile(path);
     // A NUL byte means this is not really text, whatever the extension claims.
@@ -75,8 +87,25 @@ export class TextConverter implements Converter {
   }
 }
 
+/** Recoverable SCAD fallback: preserve source and expose parametric intent when solid tessellation is unavailable. */
+export class ScadSourceConverter implements Converter {
+  readonly name = "scad-source";
+  readonly backendType: BackendType = "stdlib";
+  readonly version = "1.0.0";
+  async convert(path: string): Promise<ConvertedDocument> {
+    const kind = detectDocumentKind(path);
+    if (kind !== ".scad") throw new ExternalConverterRequired(kind);
+    const text = (await readFile(path)).toString("utf8");
+    const params = [...text.matchAll(/^\s*([A-Za-z_]\w*)\s*=\s*([^;]+);/gm)].map((m) => `${m[1]} = ${m[2].trim()}`);
+    const dependencies = [...text.matchAll(/^\s*(?:use|include)\s*<([^>]+)>/gm)].map((m) => m[1]);
+    const operators = [...new Set([...text.matchAll(/\b(cylinder|sphere|cube|polyhedron|linear_extrude|rotate_extrude|translate|rotate|scale|mirror|hull|minkowski|difference|union|intersection)\s*\(/g)].map((m) => m[1]))];
+    const metadata = { ...(await statMetadata(path)), extractedChars: text.length, parameters: params.length, dependencies, operators };
+    return { markdown: `---\nconverter: ${this.name}\nconverterVersion: ${this.version}\nconverted: true\nmediaType: text/x-scad\n---\n\n# ${basename(path)}\n\n## Extracted SCAD intent\n\n- Parameters: ${params.length}\n- Dependencies: ${dependencies.join(", ") || "none"}\n- Geometry/operators: ${operators.join(", ") || "none"}\n\n${params.map((p) => `- ${p}`).join("\n")}\n\n## Source\n\n\`\`\`scad\n${text.trim()}\n\`\`\`\n`, metadata, assets: [], converter: this.name, version: this.version, backendType: this.backendType, inputKind: kind, ocr: false, fallbackDepth: 0, durationMs: 0, warnings: [] };
+  }
+}
+
 const PANDOC_FORMATS: Record<string, string> = {
-  ".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".pptx": "pptx", ".epub": "epub",
+  ".tex": "latex", ".docx": "docx", ".odt": "odt", ".rtf": "rtf", ".pptx": "pptx", ".epub": "epub",
 };
 
 /**

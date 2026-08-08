@@ -80,7 +80,31 @@ JSON AST `subactor.twin/v1`:
 
 ## sceneDSL
 
-JSON AST `subactor.scene/v1` maps immutable Twin/component references to scene paths and conceptual primitives. It does not certify geometry.
+JSON AST `subactor.scene/v1` maps immutable Twin/component references to scene paths and
+conceptual primitives. A binding can carry position, size and a normalized `[x,y,z,w]`
+orientation quaternion. SceneDSL describes what is rendered; it does not by itself certify
+geometry.
+
+## GeometryValidationDSL
+
+```text
+GEOMETRY_VALIDATION <evidence-id>
+METHOD world-aabb
+COVERAGE BINDINGS <n> POSITION <n> SIZE <n> ORIENTATION <n> CONSTRAINTS <n>
+COMPLETENESS COMPLETE|INCOMPLETE
+CHECK <id> KIND position|size|orientation|inside|clearance|no-overlap SUBJECT <id>
+  [OBJECT <id>]
+  ACTUAL <number> LIMIT <number> UNIT m|deg
+  RESULT PASS|FAIL MESSAGE "<typed-reason>"
+END_CHECK
+RESULT PASS|FAIL
+END_GEOMETRY_VALIDATION
+```
+
+It deterministically compares scene pose with physical evidence under explicit tolerances and
+evaluates spatial constraints. `RESULT PASS` means all executable checks passed;
+`COMPLETENESS INCOMPLETE` means evidence coverage is insufficient for certification. No LLM
+decides either value.
 
 ## query-result
 

@@ -5,6 +5,7 @@ import type {
   DevelopmentEvidenceSummary,
   DomainEvent,
   GenerationAudit,
+  GeometryValidationReport,
   ImprovementPlan,
   LivingFailureReceipt,
   LivingIterationReceipt,
@@ -35,8 +36,10 @@ import { Todo2CodeAdapter, type Todo2CodeAnalysis } from "../adapters/todo2code.
 import { NlDslCompiler } from "../llm/nl-dsl-compiler.js";
 import { deterministicAudit } from "../llm/openrouter.js";
 import { renderOpenUsd, sceneDiff } from "../scene/openusd.js";
+import { renderGeometryValidationDsl } from "../scene/geometry-validation.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
+import { validateT2cIntent } from "../dsl/intent.js";
 import {
   acquireProjectLease,
   appendJsonLine,
@@ -54,6 +57,7 @@ import {
   biofoundryConceptTwin,
   biofoundryReadinessBindings,
 } from "./biofoundry-concept.js";
+import { RUNTIME_GENERATION } from "../core/generation.js";
 import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 
@@ -62,6 +66,24 @@ async function readOptional<T>(path:string):Promise<T|undefined> { try { return 
 async function writeJson(path:string,value:unknown):Promise<void> { await mkdir(dirname(path),{recursive:true}); await writeFile(path,JSON.stringify(value,null,2)+"\n"); }
 function sourceSnapshot(resources:ResourceRecord[]):string {
   return sha256(canonicalJson(resources.map(resource=>({uri:resource.uri,path:resource.sourcePath,role:resource.sourceRole,sha256:resource.sha256})).sort((a,b)=>a.path.localeCompare(b.path))));
+}
+type IntentDslIndex = { packs:number; records:number; invalid:number; sourceUris:string[] };
+async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslIndex> {
+  const result:IntentDslIndex = {packs:0, records:0, invalid:0, sourceUris:[]};
+  for(const resource of resources) {
+    if(!resource.logicalUri.endsWith(".intent.json")) continue;
+    // Compound names such as `report.docx.md.intent.json` are misdetected by generic ingestion;
+    // read the original JSON pack directly and validate its records, never the converter stub.
+    let raw = texts.get(resource.uri);
+    try { raw = await readFile(resource.sourcePath, "utf8"); } catch { /* use scanned text */ }
+    if(!raw) { result.invalid++; continue; }
+    try {
+      const pack = JSON.parse(raw) as {records?:unknown};
+      const records = validateT2cIntent(pack.records);
+      result.packs++; result.records += records.length; result.sourceUris.push(resource.uri);
+    } catch { result.invalid++; }
+  }
+  return result;
 }
 function resourceDiff(previous:ResourceRecord[],current:ResourceRecord[]):ResourceDiff {
   const oldMap = new Map(previous.map(resource=>[resource.sourcePath,resource.sha256]));
@@ -261,6 +283,10 @@ export class LivingProjectRuntime {
       scanned.warnings.push(...web.warnings);
     }
     const resources = scanned.resources;
+    // Derived Markdown→intentDSL is an active, validated input to every iteration. Invalid packs
+    // never reach the LLM/twin stages and are reported as a hard validation failure.
+    const intentDsl = await indexIntentDsl(resources, scanned.texts);
+    if(intentDsl.invalid) scanned.warnings.push(`INTENT_DSL_INVALID_PACKS:${intentDsl.invalid}`);
     const researchHash = sourceSnapshot(resources);
     const previousResources = await readOptional<ResourceRecord[]>(join(outDir,"state/resources.json"))??[];
     const diff = resourceDiff(previousResources,resources);
@@ -292,8 +318,26 @@ export class LivingProjectRuntime {
     const developmentFingerprint = sha256(canonicalJson({development,diagnostics:analysis?.diagnostics??[],manifest:analysis?.manifest??{},summary:developmentEvidence}));
     const observation = observationsFromResources(project,resources,scanned.texts,researchHash);
     const observationHash = sha256(canonicalJson(observation));
-    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash}));
-    if(previous && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) return {...previous,noChange:true,diff};
+    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
+    // Unchanged inputs alone are not enough to skip: a runtime whose generation semantics
+    // changed derives a different twin from the very same sources, so RUNTIME_GENERATION
+    // has to match too, or a shipped fix would never reach an existing project.
+    // DT_FORCE_ITERATION exists for the case where neither moved but a rebuild is wanted.
+    const forced = process.env.DT_FORCE_ITERATION === "1";
+    if(!forced && previous && previous.runtimeGeneration===RUNTIME_GENERATION && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) {
+      const runtimeRoot = resolve(outDir);
+      await writeFile(resolve(base,"START.md"),[
+        `# ${project.name} — START`, "", `Generated: ${new Date().toISOString()}`,
+        "Status: RUNNING / NO CHANGE", `Project DSL: ${configPath}`, `Runtime root: ${runtimeRoot}`, "",
+        "Dashboard: http://127.0.0.1:7445",
+        `Start: node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} 7445 deterministic`, "",
+        `Twin: ${join(runtimeRoot,"current/twin.json")}`, `Scene: ${join(runtimeRoot,"current/scene.usda")}`,
+        `IntentDSL index: ${join(runtimeRoot,"current/intent-dsl.index.json")}`,
+        `Latest receipt: ${join(runtimeRoot,"latest.json")}`, `Events: ${join(runtimeRoot,"events.jsonl")}`,
+        `Feedback: ${resolve(base,"feedback/latest.md")}`, "", `Iteration URI: ${previous.iterationUri}`, "",
+      ].join("\n"),"utf8");
+      return {...previous,noChange:true,diff};
+    }
 
     const iterationsLastHour = await recentIterationCount(outDir);
     const rateLimitAvailable = iterationsLastHour < project.policy.maxIterationsPerHour;
@@ -302,7 +346,7 @@ export class LivingProjectRuntime {
     const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable});
     const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint);
     const deterministicScene = conceptualScene(project,deterministicTwin,sceneBlueprint);
-    const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
+    const context = {project,resources:resources.slice(0,200),development,developmentEvidence,observation,intentDsl,stableKey,iterationsLastHour,grantPresent,sceneBlueprint};
     const effectiveMode:LlmMode = rateLimitAvailable ? mode : "deterministic";
 
     const mathGeneration = await this.compiler.compile({kind:"math",text:`Evaluate the iteration gates for ${project.managerIntent}`,context,mode:effectiveMode,deterministicValue:{dsl:renderMathDsl(authoritativeMath)}});
@@ -334,20 +378,25 @@ export class LivingProjectRuntime {
     // Physical facts are authoritative and deterministic: they are folded in after the model is
     // settled, so no LLM proposal can talk the twin out of a surveyed dimension.
     let physicalEvidenceReport:PhysicalEvidenceReport|undefined;
+    let geometryValidation:GeometryValidationReport|undefined;
     if(physicalEvidence) {
       const grounded = applyPhysicalEvidence({twin,scene,evidence:physicalEvidence,allowedAssetUris:resources.map(resource=>resource.uri)});
       twin = grounded.twin;
       scene = grounded.scene;
       physicalEvidenceReport = grounded.report;
+      geometryValidation = grounded.geometryValidation;
       for(const entry of physicalEvidenceReport.rejected) authorityWarnings.push(`PHYSICAL_EVIDENCE_REJECTED:${entry.componentId}:${entry.reason}`);
     }
 
-    const allowed = evaluateMath(math,"IterationAllowed") === true;
-    const publish = evaluateMath(math,"ScenePublishAllowed") === true;
+    const allowed = evaluateMath(math,"IterationAllowed") === true && intentDsl.invalid === 0;
+    const scenePolicyAllowed = evaluateMath(math,"ScenePublishAllowed") === true && intentDsl.invalid === 0;
+    const publish = scenePolicyAllowed && (geometryValidation?.ok ?? true);
     const failures:string[] = [];
+    if(intentDsl.invalid) failures.push(`IntentDslValidationFailed:${intentDsl.invalid}`);
     if(!rateLimitAvailable) failures.push("AutonomyRateLimitExceeded");
     if(!allowed) failures.push("IterationAllowed=false");
-    if(!publish) failures.push("ScenePublishAllowed=false");
+    if(!scenePolicyAllowed) failures.push("ScenePublishAllowed=false");
+    if(geometryValidation && !geometryValidation.ok) failures.push(`GeometryValidationFailed:${geometryValidation.failures.join("|")}`);
     const researchPresent = resources.some(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole)));
     const runtimePresent = observation.observations.length > 0;
     const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri]});
@@ -367,11 +416,15 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
     await writeJson(join(candidate,"scene.diff.json"),sceneDiff(await readOptional<SceneDocument>(join(outDir,"current/scene.json")),scene));
     await writeJson(join(candidate,"physical-evidence.report.json"),physicalEvidenceReport??{schema:"subactor.physical-evidence-report/v1",applied:[],rejected:[],componentIdsStable:true,scenePathsStable:true});
+    const geometryReport = geometryValidation??{schema:"subactor.geometry-validation/v1",evidenceId:"none",method:"world-aabb",ok:true,complete:false,coverage:{bindings:scene.bindings.length,positionEvidence:0,sizeEvidence:0,orientationEvidence:0,constraints:0},checks:[],failures:[]} as GeometryValidationReport;
+    await writeJson(join(candidate,"geometry-validation.json"),geometryReport);
+    await writeFile(join(candidate,"geometry-validation.dsl"),renderGeometryValidationDsl(geometryReport));
+    await writeJson(join(candidate,"intent-dsl.index.json"),{schema:"subactor.intent-dsl-index/v1",...intentDsl,validatedAt:new Date().toISOString()});
     await writeJson(join(candidate,"improvement.json"),improvement);
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-validation.json","geometry-validation.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -400,6 +453,7 @@ export class LivingProjectRuntime {
       startedAt,
       completedAt:new Date().toISOString(),
       projectConfigHash,
+      runtimeGeneration:RUNTIME_GENERATION,
       researchSnapshotHash:researchHash,
       developmentFingerprint,
       observationSnapshotHash:observationHash,
@@ -436,6 +490,7 @@ export class LivingProjectRuntime {
       `Development source: ${developmentEvidence.source}`,
       `Development acceptance: ${developmentEvidence.acceptance}`,
       `Runtime observations: ${observation.observations.length}`,
+      `IntentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       "",
       "## Proposed improvements",
       ...improvement.actions.map(action=>`- [ ] ${action.title} — ${action.reason}`),
@@ -446,6 +501,59 @@ export class LivingProjectRuntime {
     await writeFile(feedbackPath,feedback);
     const feedbackUri = contentUri("feedback",feedback);
     receipt.stages.find(stage=>stage.name==="feedback")!.artifactUris = [feedbackUri];
+
+    // Human entrypoint generated by the running application. It deliberately points to immutable
+    // runtime artifacts and the exact commands needed to inspect/restart the dashboard.
+    const startPath = resolve(base,"START.md");
+    const runtimeRoot = resolve(outDir);
+    const start = [
+      `# ${project.name} — START`,
+      "",
+      `Generated: ${new Date().toISOString()}`,
+      `Status: ${receipt.validation.ok ? "RUNNING / VALIDATED" : "BLOCKED / VALIDATION FAILED"}`,
+      `Project: ${project.id}`,
+      "",
+      "## Live application",
+      "",
+      "- Dashboard URL: http://127.0.0.1:7445 (start command below)",
+      `- Project DSL: ${configPath}`,
+      `- Runtime root: ${runtimeRoot}`,
+      `- Current Twin: ${join(runtimeRoot,"current/twin.json")}`,
+      `- Current scene JSON: ${join(runtimeRoot,"current/scene.json")}`,
+      `- Current OpenUSD: ${join(runtimeRoot,"current/scene.usda")}`,
+      "",
+      "```bash",
+      `node ${resolve(process.argv[1] ?? "dist/src/cli/main.js")} dashboard ${configPath} ${runtimeRoot} 7445 deterministic`,
+      "```",
+      "",
+      "## DSL and validation",
+      "",
+      `- intentDSL index: ${join(runtimeRoot,"current/intent-dsl.index.json")}`,
+      `- intentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
+      `- Audit report: ${join(runtimeRoot,"current/audit-report.json")}`,
+      `- Physical evidence report: ${join(runtimeRoot,"current/physical-evidence.report.json")}`,
+      `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
+      "",
+      "## Logs and feedback",
+      "",
+      `- Iteration receipt: ${join(runtimeRoot,"latest.json")}`,
+      `- Event log: ${join(runtimeRoot,"events.jsonl")}`,
+      `- Failure log: ${join(runtimeRoot,"dead-letter.jsonl")}`,
+      `- Runtime observations: ${join(runtimeRoot,"current/observations.json")}`,
+      `- Feedback: ${feedbackPath}`,
+      `- Generation audit: ${join(runtimeRoot,"current/generation-audit.json")}`,
+      "",
+      "## Presentation assets",
+      "",
+      `- Dashboard screenshot: ${join(runtimeRoot,"current/presentation/digital-twin-dashboard.png")}`,
+      `- 3D orbit video: ${join(runtimeRoot,"current/presentation/digital-twin-orbit.webm")}`,
+      `- Dashboard recording: ${join(runtimeRoot,"current/presentation/digital-twin-dashboard.webm")}`,
+      "",
+      `Previous iteration: ${receipt.previousIterationUri ?? "none"}`,
+      `Iteration URI: ${receipt.iterationUri}`,
+      "",
+    ].join("\n");
+    await writeFile(startPath,start,"utf8");
 
     await writeJson(join(outDir,"state/resources.json"),resources);
     await writeJson(join(outDir,"state/key.json"),{stableKey});

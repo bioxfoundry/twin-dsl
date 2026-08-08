@@ -8,7 +8,7 @@ import { listZip, readZipEntry } from "./archive.js";
 const TEXT_EXT = new Set([
   ".md", ".txt", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".csv",
   ".ts", ".js", ".mjs", ".py", ".php", ".go", ".rs", ".java", ".xml", ".html", ".htm",
-  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".dql",
+  ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".testqldsl", ".dql",
 ]);
 const MEDIA: Record<string, string> = {
   ".pdf": "application/pdf",
@@ -212,6 +212,22 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
         const message = error instanceof Error ? error.message : String(error);
         try {
           const raw = await readFile(file);
+          const text = textFromBuffer(raw, file);
+          if (text !== undefined) {
+            const r = resourceFromText(
+              `res-${resources.length + 1}`,
+              logical,
+              file,
+              text,
+              undefined,
+              source.role,
+              labels,
+            );
+            resources.push(r);
+            texts.set(r.uri, text);
+            warnings.push(`TEXT_FALLBACK:${message}`);
+            continue;
+          }
           // Cap huge binaries at metadata stub if > 8 MiB to keep iteration snappy.
           if (raw.length > 8 * 1024 * 1024) {
             pushBinary(

@@ -141,6 +141,8 @@ export interface SceneBinding {
   primitive?: "cube" | "cylinder" | "sphere" | "scope";
   position?: [number, number, number];
   size?: [number, number, number];
+  /** Canonical local-to-parent rotation quaternion [x,y,z,w]. */
+  orientation?: [number, number, number, number];
   propertyMap: Record<string, string>;
   assetUri?: string;
 }
@@ -166,11 +168,23 @@ export interface PhysicalEvidenceRecord {
   evidence: GeometryEvidenceKind;
   position?: [number, number, number];
   size?: [number, number, number];
+  orientation?: [number, number, number, number];
+  positionToleranceM?: number;
+  sizeToleranceM?: number;
+  angleToleranceDeg?: number;
   /** External mesh/CAD asset (USDZ, GLB, STEP) resolved by the scene renderer. */
   assetUri?: string;
   /** Where the fact came from: IFC GUID, drawing sheet, survey report, equipment register row. */
   sourceRef?: string;
   properties?: Record<string, unknown>;
+}
+export interface SpatialConstraint {
+  id: string;
+  relation: "inside" | "clearance" | "no-overlap";
+  subjectId: string;
+  objectId: string;
+  marginM?: number;
+  minDistanceM?: number;
 }
 export interface PhysicalEvidenceDocument {
   schema: "subactor.physical-evidence/v1";
@@ -178,6 +192,7 @@ export interface PhysicalEvidenceDocument {
   /** Declared so intake can refuse to mix millimetre CAD with metre site coordinates. */
   coordinateSystem: { unit: "m"; upAxis: "Z"; origin?: string };
   records: PhysicalEvidenceRecord[];
+  constraints?: SpatialConstraint[];
 }
 export interface PhysicalEvidenceReport {
   schema: "subactor.physical-evidence-report/v1";
@@ -186,6 +201,33 @@ export interface PhysicalEvidenceReport {
   /** Core invariant: physical intake changes representation, never identity. */
   componentIdsStable: boolean;
   scenePathsStable: boolean;
+}
+export interface GeometryValidationCheck {
+  id: string;
+  kind: "position" | "size" | "orientation" | "inside" | "clearance" | "no-overlap";
+  subjectId: string;
+  objectId?: string;
+  ok: boolean;
+  actual: number;
+  limit: number;
+  unit: "m" | "deg" | "boolean";
+  message: string;
+}
+export interface GeometryValidationReport {
+  schema: "subactor.geometry-validation/v1";
+  evidenceId: string;
+  method: "world-aabb";
+  ok: boolean;
+  complete: boolean;
+  coverage: {
+    bindings: number;
+    positionEvidence: number;
+    sizeEvidence: number;
+    orientationEvidence: number;
+    constraints: number;
+  };
+  checks: GeometryValidationCheck[];
+  failures: string[];
 }
 
 export interface ObservationRecord {
@@ -313,6 +355,7 @@ export interface SceneBlueprintBinding {
   primitive?: "cube" | "cylinder" | "sphere" | "scope";
   position?: [number, number, number];
   size?: [number, number, number];
+  orientation?: [number, number, number, number];
   propertyMap?: Record<string, string>;
 }
 export interface SceneBlueprint {
@@ -411,6 +454,8 @@ export interface LivingIterationReceipt {
   startedAt: string;
   completedAt: string;
   projectConfigHash: string;
+  /** Generation semantics that produced this iteration; see core/generation.ts. */
+  runtimeGeneration?: string;
   researchSnapshotHash: string;
   developmentFingerprint: string;
   observationSnapshotHash: string;

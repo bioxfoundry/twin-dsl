@@ -60,7 +60,7 @@ test("physical evidence raises fidelity while component ids and scene paths stay
     twin,
     scene,
     evidence: evidenceFixture([
-      { componentId: "build", kind: "space", evidence: "cad", position: [7.5, 9, 0], size: [13, 15, 3.2], sourceRef: "plan-A3-sheet2" },
+      { componentId: "build", kind: "space", evidence: "cad", position: [7.5, 9, 0], size: [13, 15, 3.2], orientation: [0, 0, Math.SQRT1_2, Math.SQRT1_2], sourceRef: "plan-A3-sheet2" },
       { componentId: "liquid_handler_01", kind: "equipment", evidence: "measured", size: [2.2, 1.6, 1.8], sourceRef: "register:LH-01" },
     ]),
   });
@@ -75,6 +75,8 @@ test("physical evidence raises fidelity while component ids and scene paths stay
   const build = result.scene.bindings.find((b) => b.componentId === "build");
   assert.deepEqual(build?.size, [13, 15, 3.2]);
   assert.deepEqual(build?.position, [7.5, 9, 0]);
+  assert.deepEqual(build?.orientation, [0, 0, Math.SQRT1_2, Math.SQRT1_2]);
+  assert.equal(result.geometryValidation.ok, true);
   assert.equal(result.twin.components[0].properties.geometryEvidence, "cad");
   assert.equal(result.twin.components[0].properties.geometrySourceRef, "plan-A3-sheet2");
   assert.equal(result.twin.components[0].properties.geometryOrigin, "site-datum-A");

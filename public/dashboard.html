@@ -56,6 +56,7 @@
   <header>
     <h1>Biofoundry Digital Twin</h1>
     <span class="sub" id="revision">loading…</span>
+    <span class="sub" id="last-iteration">iteration loading…</span>
     <span class="sub" id="notice"></span>
     <span class="spacer"></span>
     <button id="btn-intake">Apply floor-plan evidence</button>
@@ -79,6 +80,9 @@
     <div class="card">
       <h2>Geometry evidence</h2>
       <div class="legend" id="legend"></div>
+      <div class="kv"><span>validation</span><span id="g-validation">–</span></div>
+      <div class="kv"><span>coverage P / S / O</span><span id="g-coverage" class="mono">–</span></div>
+      <div class="kv"><span>constraints</span><span id="g-constraints" class="mono">–</span></div>
     </div>
     <div class="card">
       <h2>Identity invariants</h2>
@@ -130,7 +134,7 @@ const M4={
     const z=norm(sub(eye,at)),x=norm(cross(up,z)),y=cross(z,x);
     return[x[0],y[0],z[0],0, x[1],y[1],z[1],0, x[2],y[2],z[2],0, -dot(x,eye),-dot(y,eye),-dot(z,eye),1];
   },
-  trs(t,s){return[s[0],0,0,0, 0,s[1],0,0, 0,0,s[2],0, t[0],t[1],t[2],1];},
+  trs(t,s,q=[0,0,0,1]){const[x,y,z,w]=q,xx=x*x,yy=y*y,zz=z*z,xy=x*y,xz=x*z,yz=y*z,wx=w*x,wy=w*y,wz=w*z;return[(1-2*(yy+zz))*s[0],2*(xy+wz)*s[0],2*(xz-wy)*s[0],0, 2*(xy-wz)*s[1],(1-2*(xx+zz))*s[1],2*(yz+wx)*s[1],0, 2*(xz+wy)*s[2],2*(yz-wx)*s[2],(1-2*(xx+yy))*s[2],0, t[0],t[1],t[2],1];},
 };
 const sub=(a,b)=>[a[0]-b[0],a[1]-b[1],a[2]-b[2]];
 const dot=(a,b)=>a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
@@ -195,6 +199,13 @@ function upload(mesh){
   const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,mesh.nrm,gl.STATIC_DRAW);
   return {pb,nb,count:mesh.pos.length/3};
 }
+function normalizeAssetMesh(mesh){
+  const p=mesh.pos,mn=[Infinity,Infinity,Infinity],mx=[-Infinity,-Infinity,-Infinity];
+  for(let i=0;i<p.length;i+=3)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],p[i+k]);mx[k]=Math.max(mx[k],p[i+k]);}
+  const center=[0,1,2].map(k=>(mn[k]+mx[k])/2),extent=[0,1,2].map(k=>Math.max(mx[k]-mn[k],1e-9)),out=new Float32Array(p.length);
+  for(let i=0;i<p.length;i+=3)for(let k=0;k<3;k++)out[i+k]=(p[i+k]-center[k])/extent[k];
+  return {pos:out,nrm:mesh.nrm};
+}
 /** 12 edges of the unit box, drawn as lines so adjacent slabs read as separate volumes. */
 function boxEdges(){
   const h=.5,c=[[-h,-h,-h],[h,-h,-h],[h,h,-h],[-h,h,-h],[-h,-h,h],[h,-h,h],[h,h,h],[-h,h,h]];
@@ -212,16 +223,26 @@ gl.disable(gl.CULL_FACE);
 let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,framed=false;
 let recorder=null,recordedChunks=[],recordingTimer=null;
 const STL_CACHE=new Map();
-async function loadStl(uri){
+function loadGlb(bytes){
+  if(bytes.length<20||new DataView(bytes.buffer).getUint32(0,true)!==0x46546c67)return null;
+  const view=new DataView(bytes.buffer),jsonLength=view.getUint32(12,true),jsonStart=20;
+  const doc=JSON.parse(new TextDecoder().decode(bytes.slice(jsonStart,jsonStart+jsonLength)));let binStart=jsonStart+jsonLength+8;
+  const binLength=view.getUint32(binStart-8,true);const bin=bytes.slice(binStart,binStart+binLength),accessors=doc.accessors||[],views=doc.bufferViews||[];
+  const read=(index)=>{const a=accessors[index],b=views[a.bufferView],count=a.count,components=a.type==='VEC3'?3:1,off=(b.byteOffset||0)+(a.byteOffset||0),stride=b.byteStride||components*4,out=[];for(let i=0;i<count;i++){const q=off+i*stride;for(let c=0;c<components;c++)out.push(new DataView(bin.buffer,bin.byteOffset,bin.byteLength).getFloat32(q+c*4,true));}return out;};
+  const prim=doc.meshes?.[0]?.primitives?.[0];if(prim?.attributes?.POSITION===undefined)return null;const pos=read(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):read(prim.attributes.NORMAL);return upload(normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)}));
+}
+async function loadAsset(uri){
   if(!uri)return null;if(STL_CACHE.has(uri))return STL_CACHE.get(uri);
   const response=await fetch('/api/asset?uri='+encodeURIComponent(uri)); if(!response.ok)return null;
-  const bytes=new Uint8Array(await response.arrayBuffer()); if(bytes.length<84)return null;
+  const bytes=new Uint8Array(await response.arrayBuffer());
+  const glb=loadGlb(bytes);if(glb){STL_CACHE.set(uri,glb);return glb;}
+  if(bytes.length<84)return null;
   const view=new DataView(bytes.buffer),count=view.getUint32(80,true),expected=84+count*50;
   if(!count||expected>bytes.length)return null; const p=[],n=[];
   for(let i=0;i<count;i++){const o=84+i*50,normal=[view.getFloat32(o,true),view.getFloat32(o+4,true),view.getFloat32(o+8,true)];
     // Binary STL facet: 12-byte normal, three 12-byte vertices, 2-byte attribute count.
     for(let v=0;v<3;v++){const q=o+12+v*12;p.push(view.getFloat32(q,true),view.getFloat32(q+4,true),view.getFloat32(q+8,true));n.push(...normal);}}
-  const mesh=upload({pos:new Float32Array(p),nrm:new Float32Array(n)});STL_CACHE.set(uri,mesh);return mesh;
+  const mesh=upload(normalizeAssetMesh({pos:new Float32Array(p),nrm:new Float32Array(n)}));STL_CACHE.set(uri,mesh);return mesh;
 }
 
 // Local, dependency-free capture of the live WebGL canvas. The resulting WebM is suitable for
@@ -262,7 +283,7 @@ async function buildObjects(state){
     return {
       idx:i, id:b.componentId, path:b.scenePath, type:c.type,
       label:c.properties.label||b.componentId,
-      pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)),
+      pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)), orientation:b.orientation||[0,0,0,1], orientationProvided:Array.isArray(b.orientation),
       prim:b.primitive||'cube', grade:g, color:hex2rgb(GRADE_COLOR[g]),
       props:c.properties, uris:c.sourceUris||[],
     };
@@ -275,7 +296,7 @@ async function buildObjects(state){
     RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;
     if(!framed){cam.dist=RADIUS*1.35;framed=true;}
   }
-  await Promise.all(objs.map(async o=>{const uri=scene.bindings[o.idx]?.assetUri;if(uri)o.mesh=await loadStl(uri);}));
+  await Promise.all(objs.map(async o=>{const uri=scene.bindings[o.idx]?.assetUri;if(uri)o.mesh=await loadAsset(uri);}));
   return objs;
 }
 
@@ -295,7 +316,7 @@ function draw(pick){
   const vp=M4.mul(proj,view);
   gl.uniform1f(U.flat,pick?1:0);
   for(const o of OBJECTS){
-    const model=M4.trs(o.pos,o.size);
+    const model=M4.trs(o.pos,o.size,o.orientation);
     gl.uniformMatrix4fv(U.mvp,false,new Float32Array(M4.mul(vp,model)));
     gl.uniformMatrix4fv(U.model,false,new Float32Array(model));
     if(pick){const n=o.idx+1;gl.uniform3f(U.color,(n&255)/255,((n>>8)&255)/255,((n>>16)&255)/255);}
@@ -370,11 +391,12 @@ function showSelected(){
     <div class="kv"><span>scenePath</span><span class="mono">${o.path}</span></div>
     <div class="kv"><span>type</span><span class="mono">${o.type}</span></div>
     <div class="kv"><span>size m</span><span class="mono">${o.size.map(v=>v.toFixed(2)).join(' × ')}</span></div>
+    <div class="kv"><span>orientation xyzw</span><span class="mono">${o.orientationProvided?o.orientation.map(v=>v.toFixed(4)).join(', '):'not evidenced (identity fallback)'}</span></div>
     <div class="kv"><span>evidence</span><span class="badge" style="background:${GRADE_COLOR[o.grade]}">${o.grade}</span></div>
     ${rows}
     <div class="kv"><span>sourceUris</span><span class="mono">${o.uris.length}</span></div>`;
 }
-function paintStats(state){
+function paintStats(state,events){
   const physical=OBJECTS.filter(o=>o.grade!=='placeholder').length;
   $('s-parts').textContent=OBJECTS.length;
   $('s-physical').textContent=`${physical}/${OBJECTS.length}`;
@@ -385,12 +407,25 @@ function paintStats(state){
   $('i-ids').innerHTML=mark(r.componentIdsStable);
   $('i-paths').innerHTML=mark(r.scenePathsStable);
   $('i-app').innerHTML=`<span class="ok">${(r.applied||[]).length}</span> / <span class="${(r.rejected||[]).length?'warn':''}">${(r.rejected||[]).length}</span>`;
+  const gv=state.geometryValidation||{},coverage=gv.coverage||{};
+  $('g-validation').innerHTML=gv.ok===true?`<span class="${gv.complete?'ok':'warn'}">${gv.complete?'PASS · COMPLETE':'PASS · INCOMPLETE'}</span>`:gv.ok===false?'<span class="bad">FAIL</span>':'–';
+  $('g-coverage').textContent=`${coverage.positionEvidence??0} / ${coverage.sizeEvidence??0} / ${coverage.orientationEvidence??0} of ${coverage.bindings??0}`;
+  $('g-constraints').textContent=String(coverage.constraints??0);
   const obs=(state.observations&&state.observations.observations)||[];
   $('obs').innerHTML=obs.length?obs.slice(-6).map(o=>
     `<div class="kv"><span>${o.metric}</span><span class="mono">${JSON.stringify(o.value)}${o.unit&&o.unit!=='mixed'?' '+o.unit:''}</span></div>`).join('')
     :'<span class="mono" style="color:var(--muted)">none</span>';
   const uri=(state.iteration&&state.iteration.iterationUri)||'';
-  $('revision').textContent=uri?`revision ${uri.slice(-12)} · ${OBJECTS.length} components`:'no revision yet';
+  $('revision').textContent=uri?`twin ${uri.slice(-12)} · ${OBJECTS.length} components`:'no twin revision yet';
+  const latest=(events.events||[]).at(-1);
+  const version=latest&&latest.streamVersion;
+  const occurred=latest&&(latest.occurredAt||latest.recordedAt);
+  const valid=latest&&latest.payload&&latest.payload.validation&&latest.payload.validation.ok;
+  $('last-iteration').textContent=latest
+    ?`iteration v${version??'?'} · ${occurred?new Date(occurred).toLocaleString():'time unknown'} · ${valid===true?'valid':valid===false?'invalid':'status unknown'}`
+    :'no iteration recorded';
+  $('last-iteration').className='sub '+(valid===true?'ok':valid===false?'bad':'');
+  $('last-iteration').title=occurred||'';
 }
 
 /* Inline, non-blocking status. `alert()` would freeze the event loop and stall the
@@ -420,7 +455,7 @@ async function refresh(){
   // Logs are diagnostic evidence: render them before the optional WebGL scene
   // so a graphics-driver failure cannot hide the reason the runtime is red.
   paintDslLog(events,dsl);
-  await applyState(state);
+  await applyState(state,events);
 }
 function paintDslLog(events,dsl){
   $('log-count').textContent=String(events.count||0);
@@ -429,9 +464,9 @@ function paintDslLog(events,dsl){
   const docs=(dsl.documents||[]).map(d=>`<span class="tok-fence">${escapeCode(`[${d.name}]`)}</span>\n${highlightDsl(d.content)}`);
   $('dsl-log').innerHTML=[...recent,...docs].join('\n\n')||'no DSL artifacts or events yet';
 }
-async function applyState(state){
+async function applyState(state,events){
   OBJECTS=await buildObjects(state);
-  paintLegend();paintList();paintStats(state);showSelected();render();
+  paintLegend();paintList();paintStats(state,events);showSelected();render();
 }
 $('btn-iterate').onclick=async()=>{
   const b=$('btn-iterate');b.disabled=true;b.textContent='Iterating…';

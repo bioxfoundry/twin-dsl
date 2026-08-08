@@ -29,6 +29,7 @@ import {
   DoclingHttpConverter,
   LocalToolConverter,
   TextConverter,
+  ScadSourceConverter,
   type ConvertedDocument,
   type Converter,
 } from "../../js/f2md/src/index.js";
@@ -60,7 +61,7 @@ export class CompositeDocumentConverter implements Converter {
     localTools: Converter = new LocalToolConverter(),
     docling: Converter | null = process.env.DOCLING_URL ? new DoclingHttpConverter() : null,
   ) {
-    this.#chain = new ConverterChain(docling ? [deterministic, localTools, docling] : [deterministic, localTools]);
+    this.#chain = new ConverterChain(docling ? [deterministic, new ScadSourceConverter(), localTools, docling] : [deterministic, new ScadSourceConverter(), localTools]);
   }
 
   convert(path: string): Promise<ConvertedDocument> {

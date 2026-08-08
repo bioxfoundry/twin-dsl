@@ -5,6 +5,7 @@ function ident(x:string):string{return x.replace(/[^A-Za-z0-9_]/g,'_').replace(/
 function attrName(x:string):string{return x.split(':').filter(Boolean).map(ident).join(':')||'subactor:unnamed';}
 function q(x:string):string{return JSON.stringify(x);}
 function vec(v:readonly number[]|undefined,def:[number,number,number]):string{const x=v&&v.length===3?v:def;return`(${x.map(n=>Number.isFinite(n)?n:0).join(', ')})`;}
+function quat(v:readonly number[]):string{return`(${v[3]}, (${v[0]}, ${v[1]}, ${v[2]}))`;}
 function primitive(binding:SceneBinding):string{switch(binding.primitive){case'cylinder':return'Cylinder';case'sphere':return'Sphere';case'scope':return'Scope';default:return'Cube';}}
 function colorFor(type:string|undefined):[number,number,number]{
   switch(type){
@@ -89,11 +90,9 @@ function emitNode(lines:string[],node:SceneNode,depth:number,components:Map<stri
   const component=binding.componentId?components.get(binding.componentId):undefined;
   const label=typeof component?.properties?.label==='string'?component.properties.label:node.name;
   const sourceUris=component?.sourceUris??[];
-  lines.push(
-    `${pad}def Xform "${node.name}" {`,
-    `${inner}double3 xformOp:translate = ${vec(binding.position,[0,0,0])}`,
-    `${inner}uniform token[] xformOpOrder = ["xformOp:translate"]`,
-  );
+  lines.push(`${pad}def Xform "${node.name}" {`, `${inner}double3 xformOp:translate = ${vec(binding.position,[0,0,0])}`);
+  if(binding.orientation) lines.push(`${inner}quatd xformOp:orient = ${quat(binding.orientation)}`);
+  lines.push(`${inner}uniform token[] xformOpOrder = ["xformOp:translate"${binding.orientation?', "xformOp:orient"':''}]`);
   const emitted=new Set<string>();
   emitAttribute(lines,inner,emitted,'subactor:twinUri',binding.twinUri);
   emitAttribute(lines,inner,emitted,'subactor:componentId',binding.componentId??'');
@@ -107,7 +106,7 @@ function emitNode(lines:string[],node:SceneNode,depth:number,components:Map<stri
   emitAttribute(lines,inner,emitted,'subactor:sourceUriCount',sourceUris.length);
   if(component){
     for(const [key,value] of Object.entries(component.properties)){
-      if(['position','size'].includes(key)) continue;
+      if(['position','size','orientation'].includes(key)) continue;
       emitAttribute(lines,inner,emitted,binding.propertyMap?.[key]??`subactor:${key}`,value);
     }
   }

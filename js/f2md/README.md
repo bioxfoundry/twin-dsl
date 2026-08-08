@@ -54,7 +54,7 @@ mammoth -> turndown      DOCX via semantic HTML
         ↓
 text / source files      no dependencies, no external process
         ↓
-pdftotext / pandoc       used only if the binary is on PATH
+pdftotext / pandoc       used only if the binary is on PATH; Pandoc handles `.tex` as LaTeX
         ↓
 Docling over HTTP        layout, tables, OCR — only when DOCLING_URL is set
 ```

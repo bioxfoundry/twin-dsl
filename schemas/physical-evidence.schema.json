@@ -34,9 +34,29 @@
           },
           "position": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
           "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}},
+          "orientation": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}, "description": "Normalized quaternion [x,y,z,w]."},
+          "positionToleranceM": {"type": "number", "minimum": 0},
+          "sizeToleranceM": {"type": "number", "minimum": 0},
+          "angleToleranceDeg": {"type": "number", "minimum": 0, "maximum": 180},
           "assetUri": {"type": "string", "minLength": 1, "description": "Must be an ingested resource URI when the runtime supplies the corpus."},
           "sourceRef": {"type": "string", "description": "IFC GUID, drawing sheet, survey report or equipment register row."},
           "properties": {"type": "object"}
+        }
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "relation", "subjectId", "objectId"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "relation": {"enum": ["inside", "clearance", "no-overlap"]},
+          "subjectId": {"type": "string", "minLength": 1},
+          "objectId": {"type": "string", "minLength": 1},
+          "marginM": {"type": "number", "minimum": 0},
+          "minDistanceM": {"type": "number", "minimum": 0}
         }
       }
     }

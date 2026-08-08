@@ -163,7 +163,7 @@ pip install 'f2md[docling]'     # run Docling in-process
 pip install 'f2md[all]'         # everything
 ```
 
-PDF and Office support needs `pdftotext` (poppler) and/or `pandoc` on your PATH — no Python
+PDF, LaTeX and Office support needs `pdftotext` (poppler) and/or `pandoc` on your PATH — no Python
 dependency is added for them:
 
 ```bash
@@ -174,7 +174,9 @@ brew install poppler pandoc          # macOS
 ## Content-addressed filenames
 
 Ingestion pipelines rename imports to `report.pdf-9f2c8ad4` or `deck.pptx.part`, which defeats
-`os.path.splitext`. Detection scans the basename instead:
+LaTeX (`.tex`) is converted with Pandoc (`latex` → Markdown) when the binary is available. If
+Pandoc is not installed, the deterministic backend deliberately preserves the original source in
+a fenced `tex` block. Detection scans the basename instead:
 
 ```python
 from f2md import detect_document_kind, media_type_for

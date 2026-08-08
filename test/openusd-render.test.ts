@@ -108,6 +108,19 @@ test("cube geometry scale equals the declared extent in metres", () => {
   assert.match(usd, /double3 xformOp:scale = \(60, 36, 0\.15\)/);
 });
 
+test("OpenUSD preserves canonical quaternion orientation", () => {
+  const scene: SceneDocument = {
+    schema: "subactor.scene/v1",
+    id: "s",
+    format: "openusd",
+    sourceTwinId: "t",
+    bindings: [{ twinUri: "u#a", componentId: "a", scenePath: "/Facility/Robot", primitive: "cube", position: [1, 2, 3], size: [1, 2, 3], orientation: [0, 0, Math.SQRT1_2, Math.SQRT1_2], propertyMap: {} }],
+  };
+  const usd = renderOpenUsd(scene, twinOf({ id: "a" }));
+  assert.match(usd, /quatd xformOp:orient = \(0\.7071067811865476, \(0, 0, 0\.7071067811865476\)\)/);
+  assert.match(usd, /xformOpOrder = \["xformOp:translate", "xformOp:orient"\]/);
+});
+
 test("each USD attribute is declared once per prim", () => {
   const scene: SceneDocument = {
     schema: "subactor.scene/v1",

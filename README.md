@@ -1,4 +1,4 @@
-# Subactor Digital Twin Runtime Starter 0.5.0
+# Subactor Digital Twin Runtime Starter 0.5.1
 
 ## Iterations
 
@@ -11,6 +11,8 @@
 ### 3
 ![img_2.png](img_2.png)
 
+### 4
+![img_3.png](img_3.png)
 
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
@@ -36,25 +38,33 @@ System rozdziela trzy pętle:
 
 `todo2code` pozostaje kanonicznym Intent Evidence DSL dla poleceń, planów, kodu, Git, dokumentacji i diagnostyki Intent vs Reality. Subactor AQL/OQL/URI Process pozostaje granicą authority i efektów. LLM może proponować DSL, ale nie definiuje bramek bezpieczeństwa i nie wywołuje executorów bezpośrednio.
 
-## Co zmieniło się w 0.4.0
+## Co zmieniło się ostatnio
 
-- twarde bramki `mathDSL` są generowane przez runtime i nie mogą zostać nadpisane przez odpowiedź LLM;
-- prawdziwy `todo2code` ma pierwszeństwo przed fixture, a fixture wymaga jawnej polityki;
-- development evidence zawiera status manifestu, diagnostyki, liczbę blokad i acceptance;
-- każda zmieniona iteracja generuje propose-only `improvementDSL`;
-- Twin i Scene przechodzą walidację uziemienia w znanych URI i komponentach;
-- limit iteracji jest egzekwowany, a nie tylko deklarowany;
-- trwała dzierżawa blokuje dwie równoległe iteracje tego samego projektu;
-- watcher zapisuje failure receipt, event i dead-letter oraz stosuje bounded retry;
-- zewnętrzne źródła są kopiowane do `imports/`, dzięki czemu pozostają dostępne wewnątrz Dockera;
-- dodano rzeczywisty `service-check`: zapytanie `SELECT 1` do ClickHouse i health request do Docling;
-- naprawiono konflikt numeru pola w Protobuf iteration v1 i dodano kontrakty v2/autonomy.
+Najnowsze (jeszcze nie wydane, ponad 0.5.1) — pełna lista w [`CHANGELOG.md`](CHANGELOG.md):
+
+- **Dashboard 3D** (`dashboard`): twin/scene po HTTP + własny renderer WebGL, bez zależności i bez build stepu;
+- **Physical Evidence Intake** (`subactor.physical-evidence/v1`): geometria placeholder ustępuje faktom
+  floor-plan/CAD/IFC/survey, a `componentId` i `scenePath` zostają te same;
+- CLI `physical-intake` i `scene-render` (renderer OpenUSD nie miał wcześniej wejścia z CLI);
+- **schema drift guard** — `schemas/*.json` i ręczne walidatory runtime muszą się zgadzać, inaczej testy padają;
+- **f2md 0.2/0.3** wydzielone jako osobne paczki (`py/f2md`, `js/f2md`) z jedną wspólną kopertą proweniencji.
+
+W 0.5.1 doszedł Semantic Scene Blueprint (`subactor.scene-blueprint/v1`) ze stabilnymi ID komponentów,
+domyślny blueprint Biofoundry Live v0.2.1 (30 komponentów) i most do concept twina.
+
+Wcześniej (0.4.0) ustawione zostały fundamenty, które nadal obowiązują: twarde bramki `mathDSL`
+generowane przez runtime i nienadpisywalne przez LLM, pierwszeństwo prawdziwego `todo2code` przed
+fixture, egzekwowany limit iteracji, trwała dzierżawa projektu, failure receipts i dead-letter,
+kopiowanie źródeł zewnętrznych do `imports/` oraz rzeczywisty `service-check`.
 
 ## Szybki start
 
+Wymagany **Node 22+** (`package.json` → `engines`). Runtime buduje się i przechodzi `verify` również
+na Node 20, ale wspieraną wersją jest 22.
+
 ```bash
 npm install
-npm run verify          # typecheck, testy, wszystkie dema — pełna weryfikacja
+npm run verify          # typecheck, proto, compose, testy, f2md conformance, wszystkie dema
 ```
 
 Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
@@ -81,7 +91,8 @@ kolejne kilka sekund.
 Do zasilania twina dokumentacją służy **[f2md](py/f2md)** — wyodrębniona paczka, publikowana jako
 `f2md` na PyPI i `@subactor/f2md` na npm. Nie jest kolejnym uniwersalnym konwerterem: to warstwa
 orkiestracji i śledzenia pochodzenia nad wymiennymi backendami (PyMuPDF, MarkItDown, Docling,
-pdftotext/pandoc, Turndown/Mammoth).
+pdftotext/pandoc, Turndown/Mammoth). Pliki `.tex` są konwertowane przez Pandoc (`latex` →
+Markdown), a gdy Pandoc nie jest dostępny, zachowywane jako blok źródłowy `tex`.
 
 ### Cały folder naraz
 
@@ -135,6 +146,9 @@ Bendradarbiavimo_sutartis.docx.secret.md      tłumaczenie na angielski
 
 Nazwa bez sufiksu językowego to **zawsze** język docelowy, więc konsument, który chce „tę
 angielską", może w ogóle nie znać kodów języków — a oryginał zostaje dostępny i wyraźnie opisany.
+Konwersja przebiega w kolejności **format źródłowy → Markdown → tłumaczenie Markdown**; silnik
+tłumaczący nie dostaje surowego LaTeX-a. Znaczniki nagłówków, list, tabel i bloków kodu są
+chronione przed zmianą podczas tłumaczenia.
 
 Silnik wybierany jest **per dokument**, nie per przebieg:
 
@@ -185,7 +199,7 @@ Najważniejsze pola:
   przeniesieniu czy opublikowaniu gdzie indziej; `sourceRelative` odwzorowuje układ drzewa;
 - **`converter` / `converterVersion`** — który backend faktycznie zadziałał. Bez tego nie odróżnisz
   czystej ekstrakcji od zgadywanki OCR trzy kroki później;
-- **`ocr`** — czy tekst powstał z rozpoznawania obrazu. W korpusie nanobionic **52 ze 101** plików
+- **`ocr`** — czy tekst powstał z rozpoznawania obrazu. W korpusie nanobionic **53 ze 146** plików
   przeszły OCR, co powinno ważyć na zaufaniu do ich treści;
 - **`fallbackDepth`** — ile backendów odmówiło, zanim któryś wziął plik. Wysoka wartość na całym
   korpusie oznacza źle ustawioną kolejność łańcucha;
@@ -197,7 +211,11 @@ Najważniejsze pola:
 
 Siatki CAD (STL, F3D, SCAD) i archiwa ZIP też dostają plik `.md` — z front matter i krótkim stubem
 wyjaśniającym, dlaczego nie ma treści. Drzewo, które po cichu pomija pliki, nie zgadza się ze
-źródłem, a to gorsze niż jawne „tu nie ma tekstu". W korpusie nanobionic to 33 ze 134 plików.
+źródłem, a to gorsze niż jawne „tu nie ma tekstu". W korpusie nanobionic to **33 ze 146** plików
+(113 ma realnie wyekstrahowaną treść).
+
+Rozkład backendów w tym korpusie — `pymupdf4llm` 66, `pandoc` 22, `deterministic-text` 16,
+`docling` 9, brak (stub) 33 — czyli Docling odpowiada za skany, których nie wziął żaden tańszy backend.
 
 ### Pojedynczy plik
 
@@ -211,6 +229,11 @@ f2md --detect *.pdf               # tylko wykryty typ i media type
 
 Ten sam kontrakt w Node.js — `npx f2md --tree src/ out/`. Oba pakiety emitują identyczną kopertę;
 `npm run f2md:conformance` pilnuje, żeby się nie rozjechały.
+
+> **Parytet paczek.** Wspólne dla obu: `--tree`, `--only`, `--quiet`, `--json`, `--detect`,
+> `--backend`, `--docling-url`. Tylko Python (`py/f2md`, obecnie 0.3.0): `--secret-pattern`,
+> `--translate`, `--translation-policy`. Paczka npm (`@subactor/f2md`, 0.2.0) nie ma warstwy
+> poufności ani tłumaczeń — korpus z polityką `KONFIDENCIALU` buduj Pythonem.
 
 ## Kreator żywego projektu
 
@@ -287,6 +310,55 @@ node vendor/runtime/dist/src/cli/main.js project-add-website \
 ```
 
 Obsługiwane są pojedyncze pliki, katalogi, ZIP-y i DQL/sitemap. Pliki Office/PDF/obrazy mogą przechodzić przez Docling, a treści tekstowe mają deterministyczny fallback lokalny.
+
+## Karmienie twina korpusem Markdown (przebieg zweryfikowany)
+
+Ścieżka, którą warto stosować: najpierw `f2md` robi z binariów drzewo Markdown, potem to drzewo
+zasila projekt. Korpus `nanobionic-laboratory-md` (18 MB) zamiast `nanobionic-laboratory` (1,4 GB)
+oznacza szybszą iterację i pełną proweniencję w front matter każdego pliku.
+
+```bash
+node dist/src/cli/main.js project-create \
+  "Nanobionic Laboratory MD" ../projects/nanobionic-laboratory-md biofoundry \
+  "Buduj i ewoluuj walidowany Digital Twin open-source biofoundry na bazie korpusu Markdown."
+
+P=../projects/nanobionic-laboratory-md/project.projectdsl
+MD=../nanobionic-laboratory-md
+
+# katalogi tematyczne → role
+node dist/src/cli/main.js project-add-source "$P" customer "$MD/A. SPECIFIKACIJA"
+node dist/src/cli/main.js project-add-source "$P" project  "$MD/0. Architecture"
+node dist/src/cli/main.js project-add-source "$P" project  "$MD/0. OSCAR robot"
+node dist/src/cli/main.js project-add-source "$P" project  "$MD/I. Bioreactor"
+# … II. Microscopy, III. Microfluidic assembly, IV. 3D microfluidic bioprinting,
+#    V. Opensource clean room, C. Biofoundry article
+
+# pojedyncze dokumenty najwyższego poziomu
+node dist/src/cli/main.js project-add-source "$P" project "$MD/nanobionic_lab_whitepaper.pdf.md"
+node dist/src/cli/main.js project-add-source "$P" manager "$MD/LMT_Nanobiobot_Paraiskas_2026_EN.docx.md"
+
+node dist/src/cli/main.js project-verify  "$P"
+node dist/src/cli/main.js project-iterate "$P" ../projects/nanobionic-laboratory-md/.living-runtime deterministic
+```
+
+Dodawaj **podkatalogi**, nie sam korzeń: `project-add-source` kopiuje rekurencyjnie, więc korzeń
+wciągnąłby też `.git` (tu 9,3 MB) do `imports/`.
+
+Wynik jednej iteracji na tym korpusie — **30/30 komponentów uziemionych** w realnych zasobach, żaden
+nie spadł na `role-fallback`:
+
+| dowód semantyczny | komponenty |
+| --- | --- |
+| `semantic+path` (dopasowanie po ścieżce) | 17 |
+| `semantic` | 13 |
+| `role-fallback` (filtr nic nie złapał) | 0 |
+
+Kilka przykładowych trafień: `build` 51 zasobów, `enzyme_screen_01` 66, `flagship_cellfree_enzyme` 35,
+`biospec_bioreactor_01` 35 (w tym 19 plików CAD), `cleanroom_base_01` 1.
+
+Nazewnictwo `f2md` (`<oryginał>.<ext>.md`) jest tu istotne: `lid_UNF.step.md` nadal mówi, że pod
+spodem jest STEP, więc `pathIncludes` w blueprint trafiają tak samo jak na korpusie binarnym.
+Jeden wyjątek — patrz [Naprawione defekty](#naprawione-defekty).
 
 ## NL → wszystkie DSL
 
@@ -375,17 +447,20 @@ node dist/src/cli/main.js probes-ingest cycle.json .living-runtime/candidate/pro
 
 Pełna autonomia kodu wymaga jeszcze promocji z izolacji do drzewa głównego, canary/rollback (`autonomy-lab`), niezależnego evaluatora, trwałego event store i walidacji geometrii.
 
-## Weryfikacja 0.4.0
+## Weryfikacja
 
 ```bash
 npm run verify
 ```
 
+Ostatni pełny przebieg: **exit 0, 55/55 testów Node**, 12 kontraktów Proto, 4 fixture f2md zgodne
+co do koperty, wszystkie dema zielone.
+
 Sprawdzone lokalnie:
 
 - TypeScript strict;
 - 12 kontraktów Proto z kontrolą duplikatów numerów pól;
-- 17/17 testów Node;
+- 55/55 testów Node (`node --test dist/test/*.test.js`);
 - NL → 11 DSL;
 - OpenRouter strict structured-output mock;
 - DQL sitemap/context;
@@ -436,11 +511,47 @@ npm run demo:physical   # pełny przebieg end-to-end, wywala build gdy tożsamo�
 
 ## Dashboard 3D
 
+### Diagnostyka całego przepływu
+
+`project-diagnose` skanuje źródłowe CAD, ich lustro Markdown, pakiety intentDSL oraz artefakty
+żywego runtime (`twin.json`, `scene.json`, evidence i generation audit). Wynik ma stabilne kody
+`urn:subactor:diagnostic:<code>:sha256:<hash>` oraz URI procesów naprawczych
+`subactor://process/repair/digital-twin/...`. Diagnostyka jest deterministyczna i nie pozwala
+LLM zmienić bramek authority; OpenRouter służy wyłącznie do opcjonalnych propozycji naprawy.
+
+```bash
+npm run build
+node dist/src/cli/main.js project-diagnose \
+  /home/tom/github/bioxfoundry/nanobionic-laboratory \
+  /home/tom/github/bioxfoundry/nanobionic-laboratory-md \
+  /home/tom/github/bioxfoundry/nanobionic-laboratory-md-dsl \
+  /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/.living-runtime
+```
+
+Raport jest zapisywany domyślnie jako `current/digital-twin-diagnostics.json`. Aktualne URI
+napraw wskazują m.in. tessellację CAD do glTF, ponowne generowanie sceny, naprawę evidence i
+ponowienie konwersji Docling. Lokalny `.env` jest automatycznie ładowany (bez nadpisywania
+zmiennych środowiskowych), więc `doctor` pokazuje aktywny model OpenRouter bez ujawniania klucza.
+
+### CAD → GLB
+
+`scripts/cad-to-gltf.py` konwertuje binary i ASCII STL do minimalnego, walidowalnego GLB bez
+zależności od systemowego CAD. Jeżeli `CADQUERY_PATH` wskazuje środowisko CadQuery/OCP, STEP jest
+importowany przez OpenCascade i tessellowany do GLB. F3D/SCAD bez backendu pozostają jawnie
+oznaczone jako `CAD_TESSELLATOR_BACKEND_REQUIRED` — nie są udawane jako geometria.
+
+```bash
+CADQUERY_PATH=/path/to/cadquery-deps python3 scripts/cad-to-gltf.py <source-cad-root> <derived-geometry-root> --report cad-tessellation.report.json
+```
+
+Dashboard ładuje zarówno STL, jak i GLB (`loadGlb`), a URI GLB jest sprawdzany przez te same
+bramki zasobów co pozostałe evidence.
+
 Podgląd żywego twina w przeglądarce — bez zależności, własny renderer WebGL:
 
 ```bash
-node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port]
-# domyślnie http://127.0.0.1:7331/
+node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port] [mode]
+# domyślnie http://127.0.0.1:7331/, tryb deterministic
 ```
 
 Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
@@ -454,6 +565,88 @@ Endpointy: `/api/state`, `/api/scene.usda` (eksport OpenUSD), `POST /api/iterate
 > projekt na dysku. Słucha tylko na `127.0.0.1` — to narzędzie do lokalnej inspekcji, nie wystawiaj
 > go na publiczny interfejs. Szczegóły: [`docs/DASHBOARD.md`](docs/DASHBOARD.md).
 
+> `POST /api/intake` **scala** rekordy z tym, co projekt już trzyma, i zapisuje wyłącznie to,
+> co przeszło walidację. Dokument, z którego nic nie zostało przyjęte, zwraca **422** i nie
+> zapisuje nic. Szczegóły: [Naprawione defekty](#naprawione-defekty).
+
+## Naprawione defekty
+
+Trzy defekty znalezione przebiegiem na korpusie `nanobionic-laboratory-md` — nie z lektury
+kodu — są **naprawione i zapięte testami regresji**. Opis zostaje, bo sposób, w jaki się
+ujawniły, mówi więcej niż sama łatka.
+
+### 1. Intake nadpisywał plik dowodów, zanim go zweryfikował (utrata danych)
+
+`POST /api/intake` zapisywał `baseline/physical-evidence.json` **w całości**, a dopiero potem
+uruchamiał iterację stosującą regułę „słabszy dowód nie nadpisuje mocniejszego". Reguła
+działała więc *wewnątrz* jednego dokumentu, ale nie *pomiędzy* dokumentami.
+
+Zaobserwowany przebieg: po intake, który podniósł 6 komponentów, kolejny intake z jednym
+rekordem i nieuziemionym `assetUri` został odrzucony (`applied: []`) — ale plik już był
+podmieniony, więc **wszystkie 6 komponentów wróciło do `placeholder`**, przy odpowiedzi 200.
+
+**Naprawa** (`src/serve/dashboard.ts`): dokument jest oceniany **osobno** względem żywego
+twina, na dysk trafiają **tylko rekordy przyjęte**, scalone po `componentId` z tym, co projekt
+już trzymał. Pre-check dostaje `allowedAssetUris` z `current/resources.json`, więc
+`ASSET_NOT_GROUNDED` wychodzi **przed** zapisem. Intake, z którego nic nie przeszło, zwraca
+**422** i nie zapisuje nic.
+
+Weryfikacja na żywej usłudze — ten sam dokument, który wcześniej niszczył bazę:
+
+```
+HTTP 422   error: PHYSICAL_EVIDENCE_REJECTED
+           rejected: [{ componentId: liquid_handler_01, reason: ASSET_NOT_GROUNDED }]
+facility_shell ifc → ifc     build cad → cad     test cad → cad     (bez zmian)
+```
+
+A akumulacja działa: kolejny poprawny rekord podniósł `analytics_01` do `measured`
+i baza urosła do 11 rekordów, nie tracąc żadnego.
+
+### 2. `cadAssetCount` nie widział rozszerzeń w korpusie f2md
+
+Wyrażenie w `src/scene/blueprint.ts` było zakotwiczone na końcu nazwy, a w korpusie f2md każdy
+plik kończy się na `.md` — liczyła się więc tylko przypadkowa obecność słowa `cad` w ścieżce.
+`bioprinter_mos3s_01` miał `cadAssetCount: undefined` mimo 14 części `*.stl.md`.
+
+**Naprawa**: opcjonalny sufiks `(\.[a-z]{2})?(\.md)?` na końcu wzorca. Po iteracji:
+`bioprinter_mos3s_01` 14, `microfluidic_assembly_01` 14, `biospec_bioreactor_01` 19.
+Test pokrywa korpus binarny i mirror Markdown obok siebie oraz pilnuje, żeby proza
+(`installation-steps.md`) nie została uznana za geometrię.
+
+### 3. `label` nie starzał się razem z geometrią
+
+`applyPhysicalEvidence` aktualizował `geometryEvidence`, `position` i `size`, ale nie `label`,
+więc dashboard pokazywał plakietkę `ifc` obok podpisu „Facility envelope (**placeholder
+60×36 m**)" przy faktycznym 58,2 × 34,6 m.
+
+**Naprawa**: przy dowodzie mocniejszym niż `placeholder` z etykiety znika sam nawias
+z deklaracją placeholdera; nazwa komponentu zostaje. `label` nie jest tożsamością —
+`componentId` i `scenePath` nią są — więc przepisanie go nie narusza kontraktu intake'u.
+
+### 4. Drobiazgi
+
+- **Wyścig na `/api/intake`**: `busy` jest teraz zajmowane **przed** pierwszym `await`,
+  więc dwa równoległe żądania nie przechodzą już obu przez bramkę.
+- **`alert()`** zastąpiony nieblokującym paskiem statusu w nagłówku. Modal zamrażał pętlę
+  zdarzeń, co zatrzymywało odświeżanie co 5 s i każdą automatyzację sterującą stroną.
+- **`engines`** poprawione na `>=20.19` — `verify` przechodzi na Node 20, więc deklaracja
+  `>=22` była ostrzejsza niż faktyczne wymaganie.
+
+### 5. Naprawa nie docierała do istniejących projektów
+
+Ujawnione przy naprawianiu punktu 2: iteracja jest pomijana (`noChange`), gdy nie zmieniły się
+**wejścia** — źródła, kod, obserwacje, konfiguracja. Runtime nie był częścią tego klucza, więc
+naprawa semantyki generowania **nigdy nie docierała** do istniejącego twina: łatka wchodziła,
+wszystkie hashe zostawały te same, a twin dalej trzymał wartości ze starego kodu.
+
+**Naprawa** (`src/core/generation.ts`): `RUNTIME_GENERATION` wchodzi do klucza pomijania.
+Bump przy zmianie tego, co runtime **wyprowadza** z niezmienionych wejść — reguł uziemienia,
+dopasowania blueprintu, rankingu dowodów, układu sceny — i każdy projekt przelicza się przy
+najbliższej iteracji. `DT_FORCE_ITERATION=1` wymusza przeliczenie bez bumpa.
+
+To jest warunek konieczny sprzężenia zwrotnego: bez tego autonomiczna pętla nigdy nie
+zobaczyłaby własnej poprawki.
+
 ## Przykłady
 
 ```bash
@@ -463,7 +656,9 @@ npm run demo:research
 npm run demo:biofoundry
 npm run demo:realtime
 npm run demo:living
+npm run demo:physical
 npm run demo:autonomy
+npm run demo:mutation
 ```
 
 Najważniejsze materiały:
@@ -472,10 +667,32 @@ Najważniejsze materiały:
 - `examples/biofoundry/`
 - `examples/researcher/`
 - `examples/nl-to-dsl/`
-- `docs/AUTONOMY_MODEL.md`
-- `docs/AUTONOMY_EXAMPLES.md`
-- `docs/AUTONOMY_FINDINGS.md`
-- `docs/GITHUB_AND_CI.md`
-- `docs/PROJECT_WIZARD.md`
-- `docs/FULL_AUTONOMY_GAPS.md`
 - `VERIFICATION.md`
+
+## Dokumentacja
+
+| dokument | o czym |
+| --- | --- |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | podział na warstwy i granice authority |
+| [`docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md`](docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md) | pełna pętla research → runtime → twin |
+| [`docs/DSL_SPEC.md`](docs/DSL_SPEC.md) | składnia wszystkich DSL |
+| [`docs/SEMANTIC_SCENE_BLUEPRINT.md`](docs/SEMANTIC_SCENE_BLUEPRINT.md) | blueprint: tożsamość vs stan |
+| [`docs/PHYSICAL_EVIDENCE_INTAKE.md`](docs/PHYSICAL_EVIDENCE_INTAKE.md) | placeholder → measured → cad → ifc → verified |
+| [`docs/DASHBOARD.md`](docs/DASHBOARD.md) | dashboard 3D, endpointy, model bezpieczeństwa |
+| [`docs/PROJECT_WIZARD.md`](docs/PROJECT_WIZARD.md) | generator izolowanego projektu |
+| [`docs/QUICK_SOURCE_RECIPES.md`](docs/QUICK_SOURCE_RECIPES.md) | przepisy na dodawanie źródeł |
+| [`docs/DQL_PROFILES.md`](docs/DQL_PROFILES.md) | profile crawlera DQL/sitemap |
+| [`docs/OPENROUTER_NL_TO_DSL.md`](docs/OPENROUTER_NL_TO_DSL.md) | NL → DSL przez structured output |
+| [`docs/TODO2CODE_INTEGRATION.md`](docs/TODO2CODE_INTEGRATION.md) | Intent vs Reality, adapter `todo2code` |
+| [`docs/REALTIME_BIOFOUNDRY.md`](docs/REALTIME_BIOFOUNDRY.md) | watcher czasu rzeczywistego |
+| [`docs/RESEARCHER_WORKFLOWS.md`](docs/RESEARCHER_WORKFLOWS.md) | ścieżki badawcze |
+| [`docs/AUTONOMY_MODEL.md`](docs/AUTONOMY_MODEL.md) · [`AUTONOMY_EXAMPLES.md`](docs/AUTONOMY_EXAMPLES.md) · [`AUTONOMY_FINDINGS.md`](docs/AUTONOMY_FINDINGS.md) | model autonomii, przykłady, wnioski |
+| [`docs/FULL_AUTONOMY_GAPS.md`](docs/FULL_AUTONOMY_GAPS.md) | czego brakuje do pełnej autonomii kodu |
+| [`docs/EVENT_HISTORY_AUTONOMY.md`](docs/EVENT_HISTORY_AUTONOMY.md) | rejestr planu i wykonania |
+| [`docs/GITHUB_AND_CI.md`](docs/GITHUB_AND_CI.md) · [`CI_CD.md`](docs/CI_CD.md) | CI/CD i release |
+| [`docs/TEST_PLAN.md`](docs/TEST_PLAN.md) | zakres testów |
+
+
+## License
+
+Licensed under Apache-2.0.

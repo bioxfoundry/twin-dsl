@@ -31,7 +31,10 @@ validation                           unit=m, upAxis=Z, positive extents, no dupl
         ↓
 stable component id                  unknown id → rejected, never created
         ↓
-position / size / assetUri           applied to twin properties and scene bindings
+position / size / orientation / assetUri
+                                      applied to twin properties and scene bindings
+        ↓
+geometry validation                  tolerances + spatial constraints, deterministic
         ↓
 new Twin revision                    evidence is part of the project config hash
         ↓
@@ -46,6 +49,9 @@ new Scene revision                   bindings re-point at the new twin content U
 | The component must be bound in the scene | `COMPONENT_NOT_BOUND_IN_SCENE` |
 | Weaker evidence never overwrites stronger geometry | `WEAKER_THAN_EXISTING:<grade>` |
 | A mesh/CAD asset must be an ingested resource | `ASSET_NOT_GROUNDED` |
+| Orientation must be a normalized `[x,y,z,w]` quaternion | schema validation error |
+| Scene pose differs from evidence beyond its tolerance | geometry validation failure |
+| `inside`, `clearance` or `no-overlap` is violated | geometry validation failure |
 | Nothing to change | `NO_CHANGE` |
 
 Evidence grades are ranked `placeholder < document < measured < cad < ifc < verified`.
@@ -65,6 +71,24 @@ Only `unit: "m"` and `upAxis: "Z"` are accepted. Convert millimetre CAD **before
 this is deliberate, so a 1000× scale error cannot enter the scene silently. Name the survey
 datum in `coordinateSystem.origin`; it is carried onto every touched component as
 `geometryOrigin`.
+
+## Pose and spatial constraints
+
+Each record may provide `position`, `size` and `orientation`. Orientation is a normalized
+quaternion in canonical `[x,y,z,w]` order; the OpenUSD renderer converts it to USD's
+`(w,(x,y,z))` syntax. Per-record `positionToleranceM`, `sizeToleranceM` and
+`angleToleranceDeg` make the acceptance threshold explicit instead of hiding it in the
+renderer.
+
+The document may also contain deterministic constraints:
+
+- `inside`: the subject's conservative world AABB must fit inside the object's AABB with
+  the declared margin;
+- `clearance`: the AABB distance must be at least `minDistanceM`;
+- `no-overlap`: the two AABBs must not intersect.
+
+World AABBs are computed from oriented boxes. This is intentionally conservative and fast;
+it is not an exact mesh/OBB collision test.
 
 ## Use from a project
 
@@ -86,8 +110,10 @@ node dist/src/cli/main.js physical-intake <twin.json> <scene.json> <evidence.jso
 node dist/src/cli/main.js scene-render <scene.json> <twin.json> [out.usda]
 ```
 
-`physical-intake` writes `twin.json`, `scene.json`, `scene.usda` and
-`physical-evidence.report.json`, and exits non-zero if any record was rejected.
+`physical-intake` writes `twin.json`, `scene.json`, `scene.usda`,
+`physical-evidence.report.json`, `geometry-validation.json` and
+`geometry-validation.dsl`. It exits non-zero if a record was rejected or a geometry check
+failed.
 
 ## Report
 
@@ -103,6 +129,22 @@ node dist/src/cli/main.js scene-render <scene.json> <twin.json> [out.usda]
 
 `componentIdsStable` and `scenePathsStable` are the machine-checkable form of the contract
 at the top of this document. `npm run demo:physical` fails the build if either goes false.
+
+The geometry report has two independent decisions:
+
+- `ok`: every check that could be run passed;
+- `complete`: every non-scope scene binding has position, size and orientation evidence,
+  and the document defines at least one spatial constraint.
+
+Therefore `PASS · INCOMPLETE` is valid and important: supplied facts were translated
+correctly, but the scene is not certified as a complete physical twin. The runtime publishes
+the same result as typed `GeometryValidationDSL`, including coverage counts and every check.
+
+This validator currently compares scene output with the supplied evidence and evaluates the
+declared constraints. It does **not** independently parse dimensions or transforms from the
+file named by `sourceRef` (for example an IFC GUID or STEP assembly). Such an importer must
+produce the evidence document, including provenance, before this gate can establish agreement
+with the external engineering source.
 
 ## What to collect first (P0)
 

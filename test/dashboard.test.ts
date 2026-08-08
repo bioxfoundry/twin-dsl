@@ -38,6 +38,12 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /function highlightJson/);
   assert.match(dashboardHtml, /function highlightDsl/);
   assert.match(dashboardHtml, /escapeCode\(d\.content\)|highlightDsl\(d\.content\)/);
+  assert.match(dashboardHtml, /id="last-iteration"/);
+  assert.match(dashboardHtml, /iteration v\$\{version/);
+  assert.match(dashboardHtml, /latest\.occurredAt\|\|latest\.recordedAt/);
+  assert.match(dashboardHtml, /orientation:b\.orientation/);
+  assert.match(dashboardHtml, /normalizeAssetMesh/);
+  assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size,o\.orientation\)/);
 
   const eventLog = (await (await fetch(`${server.url}api/events`)).json()) as {
     schema: string; ok: boolean; count: number; events: unknown[];

@@ -26,11 +26,16 @@ const COMPONENT_KEYS = new Set([
   "id", "type", "label", "sourceRoles", "pathIncludes", "pathExcludes",
   "maxSourceUris", "properties", "includeDevelopmentEvidence", "includeRuntimeObservations",
 ]);
-const BINDING_KEYS = new Set(["componentId", "scenePath", "primitive", "position", "size", "propertyMap"]);
+const BINDING_KEYS = new Set(["componentId", "scenePath", "primitive", "position", "size", "orientation", "propertyMap"]);
 const DOCUMENT_KEYS = new Set(["schema", "id", "twinKind", "components", "bindings"]);
 
 function isVec3(value: unknown): boolean {
   return Array.isArray(value) && value.length === 3 && value.every((x) => typeof x === "number" && Number.isFinite(x));
+}
+
+function isQuaternion(value: unknown): boolean {
+  if (!Array.isArray(value) || value.length !== 4 || !value.every((x) => typeof x === "number" && Number.isFinite(x))) return false;
+  return Math.abs(Math.hypot(...value) - 1) <= 1e-6;
 }
 
 function rejectUnknownKeys(value: Record<string, unknown>, allowed: Set<string>, error: string): void {
@@ -118,6 +123,7 @@ export function validateSceneBlueprint(value: unknown): SceneBlueprint {
     // Malformed vectors would render as an invalid double3 and make the whole USD layer unloadable.
     if (b.position !== undefined && !isVec3(b.position)) throw new Error(`SCENE_BLUEPRINT_POSITION_INVALID:${String(b.componentId)}`);
     if (b.size !== undefined && !isVec3(b.size)) throw new Error(`SCENE_BLUEPRINT_SIZE_INVALID:${String(b.componentId)}`);
+    if (b.orientation !== undefined && !isQuaternion(b.orientation)) throw new Error(`SCENE_BLUEPRINT_ORIENTATION_INVALID:${String(b.componentId)}`);
     if (paths.has(b.scenePath)) throw new Error(`SCENE_BLUEPRINT_PATH_DUPLICATE:${b.scenePath}`);
     paths.add(b.scenePath);
   }
@@ -252,6 +258,7 @@ export function materializeBlueprintScene(input: {
       primitive: binding.primitive ?? "cube",
       position: binding.position,
       size: binding.size,
+      orientation: binding.orientation,
       propertyMap: binding.propertyMap ?? {
         label: "subactor:label",
         geometryEvidence: "subactor:geometryEvidence",

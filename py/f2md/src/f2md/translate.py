@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
@@ -108,8 +109,39 @@ class ArgosTranslator:
 
     def translate(self, text: str, source: str) -> Translation:
         pair = self._pair(source)
-        parts = [pair.translate(chunk) for chunk in _chunks(text, self.chunk_chars)]
-        return Translation("\n\n".join(parts).strip(), self.engine, f"argos:{source}-{self.target}", source)
+        # Translate prose blocks while keeping Markdown structure owned by the converter. Sending
+        # raw Markdown to a neural model lets it rewrite heading markers, list bullets and table
+        # pipes (which makes the resulting document invalid even when the prose is translated).
+        translated_blocks: List[str] = []
+        in_fence = False
+        for block in text.split("\n\n"):
+            stripped = block.strip()
+            if not stripped:
+                translated_blocks.append(block)
+                continue
+            if stripped.startswith("```"):
+                in_fence = not in_fence
+                translated_blocks.append(block)
+                continue
+            if in_fence or stripped.startswith(":::") or stripped.startswith("|"):
+                translated_blocks.append(block)
+                continue
+            heading = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+            if heading:
+                translated = pair.translate(heading.group(2))
+                translated_blocks.append(f"{heading.group(1)} {translated}")
+                continue
+            lines = stripped.splitlines()
+            if lines and all(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", line) for line in lines):
+                translated_lines = []
+                for line in lines:
+                    marker = re.match(r"^(\s*(?:[-*+]\s+|\d+[.)]\s+))(.*)$", line)
+                    assert marker is not None
+                    translated_lines.append(marker.group(1) + pair.translate(marker.group(2)))
+                translated_blocks.append("\n".join(translated_lines))
+                continue
+            translated_blocks.extend(pair.translate(chunk) for chunk in _chunks(block, self.chunk_chars))
+        return Translation("\n\n".join(translated_blocks).strip(), self.engine, f"argos:{source}-{self.target}", source)
 
 
 class OpenRouterTranslator:

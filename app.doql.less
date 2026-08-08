@@ -2,12 +2,57 @@
 
 app {
   name: @subactor/digital-twin-runtime-starter;
-  version: 0.5.0;
+  version: 0.5.1;
 }
 
 interface[type="api"] {
   type: rest;
   framework: fastapi;
+}
+
+workflow[name="up"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) up -d --build;
+}
+
+workflow[name="down"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) down;
+}
+
+workflow[name="down-clean"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) down -v;
+}
+
+workflow[name="restart"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) down;
+  step-2: run cmd=$(COMPOSE) up -d --build;
+}
+
+workflow[name="build"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) build;
+}
+
+workflow[name="logs"] {
+  trigger: manual;
+  step-1: run cmd=$(COMPOSE) logs -f --tail=100;
+}
+
+workflow[name="service-check"] {
+  trigger: manual;
+  step-1: run cmd=CLICKHOUSE_URL=http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123} \;
+  step-2: run cmd=DOCLING_URL=http://127.0.0.1:$${DOCLING_PORT:-15001} \;
+  step-3: run cmd=CLICKHOUSE_USER=$${CLICKHOUSE_USER:-digital_twin} \;
+  step-4: run cmd=CLICKHOUSE_PASSWORD=$${CLICKHOUSE_PASSWORD:-digital_twin_local} \;
+  step-5: run cmd=node dist/src/cli/main.js service-check;
+}
+
+workflow[name="prune-cache"] {
+  trigger: manual;
+  step-1: run cmd=docker builder prune -f;
 }
 
 workflow[name="verify"] {
@@ -40,13 +85,18 @@ workflow[name="nl-dsl"] {
   step-1: run cmd=npm run demo:nl-dsl;
 }
 
+workflow[name="dashboard"] {
+  trigger: manual;
+  step-1: run cmd=npm run build && node dist/src/cli/main.js dashboard .factory-demo/project/project.projectdsl .factory-demo/runtime 7331;
+}
+
 workflow[name="clean"] {
   trigger: manual;
   step-1: run cmd=npm run clean;
 }
 
 env_vars {
-  keys: T2C_ROOT, T2C_BIN, T2C_NL_MODE, OPENROUTER_API_KEY, OPENROUTER_BASE_URL, OPENROUTER_MODEL, OPENROUTER_HTTP_REFERER, OPENROUTER_APP_TITLE, OPENROUTER_DATA_COLLECTION, OPENROUTER_TIMEOUT_MS, OPENROUTER_MAX_RETRIES, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_RESPONSE_HEALING, DT_LLM_MODE, DT_WATCH_INTERVAL_MS, DT_MAX_ARCHIVE_FILES, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT;
+  keys: T2C_ROOT, T2C_BIN, T2C_NL_MODE, OPENROUTER_API_KEY, OPENROUTER_BASE_URL, OPENROUTER_MODEL, OPENROUTER_HTTP_REFERER, OPENROUTER_APP_TITLE, OPENROUTER_DATA_COLLECTION, OPENROUTER_TIMEOUT_MS, OPENROUTER_MAX_RETRIES, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_RESPONSE_HEALING, CLICKHOUSE_URL, CLICKHOUSE_USER, CLICKHOUSE_PASSWORD, DT_NETWORK_SUBNET, DT_LLM_MODE, DT_WATCH_INTERVAL_MS, DT_MAX_ARCHIVE_FILES, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT;
 }
 
 deploy {
@@ -56,8 +106,8 @@ deploy {
 
 environment[name="local"] {
   runtime: docker-compose;
-  env_file: .env.example;
+  env_file: .env;
   template_file: .env.example;
-  vars: DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT, DT_LLM_MODE, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_ARCHIVE_FILES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_WATCH_INTERVAL_MS, OPENROUTER_API_KEY, OPENROUTER_APP_TITLE, OPENROUTER_BASE_URL, OPENROUTER_DATA_COLLECTION, OPENROUTER_HTTP_REFERER, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_MAX_RETRIES, OPENROUTER_MODEL, OPENROUTER_RESPONSE_HEALING, OPENROUTER_TIMEOUT_MS, T2C_BIN, T2C_NL_MODE, T2C_ROOT;
+  vars: CLICKHOUSE_PASSWORD, CLICKHOUSE_URL, CLICKHOUSE_USER, DT_CRAWLER_ALLOW_PRIVATE, DT_CRAWLER_USER_AGENT, DT_LLM_MODE, DT_MAX_ARCHIVE_ENTRY_BYTES, DT_MAX_ARCHIVE_FILES, DT_MAX_TOTAL_ARCHIVE_BYTES, DT_NETWORK_SUBNET, DT_WATCH_INTERVAL_MS, OPENROUTER_API_KEY, OPENROUTER_APP_TITLE, OPENROUTER_BASE_URL, OPENROUTER_DATA_COLLECTION, OPENROUTER_HTTP_REFERER, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_MAX_RETRIES, OPENROUTER_MODEL, OPENROUTER_RESPONSE_HEALING, OPENROUTER_TIMEOUT_MS, T2C_BIN, T2C_NL_MODE, T2C_ROOT;
   runtime_llm: OPENROUTER_API_KEY, OPENROUTER_APP_TITLE, OPENROUTER_BASE_URL, OPENROUTER_DATA_COLLECTION, OPENROUTER_HTTP_REFERER, OPENROUTER_JSON_OBJECT_FALLBACK, OPENROUTER_MAX_RETRIES, OPENROUTER_MODEL, OPENROUTER_RESPONSE_HEALING, OPENROUTER_TIMEOUT_MS;
 }
