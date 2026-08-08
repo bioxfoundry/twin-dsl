@@ -540,3 +540,27 @@ fix units and aspect fidelity
 
 That sequence addresses both physical correctness and the visible lack of detail while preserving
 the project's existing deterministic authority boundaries.
+
+## Verified implementation update — 2026-08-08
+
+The first high-value archive candidate has now crossed the complete evidence path. The OSCAR
+pipette-tool ZIP yielded a 414,007-vertex, 412,076-triangle OBJ with 38 groups and 38 MTL
+materials. The deterministic converter emits a 14,899,972-byte indexed multi-material GLB, and
+the dashboard renders every primitive in an isolated inspection view.
+
+Measured improvement in the accepted current revision:
+
+| Metric | Before | Current |
+|---|---:|---:|
+| scene bindings | 30 | 31 |
+| real mesh bindings | 2 | 3 |
+| unique meshes | 2 | 3 |
+| complete assemblies | 0/2 | 1/3 |
+| complete required parts | 2/17 | 3/18 |
+
+This does not close the full detail gap: 28 scene objects still use primitive fallbacks and the
+MOS3S part set lacks authoritative assembly-local transforms. The result does validate the intended
+method: inspect ZIP structure, recover a complete asset, preserve materials, bind it to the correct
+child identity, apply Physical Evidence, validate AssemblyDSL, publish current, and capture an
+inspection artifact. Full archive details are in
+[`ARCHIVE_PROJECT_EXTRACTION.md`](ARCHIVE_PROJECT_EXTRACTION.md).

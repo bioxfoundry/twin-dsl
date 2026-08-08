@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, readFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { execFile } from "node:child_process";
@@ -50,4 +50,15 @@ test("archive materializer writes only selected safe geometry with actual conten
   const bytes=await readFile(entry!.outputPath!);
   assert.equal(entry?.sha256,createHash("sha256").update(bytes).digest("hex"));
   assert.ok(!receipt.entries.some((candidate)=>candidate.entryPath.includes("escape")));
+});
+
+test("directory scanner excludes dashboard transport logs from autonomous source snapshots", async () => {
+  const root=await mkdtemp(join(tmpdir(),"scanner-runtime-log-"));
+  await mkdir(join(root,"logs"));
+  await writeFile(join(root,"logs","dashboard-7445.log"),'{"event":"iteration:complete"}\n');
+  await writeFile(join(root,"logs","runtime.jsonl"),'{"metric":"temperature","value":37}\n');
+
+  const scanned=await scanSources([{path:root,role:"runtime",logicalRoot:"subactor://fixture/runtime"}]);
+  assert.ok(!scanned.resources.some((resource)=>resource.sourcePath.endsWith("dashboard-7445.log")));
+  assert.ok(scanned.resources.some((resource)=>resource.sourcePath.endsWith("runtime.jsonl")));
 });

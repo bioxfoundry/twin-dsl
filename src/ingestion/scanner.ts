@@ -40,6 +40,11 @@ async function walk(root: string): Promise<string[]> {
   const out: string[] = [];
   for (const e of await readdir(root, { withFileTypes: true })) {
     if ([".git", "node_modules", "dist", ".intent", ".dt-run", ".biofoundry-run", ".living-runtime"].includes(e.name)) continue;
+    // The dashboard writes these logs while an iteration is running. Feeding them
+    // back into the source snapshot creates a self-induced change on every click.
+    // Explicit file sources are still accepted; only recursive directory scans
+    // ignore the runtime-owned transport log.
+    if (e.isFile() && /^dashboard-\d+\.log$/i.test(e.name)) continue;
     const p = join(root, e.name);
     if (e.isSymbolicLink()) continue;
     if (e.isDirectory()) out.push(...await walk(p));

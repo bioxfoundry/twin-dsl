@@ -561,7 +561,8 @@ zmiennych środowiskowych), więc `doctor` pokazuje aktywny model OpenRouter bez
 
 ### CAD/SCAD → executable geometry
 
-`scripts/cad-to-gltf.py` konwertuje binary/ASCII STL i 3MF do walidowalnego GLB. Jeżeli
+`scripts/cad-to-gltf.py` konwertuje binary/ASCII STL, 3MF oraz OBJ+MTL do walidowalnego GLB.
+OBJ zachowuje indeksy, grupy i materiały jako osobne glTF primitives/PBR materials. Jeżeli
 `CADQUERY_PATH` wskazuje środowisko CadQuery/OCP, STEP jest importowany przez OpenCascade.
 SCAD ma osobny, wykonywalny kontrakt `subactor.geometry-build/v1`: prawdziwy OpenSCAD generuje
 kanoniczny 3MF, z którego runtime tworzy GLB i USDA oraz receipt. F3D nadal wymaga jawnego
@@ -579,6 +580,22 @@ Dashboard ładuje zarówno STL, jak i GLB (`loadGlb`), a URI GLB jest sprawdzany
 bramki zasobów co pozostałe evidence. Nieudany receipt pozostaje widoczny w candidate DSL/logach,
 ale nie zastępuje ostatniej poprawnej sceny. Szczegóły i rzeczywisty wynik lid_UNF:
 [`docs/GEOMETRY_COMPILATION.md`](docs/GEOMETRY_COMPILATION.md).
+
+### ZIP project evidence → geometry candidates
+
+`archive-analyze` skanuje całe projekty zapisane w ZIP, wykrywa assembly/part CAD, mesh, BOM,
+dokumentację, firmware, konfigurację i materiały, a następnie tworzy ograniczony plan ekstrakcji.
+Nie wykonuje kodu z archiwum i nie pozwala, aby wpis ZIP został uznany za fizyczny mesh przed
+materializacją, hashowaniem, konwersją i receipt. Duży ChemOS (3552 wpisy) jest analizowany zamiast
+odrzucany przez historyczny limit 1000 plików.
+
+```bash
+node dist/src/cli/main.js archive-analyze <zip-or-directory> <out-dir> analyze
+node dist/src/cli/main.js archive-analyze <zip-or-directory> <out-dir> materialize
+```
+
+Kontrakty, metryki, bezpieczeństwo oraz wynik dla 9 archiwów nanobionic-laboratory opisuje
+[`docs/ARCHIVE_PROJECT_EXTRACTION.md`](docs/ARCHIVE_PROJECT_EXTRACTION.md).
 
 Podgląd żywego twina w przeglądarce — bez zależności, własny renderer WebGL:
 
