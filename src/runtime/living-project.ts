@@ -77,6 +77,7 @@ import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { projectTwinState, renderTwinStateDsl } from "./twin-state.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
 import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
+import { renderArchiveAnalysisDsl } from "../../js/archive-project-analyzer/src/index.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
@@ -426,6 +427,7 @@ export class LivingProjectRuntime {
         `- Geometry validation: ${join(diagnosticRoot,"geometry-validation.dsl")}`,
         `- Project integrity: ${join(diagnosticRoot,"project-integrity.dsl")}`,
         `- Evidence sets: ${join(diagnosticRoot,"evidence-sets.dsl")}`,
+        `- Archive project analysis: ${join(diagnosticRoot,"archive-project-analysis.dsl")}`,
         `- Validation: ${blocked ? previous.validation.failures.join(", ") : "passed"}`,
         "", "## Logs and feedback", "",
         `- Iteration receipt: ${join(runtimeRoot,"latest.json")}`,
@@ -489,7 +491,7 @@ export class LivingProjectRuntime {
     const deterministicSceneForTwin = conceptualScene(project,twin,sceneBlueprint);
     let sceneGeneration = await this.compiler.compile({kind:"scene",text:`Build the current conceptual scene for ${project.name} without inventing geometry.`,context:{...context,math,twin},mode:effectiveMode,deterministicValue:{document:deterministicSceneForTwin}});
     let scene = sceneGeneration.value as SceneDocument;
-    try { validateScene(scene); validateSceneGrounding(scene,twin,resources); }
+    try { validateScene(scene); validateSceneGrounding(scene,twin,resources,deterministicSceneForTwin); }
     catch(error) {
       if(mode === "require-llm") throw error;
       authorityWarnings.push(`LLM_SCENE_PROPOSAL_REJECTED:${error instanceof Error?error.message:String(error)}`);
@@ -571,6 +573,8 @@ export class LivingProjectRuntime {
     const candidate = join(outDir,"candidate");
     await writeJson(join(candidate,"project.json"),project);
     await writeJson(join(candidate,"resources.json"),resources);
+    await writeJson(join(candidate,"archive-project-analysis.json"),{schema:"subactor.archive-project-index/v1",archives:scanned.archiveAnalyses});
+    await writeFile(join(candidate,"archive-project-analysis.dsl"),scanned.archiveAnalyses.map(renderArchiveAnalysisDsl).join("\n"));
     await writeJson(join(candidate,"evidence-sets.json"),Object.values(evidenceSets));
     await writeFile(join(candidate,"evidence-sets.dsl"),renderEvidenceSets(Object.values(evidenceSets)));
     await writeJson(join(candidate,"development.intent.json"),development);
@@ -604,7 +608,7 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -678,6 +682,7 @@ export class LivingProjectRuntime {
       `Runtime observations: ${observation.observations.length}`,
       ...(twinState?[`TwinState bindings: ${twinState.coverage.bindings}; fresh: ${twinState.coverage.fresh}; stale: ${twinState.coverage.stale}; expired: ${twinState.coverage.expired}; unknown: ${twinState.coverage.unknown}`]:[]),
       ...(assemblyReport?[`Assembly completeness: ${assemblyReport.coverage.completeAssemblies}/${assemblyReport.coverage.assemblies}; required parts: ${assemblyReport.coverage.completeRequiredParts}/${assemblyReport.coverage.requiredParts}`]:[]),
+      `Archive projects: ${scanned.archiveAnalyses.length}; materializable geometry entries: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0)}; unsupported CAD entries: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0)}`,
       `IntentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       "",
       "## Proposed improvements",
@@ -738,6 +743,8 @@ export class LivingProjectRuntime {
       `- Geometry required checks: ${geometryReport.coverage.passedRequiredChecks??"legacy"}/${geometryReport.coverage.requiredChecks??"legacy"} over ${geometryReport.coverage.bindings} physical/hybrid component(s)`,
       `- Latest project integrity: ${join(latestArtifactRoot,"project-integrity.dsl")}`,
       `- Evidence sets: ${join(latestArtifactRoot,"evidence-sets.dsl")}`,
+      `- Archive project analysis: ${join(latestArtifactRoot,"archive-project-analysis.dsl")}`,
+      `- Archive materializable geometry: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0)} candidate(s); unsupported native CAD: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0)}`,
       `- Project integrity status: ${projectIntegrity.ok?"PASS":"FAIL"} / ${projectIntegrity.complete?"COMPLETE":"INCOMPLETE"}`,
       `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
       "",

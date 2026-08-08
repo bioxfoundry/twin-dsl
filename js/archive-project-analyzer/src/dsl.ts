@@ -3,6 +3,10 @@ import type { ArchiveProjectAnalysis } from "./types.js";
 function quoted(value: string): string { return JSON.stringify(value); }
 
 export function renderArchiveAnalysisDsl(analysis: ArchiveProjectAnalysis): string {
+  const selected = new Set([...analysis.selectedTextEntries, ...analysis.selectedGeometryEntries]);
+  const visibleCandidates = analysis.candidates
+    .filter((candidate) => selected.has(candidate.path) || candidate.score >= 70)
+    .slice(0, 120);
   const lines = [
     `ARCHIVE_PROJECT ${analysis.archive.sha256.slice(0, 16)}`,
     `SOURCE ${analysis.archive.uri}`,
@@ -18,9 +22,10 @@ export function renderArchiveAnalysisDsl(analysis: ArchiveProjectAnalysis): stri
     `UNSUPPORTED_CAD_COUNT ${analysis.coverage.unsupportedCadEntries}`,
   ];
   for (const root of analysis.projectRoots) lines.push(`PROJECT_ROOT ${quoted(root)}`);
-  for (const candidate of analysis.candidates) lines.push(
+  for (const candidate of visibleCandidates) lines.push(
     `CANDIDATE ${candidate.kind} ${candidate.expectedUse} ${candidate.materializable ? "MATERIALIZABLE" : "METADATA_ONLY"} SCORE ${candidate.score} SIZE ${candidate.uncompressedSize} PATH ${quoted(candidate.path)}`,
   );
+  if (analysis.candidates.length > visibleCandidates.length) lines.push(`CANDIDATES_OMITTED ${analysis.candidates.length-visibleCandidates.length} FULL_REPORT ${analysis.archive.uri}`);
   for (const path of analysis.selectedTextEntries) lines.push(`SELECT_TEXT ${quoted(path)}`);
   for (const path of analysis.selectedGeometryEntries) lines.push(`SELECT_GEOMETRY ${quoted(path)}`);
   for (const finding of analysis.findings) lines.push(

@@ -9,7 +9,7 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 const MATERIALIZABLE_GEOMETRY = new Map([
   [".obj", "obj"], [".stl", "stl"], [".step", "step"], [".stp", "step"], [".scad", "openscad"],
-  [".3mf", "3mf"], [".glb", "glb"], [".gltf", "gltf"],
+  [".3mf", "3mf"], [".glb", "glb"], [".gltf", "gltf"], [".mtl", "mtl"],
 ]);
 const UNSUPPORTED_NATIVE_CAD = new Map([
   [".sldasm", "solidworks"], [".sldprt", "solidworks"], [".f3d", "fusion360"], [".fcstd", "freecad"],
@@ -36,6 +36,7 @@ function kindFor(path: string): ArchiveEntryKind {
   const lower = path.toLowerCase();
   const base = posix.basename(lower);
   const ext = extname(lower);
+  if (ext === ".mtl") return "material-library";
   if (ext === ".sldasm" || ext === ".iam" || /(^|[_-])(assembly|assemblage)([_-]|\.)/.test(base)) return "assembly-cad";
   if ([".sldprt", ".ipt"].includes(ext)) return "part-cad";
   if ([".stl", ".obj", ".glb", ".gltf", ".3mf"].includes(ext)) return "mesh";
@@ -55,7 +56,7 @@ function score(path: string, kind: ArchiveEntryKind, size: number): number {
   const base = posix.basename(lower);
   let value: number = ({
     "assembly-cad": 100, mesh: 76, "cad-exchange": 74, "part-cad": 62, "parametric-cad": 62,
-    "bill-of-materials": 58, manifest: 48, documentation: 42, "source-code": 26, data: 20, image: 12, other: 0,
+    "bill-of-materials": 58, "material-library": 56, manifest: 48, documentation: 42, "source-code": 26, data: 20, image: 12, other: 0,
   })[kind];
   if (/assembly|complete|export|final|production/.test(lower)) value += 18;
   if (/readme|manual|datasheet|specification|config/.test(base)) value += 10;
@@ -69,6 +70,7 @@ function useFor(kind: ArchiveEntryKind): ArchiveCandidate["expectedUse"] {
   if (kind === "assembly-cad") return "assembly";
   if (["mesh", "part-cad", "parametric-cad", "cad-exchange"].includes(kind)) return "geometry";
   if (kind === "source-code" || kind === "manifest") return "behavior";
+  if (kind === "material-library") return "material";
   if (kind === "documentation" || kind === "image") return "documentation";
   if (kind === "bill-of-materials") return "assembly";
   return "data";
@@ -117,7 +119,7 @@ export function analyzeArchiveProject(input: AnalyzeArchiveInput): ArchiveProjec
   }
   const sorted = candidates.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
   const textCandidates = sorted.filter((candidate) => TEXT_EXTENSIONS.has(extname(candidate.path).toLowerCase()));
-  const geometryCandidates = sorted.filter((candidate) => candidate.materializable && ["geometry", "assembly"].includes(candidate.expectedUse));
+  const geometryCandidates = sorted.filter((candidate) => candidate.materializable && ["geometry", "assembly", "material"].includes(candidate.expectedUse));
   const maxText = input.maxTextEntries ?? 64;
   const maxGeometry = input.maxGeometryEntries ?? 32;
   if (textCandidates.length > maxText) findings.push({

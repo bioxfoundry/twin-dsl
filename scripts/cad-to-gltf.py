@@ -24,8 +24,8 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any, Iterable
 
-SUPPORTED = {".stl", ".step", ".stp", ".3mf", ".scad"}
-CAD = {".stl", ".step", ".stp", ".f3d", ".scad", ".3mf"}
+SUPPORTED = {".stl", ".step", ".stp", ".3mf", ".scad", ".obj"}
+CAD = {".stl", ".step", ".stp", ".f3d", ".scad", ".3mf", ".obj"}
 UNIT_TO_M = {
     "micron": 1e-6,
     "millimeter": 1e-3,
@@ -139,6 +139,175 @@ def write_glb(positions: list[float], normals: list[float], target: Path) -> Non
     glb += struct.pack("<I4s", len(blob), b"BIN\0") + blob
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_bytes(glb)
+
+
+def read_mtl(path: Path) -> dict[str, dict[str, Any]]:
+    """Read the deterministic subset of MTL needed for glTF PBR appearance."""
+    materials: dict[str, dict[str, Any]] = {}
+    current: dict[str, Any] | None = None
+    if not path.is_file():
+        return materials
+    for raw in path.read_text(encoding="utf-8", errors="replace").splitlines():
+        fields = raw.strip().split()
+        if not fields or fields[0].startswith("#"):
+            continue
+        if fields[0].lower() == "newmtl" and len(fields) > 1:
+            current = materials.setdefault(" ".join(fields[1:]), {})
+        elif current is not None and fields[0].lower() in {"kd", "ks"} and len(fields) >= 4:
+            current[fields[0].lower()] = [float(value) for value in fields[1:4]]
+        elif current is not None and fields[0].lower() in {"d", "tr", "ns", "ni"} and len(fields) >= 2:
+            current[fields[0].lower()] = float(fields[1])
+    return materials
+
+
+def write_indexed_glb(
+    positions: list[float],
+    normals: list[float],
+    groups: list[dict[str, Any]],
+    material_source: dict[str, dict[str, Any]],
+    target: Path,
+    name: str,
+) -> None:
+    if len(positions) != len(normals) or not positions or not groups:
+        raise RuntimeError("GEOMETRY_GLTF_INDEXED_TABLE_INVALID")
+    pos = struct.pack("<%sf" % len(positions), *positions)
+    nrm = struct.pack("<%sf" % len(normals), *normals)
+    chunks = [pos, nrm]
+    buffer_views: list[dict[str, Any]] = [
+        {"buffer": 0, "byteOffset": 0, "byteLength": len(pos), "target": 34962},
+        {"buffer": 0, "byteOffset": len(pos), "byteLength": len(nrm), "target": 34962},
+    ]
+    accessors: list[dict[str, Any]] = [
+        {"bufferView": 0, "componentType": 5126, "count": len(positions) // 3, "type": "VEC3", "min": bounds(positions)[0], "max": bounds(positions)[1]},
+        {"bufferView": 1, "componentType": 5126, "count": len(normals) // 3, "type": "VEC3"},
+    ]
+    offset = len(pos) + len(nrm)
+    material_names = list(dict.fromkeys(str(group["material"]) for group in groups))
+    material_index = {value: index for index, value in enumerate(material_names)}
+    materials = []
+    for material_name in material_names:
+        source = material_source.get(material_name, {})
+        color = [max(0.0, min(1.0, float(value))) for value in source.get("kd", [0.62, 0.64, 0.66])]
+        alpha = max(0.0, min(1.0, float(source.get("d", 1.0 - source.get("tr", 0.0)))))
+        shininess = max(0.0, float(source.get("ns", 128.0)))
+        roughness = max(0.04, min(1.0, math.sqrt(2.0 / (shininess + 2.0))))
+        specular = source.get("ks", [0.0, 0.0, 0.0])
+        metallic = max(0.0, min(1.0, sum(float(value) for value in specular) / 3.0))
+        materials.append({
+            "name": material_name,
+            "pbrMetallicRoughness": {"baseColorFactor": [*color, alpha], "metallicFactor": metallic, "roughnessFactor": roughness},
+            **({"alphaMode": "BLEND", "doubleSided": True} if alpha < 0.999 else {}),
+        })
+    primitives = []
+    for group in groups:
+        indices = list(group["indices"])
+        if not indices:
+            continue
+        data = struct.pack("<%sI" % len(indices), *indices)
+        while len(data) % 4:
+            data += b"\0"
+        view_index = len(buffer_views)
+        accessor_index = len(accessors)
+        buffer_views.append({"buffer": 0, "byteOffset": offset, "byteLength": len(data), "target": 34963})
+        accessors.append({
+            "bufferView": view_index, "componentType": 5125, "count": len(indices), "type": "SCALAR",
+            "min": [min(indices)], "max": [max(indices)],
+        })
+        chunks.append(data)
+        offset += len(data)
+        primitives.append({
+            "attributes": {"POSITION": 0, "NORMAL": 1}, "indices": accessor_index, "mode": 4,
+            "material": material_index[str(group["material"])],
+            "extras": {"group": str(group["name"]), "sourceMaterial": str(group["material"])},
+        })
+    blob = b"".join(chunks)
+    while len(blob) % 4:
+        blob += b"\0"
+    document = {
+        "asset": {"version": "2.0", "generator": "subactor-geometry-compiler", "extras": {"sourceFormat": "obj", "provenancePreserved": ["groups", "normals", "materials"]}},
+        "scene": 0, "scenes": [{"nodes": [0]}], "nodes": [{"name": name, "mesh": 0}],
+        "meshes": [{"name": name, "primitives": primitives}], "materials": materials,
+        "accessors": accessors, "bufferViews": buffer_views, "buffers": [{"byteLength": len(blob)}],
+    }
+    encoded = canonical_json(document).encode()
+    while len(encoded) % 4:
+        encoded += b" "
+    glb = struct.pack("<4sII", b"glTF", 2, 12 + 8 + len(encoded) + 8 + len(blob))
+    glb += struct.pack("<I4s", len(encoded), b"JSON") + encoded
+    glb += struct.pack("<I4s", len(blob), b"BIN\0") + blob
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(glb)
+
+
+def run_obj(source: Path, target: Path) -> None:
+    """Convert OBJ to indexed multi-material GLB while preserving group identity."""
+    source_positions: list[tuple[float, float, float]] = []
+    source_normals: list[tuple[float, float, float]] = []
+    positions: list[float] = []
+    normals: list[float] = []
+    vertex_map: dict[tuple[int, int], int] = {}
+    groups: list[dict[str, Any]] = []
+    active_name, active_material = "default", "default"
+    active: dict[str, Any] = {"name": active_name, "material": active_material, "indices": []}
+    groups.append(active)
+    material_library: Path | None = None
+
+    def obj_index(raw: str, length: int) -> int:
+        value = int(raw)
+        resolved = value - 1 if value > 0 else length + value
+        if resolved < 0 or resolved >= length:
+            raise RuntimeError("CAD_OBJ_INDEX_OUT_OF_BOUNDS")
+        return resolved
+
+    def switch_group() -> None:
+        nonlocal active
+        if not active["indices"]:
+            active["name"], active["material"] = active_name, active_material
+        else:
+            active = {"name": active_name, "material": active_material, "indices": []}
+            groups.append(active)
+
+    with source.open("r", encoding="utf-8", errors="replace") as stream:
+        for raw in stream:
+            fields = raw.strip().split()
+            if not fields or fields[0].startswith("#"):
+                continue
+            command = fields[0].lower()
+            if command == "v" and len(fields) >= 4:
+                source_positions.append(tuple(float(value) for value in fields[1:4]))
+            elif command == "vn" and len(fields) >= 4:
+                source_normals.append(tuple(float(value) for value in fields[1:4]))
+            elif command == "mtllib" and len(fields) > 1:
+                material_library = source.parent / " ".join(fields[1:])
+            elif command in {"g", "o"}:
+                active_name = " ".join(fields[1:]) or "default"
+                switch_group()
+            elif command == "usemtl":
+                active_material = " ".join(fields[1:]) or "default"
+                switch_group()
+            elif command == "f" and len(fields) >= 4:
+                face: list[tuple[int, int | None]] = []
+                for token in fields[1:]:
+                    parts = token.split("/")
+                    position_index = obj_index(parts[0], len(source_positions))
+                    normal_index = obj_index(parts[2], len(source_normals)) if len(parts) > 2 and parts[2] else None
+                    face.append((position_index, normal_index))
+                for offset in range(1, len(face) - 1):
+                    triangle = [face[0], face[offset], face[offset + 1]]
+                    fallback = triangle_normal(*(source_positions[item[0]] for item in triangle))
+                    for position_index, normal_index in triangle:
+                        key = (position_index, normal_index if normal_index is not None else -(len(active["indices"]) + 1))
+                        output_index = vertex_map.get(key)
+                        if output_index is None:
+                            output_index = len(positions) // 3
+                            vertex_map[key] = output_index
+                            positions.extend(source_positions[position_index])
+                            normals.extend(source_normals[normal_index] if normal_index is not None else fallback)
+                        active["indices"].append(output_index)
+    groups = [group for group in groups if group["indices"]]
+    if not positions or not groups:
+        raise RuntimeError("CAD_OBJ_FACE_TABLE_INVALID")
+    write_indexed_glb(positions, normals, groups, read_mtl(material_library) if material_library else {}, target, source.stem)
 
 
 def run_stl(source: Path, target: Path) -> None:
@@ -815,7 +984,8 @@ def bulk(args: argparse.Namespace) -> int:
     for source in sorted(path for path in root.rglob("*") if path.is_file() and path.suffix.lower() in CAD):
         digest = sha256_file(source)
         suffix = ".step.glb" if source.suffix.lower() in {".step", ".stp"} else ".glb"
-        target = out / (source.stem + suffix)
+        relative = source.relative_to(root)
+        target = out / relative.parent / (source.stem + suffix)
         record: dict[str, Any] = {"source": str(source), "sourceSha256": digest, "target": str(target), "format": source.suffix.lower()}
         try:
             if source.suffix.lower() not in SUPPORTED:
@@ -826,6 +996,8 @@ def bulk(args: argparse.Namespace) -> int:
                 run_stl(source, target)
             elif source.suffix.lower() == ".3mf":
                 run_3mf(source, target)
+            elif source.suffix.lower() == ".obj":
+                run_obj(source, target)
             else:
                 raise RuntimeError("GEOMETRY_BUILD_CONTRACT_REQUIRED:.scad")
             record.update({"status": "converted", "targetSha256": sha256_file(target), "bytes": target.stat().st_size})

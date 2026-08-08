@@ -1,18 +1,18 @@
-# code2llm/evolution | 1310 func | 80f | 2026-08-08
+# code2llm/evolution | 1329 func | 80f | 2026-08-08
 # generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           src/runtime/living-project.ts
-      WHY: 816L, 1 classes, max CC=169
-      EFFORT: ~4h  IMPACT: 137904
+      WHY: 823L, 1 classes, max CC=169
+      EFFORT: ~4h  IMPACT: 139087
 
-  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=169  fan=91
+  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=169  fan=93
       WHY: CC=169 exceeds 15
-      EFFORT: ~1h  IMPACT: 15379
+      EFFORT: ~1h  IMPACT: 15717
 
-  [3] !! SPLIT-FUNC      main  CC=95  fan=77
-      WHY: CC=95 exceeds 15
-      EFFORT: ~1h  IMPACT: 7315
+  [3] !! SPLIT-FUNC      main  CC=100  fan=84
+      WHY: CC=100 exceeds 15
+      EFFORT: ~1h  IMPACT: 8400
 
   [4] !! SPLIT-FUNC      startDashboard  CC=81  fan=50
       WHY: CC=81 exceeds 15

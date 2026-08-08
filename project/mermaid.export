@@ -16,12 +16,12 @@ flowchart TD
         js__archive_project_analyzer__src__analyze__slug["slug"]
         js__archive_project_analyzer__src__analyze__urnCode["urnCode"]
         js__archive_project_analyzer__src__analyze__repair["repair"]
-        js__archive_project_analyzer__src__analyze__kindFor{{kindFor CC=18}}
+        js__archive_project_analyzer__src__analyze__kindFor{{kindFor CC=19}}
         js__archive_project_analyzer__src__analyze__lower["lower"]
         js__archive_project_analyzer__src__analyze__base["base"]
         js__archive_project_analyzer__src__analyze__ext["ext"]
         js__archive_project_analyzer__src__analyze__score["score"]
-        js__archive_project_analyzer__src__analyze__useFor("useFor CC=8")
+        js__archive_project_analyzer__src__analyze__useFor("useFor CC=9")
         js__archive_project_analyzer__src__analyze__rootCandidates["rootCandidates"]
         js__archive_project_analyzer__src__analyze__markers["markers"]
         js__archive_project_analyzer__src__analyze__roots["roots"]
@@ -38,25 +38,6 @@ flowchart TD
         js__archive_project_analyzer__src__analyze__archiveAnalysisFingerprint["archiveAnalysisFingerprint"]
     end
     subgraph js__assembly_dsl
-        js__assembly_dsl__src__syntax__lines["lines"]
-        js__assembly_dsl__src__syntax__unquote["unquote"]
-        js__assembly_dsl__src__syntax__normalized["normalized"]
-        js__assembly_dsl__src__dsl__bool["bool"]
-        js__assembly_dsl__src__dsl__parseAssemblyDsl{{parseAssemblyDsl CC=26}}
-        js__assembly_dsl__src__dsl__input{{input CC=22}}
-        js__assembly_dsl__src__dsl__header{{header CC=22}}
-        js__assembly_dsl__src__dsl__match["match"]
-        js__assembly_dsl__src__dsl__index["index"]
-        js__assembly_dsl__src__dsl__key["key"]
-        js__assembly_dsl__src__dsl__raw["raw"]
-        js__assembly_dsl__src__dsl__renderAssemblyDsl["renderAssemblyDsl"]
-        js__assembly_dsl__src__dsl__validateAssembly{{validateAssembly CC=38}}
-        js__assembly_dsl__src__dsl__document{{document CC=29}}
-        js__assembly_dsl__src__dsl__assemblyIds{{assemblyIds CC=29}}
-        js__assembly_dsl__src__dsl__assembly["assembly"]
-        js__assembly_dsl__src__dsl__partIds{{partIds CC=16}}
-        js__assembly_dsl__src__dsl__componentIds{{componentIds CC=16}}
-        js__assembly_dsl__src__dsl__part("part CC=12")
         js__assembly_dsl__src__analyze__kebab["kebab"]
         js__assembly_dsl__src__analyze__analyzeAssemblies{{analyzeAssemblies CC=29}}
         js__assembly_dsl__src__analyze__document["document"]
@@ -82,6 +63,22 @@ flowchart TD
         js__assembly_dsl__src__analyze__requiredParts["requiredParts"]
         js__assembly_dsl__src__analyze__allParts["allParts"]
         js__assembly_dsl__src__analyze__renderAssemblyReportDsl["renderAssemblyReportDsl"]
+        js__assembly_dsl__src__dsl__bool["bool"]
+        js__assembly_dsl__src__dsl__parseAssemblyDsl{{parseAssemblyDsl CC=26}}
+        js__assembly_dsl__src__dsl__input{{input CC=22}}
+        js__assembly_dsl__src__dsl__header{{header CC=22}}
+        js__assembly_dsl__src__dsl__match["match"]
+        js__assembly_dsl__src__dsl__index["index"]
+        js__assembly_dsl__src__dsl__key["key"]
+        js__assembly_dsl__src__dsl__raw["raw"]
+        js__assembly_dsl__src__dsl__renderAssemblyDsl["renderAssemblyDsl"]
+        js__assembly_dsl__src__dsl__validateAssembly{{validateAssembly CC=38}}
+        js__assembly_dsl__src__dsl__document{{document CC=29}}
+        js__assembly_dsl__src__dsl__assemblyIds{{assemblyIds CC=29}}
+        js__assembly_dsl__src__dsl__assembly["assembly"]
+        js__assembly_dsl__src__dsl__partIds{{partIds CC=16}}
+        js__assembly_dsl__src__dsl__componentIds{{componentIds CC=16}}
+        js__assembly_dsl__src__dsl__part("part CC=12")
     end
     subgraph js__f2md
         js__f2md__src__types__ConversionError__super["super"]
@@ -146,10 +143,6 @@ flowchart TD
         js__f2md__src__converters__LocalToolConverter__code["code"]
     end
     subgraph js__live_twin_state
-        js__live_twin_state__src__canonical__normalize["normalize"]
-        js__live_twin_state__src__canonical__canonicalJson["canonicalJson"]
-        js__live_twin_state__src__canonical__sha256["sha256"]
-        js__live_twin_state__src__canonical__contentUri["contentUri"]
         js__live_twin_state__src__syntax__lines["lines"]
         js__live_twin_state__src__syntax__unquote["unquote"]
         js__live_twin_state__src__syntax__normalized["normalized"]
@@ -173,6 +166,10 @@ flowchart TD
         js__live_twin_state__src__projector__evaluationTime["evaluationTime"]
         js__live_twin_state__src__projector__components["components"]
         js__live_twin_state__src__projector__renderTwinStateDsl("renderTwinStateDsl CC=9")
+        js__live_twin_state__src__canonical__normalize["normalize"]
+        js__live_twin_state__src__canonical__canonicalJson["canonicalJson"]
+        js__live_twin_state__src__canonical__sha256["sha256"]
+        js__live_twin_state__src__canonical__contentUri["contentUri"]
         js__live_twin_state__src__live_binding__durationMs["durationMs"]
         js__live_twin_state__src__live_binding__match["match"]
         js__live_twin_state__src__live_binding__scale["scale"]
@@ -438,7 +435,7 @@ flowchart TD
         src__cli__main__localRoot["localRoot"]
         src__cli__main__multiarch["multiarch"]
         src__cli__main__localLibrary["localLibrary"]
-        src__cli__main__main{{main CC=95}}
+        src__cli__main__main{{main CC=100}}
         src__cli__main__t2c["t2c"]
         src__cli__main__report["report"]
         src__cli__main__runtime("runtime CC=10")
@@ -457,6 +454,8 @@ flowchart TD
         src__cli__main__usda["usda"]
         src__cli__main__twin["twin"]
         src__cli__main__evidence["evidence"]
+        src__cli__main__archives["archives"]
+        src__cli__main__analysis["analysis"]
     end
     subgraph src__core
         src__core__uri__assertProcessUri["assertProcessUri"]
@@ -505,6 +504,12 @@ flowchart TD
         src__dsl__improvement__document["document"]
         src__dsl__improvement__ids{{ids CC=16}}
         src__dsl__improvement__action["action"]
+        src__dsl__resource__resourceFromText["resourceFromText"]
+        src__dsl__resource__resourceFromBinary["resourceFromBinary"]
+        src__dsl__resource__payload["payload"]
+        src__dsl__resource__hash["hash"]
+        src__dsl__resource__size["size"]
+        src__dsl__resource__resourceFromBinaryDigest["resourceFromBinaryDigest"]
         src__dsl__query__parseQueryDsl("parseQueryDsl CC=13")
         src__dsl__query__xs("xs CC=11")
         src__dsl__query__id("id CC=11")
@@ -534,12 +539,6 @@ flowchart TD
         src__dsl__tree__xs["xs"]
         src__dsl__tree__header["header"]
         src__dsl__tree__indent["indent"]
-        src__dsl__tree__match["match"]
-        src__dsl__tree__renderTreeDsl["renderTreeDsl"]
-        src__dsl__tree__walk["walk"]
-        src__dsl__observation__parseValue("parseValue CC=10")
-        src__dsl__observation__v["v"]
-        src__dsl__observation__csv["csv"]
     end
     subgraph src__geometry
         src__geometry__physical_evidence_adapter__extent["extent"]
@@ -651,26 +650,21 @@ flowchart TD
         src__ingestion__scanner__converted["converted"]
         src__ingestion__scanner__message["message"]
         src__ingestion__scanner__raw["raw"]
+        src__ingestion__archive_project__envLimit["envLimit"]
+        src__ingestion__archive_project__value["value"]
+        src__ingestion__archive_project__analyzeZipFile["analyzeZipFile"]
+        src__ingestion__archive_project__absolute["absolute"]
+        src__ingestion__archive_project__digest["digest"]
+        src__ingestion__archive_project__findZipFiles("findZipFiles CC=9")
+        src__ingestion__archive_project__info["info"]
+        src__ingestion__archive_project__child["child"]
+        src__ingestion__archive_project__materializeArchiveGeometry("materializeArchiveGeometry CC=13")
+        src__ingestion__archive_project__maxEntries("maxEntries CC=13")
+        src__ingestion__archive_project__maxEntryBytes("maxEntryBytes CC=13")
+        src__ingestion__archive_project__maxTotalBytes("maxTotalBytes CC=13")
+        src__ingestion__archive_project__root["root"]
     end
     subgraph src__llm
-        src__llm__dsl_schemas__obj["obj"]
-        src__llm__dsl_schemas__exact["exact"]
-        src__llm__dsl_schemas__strings["strings"]
-        src__llm__dsl_schemas__rawDsl["rawDsl"]
-        src__llm__dsl_schemas__trimmed["trimmed"]
-        src__llm__dsl_schemas__fenced["fenced"]
-        src__llm__dsl_schemas__textDsl["textDsl"]
-        src__llm__dsl_schemas__validateResourcePlan("validateResourcePlan CC=10")
-        src__llm__dsl_schemas__component["component"]
-        src__llm__dsl_schemas__validateTwinEnvelope["validateTwinEnvelope"]
-        src__llm__dsl_schemas__validateSceneEnvelope("validateSceneEnvelope CC=8")
-        src__llm__dsl_schemas__generationContract{{generationContract CC=15}}
-        src__llm__nl_dsl_compiler__NlDslCompiler__compile{{compile CC=18}}
-        src__llm__nl_dsl_compiler__NlDslCompiler__started("started CC=12")
-        src__llm__nl_dsl_compiler__NlDslCompiler__contract["contract"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__response["response"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__deterministic["deterministic"]
-        src__llm__nl_dsl_compiler__NlDslCompiler__value["value"]
         src__llm__openrouter__envInt["envInt"]
         src__llm__openrouter__envBool["envBool"]
         src__llm__openrouter__loadDotEnv["loadDotEnv"]
@@ -693,6 +687,24 @@ flowchart TD
         src__llm__openrouter__OpenRouterStructuredClient__value["value"]
         src__llm__openrouter__OpenRouterStructuredClient__provider["provider"]
         src__llm__openrouter__OpenRouterStructuredClient__deterministicAudit["deterministicAudit"]
+        src__llm__dsl_schemas__obj["obj"]
+        src__llm__dsl_schemas__exact["exact"]
+        src__llm__dsl_schemas__strings["strings"]
+        src__llm__dsl_schemas__rawDsl["rawDsl"]
+        src__llm__dsl_schemas__trimmed["trimmed"]
+        src__llm__dsl_schemas__fenced["fenced"]
+        src__llm__dsl_schemas__textDsl["textDsl"]
+        src__llm__dsl_schemas__validateResourcePlan("validateResourcePlan CC=10")
+        src__llm__dsl_schemas__component["component"]
+        src__llm__dsl_schemas__validateTwinEnvelope["validateTwinEnvelope"]
+        src__llm__dsl_schemas__validateSceneEnvelope("validateSceneEnvelope CC=8")
+        src__llm__dsl_schemas__generationContract{{generationContract CC=15}}
+        src__llm__nl_dsl_compiler__NlDslCompiler__compile{{compile CC=18}}
+        src__llm__nl_dsl_compiler__NlDslCompiler__started("started CC=12")
+        src__llm__nl_dsl_compiler__NlDslCompiler__contract["contract"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__response["response"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__deterministic["deterministic"]
+        src__llm__nl_dsl_compiler__NlDslCompiler__value["value"]
     end
     subgraph src__project
         src__project__wizard__slug["slug"]
@@ -975,31 +987,57 @@ flowchart TD
     js__f2md__src__converters__MammothConverter__htmlToDocument --> js__f2md__src__converters__clip
     js__f2md__src__converters__MammothConverter__htmlToDocument --> js__f2md__src__converters__statMetadata
     js__f2md__src__converters__MammothConverter__clipped --> js__f2md__src__converters__statMetadata
-    src__serve__dashboard__sendJson --> src__serve__dashboard__send
-    src__serve__dashboard__startDashboard --> src__serve__dashboard__assetRoot
-    src__serve__dashboard__startDashboard --> src__serve__dashboard__readJson
-    src__serve__dashboard__state --> src__serve__dashboard__readJson
-    src__serve__dashboard__server --> src__serve__dashboard__send
-    src__serve__dashboard__server --> src__serve__dashboard__sendJson
-    src__serve__dashboard__server --> src__serve__dashboard__state
-    src__serve__dashboard__server --> src__serve__dashboard__readEventLog
-    src__serve__dashboard__server --> src__serve__dashboard__readDslArtifacts
-    src__serve__dashboard__resource --> src__serve__dashboard__sendJson
-    src__serve__dashboard__started --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__receipt --> src__serve__dashboard__sendJson
-    src__serve__dashboard__incoming --> src__serve__dashboard__sendJson
-    src__serve__dashboard__preview --> src__serve__dashboard__sendJson
-    src__serve__dashboard__projectDir --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__evidencePath --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__previewResult --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__report --> src__serve__dashboard__sendJson
-    src__serve__dashboard__accepted --> src__serve__dashboard__sendJson
-    src__serve__dashboard__stored --> src__serve__dashboard__mergeEvidence
-    src__serve__dashboard__evidence --> src__serve__dashboard__mergeEvidence
-    src__serve__dashboard__next --> src__serve__dashboard__sendJson
-    src__serve__dashboard__host --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__address --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__port --> src__serve__dashboard__dashboardLog
+    js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl --> js__archive_project_analyzer__src__dsl__quoted
+    js__live_twin_state__src__projector__projectTwinState --> js__live_twin_state__src__projector__componentIds
+    js__live_twin_state__src__projector__projectTwinState --> js__live_twin_state__src__projector__mappedState
+    js__live_twin_state__src__projector__observation --> js__live_twin_state__src__projector__mappedState
+    js__live_twin_state__src__canonical__canonicalJson --> js__live_twin_state__src__canonical__normalize
+    js__live_twin_state__src__canonical__sha256 --> js__live_twin_state__src__canonical__canonicalJson
+    js__live_twin_state__src__canonical__contentUri --> js__live_twin_state__src__canonical__sha256
+    js__live_twin_state__src__live_binding__durationMs --> js__live_twin_state__src__live_binding__match
+    js__live_twin_state__src__live_binding__parseLiveBindingDsl --> js__live_twin_state__src__live_binding__match
+    js__live_twin_state__src__live_binding__parseLiveBindingDsl --> js__live_twin_state__src__live_binding__durationMs
+    js__live_twin_state__src__live_binding__parseLiveBindingDsl --> js__live_twin_state__src__live_binding__scalarKey
+    js__live_twin_state__src__live_binding__parseLiveBindingDsl --> js__live_twin_state__src__live_binding__validateLiveBinding
+    js__live_twin_state__src__live_binding__input --> js__live_twin_state__src__live_binding__match
+    js__live_twin_state__src__live_binding__input --> js__live_twin_state__src__live_binding__durationMs
+    js__live_twin_state__src__live_binding__input --> js__live_twin_state__src__live_binding__scalarKey
+    js__live_twin_state__src__live_binding__header --> js__live_twin_state__src__live_binding__match
+    js__live_twin_state__src__live_binding__header --> js__live_twin_state__src__live_binding__durationMs
+    js__live_twin_state__src__live_binding__header --> js__live_twin_state__src__live_binding__scalarKey
+    js__live_twin_state__src__live_binding__renderLiveBindingDsl --> js__live_twin_state__src__live_binding__validateLiveBinding
+    js__live_twin_state__src__live_binding__renderLiveBindingDsl --> js__live_twin_state__src__live_binding__renderDuration
+    js__assembly_dsl__src__analyze__analyzeAssemblies --> js__assembly_dsl__src__analyze__visit
+    js__assembly_dsl__src__analyze__analyzeAssemblies --> js__assembly_dsl__src__analyze__kebab
+    js__assembly_dsl__src__analyze__analyzeAssemblies --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__analyzeAssemblies --> js__assembly_dsl__src__analyze__finding
+    js__assembly_dsl__src__analyze__bindings --> js__assembly_dsl__src__analyze__kebab
+    js__assembly_dsl__src__analyze__allowedAssets --> js__assembly_dsl__src__analyze__kebab
+    js__assembly_dsl__src__analyze__addFinding --> js__assembly_dsl__src__analyze__kebab
+    js__assembly_dsl__src__analyze__assemblies --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__assemblies --> js__assembly_dsl__src__analyze__finding
+    js__assembly_dsl__src__analyze__rootExists --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__rootExists --> js__assembly_dsl__src__analyze__finding
+    js__assembly_dsl__src__analyze__parts --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__parts --> js__assembly_dsl__src__analyze__finding
+    js__assembly_dsl__src__analyze__component --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__binding --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__componentExists --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__parentMatches --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__actualAssetUri --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__assetUri --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__assetAvailable --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__assetGrounded --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__placed --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__analyze__finding --> js__assembly_dsl__src__analyze__addFinding
+    js__assembly_dsl__src__dsl__parseAssemblyDsl --> js__assembly_dsl__src__dsl__match
+    js__assembly_dsl__src__dsl__parseAssemblyDsl --> js__assembly_dsl__src__dsl__bool
+    js__assembly_dsl__src__dsl__parseAssemblyDsl --> js__assembly_dsl__src__dsl__validateAssembly
+    js__assembly_dsl__src__dsl__input --> js__assembly_dsl__src__dsl__match
+    js__assembly_dsl__src__dsl__input --> js__assembly_dsl__src__dsl__bool
+    js__assembly_dsl__src__dsl__header --> js__assembly_dsl__src__dsl__match
+    js__assembly_dsl__src__dsl__header --> js__assembly_dsl__src__dsl__bool
+    js__assembly_dsl__src__dsl__renderAssemblyDsl --> js__assembly_dsl__src__dsl__validateAssembly
     src__core__json_schema__matchesType --> src__core__json_schema__typeOf
     src__core__json_schema__checkJsonSchema --> src__core__json_schema__matchesType
     src__core__json_schema__checkJsonSchema --> src__core__json_schema__typeOf
@@ -1009,19 +1047,6 @@ flowchart TD
     src__core__canonical__canonicalJson --> src__core__canonical__norm
     src__core__canonical__sha256 --> src__core__canonical__canonicalJson
     src__core__canonical__contentUri --> src__core__canonical__sha256
-    src__cli__main__openScadStatus --> src__cli__main__runFile
-    src__cli__main__moduleDir --> src__cli__main__runFile
-    src__cli__main__candidates --> src__cli__main__runFile
-    src__cli__main__main --> src__cli__main__openScadStatus
-    src__cli__main__t2c --> src__cli__main__openScadStatus
-    src__cli__main__runtime --> src__cli__main__llmMode
-    src__cli__main__cycle --> src__cli__main__llmMode
-    src__cli__main__result --> src__cli__main__save
-    src__cli__main__project --> src__cli__main__json
-    src__cli__main__base --> src__cli__main__json
-    src__cli__main__receipt --> src__cli__main__json
-    src__cli__main__grantPath --> src__cli__main__json
-    src__cli__main__server --> src__cli__main__llmMode
     src__research__crawler__p --> src__research__crawler__privateIp
     src__research__crawler__assertPublic --> src__research__crawler__privateIp
     src__research__crawler__locations --> src__research__crawler__decode
@@ -1110,52 +1135,6 @@ flowchart TD
     src__runtime__autonomy__routedFailures --> src__runtime__autonomy__add
     src__runtime__autonomy__acquireProjectLease --> src__runtime__autonomy__acquire
     src__runtime__autonomy__leaseDirectory --> src__runtime__autonomy__acquire
-    src__runtime__living_project__sourceSnapshot --> src__runtime__living_project__map
-    src__runtime__living_project__renderEvidenceSets --> src__runtime__living_project__map
-    src__runtime__living_project__resourceDiff --> src__runtime__living_project__map
-    src__runtime__living_project__oldMap --> src__runtime__living_project__map
-    src__runtime__living_project__newMap --> src__runtime__living_project__map
-    src__runtime__living_project__unit --> src__runtime__living_project__parseObservationValue
-    src__runtime__living_project__reasoning --> src__runtime__living_project__map
-    src__runtime__living_project__conceptualTwin --> src__runtime__living_project__map
-    src__runtime__living_project__conceptualScene --> src__runtime__living_project__map
-    src__runtime__living_project__twinUri --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__text --> src__runtime__living_project__LivingProjectRuntime__iterate
-    src__runtime__living_project__LivingProjectRuntime__iterate --> src__runtime__living_project__LivingProjectRuntime__load
-    src__runtime__living_project__LivingProjectRuntime__iterate --> src__runtime__living_project__LivingProjectRuntime__iterateWithLease
-    src__runtime__living_project__LivingProjectRuntime__lease --> src__runtime__living_project__LivingProjectRuntime__iterateWithLease
-    src__runtime__living_project__LivingProjectRuntime__iterateWithLease --> src__runtime__living_project__readJson
-    src__runtime__living_project__LivingProjectRuntime__iterateWithLease --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__scanned --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__plan --> src__runtime__living_project__fixtureFetcher
-    src__runtime__living_project__LivingProjectRuntime__crawler --> src__runtime__living_project__fixtureFetcher
-    src__runtime__living_project__LivingProjectRuntime__geometryFingerprint --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__researchResourceUris --> src__runtime__living_project__evidenceSet
-    src__runtime__living_project__LivingProjectRuntime__researchResourceUris --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__runtimeResourceUris --> src__runtime__living_project__evidenceSet
-    src__runtime__living_project__LivingProjectRuntime__runtimeResourceUris --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__iterationsLastHour --> src__runtime__living_project__reasoning
-    src__runtime__living_project__LivingProjectRuntime__rateLimitAvailable --> src__runtime__living_project__reasoning
-    src__runtime__living_project__LivingProjectRuntime__grantPresent --> src__runtime__living_project__reasoning
-    src__runtime__living_project__LivingProjectRuntime__tree --> src__runtime__living_project__reasoning
-    src__runtime__living_project__LivingProjectRuntime__authoritativeMath --> src__runtime__living_project__reasoning
-    src__runtime__living_project__LivingProjectRuntime__deterministicTwin --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__deterministicScene --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__llmResourceLimit --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__llmResources --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__mergedPhysicalEvidence --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__physicalEvidence --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__grounded --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__geometryRequirementsFromTwin --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__researchPresent --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__runtimePresent --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__geometryRepairProcesses --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__assemblyRepairProcesses --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__improvement --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__candidate --> src__runtime__living_project__writeJson
-    src__runtime__living_project__LivingProjectRuntime__iterationUri --> src__runtime__living_project__map
-    src__runtime__living_project__LivingProjectRuntime__recordFailure --> src__runtime__living_project__LivingProjectRuntime__load
-    src__runtime__living_project__LivingProjectRuntime__recordFailure --> src__runtime__living_project__writeJson
     src__runtime__digital_twin_diagnostics__CAD --> src__runtime__digital_twin_diagnostics__walk
     src__runtime__digital_twin_diagnostics__files --> src__runtime__digital_twin_diagnostics__walk
     src__runtime__digital_twin_diagnostics__diagnoseDigitalTwin --> src__runtime__digital_twin_diagnostics__files
@@ -1253,6 +1232,21 @@ flowchart TD
     src__project__wizard__sourcePath --> src__project__wizard__exists
     src__project__wizard__addProjectWebsite --> src__project__wizard__text
     src__project__wizard__verifyLivingProject --> src__project__wizard__exists
+    src__llm__openrouter__loadDotEnv --> src__llm__openrouter__match
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__loadDotEnv
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__envInt
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__envBool
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__OpenRouterStructuredClient__configured
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__OpenRouterStructuredClient__request
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__sleep
+    src__llm__openrouter__OpenRouterStructuredClient__started --> src__llm__openrouter__OpenRouterStructuredClient__request
+    src__llm__openrouter__OpenRouterStructuredClient__started --> src__llm__openrouter__sleep
+    src__llm__openrouter__OpenRouterStructuredClient__message --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__request --> src__llm__openrouter__OpenRouterStructuredClient__text
+    src__llm__openrouter__OpenRouterStructuredClient__request --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__controller --> src__llm__openrouter__OpenRouterStructuredClient__text
+    src__llm__openrouter__OpenRouterStructuredClient__controller --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__envelope --> src__llm__openrouter__contentText
     src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__obj
     src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__exact
     src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__rawDsl
@@ -1505,6 +1499,33 @@ flowchart TD
     src__geometry__dependency_resolver__revision --> src__geometry__dependency_resolver__execute
     src__geometry__dependency_resolver__source --> src__geometry__dependency_resolver__inside
     src__geometry__dependency_resolver__source --> src__geometry__dependency_resolver__exists
+    src__ingestion__archive__inventoryZip --> src__ingestion__archive__limit
+    src__ingestion__archive__inventoryZip --> src__ingestion__archive__execFileAsync
+    src__ingestion__archive__inventoryZip --> src__ingestion__archive__safeArchivePath
+    src__ingestion__archive__maxInventory --> src__ingestion__archive__execFileAsync
+    src__ingestion__archive__name --> src__ingestion__archive__safeArchivePath
+    src__ingestion__archive__listZip --> src__ingestion__archive__limit
+    src__ingestion__archive__listZip --> src__ingestion__archive__execFileAsync
+    src__ingestion__archive__listZip --> src__ingestion__archive__safeArchivePath
+    src__ingestion__archive__maxFiles --> src__ingestion__archive__execFileAsync
+    src__ingestion__archive__names --> src__ingestion__archive__readZipEntry
+    src__ingestion__archive__readZipEntry --> src__ingestion__archive__limit
+    src__ingestion__archive__readZipEntry --> src__ingestion__archive__safeArchivePath
+    src__ingestion__archive__readZipEntry --> src__ingestion__archive__execFileAsync
+    src__ingestion__archive__readZip --> src__ingestion__archive__limit
+    src__ingestion__archive__readZip --> src__ingestion__archive__listZip
+    src__ingestion__archive__readZip --> src__ingestion__archive__readZipEntry
+    src__ingestion__archive__maxEntry --> src__ingestion__archive__readZipEntry
+    src__ingestion__archive__maxTotal --> src__ingestion__archive__readZipEntry
+    src__ingestion__archive__total --> src__ingestion__archive__readZipEntry
+    src__ingestion__scanner__pushBinary --> src__ingestion__scanner__mediaTypeFor
+    src__ingestion__scanner__scanSources --> src__ingestion__scanner__walk
+    src__ingestion__scanner__texts --> src__ingestion__scanner__walk
+    src__ingestion__scanner__converter --> src__ingestion__scanner__walk
+    src__ingestion__scanner__labels --> src__ingestion__scanner__textFromBuffer
+    src__ingestion__scanner__labels --> src__ingestion__scanner__pushBinary
+    src__ingestion__scanner__message --> src__ingestion__scanner__textFromBuffer
+    src__ingestion__scanner__message --> src__ingestion__scanner__pushBinary
     src__dsl__project__renderProjectDsl --> src__dsl__project__validateProject
     src__dsl__parser_util__list --> src__dsl__parser_util__unquote
     src__dsl__improvement__parseImprovementDsl --> src__dsl__improvement__match
@@ -1536,17 +1557,8 @@ flowchart TD
     src__dsl__twin__validateTwin --> src__dsl__twin__visit
     src__dsl__tree__parseTreeDsl --> src__dsl__tree__match
     src__dsl__tree__renderTreeDsl --> src__dsl__tree__walk
-    src__dsl__observation__parseObservationDsl --> src__dsl__observation__parseValue
-    src__dsl__observation__parseObservationDsl --> src__dsl__observation__csv
-    src__dsl__observation__parseObservationDsl --> src__dsl__observation__validateObservation
-    src__dsl__observation__renderObservationDsl --> src__dsl__observation__validateObservation
-    src__dsl__dql__parseDql --> src__dsl__dql__positiveInt
-    scripts__cad_to_gltf__tree_hash --> js__archive_project_analyzer__src__analyze__sorted
-    scripts__cad_to_gltf__tree_hash --> scripts__cad_to_gltf__sha256_file
-    scripts__cad_to_gltf__bounds --> src__runtime__event_store__InMemoryEventStore__all
-    scripts__cad_to_gltf__bounds --> js__live_twin_state__src__projector__range
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__f2md__src__tree__convertTree,js__f2md__src__tree__paths,js__f2md__src__converters__DoclingHttpConverter__convert,src__serve__dashboard__startDashboard,src__serve__dashboard__state,src__serve__dashboard__server,src__core__json_schema__checkJsonSchema,src__cli__main__main,src__research__crawler__privateIp,src__research__crawler__DqlCrawler__crawl,src__runtime__mutation_pipeline__proposeCodeMutation,src__runtime__biofoundry__BiofoundryRuntime__build,src__runtime__service_check__checkExternalServices,src__runtime__autonomy__summarizeDevelopment,src__runtime__autonomy__developmentAnalysisFingerprint,src__runtime__autonomy__buildImprovementPlan,src__runtime__living_project__observationsFromResources,src__runtime__living_project__index,src__runtime__living_project__LivingProjectRuntime__iterateWithLease,src__runtime__living_project__LivingProjectRuntime__iterationUri,src__runtime__digital_twin_diagnostics__diagnoseDigitalTwin,src__runtime__project_integrity__finite,src__runtime__project_integrity__flatten,src__runtime__project_integrity__analyzeProjectIntegrity,src__project__wizard__verifyLivingProject,src__llm__dsl_schemas__generationContract highCC
-    class js__f2md__src__detect__detectDocumentKind,js__f2md__src__converters__TextConverter__convert,src__serve__dashboard__readDslArtifacts,src__serve__dashboard__mergeEvidence,src__serve__dashboard__latestCandidate,src__cli__main__runFile,src__cli__main__openScadStatus,src__cli__main__moduleDir,src__cli__main__candidates,src__cli__main__runtime,src__cli__main__cycle,src__research__crawler__robotsDisallow,src__research__researcher__runResearcherDemo,src__runtime__mutation_pipeline__applyCodeMutation,src__runtime__biofoundry_concept__biofoundryConceptTree,src__runtime__biofoundry_concept__biofoundryConceptScene,src__runtime__biofoundry_concept__twinUri,src__runtime__biofoundry_concept__zoneIds,src__runtime__biofoundry_concept__zoneById,src__runtime__query_runtime__QueryRuntime__execute,src__runtime__autonomy__manifest,src__runtime__autonomy__configuration,src__runtime__autonomy__stages,src__runtime__autonomy__stableStages,src__runtime__autonomy__stage,src__runtime__autonomy__stableManifest,src__runtime__autonomy__validateSceneGrounding,src__runtime__autonomy__components,src__runtime__autonomy__allowedAssets,src__runtime__autonomy__expectedTwinUri medCC
+    class js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__f2md__src__tree__convertTree,js__f2md__src__tree__paths,js__f2md__src__converters__DoclingHttpConverter__convert,js__live_twin_state__src__live_binding__parseLiveBindingDsl,js__live_twin_state__src__live_binding__input,js__live_twin_state__src__live_binding__header,js__live_twin_state__src__live_binding__validateLiveBinding,js__live_twin_state__src__live_binding__document,js__live_twin_state__src__live_binding__ids,js__assembly_dsl__src__analyze__analyzeAssemblies,js__assembly_dsl__src__analyze__assemblies,js__assembly_dsl__src__analyze__rootExists,js__assembly_dsl__src__analyze__parts,js__assembly_dsl__src__dsl__parseAssemblyDsl,js__assembly_dsl__src__dsl__input,js__assembly_dsl__src__dsl__header,js__assembly_dsl__src__dsl__validateAssembly,js__assembly_dsl__src__dsl__document,js__assembly_dsl__src__dsl__assemblyIds,js__assembly_dsl__src__dsl__partIds,js__assembly_dsl__src__dsl__componentIds,src__core__json_schema__checkJsonSchema,src__research__crawler__privateIp,src__research__crawler__DqlCrawler__crawl,src__runtime__mutation_pipeline__proposeCodeMutation,src__runtime__biofoundry__BiofoundryRuntime__build highCC
+    class js__f2md__src__detect__detectDocumentKind,js__f2md__src__converters__TextConverter__convert,js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl,js__live_twin_state__src__projector__mappedState,js__live_twin_state__src__projector__direct,js__live_twin_state__src__projector__projectTwinState,js__live_twin_state__src__projector__renderTwinStateDsl,js__assembly_dsl__src__dsl__part,src__research__crawler__robotsDisallow,src__research__researcher__runResearcherDemo,src__runtime__mutation_pipeline__applyCodeMutation,src__runtime__biofoundry_concept__biofoundryConceptTree,src__runtime__biofoundry_concept__biofoundryConceptScene,src__runtime__biofoundry_concept__twinUri,src__runtime__biofoundry_concept__zoneIds,src__runtime__biofoundry_concept__zoneById,src__runtime__query_runtime__QueryRuntime__execute,src__runtime__autonomy__manifest,src__runtime__autonomy__configuration,src__runtime__autonomy__stages,src__runtime__autonomy__stableStages,src__runtime__autonomy__stage,src__runtime__autonomy__stableManifest,src__runtime__autonomy__validateSceneGrounding,src__runtime__autonomy__components,src__runtime__autonomy__allowedAssets,src__runtime__autonomy__expectedTwinUri,src__runtime__autonomy__paths,src__runtime__autonomy__acquireProjectLease,src__runtime__autonomy__leaseDirectory medCC

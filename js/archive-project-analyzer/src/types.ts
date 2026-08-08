@@ -5,6 +5,7 @@ export type ArchiveEntryKind =
   | "parametric-cad"
   | "cad-exchange"
   | "bill-of-materials"
+  | "material-library"
   | "manifest"
   | "documentation"
   | "source-code"

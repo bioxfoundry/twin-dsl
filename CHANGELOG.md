@@ -31,6 +31,34 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.6] - 2026-08-09
+
+### Docs
+- Update README.md
+- Update TODO.md
+- Update docs/PACKAGE_ARCHITECTURE.md
+- Update project/README.md
+- Update project/context.md
+
+### Test
+- Update test/archive-project.test.ts
+- Update test/biofoundry-concept.test.ts
+- Update test/dashboard.test.ts
+- Update test/geometry-build.test.ts
+
+### Other
+- Update .env.example
+- Update app.doql.less
+- Update img_4.png
+- Update js/archive-project-analyzer/src/analyze.ts
+- Update js/archive-project-analyzer/src/dsl.ts
+- Update js/archive-project-analyzer/src/types.ts
+- Update project/analysis.toon.yaml
+- Update project/calls.mmd
+- Update project/calls.png
+- Update project/calls.toon.yaml
+- ... and 19 more files
+
 ## [0.5.5] - 2026-08-08
 
 ### Docs

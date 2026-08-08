@@ -59,6 +59,8 @@
     <span class="sub" id="last-iteration">iteration loading…</span>
     <span class="sub" id="notice"></span>
     <span class="spacer"></span>
+    <button id="btn-overview">Overview</button>
+    <button id="btn-focus">Focus selected</button>
     <button id="btn-intake">Apply floor-plan evidence</button>
     <button id="btn-iterate" class="primary">Run iteration</button>
     <button id="btn-record">Record 3D video</button>
@@ -237,7 +239,8 @@ const U={mvp:gl.getUniformLocation(prog,'uMVP'),model:gl.getUniformLocation(prog
 function upload(mesh){
   const pb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,pb);gl.bufferData(gl.ARRAY_BUFFER,mesh.pos,gl.STATIC_DRAW);
   const nb=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,nb);gl.bufferData(gl.ARRAY_BUFFER,mesh.nrm,gl.STATIC_DRAW);
-  return {pb,nb,count:mesh.pos.length/3};
+  const parts=(mesh.parts||[]).map(part=>{const ib=gl.createBuffer();gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,ib);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,part.indices,gl.STATIC_DRAW);return{ib,count:part.indices.length,type:part.indices instanceof Uint32Array?gl.UNSIGNED_INT:gl.UNSIGNED_SHORT,color:part.color,name:part.name};});
+  return {pb,nb,count:mesh.pos.length/3,parts};
 }
 function normalizeAssetMesh(mesh){
   const p=mesh.pos,mn=[Infinity,Infinity,Infinity],mx=[-Infinity,-Infinity,-Infinity];
@@ -255,12 +258,13 @@ function boxEdges(){
 }
 const MESH={cube:upload(boxMesh()),cylinder:upload(cylMesh()),sphere:upload(cylMesh(18)),scope:upload(boxMesh())};
 const EDGES=upload(boxEdges());
+const UINT_INDEX=gl.getExtension('OES_element_index_uint');
 gl.enable(gl.DEPTH_TEST);
 // Faces are wound per-face rather than consistently, so depth testing alone resolves visibility.
 gl.disable(gl.CULL_FACE);
 
 /* ----------------------------------------------------------- scene data */
-let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,framed=false;
+let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,SCENE_CENTER=[0,0,0],SCENE_RADIUS=40,framed=false,queryFocusApplied=false,INSPECTION=false;
 let recorder=null,recordedChunks=[],recordingTimer=null;
 const STL_CACHE=new Map();
 function loadGlb(bytes){
@@ -274,16 +278,33 @@ function loadGlb(bytes){
     if(binType!==0x004e4942||binStart+binLength>bytes.byteLength)return null;
     const doc=JSON.parse(new TextDecoder().decode(bytes.subarray(jsonStart,jsonEnd))),accessors=doc.accessors||[],views=doc.bufferViews||[];
     const binView=new DataView(bytes.buffer,bytes.byteOffset+binStart,binLength);
-    const read=(index)=>{
+    const readVec3=(index)=>{
       const a=accessors[index],b=a&&views[a.bufferView];
       if(!a||!b||a.componentType!==5126||a.type!=='VEC3'||!Number.isInteger(a.count)||a.count<1)throw new Error('GLB_ACCESSOR_UNSUPPORTED');
       const components=3,off=(b.byteOffset||0)+(a.byteOffset||0),stride=b.byteStride||components*4,last=off+(a.count-1)*stride+components*4;
       if(off<0||stride<components*4||last>binLength)throw new Error('GLB_ACCESSOR_OUT_OF_BOUNDS');
       const out=[];for(let i=0;i<a.count;i++){const q=off+i*stride;for(let c=0;c<components;c++)out.push(binView.getFloat32(q+c*4,true));}return out;
     };
-    const prim=doc.meshes?.[0]?.primitives?.[0];if(prim?.attributes?.POSITION===undefined)return null;
-    const pos=read(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):read(prim.attributes.NORMAL);
-    return upload(normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)}));
+    const readIndices=(index)=>{
+      const a=accessors[index],b=a&&views[a.bufferView],bytesPer={5121:1,5123:2,5125:4}[a?.componentType];
+      if(!a||!b||a.type!=='SCALAR'||!bytesPer||!Number.isInteger(a.count)||a.count<1)throw new Error('GLB_INDEX_ACCESSOR_UNSUPPORTED');
+      if(a.componentType===5125&&!UINT_INDEX)throw new Error('GLB_UINT_INDEX_EXTENSION_UNAVAILABLE');
+      const off=(b.byteOffset||0)+(a.byteOffset||0),stride=b.byteStride||bytesPer,last=off+(a.count-1)*stride+bytesPer;
+      if(off<0||stride<bytesPer||last>binLength)throw new Error('GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS');
+      const Out=a.componentType===5125?Uint32Array:Uint16Array,out=new Out(a.count);
+      for(let i=0;i<a.count;i++){const q=off+i*stride;out[i]=a.componentType===5121?binView.getUint8(q):a.componentType===5123?binView.getUint16(q,true):binView.getUint32(q,true);}return out;
+    };
+    const primitives=doc.meshes?.flatMap(mesh=>mesh.primitives||[])||[],prim=primitives[0];if(prim?.attributes?.POSITION===undefined)return null;
+    // The deterministic converter shares POSITION/NORMAL tables between material primitives.
+    // Different accessors require a scene-graph loader and are rejected instead of rendered incorrectly.
+    if(primitives.some(item=>item.attributes?.POSITION!==prim.attributes.POSITION||item.attributes?.NORMAL!==prim.attributes.NORMAL))throw new Error('GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED');
+    const pos=readVec3(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):readVec3(prim.attributes.NORMAL);
+    const normalized=normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)});
+    const parts=primitives.filter(item=>item.indices!==undefined).map((item,index)=>({
+      indices:readIndices(item.indices),name:item.extras?.group||`primitive-${index}`,
+      color:(doc.materials?.[item.material]?.pbrMetallicRoughness?.baseColorFactor||[.62,.64,.66,1]).slice(0,3),
+    }));
+    return upload({...normalized,parts});
   }catch(error){console.warn('[digital-twin] GLB rejected',error);return null;}
 }
 async function loadAsset(uri){
@@ -370,6 +391,7 @@ async function buildObjects(state){
   if(objs.length){
     CENTER=[0,1,2].map(k=>(mn[k]+mx[k])/2);
     RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;
+    SCENE_CENTER=[...CENTER];SCENE_RADIUS=RADIUS;
     if(!framed){cam.dist=RADIUS*1.35;framed=true;}
   }
   await Promise.all(objs.map(async o=>{const uri=scene.bindings[o.idx]?.assetUri;if(uri)o.mesh=await loadAsset(uri);}));
@@ -388,10 +410,11 @@ function draw(pick){
     CENTER[2]+cam.dist*Math.sin(cam.pitch),
   ];
   const view=M4.lookAt(eye,CENTER,[0,0,1]);
-  const proj=M4.perspective(Math.PI/4,w/Math.max(h,1),.5,RADIUS*12+200);
+  const proj=M4.perspective(Math.PI/4,w/Math.max(h,1),Math.max(.001,RADIUS/500),Math.max(10,RADIUS*12+200));
   const vp=M4.mul(proj,view);
   gl.uniform1f(U.flat,pick?1:0);
   for(const o of OBJECTS){
+    if(INSPECTION&&SELECTED!==o.idx)continue;
     const model=M4.trs(o.pos,o.size,o.orientation);
     gl.uniformMatrix4fv(U.mvp,false,new Float32Array(M4.mul(vp,model)));
     gl.uniformMatrix4fv(U.model,false,new Float32Array(model));
@@ -400,7 +423,8 @@ function draw(pick){
     const m=o.mesh||MESH[o.prim]||MESH.cube;
     gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
-    gl.drawArrays(gl.TRIANGLES,0,m.count);
+    if(m.parts?.length){for(const part of m.parts){if(!pick)gl.uniform3f(U.color,...part.color);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,part.ib);gl.drawElements(gl.TRIANGLES,part.count,part.type,0);}}
+    else gl.drawArrays(gl.TRIANGLES,0,m.count);
     if(!pick){
       // Outline pass: without it a floor slab and the zone slab on top of it read as one surface.
       gl.uniform1f(U.flat,1);
@@ -413,6 +437,8 @@ function draw(pick){
   }
 }
 function render(){draw(false);}
+function frameOverview(){INSPECTION=false;CENTER=[...SCENE_CENTER];RADIUS=SCENE_RADIUS;cam.dist=RADIUS*1.35;$('hud').textContent='drag to orbit · wheel to zoom · click a part to inspect';render();}
+function focusObject(object){if(!object)return;INSPECTION=true;CENTER=[...object.pos];RADIUS=Math.max(...object.size,.05);cam.dist=Math.max(.18,RADIUS*2.8);$('hud').textContent=`inspection · ${object.label} · Overview returns to facility`;render();}
 
 /* -------------------------------------------------------- interaction */
 let drag=null;
@@ -454,7 +480,7 @@ function paintList(){
        <span class="grow">${o.label}</span>
        <span class="mono" style="color:var(--muted)">${o.spatialClass} · ${o.grade}</span>
      </li>`).join('');
-  for(const li of $('parts').children)li.onclick=()=>{SELECTED=+li.dataset.i;render();showSelected();paintList();};
+  for(const li of $('parts').children){li.onclick=()=>{SELECTED=+li.dataset.i;render();showSelected();paintList();};li.ondblclick=()=>focusObject(OBJECTS[+li.dataset.i]);}
 }
 function showSelected(){
   if(SELECTED===null){$('sel').innerHTML='<span class="mono" style="color:var(--muted)">click a part in the scene</span>';return;}
@@ -590,8 +616,11 @@ function paintDslLog(events,dsl){
 }
 async function applyState(state,events){
   OBJECTS=await buildObjects(state);
+  if(!queryFocusApplied){const requested=new URLSearchParams(location.search).get('focus'),index=OBJECTS.findIndex(object=>object.id===requested);if(index>=0){SELECTED=index;focusObject(OBJECTS[index]);}queryFocusApplied=true;}
   paintLegend();paintList();paintStats(state,events);showSelected();render();
 }
+$('btn-overview').onclick=()=>frameOverview();
+$('btn-focus').onclick=()=>focusObject(SELECTED===null?null:OBJECTS[SELECTED]);
 $('btn-iterate').onclick=async()=>{
   const b=$('btn-iterate');b.disabled=true;b.textContent='Iterating…';
   const started=Date.now(); console.info('[digital-twin] iteration:start',{at:new Date().toISOString()}); notify('iteration started…','');
@@ -642,7 +671,9 @@ addEventListener('resize',render);
 // the buffer is resized (and cleared) with nothing redrawn into it.
 new ResizeObserver(()=>render()).observe(canvas);
 refresh();
-setInterval(refresh,5000);
+// Do not replace GPU buffers while an operator records or inspects a focused asset.
+// Overview resumes live polling; TwinState freshness is still re-evaluated server-side.
+setInterval(()=>{if(!INSPECTION)void refresh();},5000);
 </script>
 </body>
 </html>

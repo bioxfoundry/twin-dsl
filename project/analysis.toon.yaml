@@ -1,6 +1,6 @@
-# code2llm | 202f 17552L | typescript:84,json:67,python:13,proto:12,javascript:9,yaml:5,txt:3,shell:2,xml:2,yml:1,toml:1 | 2026-08-08
-# generated in 0.07s
-# CC̅=5.3 | critical:108/1399 | dups:0 | cycles:0
+# code2llm | 196f 17646L | typescript:84,json:61,python:13,proto:12,javascript:9,yaml:5,txt:3,shell:2,xml:2,yml:1,toml:1 | 2026-08-08
+# generated in 0.08s
+# CC̅=5.3 | critical:108/1418 | dups:0 | cycles:0
 
 HEALTH[20]:
   🔴 GOD   src/core/types.ts = 857L, 62 classes, 0m, max CC=0.0
@@ -11,24 +11,24 @@ HEALTH[20]:
   🟡 CC    convertTree CC=22 (limit:15)
   🟡 CC    paths CC=17 (limit:15)
   🟡 CC    convert CC=17 (limit:15)
-  🟡 CC    startDashboard CC=81 (limit:15)
-  🟡 CC    state CC=25 (limit:15)
-  🟡 CC    server CC=50 (limit:15)
-  🟡 CC    checkJsonSchema CC=60 (limit:15)
-  🟡 CC    main CC=95 (limit:15)
-  🟡 CC    privateIp CC=15 (limit:15)
-  🟡 CC    crawl CC=25 (limit:15)
-  🟡 CC    proposeCodeMutation CC=15 (limit:15)
-  🟡 CC    build CC=20 (limit:15)
-  🟡 CC    checkExternalServices CC=15 (limit:15)
-  🟡 CC    summarizeDevelopment CC=20 (limit:15)
-  🟡 CC    developmentAnalysisFingerprint CC=28 (limit:15)
+  🟡 CC    parseLiveBindingDsl CC=42 (limit:15)
+  🟡 CC    input CC=39 (limit:15)
+  🟡 CC    header CC=39 (limit:15)
+  🟡 CC    validateLiveBinding CC=54 (limit:15)
+  🟡 CC    document CC=45 (limit:15)
+  🟡 CC    ids CC=45 (limit:15)
+  🟡 CC    analyzeAssemblies CC=29 (limit:15)
+  🟡 CC    assemblies CC=26 (limit:15)
+  🟡 CC    rootExists CC=24 (limit:15)
+  🟡 CC    parts CC=24 (limit:15)
+  🟡 CC    parseAssemblyDsl CC=26 (limit:15)
+  🟡 CC    input CC=22 (limit:15)
 
 REFACTOR[2]:
   1. split src/core/types.ts  (god module)
   2. split 19 high-CC methods  (CC>15)
 
-PIPELINES[876]:
+PIPELINES[889]:
   [1] Src [base]: base
       PURITY: 100% pure
   [2] Src [actual]: actual
@@ -131,20 +131,20 @@ PIPELINES[876]:
       PURITY: 100% pure
 
 LAYERS:
-  js/                             CC̄=6.2    ←in:0  →out:0
+  js/                             CC̄=6.3    ←in:0  →out:0
   │ !! converters.ts              309L  6C   37m  CC=17     ←0
-  │ !! analyze.ts                 165L  0C   27m  CC=18     ←5
+  │ !! analyze.ts                 167L  0C   27m  CC=19     ←5
   │ !! tree.ts                    140L  2C   17m  CC=22     ←0
   │ projector.ts               121L  0C   20m  CC=13     ←2
   │ !! cli.ts                     114L  0C   12m  CC=30     ←0
   │ !! live-binding.ts            107L  0C   22m  CC=54     ←0
-  │ !! dsl.ts                      98L  0C   16m  CC=38     ←0
+  │ !! dsl.ts                      98L  0C   16m  CC=38     ←6
   │ types.ts                    95L  11C    0m  CC=0.0    ←0
   │ types.ts                    94L  10C    0m  CC=0.0    ←0
   │ detect.ts                   93L  0C    6m  CC=8      ←0
   │ chain.ts                    84L  1C    7m  CC=6      ←0
   │ !! analyze.ts                  81L  0C   25m  CC=29     ←0
-  │ types.ts                    72L  5C    0m  CC=0.0    ←0
+  │ types.ts                    73L  5C    0m  CC=0.0    ←0
   │ package.json                72L  0C    0m  CC=0.0    ←0
   │ types.ts                    62L  4C    2m  CC=1      ←1
   │ dsl.ts                      53L  0C    4m  CC=8      ←0
@@ -154,14 +154,7 @@ LAYERS:
   │ package.json                30L  0C    0m  CC=0.0    ←0
   │ canonical.ts                24L  0C    4m  CC=5      ←0
   │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
-  │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
-  │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
-  │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
   │ tsconfig.test.json           9L  0C    0m  CC=0.0    ←0
-  │ tsconfig.test.json           9L  0C    0m  CC=0.0    ←0
-  │ tsconfig.test.json           9L  0C    0m  CC=0.0    ←0
-  │ tsconfig.test.json           9L  0C    0m  CC=0.0    ←0
-  │ syntax.ts                    8L  0C    3m  CC=3      ←0
   │ syntax.ts                    8L  0C    3m  CC=3      ←0
   │ index.ts                     4L  0C    0m  CC=0.0    ←0
   │ index.ts                     3L  0C    0m  CC=0.0    ←0
@@ -169,21 +162,22 @@ LAYERS:
   │
   src/                            CC̄=5.2    ←in:0  →out:0
   │ !! types.ts                   857L  62C    0m  CC=0.0    ←0
-  │ !! living-project.ts          816L  1C  144m  CC=169    ←0
+  │ !! living-project.ts          823L  1C  144m  CC=169    ←0
   │ !! blueprint.ts               741L  0C   37m  CC=91     ←0
-  │ !! dashboard.ts               459L  2C   56m  CC=81     ←3
+  │ !! dashboard.ts               459L  2C   56m  CC=81     ←1
   │ biofoundry-concept.ts      435L  1C   22m  CC=13     ←0
   │ !! wizard.ts                  378L  1C   41m  CC=16     ←0
-  │ mutation-grant.ts          348L  1C   35m  CC=11     ←0
+  │ mutation-grant.ts          348L  1C   35m  CC=11     ←2
   │ !! mutation-pipeline.ts       308L  2C   23m  CC=15     ←0
   │ !! autonomy.ts                300L  2C   58m  CC=28     ←0
   │ !! physical-evidence.ts       264L  0C   38m  CC=61     ←0
   │ !! scanner.ts                 238L  2C   28m  CC=26     ←0
+  │ !! main.ts                    195L  0C   31m  CC=100    ←0
   │ !! geometry-validation.ts     188L  0C   38m  CC=40     ←0
-  │ !! main.ts                    179L  0C   29m  CC=95     ←0
   │ !! openusd.ts                 150L  1C   31m  CC=42     ←0
   │ !! project-integrity.ts       149L  1C   33m  CC=68     ←1
   │ !! twin-probes.ts             149L  5C   19m  CC=15     ←0
+  │ archive-project.ts         148L  2C   20m  CC=13     ←0
   │ !! todo2code.ts               138L  3C   25m  CC=21     ←0
   │ !! build-contract.ts          133L  0C   33m  CC=76     ←0
   │ !! json-schema.ts             124L  1C   12m  CC=60     ←0
@@ -199,7 +193,7 @@ LAYERS:
   │ openscad.ts                 67L  1C    8m  CC=3      ←0
   │ resource.ts                 63L  0C    6m  CC=3      ←0
   │ query.ts                    61L  0C    5m  CC=13     ←0
-  │ !! project.ts                  60L  0C    6m  CC=59     ←6
+  │ !! project.ts                  60L  0C    6m  CC=59     ←0
   │ geometry-dsl.ts             59L  0C    3m  CC=12     ←0
   │ living-watcher.ts           57L  1C   10m  CC=8      ←0
   │ !! dsl-schemas.ts              55L  0C   12m  CC=15     ←0
@@ -225,10 +219,10 @@ LAYERS:
   │ twin.ts                      4L  0C    3m  CC=7      ←0
   │ !! scene.ts                     3L  0C    1m  CC=18     ←0
   │ pipeline.ts                  2L  0C    1m  CC=5      ←0
+  │ assembly.ts                  2L  0C    0m  CC=0.0    ←0
   │ twin-state.ts                2L  0C    0m  CC=0.0    ←0
+  │ assembly.ts                  2L  0C    0m  CC=0.0    ←0
   │ live-binding.ts              2L  0C    0m  CC=0.0    ←0
-  │ assembly.ts                  2L  0C    0m  CC=0.0    ←0
-  │ assembly.ts                  2L  0C    0m  CC=0.0    ←0
   │
   py/                             CC̄=5.2    ←in:0  →out:0
   │ !! converters                 466L  9C   19m  CC=16     ←0
@@ -359,23 +353,24 @@ LAYERS:
   │
 
 COUPLING:
-                                                   py.f2md                      scripts                      src.dsl  js.archive-project-analyzer           js.live-twin-state                  src.runtime                    src.serve                      js.f2md
-                      py.f2md                           ──                                                        16                            7                            4                            2                            7                            1  !! fan-out
-                      scripts                                                        ──                            5                           13                           10                            6                                                            !! fan-out
-                      src.dsl                          ←16                           ←5                           ──                                                                                                                                                   hub
-  js.archive-project-analyzer                           ←7                          ←13                                                        ──                                                                                                                      hub
-           js.live-twin-state                           ←4                          ←10                                                                                     ──                                                                                         hub
-                  src.runtime                           ←2                           ←6                                                                                                                  ──                                                            hub
-                    src.serve                           ←7                                                                                                                                                                            ──                               hub
-                      js.f2md                           ←1                                                                                                                                                                                                         ──
+                                                   py.f2md                      scripts  js.archive-project-analyzer           js.live-twin-state                  src.runtime              js.assembly-dsl                      src.dsl                    src.serve                      js.f2md
+                      py.f2md                           ──                                                         7                            4                            7                            8                            8                            2                            1  !! fan-out
+                      scripts                                                        ──                           13                           10                            6                            3                            2                                                            !! fan-out
+  js.archive-project-analyzer                           ←7                          ←13                           ──                                                                                                                                                                                hub
+           js.live-twin-state                           ←4                          ←10                                                        ──                                                                                                                                                   hub
+                  src.runtime                           ←7                           ←6                                                                                     ──                                                                                                                      hub
+              js.assembly-dsl                           ←8                           ←3                                                                                                                  ──                                                                                         hub
+                      src.dsl                           ←8                           ←2                                                                                                                                               ──                                                            hub
+                    src.serve                           ←2                                                                                                                                                                                                         ──                             
+                      js.f2md                           ←1                                                                                                                                                                                                                                      ──
   CYCLES: none
-  HUB: src.serve/ (fan-in=7)
-  HUB: src.dsl/ (fan-in=21)
-  HUB: src.runtime/ (fan-in=8)
   HUB: js.archive-project-analyzer/ (fan-in=20)
   HUB: js.live-twin-state/ (fan-in=14)
-  SMELL: scripts/ fan-out=34 → split needed
+  HUB: js.assembly-dsl/ (fan-in=11)
+  HUB: src.runtime/ (fan-in=13)
+  HUB: src.dsl/ (fan-in=10)
   SMELL: py.f2md/ fan-out=37 → split needed
+  SMELL: scripts/ fan-out=34 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

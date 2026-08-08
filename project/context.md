@@ -1,16 +1,16 @@
 # System Architecture Analysis
-<!-- generated in 0.00s -->
+<!-- generated in 0.01s -->
 
 ## Overview
 
 - **Project**: /home/tom/github/bioxfoundry/twin-dsl
 - **Primary Language**: typescript
-- **Languages**: typescript: 84, json: 67, python: 13, proto: 12, javascript: 9
+- **Languages**: typescript: 84, json: 61, python: 13, proto: 12, javascript: 9
 - **Analysis Mode**: static
-- **Total Functions**: 1399
-- **Total Classes**: 177
-- **Modules**: 202
-- **Entry Points**: 1048
+- **Total Functions**: 1418
+- **Total Classes**: 179
+- **Modules**: 196
+- **Entry Points**: 1063
 
 ## Architecture by Module
 
@@ -61,7 +61,7 @@
 - **File**: `blueprint.ts`
 
 ### src.cli.main
-- **Functions**: 35
+- **Functions**: 37
 - **File**: `main.ts`
 
 ### src.geometry.build-contract
@@ -159,7 +159,7 @@ Main execution flows into the system:
 - **Calls**: src.research.crawler.shift, src.research.crawler.URL, src.research.crawler.includes, src.research.crawler.toLowerCase, src.research.crawler.Error, src.research.crawler.networkGuard, src.research.crawler.fetchText, src.research.crawler.toString
 
 ### py.f2md.src.f2md.converters.PyMuPDFConverter.convert
-- **Calls**: py.f2md.src.f2md.detect.detect_document_kind, chatter.text.strip, py.f2md.src.f2md.converters._clip, src.dsl.project.bool, py.f2md.src.f2md.converters._stat_metadata, len, ConvertedDocument, ExternalConverterRequired
+- **Calls**: py.f2md.src.f2md.detect.detect_document_kind, chatter.text.strip, py.f2md.src.f2md.converters._clip, js.assembly-dsl.src.dsl.bool, py.f2md.src.f2md.converters._stat_metadata, len, ConvertedDocument, ExternalConverterRequired
 
 ### src.scene.geometry-validation.validateGeometry
 - **Calls**: src.scene.geometry-validation.Map, src.scene.geometry-validation.map, src.scene.geometry-validation.has, src.scene.geometry-validation.get, src.scene.geometry-validation.push, src.scene.geometry-validation.missing, src.scene.geometry-validation.distance, src.scene.geometry-validation.max
@@ -191,14 +191,14 @@ Main execution flows into the system:
 ### src.runtime.mutation-pipeline.applyCodeMutation
 - **Calls**: src.runtime.mutation-pipeline.Error, src.runtime.mutation-pipeline.trim, src.runtime.mutation-pipeline.loadPlan, src.runtime.mutation-pipeline.planHashOf, src.runtime.mutation-pipeline.resolveGrant, src.runtime.mutation-pipeline.join, src.runtime.mutation-pipeline.resolve, src.runtime.mutation-pipeline.consumeMutationGrantJti
 
+### src.ingestion.archive-project.materializeArchiveGeometry
+- **Calls**: src.ingestion.archive-project.envLimit, src.ingestion.archive-project.resolve, src.ingestion.archive-project.join, src.ingestion.archive-project.slice, src.ingestion.archive-project.find, src.ingestion.archive-project.safeArchivePath, src.ingestion.archive-project.push, src.ingestion.archive-project.readZipEntry
+
 ### src.scene.blueprint.materializeBlueprintTwin
 - **Calls**: src.scene.blueprint.filter, src.scene.blueprint.map, src.scene.blueprint.set, src.scene.blueprint.matchResources, src.scene.blueprint.push, src.scene.blueprint.unique, src.scene.blueprint.slice, src.scene.blueprint.test
 
 ### src.dsl.project.parseProjectDsl
 - **Calls**: src.dsl.project.lines, src.dsl.project.shift, src.dsl.project.match, src.dsl.project.Error, src.dsl.project.indexOf, src.dsl.project.slice, src.dsl.project.toUpperCase, src.dsl.project.trim
-
-### src.project.wizard.createLivingProject
-- **Calls**: src.project.wizard.slug, src.project.wizard.resolve, src.project.wizard.basePort, src.project.wizard.exists, src.project.wizard.readdir, src.project.wizard.Error, src.project.wizard.mkdir, src.project.wizard.join
 
 ## Process Flows
 
@@ -374,6 +374,18 @@ Key functions that process and transform data:
 
 ### js.f2md.src.converters.MammothConverter.convertToHtml
 
+### js.live-twin-state.src.live-binding.parseLiveBindingDsl
+- **Output to**: js.live-twin-state.src.live-binding.lines, js.live-twin-state.src.live-binding.shift, js.live-twin-state.src.live-binding.match, js.live-twin-state.src.live-binding.Error, js.live-twin-state.src.live-binding.startsWith
+
+### js.live-twin-state.src.live-binding.validateLiveBinding
+- **Output to**: js.live-twin-state.src.live-binding.isArray, js.live-twin-state.src.live-binding.Error, js.live-twin-state.src.live-binding.keys, js.live-twin-state.src.live-binding.some, js.live-twin-state.src.live-binding.includes
+
+### js.assembly-dsl.src.dsl.parseAssemblyDsl
+- **Output to**: js.assembly-dsl.src.dsl.lines, js.assembly-dsl.src.dsl.shift, js.assembly-dsl.src.dsl.match, js.assembly-dsl.src.dsl.Error, js.assembly-dsl.src.dsl.startsWith
+
+### js.assembly-dsl.src.dsl.validateAssembly
+- **Output to**: js.assembly-dsl.src.dsl.isArray, js.assembly-dsl.src.dsl.Error, js.assembly-dsl.src.dsl.keys, js.assembly-dsl.src.dsl.some, js.assembly-dsl.src.dsl.includes
+
 ### src.core.uri.assertProcessUri
 - **Output to**: src.core.uri.test, src.core.uri.Error
 
@@ -388,15 +400,6 @@ Key functions that process and transform data:
 
 ### src.runtime.autonomy.validateSceneGrounding
 - **Output to**: src.runtime.autonomy.Error, src.runtime.autonomy.Set, src.runtime.autonomy.flattenComponents, src.runtime.autonomy.map, src.runtime.autonomy.contentUri
-
-### src.runtime.living-project.parseObservationValue
-- **Output to**: src.runtime.living-project.stringify
-
-### src.runtime.living-project.LivingProjectRuntime.geometryRepairProcesses
-- **Output to**: src.runtime.living-project.flatMap, src.runtime.living-project.join, src.runtime.living-project.values, src.runtime.living-project.map
-
-### src.runtime.living-project.LivingProjectRuntime.assemblyRepairProcesses
-- **Output to**: src.runtime.living-project.map
 
 ### src.runtime.digital-twin-diagnostics.converted
 - **Output to**: src.runtime.digital-twin-diagnostics.endsWith, src.runtime.digital-twin-diagnostics.set, src.runtime.digital-twin-diagnostics.get
@@ -415,9 +418,6 @@ Key functions that process and transform data:
 
 ### src.project.wizard.parsed
 
-### src.llm.dsl-schemas.validateResourcePlan
-- **Output to**: src.llm.dsl-schemas.obj, src.llm.dsl-schemas.exact, src.llm.dsl-schemas.Error, src.llm.dsl-schemas.isArray, src.llm.dsl-schemas.map
-
 ## Behavioral Patterns
 
 ### state_machine_LivingProjectRuntime
@@ -430,13 +430,13 @@ Key functions that process and transform data:
 Functions exposed as public API (no underscore prefix):
 
 - `scripts.cad-to-gltf.run_scad` - 128 calls
-- `src.runtime.living-project.LivingProjectRuntime.iterateWithLease` - 91 calls
-- `src.cli.main.main` - 77 calls
+- `src.runtime.living-project.LivingProjectRuntime.iterateWithLease` - 93 calls
+- `src.cli.main.main` - 84 calls
 - `scripts.scad-to-markdown.main` - 73 calls
 - `py.f2md.src.f2md.tree.convert_tree` - 66 calls
 - `scripts.cad-to-gltf.read_3mf` - 58 calls
-- `src.serve.dashboard.startDashboard` - 50 calls
 - `py.f2md.src.f2md.audit.audit_markdown_tree` - 50 calls
+- `src.serve.dashboard.startDashboard` - 50 calls
 - `py.f2md.src.f2md.audit.audit_twin_artifacts` - 49 calls
 - `src.runtime.biofoundry.BiofoundryRuntime.build` - 38 calls
 - `scripts.cad-to-gltf.compile_scad_to_3mf` - 38 calls
@@ -455,16 +455,16 @@ Functions exposed as public API (no underscore prefix):
 - `src.ingestion.scanner.scanSources` - 29 calls
 - `scripts.cad-to-gltf.run_stl` - 28 calls
 - `src.scene.openusd.emitNode` - 27 calls
-- `scripts.cad-to-gltf.write_glb` - 27 calls
 - `src.ingestion.scanner.texts` - 27 calls
 - `src.ingestion.scanner.converter` - 27 calls
+- `scripts.cad-to-gltf.write_glb` - 27 calls
 - `src.research.crawler.DqlCrawler.crawl` - 26 calls
 - `py.f2md.src.f2md.converters.PyMuPDFConverter.convert` - 26 calls
 - `src.scene.geometry-validation.validateGeometry` - 25 calls
-- `py.f2md.src.f2md.intent_compile.compile_tree` - 25 calls
 - `src.ingestion.scanner.absolute` - 25 calls
 - `src.ingestion.scanner.s` - 25 calls
 - `src.ingestion.scanner.files` - 25 calls
+- `py.f2md.src.f2md.intent_compile.compile_tree` - 25 calls
 - `src.runtime.pipeline.runDemo` - 24 calls
 - `src.project.wizard.addProjectSource` - 24 calls
 - `src.runtime.mutation-pipeline.proposeCodeMutation` - 23 calls

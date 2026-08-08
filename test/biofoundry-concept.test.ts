@@ -163,6 +163,21 @@ test("biofoundry concept scene uses 8-zone layout not knowledge-role grid", () =
   assert.ok(scene.bindings.every((binding) => !String(binding.componentId).endsWith("-knowledge")));
 });
 
+test("LLM grounding rejects removal of authoritative Twin identities", () => {
+  const authoritative = biofoundryConceptTwin(project(), resources(), observations, "22".repeat(32), development);
+  const proposal = structuredClone(authoritative);
+  proposal.components = proposal.components.filter((component) => component.id !== "test");
+  assert.throws(() => validateTwinGrounding(proposal, authoritative, resources()), /TWIN_REQUIRED_COMPONENT_MISSING:test/);
+});
+
+test("LLM grounding rejects removal of authoritative scene bindings", () => {
+  const twin = biofoundryConceptTwin(project(), resources(), observations, "22".repeat(32), development);
+  const authoritative = biofoundryConceptScene(project(), twin);
+  const proposal = structuredClone(authoritative);
+  proposal.bindings = proposal.bindings.slice(1);
+  assert.throws(() => validateSceneGrounding(proposal, twin, resources(), authoritative), /SCENE_REQUIRED_BINDING_MISSING/);
+});
+
 test("biofoundry readiness: concept publishable, physical not ready", () => {
   const readiness = biofoundryReadinessBindings(resources());
   const math = {

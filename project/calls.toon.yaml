@@ -1,15 +1,9 @@
 # code2llm call graph | /home/tom/github/bioxfoundry/twin-dsl
-# generated in 0.23s
-# nodes: 443 | edges: 500 | modules: 41
-# CC̄=5.4
+# generated in 0.24s
+# nodes: 431 | edges: 500 | modules: 44
+# CC̄=5.3
 
 HUBS[20]:
-  src.cli.main.main
-    CC=95  in:0  out:77  total:77
-  src.serve.dashboard.startDashboard
-    CC=81  in:0  out:50  total:50
-  src.serve.dashboard.server
-    CC=50  in:0  out:36  total:36
   src.runtime.project-integrity.finite
     CC=68  in:5  out:30  total:35
   src.runtime.project-integrity.flatten
@@ -28,24 +22,52 @@ HUBS[20]:
     CC=40  in:0  out:25  total:25
   src.project.wizard.addProjectSource
     CC=7  in:0  out:24  total:24
-  src.runtime.mutation-pipeline.proposeCodeMutation
-    CC=15  in:0  out:23  total:23
   src.scene.physical-evidence.applyPhysicalEvidence
     CC=29  in:0  out:23  total:23
+  src.runtime.mutation-pipeline.proposeCodeMutation
+    CC=15  in:0  out:23  total:23
   js.f2md.src.tree.convertTree
     CC=22  in:0  out:22  total:22
   src.runtime.mutation-pipeline.applyCodeMutation
     CC=13  in:0  out:22  total:22
-  src.scene.blueprint.materializeBlueprintTwin
-    CC=32  in:0  out:20  total:20
   src.geometry.dependency-resolver.geometryDependencyHash
     CC=5  in:5  out:15  total:20
+  src.scene.blueprint.materializeBlueprintTwin
+    CC=32  in:0  out:20  total:20
   src.scene.blueprint.validateSceneBlueprint
     CC=91  in:1  out:18  total:19
-  src.runtime.assembly.analyzeAssemblies
+  src.geometry.dependency-resolver.base
+    CC=14  in:0  out:18  total:18
+  js.assembly-dsl.src.analyze.analyzeAssemblies
     CC=29  in:0  out:18  total:18
+  src.project.wizard.createLivingProject
+    CC=9  in:0  out:18  total:18
+  src.core.json-schema.checkJsonSchema
+    CC=60  in:1  out:17  total:18
 
 MODULES:
+  js.archive-project-analyzer.src.dsl  [2 funcs]
+    quoted  CC=1  out:1
+    renderArchiveAnalysisDsl  CC=8  out:5
+  js.assembly-dsl.src.analyze  [19 funcs]
+    actualAssetUri  CC=1  out:2
+    addFinding  CC=2  out:2
+    allowedAssets  CC=2  out:2
+    analyzeAssemblies  CC=29  out:18
+    assemblies  CC=26  out:9
+    assetAvailable  CC=1  out:2
+    assetGrounded  CC=1  out:2
+    assetUri  CC=1  out:2
+    binding  CC=1  out:2
+    bindings  CC=2  out:2
+  js.assembly-dsl.src.dsl  [7 funcs]
+    bool  CC=3  out:1
+    header  CC=22  out:10
+    input  CC=22  out:10
+    match  CC=2  out:1
+    parseAssemblyDsl  CC=26  out:13
+    renderAssemblyDsl  CC=5  out:4
+    validateAssembly  CC=38  out:8
   js.f2md.src.chain  [5 funcs]
     convert  CC=2  out:1
     convertToMarkdown  CC=2  out:1
@@ -72,6 +94,25 @@ MODULES:
     frontMatter  CC=5  out:5
     walkFiles  CC=6  out:9
     yamlScalar  CC=5  out:3
+  js.live-twin-state.src.canonical  [4 funcs]
+    canonicalJson  CC=1  out:2
+    contentUri  CC=1  out:1
+    normalize  CC=5  out:7
+    sha256  CC=2  out:4
+  js.live-twin-state.src.live-binding  [8 funcs]
+    durationMs  CC=6  out:3
+    header  CC=39  out:12
+    input  CC=39  out:12
+    match  CC=2  out:1
+    parseLiveBindingDsl  CC=42  out:15
+    renderDuration  CC=4  out:0
+    renderLiveBindingDsl  CC=6  out:6
+    validateLiveBinding  CC=54  out:9
+  js.live-twin-state.src.projector  [4 funcs]
+    componentIds  CC=1  out:2
+    mappedState  CC=9  out:2
+    observation  CC=6  out:3
+    projectTwinState  CC=13  out:17
   src.adapters.clickhouse  [6 funcs]
     all  CC=1  out:6
     query  CC=2  out:5
@@ -109,17 +150,6 @@ MODULES:
     object  CC=4  out:1
     summarizeProbeCycle  CC=7  out:7
     validateAutonomCycle  CC=15  out:6
-  src.cli.main  [17 funcs]
-    base  CC=2  out:3
-    candidates  CC=9  out:7
-    cycle  CC=10  out:10
-    grantPath  CC=2  out:3
-    json  CC=1  out:2
-    llmMode  CC=5  out:1
-    main  CC=95  out:77
-    moduleDir  CC=9  out:7
-    openScadStatus  CC=10  out:9
-    project  CC=2  out:3
   src.core.canonical  [4 funcs]
     canonicalJson  CC=1  out:2
     contentUri  CC=1  out:1
@@ -145,14 +175,17 @@ MODULES:
   src.geometry.build-hash  [2 funcs]
     geometryBuildHash  CC=1  out:3
     geometryBuildIdentity  CC=2  out:3
-  src.geometry.dependency-resolver  [7 funcs]
+  src.geometry.dependency-resolver  [12 funcs]
     base  CC=14  out:18
+    checkout  CC=9  out:16
     execute  CC=2  out:1
     exists  CC=2  out:1
     files  CC=6  out:7
     geometryDependencyHash  CC=5  out:15
     inside  CC=3  out:2
     resolveGeometryDependencies  CC=14  out:18
+    revision  CC=1  out:2
+    source  CC=4  out:3
   src.geometry.geometry-service  [2 funcs]
     materializeFile  CC=1  out:11
     materializeFiles  CC=2  out:2
@@ -162,6 +195,14 @@ MODULES:
     geometryReceiptEvidence  CC=8  out:2
     usd  CC=4  out:2
     web  CC=4  out:2
+  src.ingestion.archive  [7 funcs]
+    execFileAsync  CC=1  out:0
+    inventoryZip  CC=6  out:9
+    limit  CC=3  out:2
+    listZip  CC=4  out:7
+    maxInventory  CC=1  out:1
+    name  CC=1  out:3
+    safeArchivePath  CC=5  out:4
   src.llm.dsl-schemas  [12 funcs]
     component  CC=4  out:6
     exact  CC=5  out:3
@@ -214,17 +255,6 @@ MODULES:
   src.research.researcher  [2 funcs]
     fixtureFetch  CC=3  out:5
     runResearcherDemo  CC=9  out:29
-  src.runtime.assembly  [19 funcs]
-    actualAssetUri  CC=1  out:2
-    addFinding  CC=2  out:2
-    allowedAssets  CC=2  out:2
-    analyzeAssemblies  CC=29  out:18
-    assemblies  CC=26  out:9
-    assetAvailable  CC=1  out:2
-    assetGrounded  CC=1  out:2
-    assetUri  CC=1  out:2
-    binding  CC=1  out:2
-    bindings  CC=2  out:2
   src.runtime.autonomy  [26 funcs]
     add  CC=1  out:2
     allowedAssets  CC=8  out:4
@@ -325,11 +355,6 @@ MODULES:
     text  CC=2  out:2
     timed  CC=1  out:2
     timeoutMs  CC=4  out:7
-  src.runtime.twin-state  [4 funcs]
-    componentIds  CC=1  out:2
-    mappedState  CC=10  out:3
-    observation  CC=6  out:3
-    projectTwinState  CC=13  out:17
   src.scene.blueprint  [16 funcs]
     biofoundryLiveBlueprintV02  CC=3  out:7
     componentsById  CC=10  out:7
@@ -374,17 +399,6 @@ MODULES:
     fieldsOf  CC=5  out:1
     geometryEvidenceRank  CC=1  out:2
     isNonNegative  CC=3  out:1
-  src.serve.dashboard  [28 funcs]
-    accepted  CC=2  out:1
-    address  CC=1  out:1
-    assetRoot  CC=3  out:6
-    dashboardLog  CC=2  out:6
-    evidence  CC=1  out:3
-    evidencePath  CC=1  out:2
-    host  CC=1  out:1
-    incoming  CC=3  out:1
-    ingestedResourceUris  CC=3  out:5
-    mergeEvidence  CC=14  out:4
 
 EDGES:
   js.f2md.src.detect.mediaTypeFor → js.f2md.src.detect.detectDocumentKind
@@ -413,27 +427,27 @@ EDGES:
   js.f2md.src.converters.MammothConverter.htmlToDocument → js.f2md.src.converters.clip
   js.f2md.src.converters.MammothConverter.htmlToDocument → js.f2md.src.converters.statMetadata
   js.f2md.src.converters.MammothConverter.clipped → js.f2md.src.converters.statMetadata
-  src.serve.dashboard.sendJson → src.serve.dashboard.send
-  src.serve.dashboard.startDashboard → src.serve.dashboard.assetRoot
-  src.serve.dashboard.state → src.serve.dashboard.readJson
-  src.serve.dashboard.server → src.serve.dashboard.send
-  src.serve.dashboard.server → src.serve.dashboard.sendJson
-  src.serve.dashboard.server → src.serve.dashboard.state
-  src.serve.dashboard.server → src.serve.dashboard.readEventLog
-  src.serve.dashboard.server → src.serve.dashboard.readDslArtifacts
-  src.serve.dashboard.resource → src.serve.dashboard.sendJson
-  src.serve.dashboard.started → src.serve.dashboard.dashboardLog
-  src.serve.dashboard.receipt → src.serve.dashboard.sendJson
-  src.serve.dashboard.incoming → src.serve.dashboard.sendJson
-  src.serve.dashboard.preview → src.serve.dashboard.sendJson
-  src.serve.dashboard.projectDir → src.serve.dashboard.ingestedResourceUris
-  src.serve.dashboard.evidencePath → src.serve.dashboard.ingestedResourceUris
-  src.serve.dashboard.previewResult → src.serve.dashboard.ingestedResourceUris
-  src.serve.dashboard.report → src.serve.dashboard.sendJson
-  src.serve.dashboard.accepted → src.serve.dashboard.sendJson
-  src.serve.dashboard.stored → src.serve.dashboard.mergeEvidence
-  src.serve.dashboard.evidence → src.serve.dashboard.mergeEvidence
-  src.serve.dashboard.next → src.serve.dashboard.sendJson
-  src.serve.dashboard.host → src.serve.dashboard.dashboardLog
-  src.serve.dashboard.address → src.serve.dashboard.dashboardLog
-  src.serve.dashboard.port → src.serve.dashboard.dashboardLog
+  js.archive-project-analyzer.src.dsl.renderArchiveAnalysisDsl → js.archive-project-analyzer.src.dsl.quoted
+  js.live-twin-state.src.projector.projectTwinState → js.live-twin-state.src.projector.componentIds
+  js.live-twin-state.src.projector.observation → js.live-twin-state.src.projector.mappedState
+  js.live-twin-state.src.canonical.canonicalJson → js.live-twin-state.src.canonical.normalize
+  js.live-twin-state.src.canonical.sha256 → js.live-twin-state.src.canonical.canonicalJson
+  js.live-twin-state.src.canonical.contentUri → js.live-twin-state.src.canonical.sha256
+  js.live-twin-state.src.live-binding.durationMs → js.live-twin-state.src.live-binding.match
+  js.live-twin-state.src.live-binding.parseLiveBindingDsl → js.live-twin-state.src.live-binding.match
+  js.live-twin-state.src.live-binding.input → js.live-twin-state.src.live-binding.match
+  js.live-twin-state.src.live-binding.input → js.live-twin-state.src.live-binding.durationMs
+  js.live-twin-state.src.live-binding.header → js.live-twin-state.src.live-binding.match
+  js.live-twin-state.src.live-binding.header → js.live-twin-state.src.live-binding.durationMs
+  js.live-twin-state.src.live-binding.renderLiveBindingDsl → js.live-twin-state.src.live-binding.validateLiveBinding
+  js.live-twin-state.src.live-binding.renderLiveBindingDsl → js.live-twin-state.src.live-binding.renderDuration
+  js.assembly-dsl.src.analyze.analyzeAssemblies → js.assembly-dsl.src.analyze.visit
+  js.assembly-dsl.src.analyze.analyzeAssemblies → js.assembly-dsl.src.analyze.kebab
+  js.assembly-dsl.src.analyze.bindings → js.assembly-dsl.src.analyze.kebab
+  js.assembly-dsl.src.analyze.allowedAssets → js.assembly-dsl.src.analyze.kebab
+  js.assembly-dsl.src.analyze.addFinding → js.assembly-dsl.src.analyze.kebab
+  js.assembly-dsl.src.analyze.assemblies → js.assembly-dsl.src.analyze.addFinding
+  js.assembly-dsl.src.analyze.assemblies → js.assembly-dsl.src.analyze.finding
+  js.assembly-dsl.src.analyze.rootExists → js.assembly-dsl.src.analyze.addFinding
+  js.assembly-dsl.src.analyze.rootExists → js.assembly-dsl.src.analyze.finding
+  js.assembly-dsl.src.analyze.parts → js.assembly-dsl.src.analyze.addFinding

@@ -35,7 +35,9 @@ export interface ArchiveMaterializationReceipt {
 const MEDIA: Record<string, string> = {
   ".obj": "model/obj", ".stl": "model/stl", ".step": "model/step", ".stp": "model/step",
   ".scad": "application/x-openscad", ".3mf": "model/3mf", ".glb": "model/gltf-binary", ".gltf": "model/gltf+json",
+  ".mtl": "model/mtl",
 };
+const ANALYSIS_CACHE = new Map<string, ArchiveProjectAnalysis>();
 
 function envLimit(name: string, fallback: number): number {
   const value = Number(process.env[name]);
@@ -44,15 +46,23 @@ function envLimit(name: string, fallback: number): number {
 
 export async function analyzeZipFile(path: string): Promise<ArchiveProjectAnalysis> {
   const absolute = resolve(path);
+  const info = await stat(absolute);
+  const textLimit = envLimit("DT_MAX_ARCHIVE_TEXT_ENTRIES", 64);
+  const geometryLimit = envLimit("DT_MAX_ARCHIVE_GEOMETRY_ENTRIES", 32);
+  const cacheKey = `${absolute}:${info.size}:${info.mtimeMs}:${textLimit}:${geometryLimit}`;
+  const cached = ANALYSIS_CACHE.get(cacheKey);
+  if (cached) return cached;
   const digest = await sha256File(absolute);
-  return analyzeArchiveProject({
+  const analysis = analyzeArchiveProject({
     archivePath: absolute,
     archiveSha256: digest.sha256,
     archiveSize: digest.size,
     entries: await inventoryZip(absolute),
-    maxTextEntries: envLimit("DT_MAX_ARCHIVE_TEXT_ENTRIES", 64),
-    maxGeometryEntries: envLimit("DT_MAX_ARCHIVE_GEOMETRY_ENTRIES", 32),
+    maxTextEntries: textLimit,
+    maxGeometryEntries: geometryLimit,
   });
+  ANALYSIS_CACHE.set(cacheKey, analysis);
+  return analysis;
 }
 
 export async function findZipFiles(path: string): Promise<string[]> {

@@ -10,6 +10,7 @@ stable file contract can be extracted into independently built and tested packag
 | `@subactor/f2md` | source-to-Markdown conversion envelope and provenance | translation, intent inference, Twin generation | optional converter peers |
 | `@subactor/assembly-dsl` | AssemblyDSL parsing, validation, completeness analysis, error/repair URIs | CAD compilation, scene generation, mutation execution | 0 |
 | `@subactor/live-twin-state` | LiveBindingDSL parsing, deterministic state projection and TTL re-evaluation | telemetry transport, commands, UI projection | 0 |
+| `@subactor/archive-project-analyzer` | safe ZIP inventory, evidence classification/ranking, bounded extraction plans, stable error/repair URIs | extraction, CAD execution, scene binding | 0 |
 | private runtime starter | ingestion orchestration, leases, policy gates, candidate/current promotion, dashboard and receipts | package publication | application only |
 
 The existing imports below remain supported:
@@ -34,6 +35,8 @@ subactor.assembly/v1
 subactor.assembly-report/v1
 subactor.live-binding/v1
 subactor.twin-state/v1
+subactor.archive-project-analysis/v1
+subactor.archive-materialization-receipt/v1
 ```
 
 This keeps independently deployed agents interoperable without requiring them to share an

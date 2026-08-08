@@ -3,8 +3,9 @@ import { extname, join, relative, resolve } from "node:path";
 import type { ResourceRecord, SourceRole } from "../core/types.js";
 import { CompositeDocumentConverter, detectDocumentKind } from "../adapters/document-converter.js";
 import { resourceFromBinary, resourceFromBinaryDigest, resourceFromText } from "../dsl/resource.js";
-import { inventoryZip, readZipEntry, sha256File } from "./archive.js";
-import { analyzeArchiveProject, renderArchiveAnalysisMarkdown, type ArchiveProjectAnalysis } from "../../js/archive-project-analyzer/src/index.js";
+import { readZipEntry, sha256File } from "./archive.js";
+import { renderArchiveAnalysisMarkdown, type ArchiveProjectAnalysis } from "../../js/archive-project-analyzer/src/index.js";
+import { analyzeZipFile } from "./archive-project.js";
 
 const TEXT_EXT = new Set([
   ".md", ".rst", ".adoc", ".tex", ".txt", ".log", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".csv",
@@ -97,19 +98,14 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
       if (ext === ".zip") {
         try {
           // Hash the real archive bytes by streaming; entry metadata must never masquerade as an asset hash.
-          const digest = await sha256File(file);
+          const analysis = await analyzeZipFile(file);
+          const digest = {sha256:analysis.archive.sha256,size:analysis.archive.size};
           const container = resourceFromBinaryDigest(
             `res-${resources.length + 1}`, logical, file, digest.sha256, digest.size,
             "application/zip", source.role, [...labels, "zip-container", "archive-project"],
           );
           resources.push(container);
           texts.set(container.uri, `ZIP_CONTAINER ${file}\nsha256:${digest.sha256}\nsize:${digest.size}\n`);
-          const inventory = await inventoryZip(file);
-          const analysis = analyzeArchiveProject({
-            archivePath:file, archiveSha256:digest.sha256, archiveSize:digest.size, entries:inventory,
-            maxTextEntries:Number(process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES ?? 64),
-            maxGeometryEntries:Number(process.env.DT_MAX_ARCHIVE_GEOMETRY_ENTRIES ?? 32),
-          });
           archiveAnalyses.push(analysis);
           const analysisMarkdown = renderArchiveAnalysisMarkdown(analysis);
           const analysisResource = resourceFromText(
@@ -183,6 +179,21 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
         try {
+          const fileInfo = await stat(file);
+          // Large assets are content-addressed by streaming their real bytes. The previous
+          // path+size pseudo payload changed identity when a file moved and could not prove
+          // that the geometry served by the dashboard was the geometry that was inspected.
+          if (fileInfo.size > 8 * 1024 * 1024) {
+            const digest = await sha256File(file);
+            const r = resourceFromBinaryDigest(
+              `res-${resources.length + 1}`, logical, file, digest.sha256, digest.size,
+              mediaTypeFor(file), source.role, [...labels, "large-binary", "stream-hashed"],
+            );
+            resources.push(r);
+            texts.set(r.uri, `BINARY_STUB ${file}\nsha256:${digest.sha256}\nsize:${digest.size}\nlabels:${r.labels?.join(",")}\n`);
+            warnings.push(`BINARY_STREAM_HASHED:${message}`);
+            continue;
+          }
           const raw = await readFile(file);
           const text = textFromBuffer(raw, file);
           if (text !== undefined) {
@@ -200,34 +211,18 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
             warnings.push(`TEXT_FALLBACK:${message}`);
             continue;
           }
-          // Cap huge binaries at metadata stub if > 8 MiB to keep iteration snappy.
-          if (raw.length > 8 * 1024 * 1024) {
-            pushBinary(
-              resources,
-              texts,
-              `res-${resources.length + 1}`,
-              logical,
-              file,
-              `large-binary:${file}:size:${raw.length}`,
-              source.role,
-              labels,
-              `BINARY_STUB_LARGE:${message}`,
-              warnings,
-            );
-          } else {
-            pushBinary(
-              resources,
-              texts,
-              `res-${resources.length + 1}`,
-              logical,
-              file,
-              raw,
-              source.role,
-              labels,
-              `BINARY_STUB:${message}`,
-              warnings,
-            );
-          }
+          pushBinary(
+            resources,
+            texts,
+            `res-${resources.length + 1}`,
+            logical,
+            file,
+            raw,
+            source.role,
+            labels,
+            `BINARY_STUB:${message}`,
+            warnings,
+          );
         } catch (inner) {
           warnings.push(`${message}; ${inner instanceof Error ? inner.message : String(inner)}`);
         }

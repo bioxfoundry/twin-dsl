@@ -165,6 +165,8 @@ function flattenComponents(components:TwinComponent[]):TwinComponent[] {
 }
 export function validateTwinGrounding(document:TwinDocument,authoritative:TwinDocument,resources:ResourceRecord[]):void {
   if(document.sourceSnapshotHash !== authoritative.sourceSnapshotHash) throw new Error("TWIN_SOURCE_SNAPSHOT_OVERRIDE");
+  if(document.id !== authoritative.id) throw new Error("TWIN_ID_OVERRIDE");
+  if(document.kind !== authoritative.kind) throw new Error("TWIN_KIND_OVERRIDE");
   const allowedUris = new Set([...resources.map(resource=>resource.uri),...flattenComponents(authoritative.components).flatMap(component=>component.sourceUris)]);
   const ids = new Set<string>();
   for(const component of flattenComponents(document.components)) {
@@ -172,8 +174,14 @@ export function validateTwinGrounding(document:TwinDocument,authoritative:TwinDo
     ids.add(component.id);
     for(const uri of component.sourceUris) if(!allowedUris.has(uri)) throw new Error(`TWIN_SOURCE_URI_NOT_GROUNDED:${uri}`);
   }
+  // Blueprint identities are part of the authority boundary. Semantic enrichment may add
+  // grounded components, but a model may not silently remove a zone/device that is targeted
+  // by LiveBindingDSL, AssemblyDSL or physical evidence.
+  for(const required of flattenComponents(authoritative.components)) {
+    if(!ids.has(required.id)) throw new Error(`TWIN_REQUIRED_COMPONENT_MISSING:${required.id}`);
+  }
 }
-export function validateSceneGrounding(document:SceneDocument,twin:TwinDocument,resources:ResourceRecord[]):void {
+export function validateSceneGrounding(document:SceneDocument,twin:TwinDocument,resources:ResourceRecord[],authoritative?:SceneDocument):void {
   if(document.sourceTwinId !== twin.id) throw new Error("SCENE_SOURCE_TWIN_MISMATCH");
   const components = new Set(flattenComponents(twin.components).map(component=>component.id));
   const allowedAssets = new Set(resources.map(resource=>resource.uri));
@@ -185,6 +193,10 @@ export function validateSceneGrounding(document:SceneDocument,twin:TwinDocument,
     if(binding.assetUri && !allowedAssets.has(binding.assetUri)) throw new Error(`SCENE_ASSET_NOT_GROUNDED:${binding.assetUri}`);
     if(paths.has(binding.scenePath)) throw new Error(`SCENE_PATH_DUPLICATE:${binding.scenePath}`);
     paths.add(binding.scenePath);
+  }
+  if(authoritative) for(const required of authoritative.bindings) {
+    const present=document.bindings.some(binding=>binding.componentId===required.componentId&&binding.scenePath===required.scenePath);
+    if(!present) throw new Error(`SCENE_REQUIRED_BINDING_MISSING:${required.componentId??"unknown"}:${required.scenePath}`);
   }
 }
 

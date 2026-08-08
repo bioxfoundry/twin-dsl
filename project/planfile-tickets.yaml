@@ -1,5 +1,5 @@
 source: code2llm
-# generated in 0.10s
+# generated in 0.12s
 schema: code2llm.planfile_tickets.v1
 project_root: /home/tom/github/bioxfoundry/twin-dsl
 tickets:
@@ -286,9 +286,9 @@ tickets:
   - scripts/cad-to-gltf.py
   dedupe_key: code2llm:cc:scripts/cad-to-gltf.py:scripts.cad-to-gltf.run_scad
 - signal: code2llm_cc
-  title: 'Reduce cyclomatic complexity: src.cli.main.main (CC=95)'
-  description: 'code2llm reports `src.cli.main.main` at `src/cli/main.ts:56` with
-    cyclomatic complexity 95 (limit 15).
+  title: 'Reduce cyclomatic complexity: src.cli.main.main (CC=100)'
+  description: 'code2llm reports `src.cli.main.main` at `src/cli/main.ts:57` with
+    cyclomatic complexity 100 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -531,7 +531,7 @@ tickets:
   title: 'Reduce cyclomatic complexity: src.runtime.living-project.LivingProjectRuntime.iterateWithLease
     (CC=169)'
   description: 'code2llm reports `src.runtime.living-project.LivingProjectRuntime.iterateWithLease`
-    at `src/runtime/living-project.ts:295` with cyclomatic complexity 169 (limit 15).
+    at `src/runtime/living-project.ts:296` with cyclomatic complexity 169 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -942,7 +942,7 @@ tickets:
   title: 'Reduce cyclomatic complexity: js.archive-project-analyzer.src.analyze.analyzeArchiveProject
     (CC=18)'
   description: 'code2llm reports `js.archive-project-analyzer.src.analyze.analyzeArchiveProject`
-    at `js/archive-project-analyzer/src/analyze.ts:86` with cyclomatic complexity
+    at `js/archive-project-analyzer/src/analyze.ts:88` with cyclomatic complexity
     18 (limit 15).
 
 
@@ -959,10 +959,10 @@ tickets:
   dedupe_key: code2llm:cc:js/archive-project-analyzer/src/analyze.ts:js.archive-project-analyzer.src.analyze.analyzeArchiveProject
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: js.archive-project-analyzer.src.analyze.kindFor
-    (CC=18)'
+    (CC=19)'
   description: 'code2llm reports `js.archive-project-analyzer.src.analyze.kindFor`
     at `js/archive-project-analyzer/src/analyze.ts:35` with cyclomatic complexity
-    18 (limit 15).
+    19 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -1798,7 +1798,7 @@ tickets:
   title: 'Reduce cyclomatic complexity: src.runtime.living-project.LivingProjectRuntime.iterationUri
     (CC=24)'
   description: 'code2llm reports `src.runtime.living-project.LivingProjectRuntime.iterationUri`
-    at `src/runtime/living-project.ts:626` with cyclomatic complexity 24 (limit 15).
+    at `src/runtime/living-project.ts:630` with cyclomatic complexity 24 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -1814,7 +1814,7 @@ tickets:
   dedupe_key: code2llm:cc:src/runtime/living-project.ts:src.runtime.living-project.LivingProjectRuntime.iterationUri
 - signal: code2llm_cc
   title: 'Reduce cyclomatic complexity: src.runtime.living-project.index (CC=21)'
-  description: 'code2llm reports `src.runtime.living-project.index` at `src/runtime/living-project.ts:151`
+  description: 'code2llm reports `src.runtime.living-project.index` at `src/runtime/living-project.ts:152`
     with cyclomatic complexity 21 (limit 15).
 
 
@@ -1833,7 +1833,7 @@ tickets:
   title: 'Reduce cyclomatic complexity: src.runtime.living-project.observationsFromResources
     (CC=21)'
   description: 'code2llm reports `src.runtime.living-project.observationsFromResources`
-    at `src/runtime/living-project.ts:149` with cyclomatic complexity 21 (limit 15).
+    at `src/runtime/living-project.ts:150` with cyclomatic complexity 21 (limit 15).
 
 
     Extract smaller functions, flatten conditionals, or split strategy branches. Re-run
@@ -2051,9 +2051,9 @@ tickets:
 
 
     Function ''audit_markdown_tree'' mutates multiple variables in other modules:
-    report.metrics[''headings''], report.metrics[''sourceFiles''], report.metrics[''markdownFiles''],
-    report.metrics[''converted''], report.metrics[''tables''], report.metrics[''translated''],
-    report.metrics[''missing''].
+    report.metrics[''translated''], report.metrics[''sourceFiles''], report.metrics[''missing''],
+    report.metrics[''markdownFiles''], report.metrics[''converted''], report.metrics[''headings''],
+    report.metrics[''tables''].
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -2072,8 +2072,8 @@ tickets:
   description: 'code2llm reports `Feature Envy: convert_tree` in `py/f2md/src/f2md/tree.py:89`.
 
 
-    Function ''convert_tree'' mutates multiple variables in other modules: result.confidential,
-    result.stubbed, result.translated, result.converted, result.skipped, result.failures.
+    Function ''convert_tree'' mutates multiple variables in other modules: result.stubbed,
+    result.confidential, result.converted, result.failures, result.translated, result.skipped.
 
 
     Make the smallest refactor that removes the smell and run local tests.'
@@ -2220,6 +2220,25 @@ tickets:
   - src/runtime/mutation-pipeline.ts
   dedupe_key: 'code2llm:smell:god_function:src/runtime/mutation-pipeline.ts:254:God
     Function: applyId'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: archiveRoot'
+  description: 'code2llm reports `God Function: archiveRoot` in `src/ingestion/archive-project.ts:81`.
+
+
+    Function ''archiveRoot'' is oversized: CC=13, fan-out=18, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:81:God
+    Function: archiveRoot'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: base'
   description: 'code2llm reports `God Function: base` in `src/geometry/dependency-resolver.ts:46`.
@@ -2599,6 +2618,25 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:src/adapters/todo2code.ts:95:God Function:
     extractNl'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: findZipFiles'
+  description: 'code2llm reports `God Function: findZipFiles` in `src/ingestion/archive-project.ts:59`.
+
+
+    Function ''findZipFiles'' is oversized: CC=9, fan-out=13, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:59:God
+    Function: findZipFiles'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: geometryDependencyHash'
   description: 'code2llm reports `God Function: geometryDependencyHash` in `src/geometry/dependency-resolver.ts:24`.
 
@@ -2732,6 +2770,25 @@ tickets:
   dedupe_key: 'code2llm:smell:god_function:py/f2md/src/f2md/audit.py:173:God Function:
     main'
 - signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: materializeArchiveGeometry'
+  description: 'code2llm reports `God Function: materializeArchiveGeometry` in `src/ingestion/archive-project.ts:73`.
+
+
+    Function ''materializeArchiveGeometry'' is oversized: CC=13, fan-out=22, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:73:God
+    Function: materializeArchiveGeometry'
+- signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: materializeFile'
   description: 'code2llm reports `God Function: materializeFile` in `src/geometry/geometry-service.ts:19`.
 
@@ -2750,6 +2807,63 @@ tickets:
   - src/geometry/geometry-service.ts
   dedupe_key: 'code2llm:smell:god_function:src/geometry/geometry-service.ts:19:God
     Function: materializeFile'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: maxEntries'
+  description: 'code2llm reports `God Function: maxEntries` in `src/ingestion/archive-project.ts:77`.
+
+
+    Function ''maxEntries'' is oversized: CC=13, fan-out=18, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:77:God
+    Function: maxEntries'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: maxEntryBytes'
+  description: 'code2llm reports `God Function: maxEntryBytes` in `src/ingestion/archive-project.ts:78`.
+
+
+    Function ''maxEntryBytes'' is oversized: CC=13, fan-out=18, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:78:God
+    Function: maxEntryBytes'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: maxTotalBytes'
+  description: 'code2llm reports `God Function: maxTotalBytes` in `src/ingestion/archive-project.ts:79`.
+
+
+    Function ''maxTotalBytes'' is oversized: CC=13, fan-out=18, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:79:God
+    Function: maxTotalBytes'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: maxTriangles'
   description: 'code2llm reports `God Function: maxTriangles` in `src/geometry/build-contract.ts:97`.
@@ -2978,7 +3092,7 @@ tickets:
     Function: projectTwinState'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: recordFailure'
-  description: 'code2llm reports `God Function: recordFailure` in `src/runtime/living-project.ts:791`.
+  description: 'code2llm reports `God Function: recordFailure` in `src/runtime/living-project.ts:798`.
 
 
     Function ''recordFailure'' is oversized: CC=4, fan-out=11, mutations=0.
@@ -2993,7 +3107,7 @@ tickets:
   - god-function
   files:
   - src/runtime/living-project.ts
-  dedupe_key: 'code2llm:smell:god_function:src/runtime/living-project.ts:791:God Function:
+  dedupe_key: 'code2llm:smell:god_function:src/runtime/living-project.ts:798:God Function:
     recordFailure'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: relativeCandidate'
@@ -3054,7 +3168,7 @@ tickets:
     Function: resolveGeometryDependencies'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: rootCandidates'
-  description: 'code2llm reports `God Function: rootCandidates` in `js/archive-project-analyzer/src/analyze.ts:77`.
+  description: 'code2llm reports `God Function: rootCandidates` in `js/archive-project-analyzer/src/analyze.ts:79`.
 
 
     Function ''rootCandidates'' is oversized: CC=6, fan-out=11, mutations=0.
@@ -3069,7 +3183,7 @@ tickets:
   - god-function
   files:
   - js/archive-project-analyzer/src/analyze.ts
-  dedupe_key: 'code2llm:smell:god_function:js/archive-project-analyzer/src/analyze.ts:77:God
+  dedupe_key: 'code2llm:smell:god_function:js/archive-project-analyzer/src/analyze.ts:79:God
     Function: rootCandidates'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: runDemo'
@@ -3204,6 +3318,25 @@ tickets:
   - scripts/demo-realtime-biofoundry.mjs
   dedupe_key: 'code2llm:smell:god_function:scripts/demo-realtime-biofoundry.mjs:2:God
     Function: tmp'
+- signal: code2llm_smell_god_function
+  title: 'Address code smell: God Function: total'
+  description: 'code2llm reports `God Function: total` in `src/ingestion/archive-project.ts:83`.
+
+
+    Function ''total'' is oversized: CC=13, fan-out=18, mutations=0.
+
+
+    Make the smallest refactor that removes the smell and run local tests.'
+  priority: normal
+  labels:
+  - llm-ready
+  - code2llm
+  - code-smell
+  - god-function
+  files:
+  - src/ingestion/archive-project.ts
+  dedupe_key: 'code2llm:smell:god_function:src/ingestion/archive-project.ts:83:God
+    Function: total'
 - signal: code2llm_smell_god_function
   title: 'Address code smell: God Function: translate'
   description: 'code2llm reports `God Function: translate` in `py/f2md/src/f2md/translate.py:110`.

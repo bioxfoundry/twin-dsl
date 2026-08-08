@@ -1,10 +1,12 @@
 flowchart TD
-%% generated in 0.02s
+%% generated in 0.03s
 
     %% Entry points (blue)
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph CLI
+        deploy__docling__server__health["health"]
+        deploy__docling__server__convert["convert"]
         src__cli__main__json["json"]
         src__cli__main__save["save"]
         src__cli__main__llmMode["llmMode"]
@@ -18,9 +20,7 @@ flowchart TD
         src__cli__main__main["main"]
         src__cli__main__t2c["t2c"]
         src__cli__main__report["report"]
-        src__cli__main__runtime["runtime"]
-        src__cli__main__cycle["cycle"]
-        ...["+16 more"]
+        ...["+18 more"]
     end
 
     subgraph Core
@@ -39,7 +39,7 @@ flowchart TD
         js__f2md__src__cli__result["result"]
         js__f2md__src__cli__chain["chain"]
         js__f2md__src__cli__failures["failures"]
-        ...["+994 more"]
+        ...["+1007 more"]
     end
 
     class js__f2md__src__types__ExternalConverterRequired__super,js__f2md__src__detect__base,js__f2md__src__detect__actual,js__f2md__src__detect__at,js__f2md__src__detect__mediaTypeFor,js__f2md__src__detect__isTextKind,js__f2md__src__cli__chainFor,js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect entry

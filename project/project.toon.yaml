@@ -1,52 +1,52 @@
-# twin-dsl | 1346 func | 84f | 16791L | typescript | 2026-08-08
+# twin-dsl | 1418 func | 89f | 17646L | typescript | 2026-08-08
 # generated in 0.00s
 
 HEALTH:
-  CC̄=5.4  critical=175 (limit:10)  dup=9  cycles=0
+  CC̄=5.3  critical=182 (limit:10)  dup=28  cycles=0
 
 ALERTS[20]:
   !!! cc_exceeded      LivingProjectRuntime.iterateWithLease = 169 (limit:15)
-  !!! cc_exceeded      main = 95 (limit:15)
+  !!! cc_exceeded      main = 100 (limit:15)
+  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 93 (limit:10)
   !!! cc_exceeded      validateSceneBlueprint = 91 (limit:15)
-  !!! high_fan_out     LivingProjectRuntime.iterateWithLease = 91 (limit:10)
+  !!! high_fan_out     main = 84 (limit:10)
   !!! cc_exceeded      startDashboard = 81 (limit:15)
-  !!! high_fan_out     main = 77 (limit:10)
   !!! cc_exceeded      validateGeometryBuild = 76 (limit:15)
   !!! cc_exceeded      finite = 68 (limit:15)
   !!! cc_exceeded      flatten = 68 (limit:15)
   !!! cc_exceeded      analyzeProjectIntegrity = 68 (limit:15)
 
-MODULES[178] (top by size):
+MODULES[196] (top by size):
   M[planfile.yaml] 1319L C:0 F:0 CC↑0 D:0 (yaml)
   M[scripts/cad-to-gltf.py] 870L C:0 F:41 CC↑50 D:0 (python)
   M[src/core/types.ts] 857L C:62 F:0 CC↑0 D:0 (typescript)
-  M[src/runtime/living-project.ts] 816L C:1 F:144 CC↑169 D:0 (typescript)
+  M[src/runtime/living-project.ts] 823L C:1 F:144 CC↑169 D:0 (typescript)
   M[src/scene/blueprint.ts] 741L C:0 F:37 CC↑91 D:0 (typescript)
   M[goal.yaml] 543L C:0 F:0 CC↑0 D:0 (yaml)
   M[py/f2md/src/f2md/converters.py] 466L C:9 F:19 CC↑16 D:0 (python)
-  M[src/serve/dashboard.ts] 459L C:2 F:56 CC↑81 D:3 (typescript)
+  M[src/serve/dashboard.ts] 459L C:2 F:56 CC↑81 D:1 (typescript)
   M[src/runtime/biofoundry-concept.ts] 435L C:1 F:22 CC↑13 D:0 (typescript)
   M[src/project/wizard.ts] 378L C:1 F:41 CC↑16 D:0 (typescript)
-  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:0 (typescript)
+  M[src/runtime/mutation-grant.ts] 348L C:1 F:35 CC↑11 D:2 (typescript)
   M[js/f2md/src/converters.ts] 309L C:6 F:37 CC↑17 D:0 (typescript)
   M[src/runtime/mutation-pipeline.ts] 308L C:2 F:23 CC↑15 D:0 (typescript)
   M[src/runtime/autonomy.ts] 300L C:2 F:58 CC↑28 D:0 (typescript)
-  M[src/ingestion/scanner.ts] 267L C:2 F:25 CC↑23 D:0 (typescript)
-  LANGS: typescript:69/json:58/python:13/proto:12/javascript:9/yaml:5/other:3/txt:3/xml:2/shell:2/yml:1/toml:1
+  M[src/scene/physical-evidence.ts] 264L C:0 F:38 CC↑61 D:0 (typescript)
+  LANGS: typescript:84/json:61/python:13/proto:12/javascript:9/yaml:5/other:3/txt:3/xml:2/shell:2/yml:1/toml:1
 
 HOTSPOTS[10]:
-  ★ LivingProjectRuntime.iterateWithLease fan=91  // Orchestrates 91 calls
-  ★ main fan=77  // Orchestrates 77 calls
+  ★ LivingProjectRuntime.iterateWithLease fan=93  // Orchestrates 93 calls
+  ★ main fan=84  // Orchestrates 84 calls
   ★ run_scad fan=58  // Orchestrates 58 calls
   ★ startDashboard fan=50  // Orchestrates 50 calls
   ★ read_3mf fan=39  // Orchestrates 39 calls
 
 REFACTOR[15]:
   [1] H/L Split main (CC=30)
-  [2] H/L Split startDashboard (CC=81)
-  [3] H/L Split state (CC=25)
-  [4] H/L Split server (CC=50)
-  [5] H/L Split checkJsonSchema (CC=60)
+  [2] H/L Split parseLiveBindingDsl (CC=42)
+  [3] H/L Split input (CC=39)
+  [4] H/L Split header (CC=39)
+  [5] H/L Split validateLiveBinding (CC=54)
 
 EVOLUTION:
-  2026-08-08 CC̄=5.4 crit=175 16791L // Automated analysis
+  2026-08-08 CC̄=5.3 crit=182 17646L // Automated analysis
