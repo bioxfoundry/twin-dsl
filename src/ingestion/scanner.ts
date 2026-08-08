@@ -9,7 +9,8 @@ import { analyzeZipFile } from "./archive-project.js";
 
 const TEXT_EXT = new Set([
   ".md", ".rst", ".adoc", ".tex", ".txt", ".log", ".json", ".jsonl", ".yaml", ".yml", ".toml", ".csv",
-  ".ts", ".js", ".mjs", ".py", ".php", ".go", ".rs", ".java", ".xml", ".html", ".htm",
+  ".ts", ".tsx", ".js", ".mjs", ".cjs", ".py", ".php", ".go", ".rs", ".java",
+  ".c", ".cpp", ".h", ".ino", ".xml", ".html", ".htm",
   ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl",
   ".testqldsl", ".assemblydsl", ".livebindingdsl", ".geometrydsl", ".dql",
 ]);
@@ -62,6 +63,19 @@ function textFromBuffer(buffer: Buffer, path: string): string | undefined {
 
 function mediaTypeFor(path: string): string {
   return MEDIA[detectDocumentKind(path)] ?? MEDIA[extname(path).toLowerCase()] ?? "application/octet-stream";
+}
+
+function archiveFindingSummaries(analysis: ArchiveProjectAnalysis): string[] {
+  const grouped = new Map<string, { code:string; repairProcess:string; count:number }>();
+  for (const finding of analysis.findings) {
+    const key = `${finding.code}\0${finding.repairProcess}`;
+    const existing = grouped.get(key);
+    if (existing) existing.count += 1;
+    else grouped.set(key,{code:finding.code,repairProcess:finding.repairProcess,count:1});
+  }
+  return [...grouped.values()]
+    .sort((a,b)=>a.code.localeCompare(b.code)||a.repairProcess.localeCompare(b.repairProcess))
+    .map((item)=>`ARCHIVE_FINDING_SUMMARY:${item.code}:${item.count}:${analysis.archive.path}:${item.repairProcess}`);
 }
 
 function pushBinary(
@@ -119,7 +133,9 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
           );
           resources.push(analysisResource);
           texts.set(analysisResource.uri, analysisMarkdown);
-          for (const finding of analysis.findings) warnings.push(`${finding.code}:${file}${finding.entryPath ? `!/${finding.entryPath}` : ""}:${finding.repairProcess}`);
+          // The full report retains entry-level findings. Runtime generation needs a
+          // bounded summary so 100 similar native-CAD files do not flood the LLM audit.
+          warnings.push(...archiveFindingSummaries(analysis));
           for (const name of analysis.selectedTextEntries) {
             const entryLogical = `${source.logicalRoot}/archive/${encodeURIComponent(name)}`;
             const entryPath = `${file}!/${name}`;

@@ -31,3 +31,16 @@ test("unsafe paths are rejected and never selected", () => {
   assert.deepEqual(analysis.selectedGeometryEntries, ["safe/model.stl"]);
   assert.ok(analysis.findings.some((finding) => finding.code === "ARCHIVE_UNSAFE_PATH"));
 });
+
+test("opaque exchange kernels receive explicit backend repair processes", () => {
+  const analysis = analyzeArchiveProject({
+    archivePath: "/evidence/native.zip", archiveSha256: "c".repeat(64), archiveSize: 20,
+    entries: [
+      { path: "assembly/model.x_t", uncompressedSize: 10, safe: true },
+      { path: "drawings/layout.dxf", uncompressedSize: 10, safe: true },
+    ],
+  });
+  assert.equal(analysis.coverage.unsupportedCadEntries,2);
+  assert.ok(analysis.findings.some((finding)=>finding.repairProcess.endsWith("convert-parasolid-to-step")));
+  assert.ok(analysis.findings.some((finding)=>finding.repairProcess.endsWith("convert-dxf-to-step")));
+});

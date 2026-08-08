@@ -18,7 +18,14 @@ export class NlDslCompiler {
     if(options.kind==='intent'){
       if(options.mode==='deterministic'&&options.deterministicValue!==undefined)return this.deterministic(options,null);
       try{const value=await this.todo2code.extractNl(options.text,options.mode);return{schema:'subactor.dsl-generation-result/v1',kind:'intent',value,canonicalHash:sha256(canonicalJson(value)),audit:{requestedMode:options.mode,effectiveMode:options.mode==='deterministic'?'deterministic':'llm',degraded:false,reason:null,provider:options.mode==='deterministic'?null:'openrouter',model:options.mode==='deterministic'?null:(process.env.OPENROUTER_MODEL??null),responseId:null,durationMs:Date.now()-started}};}
-      catch(error){if(options.mode==='prefer-llm'&&options.deterministicValue!==undefined)return this.deterministic(options,error instanceof Error?error.message:String(error));throw error;}
+      catch(error){
+        if(options.mode==='prefer-llm'&&options.deterministicValue!==undefined){
+          const fallback=this.deterministic(options,error instanceof Error?error.message:String(error));
+          fallback.audit.durationMs=Date.now()-started;
+          return fallback;
+        }
+        throw error;
+      }
     }
     if(options.mode==='deterministic')return this.deterministic(options,null);
     const contract=generationContract(options.kind);
@@ -32,7 +39,14 @@ export class NlDslCompiler {
       ].join('\n'),user:`REQUEST:\n${options.text}\n\nRUNTIME CONTEXT:\n${JSON.stringify(options.context??{},null,2)}`});
       response.audit.requestedMode=options.mode;
       return{schema:'subactor.dsl-generation-result/v1',kind:options.kind,value:response.value,canonicalHash:sha256(canonicalJson(response.value)),audit:response.audit};
-    }catch(error){if(options.mode==='prefer-llm'&&options.deterministicValue!==undefined)return this.deterministic(options,error instanceof Error?error.message:String(error));throw error;}
+    }catch(error){
+      if(options.mode==='prefer-llm'&&options.deterministicValue!==undefined){
+        const fallback=this.deterministic(options,error instanceof Error?error.message:String(error));
+        fallback.audit.durationMs=Date.now()-started;
+        return fallback;
+      }
+      throw error;
+    }
   }
   private deterministic(options:CompileNlOptions,reason:string|null):DslGenerationResult{
     if(options.deterministicValue===undefined)throw new Error(`DETERMINISTIC_VALUE_REQUIRED:${options.kind}`);

@@ -13,7 +13,9 @@ const MATERIALIZABLE_GEOMETRY = new Map([
 ]);
 const UNSUPPORTED_NATIVE_CAD = new Map([
   [".sldasm", "solidworks"], [".sldprt", "solidworks"], [".f3d", "fusion360"], [".fcstd", "freecad"],
-  [".ipt", "inventor"], [".iam", "inventor"], [".dwg", "dwg"],
+  [".ipt", "inventor"], [".iam", "inventor"], [".dwg", "dwg"], [".dxf", "dxf"],
+  [".iges", "iges"], [".igs", "iges"], [".x_t", "parasolid"], [".x_b", "parasolid"],
+  [".sat", "acis"], [".sab", "acis"],
 ]);
 const MANIFEST_NAMES = new Set([
   "package.json", "pyproject.toml", "requirements.txt", "cargo.toml", "go.mod", "pom.xml", "dockerfile",
@@ -41,7 +43,7 @@ function kindFor(path: string): ArchiveEntryKind {
   if ([".sldprt", ".ipt"].includes(ext)) return "part-cad";
   if ([".stl", ".obj", ".glb", ".gltf", ".3mf"].includes(ext)) return "mesh";
   if ([".scad", ".fcstd", ".f3d"].includes(ext)) return "parametric-cad";
-  if ([".step", ".stp", ".iges", ".igs", ".dwg", ".dxf"].includes(ext)) return "cad-exchange";
+  if ([".step", ".stp", ".iges", ".igs", ".dwg", ".dxf", ".x_t", ".x_b", ".sat", ".sab"].includes(ext)) return "cad-exchange";
   if (/^(bom|bill.of.materials)(\.|_|-)/.test(base) || lower.includes("/bom.")) return "bill-of-materials";
   if (MANIFEST_NAMES.has(base) || /(^|\/)(manifest|config|configuration)(\.|\/)/.test(lower)) return "manifest";
   if ([".md", ".rst", ".txt", ".adoc", ".tex", ".pdf", ".docx", ".pptx"].includes(ext) || /^readme(?:\.|$)/.test(base)) return "documentation";

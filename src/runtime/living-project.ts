@@ -3,6 +3,7 @@ import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
   DevelopmentEvidenceSummary,
+  DslGenerationResult,
   AssemblyDocument,
   AssemblyReport,
   DomainEvent,
@@ -276,6 +277,11 @@ function fallbackAudit(audit:GenerationAudit,reason:string):GenerationAudit {
   return {...deterministicAudit(audit.requestedMode,reason),durationMs:audit.durationMs};
 }
 
+export function shouldShortCircuitSceneGeneration(mode:LlmMode,audit:GenerationAudit):boolean {
+  if(mode!=="prefer-llm"||!audit.degraded||audit.effectiveMode!=="deterministic") return false;
+  return /aborted|timeout|fetch|OPENROUTER_NOT_CONFIGURED|OPENROUTER_HTTP:(429|500|502|503|504)/i.test(audit.reason??"");
+}
+
 export class LivingProjectRuntime {
   constructor(readonly todo2code=new Todo2CodeAdapter(),readonly compiler=new NlDslCompiler(),readonly geometryService=new GeometryService()) {}
 
@@ -491,7 +497,17 @@ export class LivingProjectRuntime {
     }
 
     const deterministicSceneForTwin = conceptualScene(project,twin,sceneBlueprint);
-    let sceneGeneration = await this.compiler.compile({kind:"scene",text:`Build the current conceptual scene for ${project.name} without inventing geometry.`,context:{...context,math,twin},mode:effectiveMode,deterministicValue:{document:deterministicSceneForTwin}});
+    let sceneGeneration:DslGenerationResult;
+    if(shouldShortCircuitSceneGeneration(effectiveMode,twinGeneration.audit)) {
+      const deterministicSceneGeneration=await this.compiler.compile({kind:"scene",text:`Build the current conceptual scene for ${project.name} without inventing geometry.`,context:{...context,math,twin},mode:"deterministic",deterministicValue:{document:deterministicSceneForTwin}});
+      sceneGeneration={
+        ...deterministicSceneGeneration,
+        audit:{...deterministicAudit(effectiveMode,"upstream_twin_transport_fallback"),durationMs:0},
+      };
+      authorityWarnings.push("LLM_SCENE_SKIPPED_AFTER_TWIN_TRANSPORT_FALLBACK");
+    } else {
+      sceneGeneration=await this.compiler.compile({kind:"scene",text:`Build the current conceptual scene for ${project.name} without inventing geometry.`,context:{...context,math,twin},mode:effectiveMode,deterministicValue:{document:deterministicSceneForTwin}});
+    }
     let scene = sceneGeneration.value as SceneDocument;
     try { validateScene(scene); validateSceneGrounding(scene,twin,resources,deterministicSceneForTwin); }
     catch(error) {

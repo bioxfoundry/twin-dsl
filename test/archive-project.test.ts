@@ -36,6 +36,7 @@ test("archive scanner indexes above legacy list limit and rejects zip-slip metad
     assert.equal(scanned.archiveAnalyses[0].coverage.unsafeEntries,1);
     assert.ok(scanned.resources.some((resource)=>resource.labels?.includes("archive-analysis")));
     assert.ok(!scanned.resources.some((resource)=>resource.sourcePath.includes("escape.stl")));
+    assert.ok(scanned.warnings.some((warning)=>warning.includes("ARCHIVE_FINDING_SUMMARY:ARCHIVE_UNSAFE_PATH:1:")));
   } finally {
     if(old===undefined)delete process.env.DT_MAX_ARCHIVE_FILES;else process.env.DT_MAX_ARCHIVE_FILES=old;
   }
@@ -61,4 +62,16 @@ test("directory scanner excludes dashboard transport logs from autonomous source
   const scanned=await scanSources([{path:root,role:"runtime",logicalRoot:"subactor://fixture/runtime"}]);
   assert.ok(!scanned.resources.some((resource)=>resource.sourcePath.endsWith("dashboard-7445.log")));
   assert.ok(scanned.resources.some((resource)=>resource.sourcePath.endsWith("runtime.jsonl")));
+});
+
+test("archive scanner ingests selected embedded C/C++ sources as evidence text", async () => {
+  const root=await mkdtemp(join(tmpdir(),"archive-source-")),archive=join(root,"firmware.zip");
+  await run("python3",["-c",[
+    "import sys,zipfile", "z=zipfile.ZipFile(sys.argv[1],'w')",
+    "z.writestr('firmware/config.h','#define STEPS_PER_MM 80\\n')",
+    "z.writestr('firmware/main.cpp','#include \\\"config.h\\\"\\n')", "z.close()",
+  ].join(";"),archive]);
+  const scanned=await scanSources([{path:archive,role:"archive",logicalRoot:"subactor://fixture/firmware"}]);
+  assert.ok([...scanned.texts.values()].some((text)=>text.includes("STEPS_PER_MM")));
+  assert.ok(!scanned.warnings.some((warning)=>warning.includes("ARCHIVE_SELECTED_TEXT_NOT_TEXT")));
 });

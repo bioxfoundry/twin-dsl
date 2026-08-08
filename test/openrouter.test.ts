@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { OpenRouterStructuredClient, type OpenRouterConfig } from "../src/llm/openrouter.js";
 import { NlDslCompiler } from "../src/llm/nl-dsl-compiler.js";
+import { shouldShortCircuitSceneGeneration } from "../src/runtime/living-project.js";
 
 const config:OpenRouterConfig={apiKey:'secret-test-key',baseUrl:'https://mock.openrouter.test/api/v1',model:'mock/model',appTitle:'test',dataCollection:'deny',timeoutMs:5000,maxRetries:0,jsonObjectFallback:false,responseHealing:true};
 test('OpenRouter NL -> mathDSL uses strict structured output',async()=>{
@@ -26,4 +27,11 @@ test('OpenRouter feeds local DSL parser errors back to a weaker model and accept
   assert.match(prompts[1]!,/MATH_HEADER_REQUIRED/);
   assert.equal((result.value as any).id,'repaired');
   assert.equal(result.audit.responseId,'repair-2');
+});
+
+test('prefer-llm short-circuits Scene only after a Twin transport fallback',()=>{
+  const base={requestedMode:'prefer-llm',effectiveMode:'deterministic',degraded:true,provider:null,model:null,responseId:null,durationMs:60000} as const;
+  assert.equal(shouldShortCircuitSceneGeneration('prefer-llm',{...base,reason:'This operation was aborted'}),true);
+  assert.equal(shouldShortCircuitSceneGeneration('prefer-llm',{...base,reason:'domain_grounding_failed'}),false);
+  assert.equal(shouldShortCircuitSceneGeneration('require-llm',{...base,reason:'This operation was aborted'}),false);
 });
