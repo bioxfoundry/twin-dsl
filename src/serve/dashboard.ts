@@ -36,6 +36,69 @@ async function readJson<T>(path: string): Promise<T | null> {
   }
 }
 
+async function readEventLog(outDir: string): Promise<{ schema: string; ok: boolean; count: number; events: unknown[] }> {
+  try {
+    const lines = (await readFile(join(resolve(outDir), "events.jsonl"), "utf8"))
+      .split(/\r?\n/).filter(Boolean);
+    const events = lines.slice(-100).map((line) => {
+      try { return JSON.parse(line) as unknown; }
+      catch { return { schema: "subactor.invalid-event/v1", raw: line.slice(0, 2000) }; }
+    });
+    return { schema: "subactor.event-log-view/v1", ok: events.length > 0, count: lines.length, events };
+  } catch {
+    return { schema: "subactor.event-log-view/v1", ok: false, count: 0, events: [] };
+  }
+}
+
+async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
+  const documents: Array<{ name: string; content: string }> = [];
+  for (const name of ["observations.dsl", "math.dsl", "improvement.dsl"]) {
+    try { documents.push({ name, content: (await readFile(join(current, name), "utf8")).slice(0, 120_000) }); }
+    catch { /* artifact is optional before the first accepted iteration */ }
+  }
+  try {
+    documents.push({
+      name: "testql-latest.testqldsl",
+      content: (await readFile(join(dirname(resolve(configPath)), "logs", "testql-latest.testqldsl"), "utf8")).slice(0, 120_000),
+    });
+  } catch { /* TestQL has not run for this project yet */ }
+  return { schema: "subactor.dsl-log-view/v1", documents };
+}
+
+/**
+ * Fold an incoming intake onto the document the project already holds.
+ *
+ * Physical facts accumulate: a floor plan and an equipment register describe different
+ * components and both belong in the baseline. Keyed by `componentId` so a later document
+ * updates a component it mentions and leaves every other one intact — the ranking rule
+ * (`weaker never overwrites stronger`) is then applied by applyPhysicalEvidence against
+ * the live twin, which is the only place that knows the current grade.
+ */
+export function mergeEvidence(
+  stored: PhysicalEvidenceDocument | null,
+  incoming: PhysicalEvidenceDocument,
+): PhysicalEvidenceDocument {
+  if (!stored?.records?.length) return incoming;
+  // Coordinate systems must agree, or positions from the two documents are not comparable.
+  const sameFrame =
+    stored.coordinateSystem?.unit === incoming.coordinateSystem?.unit &&
+    stored.coordinateSystem?.upAxis === incoming.coordinateSystem?.upAxis;
+  if (!sameFrame) return incoming;
+
+  const byComponent = new Map(stored.records.map((record) => [record.componentId, record]));
+  for (const record of incoming.records) byComponent.set(record.componentId, record);
+  return { ...incoming, records: [...byComponent.values()] };
+}
+
+/**
+ * URIs of the resources this project actually ingested. A mesh reference outside that set
+ * is not grounded, and geometry has to be as traceable as every other fact.
+ */
+async function ingestedResourceUris(currentDir: string): Promise<string[]> {
+  const resources = await readJson<Array<{ uri?: string }>>(join(currentDir, "resources.json"));
+  return Array.isArray(resources) ? resources.map((r) => r?.uri).filter((u): u is string => Boolean(u)) : [];
+}
+
 function send(response: ServerResponse, status: number, body: string | Buffer, type: string): void {
   response.writeHead(status, {
     "content-type": type,
@@ -108,33 +171,90 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
         if (request.method === "GET" && url.pathname === "/api/state") {
           return sendJson(response, 200, await state());
         }
+        if (request.method === "GET" && url.pathname === "/api/events") {
+          return sendJson(response, 200, await readEventLog(options.outDir));
+        }
+        if (request.method === "GET" && url.pathname === "/api/dsl") {
+          return sendJson(response, 200, await readDslArtifacts(current, options.configPath));
+        }
         if (request.method === "GET" && url.pathname === "/api/scene.usda") {
           const { twin, scene } = await state();
           if (!twin || !scene) return sendJson(response, 404, { error: "NO_SCENE_YET" });
           return send(response, 200, renderOpenUsd(scene, twin), "text/plain; charset=utf-8");
         }
+        if (request.method === "GET" && url.pathname === "/api/asset") {
+          const wanted = url.searchParams.get("uri");
+          const resources = await readJson<Array<{ uri?: string; sourcePath?: string }>>(join(current, "resources.json"));
+          const resource = resources?.find(item => item.uri === wanted);
+          if (!resource?.sourcePath) return sendJson(response, 404, { error: "ASSET_NOT_GROUNDED" });
+          const bytes = await readFile(resource.sourcePath);
+          return send(response, 200, bytes, resource.sourcePath.toLowerCase().endsWith(".stl") ? "model/stl" : "model/step");
+        }
         if (request.method === "POST" && url.pathname === "/api/iterate") {
           if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
           busy = true;
+          const started = Date.now();
+          console.info(`[dashboard] iteration:start project=${options.configPath}`);
           try {
             const receipt = await runtime.iterate(options.configPath, options.outDir, mode);
+            console.info(`[dashboard] iteration:complete durationMs=${Date.now() - started} noChange=${receipt.noChange} ok=${receipt.validation.ok}`);
             return sendJson(response, 200, { iterationUri: receipt.iterationUri, noChange: receipt.noChange, ok: receipt.validation.ok });
+          } catch (error) {
+            console.error(`[dashboard] iteration:error durationMs=${Date.now() - started}`, error);
+            throw error;
           } finally {
             busy = false;
           }
         }
         if (request.method === "POST" && url.pathname === "/api/intake") {
+          // Claim the slot before the first await: checking `busy` and then yielding on
+          // readBody lets two concurrent requests both pass the check.
           if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
-          const evidence = validatePhysicalEvidence(JSON.parse(await readBody(request)) as PhysicalEvidenceDocument);
-          const preview = await state();
-          if (!preview.twin || !preview.scene) return sendJson(response, 404, { error: "NO_SCENE_YET" });
-          // Reject before touching the project, so a bad intake never lands on disk.
-          applyPhysicalEvidence({ twin: preview.twin, scene: preview.scene, evidence });
           busy = true;
           try {
-            // Persist through the same path a real intake takes: evidence file + projectDSL key + iteration.
+            const incoming = validatePhysicalEvidence(JSON.parse(await readBody(request)) as PhysicalEvidenceDocument);
+            const preview = await state();
+            if (!preview.twin || !preview.scene) return sendJson(response, 404, { error: "NO_SCENE_YET" });
+
             const projectDir = dirname(resolve(options.configPath));
             const evidencePath = join(projectDir, "baseline/physical-evidence.json");
+
+            // Judge the posted document on its own against the live twin. Evaluating the
+            // merged set instead would report NO_CHANGE for records already applied in an
+            // earlier intake, and they would then look like failures.
+            const report = applyPhysicalEvidence({
+              twin: preview.twin,
+              scene: preview.scene,
+              evidence: incoming,
+              // Ground meshes here, not only in the runtime. Without the corpus URIs the
+              // pre-check cannot raise ASSET_NOT_GROUNDED, so a document would be written
+              // and only then refused — which is how the baseline got clobbered by an
+              // intake that was ultimately rejected.
+              allowedAssetUris: await ingestedResourceUris(current),
+            }).report;
+
+            const accepted = new Set(report.applied.map((entry) => entry.componentId));
+            if (accepted.size === 0) {
+              // Nothing survived, so there is nothing to persist. Writing here is what used
+              // to discard the whole baseline on a fully rejected intake.
+              return sendJson(response, 422, {
+                error: "PHYSICAL_EVIDENCE_REJECTED",
+                report,
+                hint: "nothing was written; fix the rejected records and post again",
+              });
+            }
+
+            // Persist only what was accepted, folded onto what the project already holds.
+            // Replacing the file wholesale made "weaker never overwrites stronger" hold
+            // only *within* one document: a smaller intake silently dropped every earlier
+            // record and sent those components back to placeholder.
+            const stored = await readJson<PhysicalEvidenceDocument>(evidencePath);
+            const evidence = mergeEvidence(stored, {
+              ...incoming,
+              records: incoming.records.filter((record) => accepted.has(record.componentId)),
+            });
+
+            // Persist through the same path a real intake takes: evidence file + projectDSL key + iteration.
             await mkdir(dirname(evidencePath), { recursive: true });
             await writeFile(evidencePath, JSON.stringify(evidence, null, 2) + "\n");
             const dsl = await readFile(options.configPath, "utf8");
@@ -143,7 +263,15 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
             }
             const receipt = await runtime.iterate(options.configPath, options.outDir, mode);
             const next = await state();
-            return sendJson(response, 200, { iterationUri: receipt.iterationUri, report: next.report, twin: next.twin, scene: next.scene });
+            return sendJson(response, 200, {
+              iterationUri: receipt.iterationUri,
+              // `report` describes the posted document; `baseline` describes what the
+              // project now holds, which includes records from earlier intakes.
+              report,
+              baseline: { records: evidence.records.length, acceptedFromThisPost: accepted.size },
+              twin: next.twin,
+              scene: next.scene,
+            });
           } finally {
             busy = false;
           }

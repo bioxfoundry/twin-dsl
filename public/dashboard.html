@@ -38,9 +38,13 @@
   ul.parts li{display:flex;align-items:center;gap:8px;padding:4px 6px;border-radius:5px;cursor:pointer;font-size:12px}
   ul.parts li:hover{background:#242c38}
   ul.parts li.sel{background:#2b3a55;outline:1px solid var(--accent)}
+  .log-view{margin:0;max-height:260px;overflow:auto;white-space:pre-wrap;word-break:break-word;color:var(--muted);font:11px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace}
+  .tok-key{color:#7dd3fc}.tok-string{color:#a7f3d0}.tok-number{color:#fbbf24}.tok-bool{color:#c4b5fd;font-weight:700}.tok-null{color:#fb7185}.tok-comment{color:#64748b;font-style:italic}.tok-keyword{color:#93c5fd;font-weight:700}.tok-uri{color:#f0abfc}.tok-fence{color:#fbbf24;font-weight:700}
   .dot{width:9px;height:9px;border-radius:50%;flex:none}
   .grow{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ok{color:#3ddc97}.warn{color:#e0b341}.bad{color:#ff6b6b}
+  #notice{max-width:46ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #notice.ok{color:#3ddc97}#notice.bad{color:#ff6b6b}
   .stat{display:flex;gap:14px;flex-wrap:wrap}
   .stat div{flex:1;min-width:88px}
   .stat b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -52,9 +56,11 @@
   <header>
     <h1>Biofoundry Digital Twin</h1>
     <span class="sub" id="revision">loading…</span>
+    <span class="sub" id="notice"></span>
     <span class="spacer"></span>
     <button id="btn-intake">Apply floor-plan evidence</button>
     <button id="btn-iterate" class="primary">Run iteration</button>
+    <button id="btn-record">Record 3D video</button>
     <a id="usd" href="/api/scene.usda" download="scene.usda"><button>Export USD</button></a>
   </header>
   <div id="stage">
@@ -83,6 +89,11 @@
     <div class="card">
       <h2>Runtime observations</h2>
       <div id="obs"><span class="mono" style="color:var(--muted)">none</span></div>
+    </div>
+    <div class="card">
+      <h2>DSL &amp; iteration log</h2>
+      <div class="kv"><span>events</span><span id="log-count">–</span></div>
+      <pre id="dsl-log" class="log-view">loading…</pre>
     </div>
     <div class="card">
       <h2>Components</h2>
@@ -199,10 +210,49 @@ gl.disable(gl.CULL_FACE);
 
 /* ----------------------------------------------------------- scene data */
 let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,framed=false;
+let recorder=null,recordedChunks=[],recordingTimer=null;
+const STL_CACHE=new Map();
+async function loadStl(uri){
+  if(!uri)return null;if(STL_CACHE.has(uri))return STL_CACHE.get(uri);
+  const response=await fetch('/api/asset?uri='+encodeURIComponent(uri)); if(!response.ok)return null;
+  const bytes=new Uint8Array(await response.arrayBuffer()); if(bytes.length<84)return null;
+  const view=new DataView(bytes.buffer),count=view.getUint32(80,true),expected=84+count*50;
+  if(!count||expected>bytes.length)return null; const p=[],n=[];
+  for(let i=0;i<count;i++){const o=84+i*50,normal=[view.getFloat32(o,true),view.getFloat32(o+4,true),view.getFloat32(o+8,true)];
+    // Binary STL facet: 12-byte normal, three 12-byte vertices, 2-byte attribute count.
+    for(let v=0;v<3;v++){const q=o+12+v*12;p.push(view.getFloat32(q,true),view.getFloat32(q+4,true),view.getFloat32(q+8,true));n.push(...normal);}}
+  const mesh=upload({pos:new Float32Array(p),nrm:new Float32Array(n)});STL_CACHE.set(uri,mesh);return mesh;
+}
+
+// Local, dependency-free capture of the live WebGL canvas. The resulting WebM is suitable for
+// attaching to an iteration report or presentation; it never uploads frames to the server.
+document.getElementById('btn-record').onclick=()=>{
+  const button=document.getElementById('btn-record');
+  if(recorder && recorder.state==='recording'){
+    recorder.stop(); button.textContent='Record 3D video'; return;
+  }
+  if(!canvas.captureStream || !window.MediaRecorder){
+    button.textContent='Recording unavailable'; return;
+  }
+  recordedChunks=[];
+  const captureStream=canvas.captureStream(0), captureTrack=captureStream.getVideoTracks()[0];
+  recorder=new MediaRecorder(captureStream,{mimeType:'video/webm;codecs=vp8'});
+  recorder.ondataavailable=e=>{if(e.data.size)recordedChunks.push(e.data);};
+  recorder.onstop=()=>{
+    if(recordingTimer){clearInterval(recordingTimer);recordingTimer=null;}
+    const blob=new Blob(recordedChunks,{type:'video/webm'}), url=URL.createObjectURL(blob), a=document.createElement('a');
+    a.href=url; a.download=`digital-twin-${new Date().toISOString().replace(/[:.]/g,'-')}.webm`; a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),1000);
+  };
+  recorder.start(); button.textContent='Stop & download video';
+  // WebGL may otherwise remain static and Chromium emits only one frame. Keep the live scene
+  // observable during capture without changing its state or revision.
+  recordingTimer=setInterval(()=>{render();captureTrack.requestFrame?.();},1000/30);
+};
 // Low pitch so equipment reads as standing volumes rather than a top-down floor plan.
 const cam={yaw:-0.95,pitch:0.30,dist:78};
 
-function buildObjects(state){
+async function buildObjects(state){
   const twin=state.twin,scene=state.scene;
   if(!twin||!scene)return[];
   const byId=new Map(twin.components.map(c=>[c.id,c]));
@@ -225,6 +275,7 @@ function buildObjects(state){
     RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]))||40;
     if(!framed){cam.dist=RADIUS*1.35;framed=true;}
   }
+  await Promise.all(objs.map(async o=>{const uri=scene.bindings[o.idx]?.assetUri;if(uri)o.mesh=await loadStl(uri);}));
   return objs;
 }
 
@@ -249,7 +300,7 @@ function draw(pick){
     gl.uniformMatrix4fv(U.model,false,new Float32Array(model));
     if(pick){const n=o.idx+1;gl.uniform3f(U.color,(n&255)/255,((n>>8)&255)/255,((n>>16)&255)/255);}
     else{gl.uniform3f(U.color,...o.color);gl.uniform1f(U.sel,SELECTED===o.idx?1:0);}
-    const m=MESH[o.prim]||MESH.cube;
+    const m=o.mesh||MESH[o.prim]||MESH.cube;
     gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
     gl.drawArrays(gl.TRIANGLES,0,m.count);
@@ -342,19 +393,60 @@ function paintStats(state){
   $('revision').textContent=uri?`revision ${uri.slice(-12)} · ${OBJECTS.length} components`:'no revision yet';
 }
 
+/* Inline, non-blocking status. `alert()` would freeze the event loop and stall the
+   5s refresh as well as any automation driving the page. */
+let noticeTimer=null;
+function notify(text,kind){
+  const el=$('notice');
+  el.textContent=text; el.className='sub '+(kind||'');
+  clearTimeout(noticeTimer);
+  noticeTimer=setTimeout(()=>{el.textContent='';el.className='sub';},8000);
+}
+
+/* Syntax rendering is deliberately local: runtime DSL/log content is escaped
+   before token spans are added, so observations cannot inject dashboard HTML. */
+const escapeCode=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+function tokenized(text,pattern,classify){let out='',last=0;for(const match of String(text).matchAll(pattern)){out+=escapeCode(text.slice(last,match.index));const cls=classify(match[0],match.index+match[0].length,text);out+=`<span class="${cls}">${escapeCode(match[0])}</span>`;last=match.index+match[0].length}return out+escapeCode(text.slice(last))}
+function highlightJson(value){const text=typeof value==='string'?value:JSON.stringify(value,null,2);const pattern=/"(?:\\.|[^"\\])*"|-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b|\b(?:true|false)\b|\bnull\b/gi;return tokenized(text,pattern,(token,end,source)=>{if(token[0]==='"')return /^\s*:/.test(source.slice(end))?'tok-key':'tok-string';if(/^(true|false)$/i.test(token))return 'tok-bool';if(/^null$/i.test(token))return 'tok-null';return 'tok-number'})}
+function highlightDsl(text){const pattern=/```[a-zA-Z0-9_-]*|```|#[^\n]*|"(?:\\.|[^"\\])*"|\b(?:https?|repo|process|vault):\/\/[^\s"']+|\burn:[^\s"']+|\b(?:true|false)\b|\bnull\b|-?\b\d+(?:\.\d+)?\b|\b[A-Z][A-Z0-9_:-]*\b/g;return tokenized(text,pattern,token=>{if(token.startsWith('```'))return 'tok-fence';if(token.startsWith('#'))return 'tok-comment';if(token[0]==='"')return 'tok-string';if(/^(https?|repo|process|vault):\/\//.test(token)||token.startsWith('urn:'))return 'tok-uri';if(/^(true|false)$/.test(token))return 'tok-bool';if(token==='null')return 'tok-null';if(/^-?\d/.test(token))return 'tok-number';return 'tok-keyword'})}
+
 /* -------------------------------------------------------------- state */
 async function refresh(){
-  const state=await (await fetch('/api/state')).json();
-  applyState(state);
+  const [state,events,dsl]=await Promise.all([
+    fetch('/api/state').then(r=>r.json()),
+    fetch('/api/events').then(r=>r.json()),
+    fetch('/api/dsl').then(r=>r.json()),
+  ]);
+  // Logs are diagnostic evidence: render them before the optional WebGL scene
+  // so a graphics-driver failure cannot hide the reason the runtime is red.
+  paintDslLog(events,dsl);
+  await applyState(state);
 }
-function applyState(state){
-  OBJECTS=buildObjects(state);
+function paintDslLog(events,dsl){
+  $('log-count').textContent=String(events.count||0);
+  const recent=(events.events||[]).slice(-4).map(e=>
+    `<span class="tok-comment">${escapeCode(`[event] ${e.recordedAt||e.occurredAt||''} ${e.eventType||e.schema||'event'}`)}</span>\n${highlightJson(e.payload||e)}`);
+  const docs=(dsl.documents||[]).map(d=>`<span class="tok-fence">${escapeCode(`[${d.name}]`)}</span>\n${highlightDsl(d.content)}`);
+  $('dsl-log').innerHTML=[...recent,...docs].join('\n\n')||'no DSL artifacts or events yet';
+}
+async function applyState(state){
+  OBJECTS=await buildObjects(state);
   paintLegend();paintList();paintStats(state);showSelected();render();
 }
 $('btn-iterate').onclick=async()=>{
   const b=$('btn-iterate');b.disabled=true;b.textContent='Iterating…';
-  try{await fetch('/api/iterate',{method:'POST'});await refresh();}
-  finally{b.disabled=false;b.textContent='Run iteration';}
+  const started=Date.now(); console.info('[digital-twin] iteration:start',{at:new Date().toISOString()}); notify('iteration started…','');
+  try{
+    const response=await fetch('/api/iterate',{method:'POST'});
+    const out=await response.json().catch(()=>({error:'INVALID_SERVER_RESPONSE'}));
+    if(!response.ok||out.error||out.ok===false) throw new Error(out.error||'ITERATION_BLOCKED_VALIDATION_OR_POLICY');
+    console.info('[digital-twin] iteration:complete',{durationMs:Date.now()-started,...out});
+    notify(`iteration ${out.noChange?'no change':'completed'} · ${Date.now()-started} ms`,'ok');
+    await refresh();
+  }catch(error){
+    console.error('[digital-twin] iteration:error',error);
+    notify(`iteration failed: ${error.message||error}`,'bad');
+  }finally{b.disabled=false;b.textContent='Run iteration';}
 };
 $('btn-intake').onclick=async()=>{
   const b=$('btn-intake');b.disabled=true;b.textContent='Applying…';
@@ -374,8 +466,15 @@ $('btn-intake').onclick=async()=>{
   try{
     const res=await fetch('/api/intake',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(evidence)});
     const out=await res.json();
-    if(out.error){alert(out.error);return;}
+    if(out.error){
+      // A modal dialog blocks the event loop, which stalls the polling refresh and any
+      // automation driving the page. Report inline instead.
+      const rejected=(out.report&&out.report.rejected)||[];
+      notify(`${out.error}${rejected.length?': '+rejected.map(r=>`${r.componentId} (${r.reason})`).join(', '):''}`,'bad');
+      return;
+    }
     // Intake is durable — evidence file + a new iteration — so a plain refresh shows the new revision.
+    notify(`applied ${(out.report&&out.report.applied||[]).length} record(s); baseline holds ${out.baseline?out.baseline.records:'?'}`,'ok');
     await refresh();
   } finally {b.disabled=false;b.textContent='Apply floor-plan evidence';}
 };
