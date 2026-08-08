@@ -63,3 +63,28 @@ wizard default cannot silently drift.
 
 Also review `POLICY_MAX_ITERATIONS_PER_HOUR 60` (was 12): with apply mode this is the rate
 limit on self-modification, not just on iteration.
+
+## Operational state (2026-08-08)
+
+The gate now blocks pushes on this finding — that is the corrected multi-project scan from
+ticket-11 doing its job:
+
+```
+PASS  diagnose:nanobionic-laboratory      (no findings at or above: error)
+FAIL  diagnose:nanobionic-laboratory-md   (findings at or above: error)
+1 stage(s) failed — not ready to push.
+```
+
+One `git push --no-verify` was used deliberately, with the operator's decision, to land the
+docs and CI commits (`40d8b56`, `b4bf25d`) while this ticket stays open. **Every subsequent
+push to `main` will be blocked until this is resolved** — by design, not by accident.
+
+`repair-agent` already offers the mechanical half:
+
+```bash
+node ../repair-agent/dist/src/cli.js fix .ci-reports/diagnostic-report-nanobionic-laboratory-md.json
+# PLANNED  CFG-603  strategy: restore-policy
+```
+
+It is a dry run until `--apply` is passed. The decision the strategy cannot make is (a)
+versus (b) above — whether apply mode was wanted at all.
