@@ -19,6 +19,7 @@ Kontekst: trzy defekty znalezione wcześniej **są naprawione i wypchnięte** (`
 | [10](ticket-10-degraded-run-not-recorded.md) | medium | przebieg zdegradowany nieodróżnialny od pełnego |
 | [07](ticket-07-docs-paths-drift.md) | low | sześć nierozwiązywalnych ścieżek w docs + zepsuty link |
 | [08](ticket-08-empty-source-role.md) | low | rola `archive` zadeklarowana, ale pusta |
+| [11](ticket-11-gate-scanned-one-project.md) | ~~high~~ **naprawione** | bramka CI skanowała tylko jeden projekt |
 
 ## Co z tego blokuje autonomię
 
@@ -36,6 +37,16 @@ Cztery tickety opisują ten sam problem z różnych stron: **pętla nie widzi sa
 Kolejność, która ma sens: **01** (bezpieczeństwo, zanim cokolwiek pojedzie bez nadzoru) →
 **02** (warunek konieczny sprzężenia zwrotnego) → **03**/**09** (napełnić pętle realnym
 dowodem) → **04** (dodać wykonanie) → **10**/**05** (żeby regresje były widoczne).
+
+## Bramka też miała dziurę
+
+Ticket **11** jest już naprawiony, ale wart przeczytania: `ci/local-ci.sh` skanował tylko
+**pierwszy** projekt w `projects/`, więc krytyczny `CFG-603` z ticketu 01 nigdy do bramki nie
+docierał — a ona raportowała `PASS` i przepuszczała push. Znalazłem to, uruchamiając
+`diagnose-agent` ręcznie na drugim projekcie.
+
+To dokładnie ta awaria, przed którą bramka miała chronić: „nie uruchomiono" wyglądające jak
+„zaliczono". Każdy zielony wynik bramki sprzed tej poprawki obejmował jeden projekt.
 
 ## Uwaga o dowodach
 
