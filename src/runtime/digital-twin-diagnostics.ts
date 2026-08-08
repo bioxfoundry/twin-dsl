@@ -70,7 +70,9 @@ export async function diagnoseDigitalTwin(input:{sourceRoot?:string;markdownRoot
   if(bindings.length && assetBindings.length===0) add("SCENE_NO_CAD_BINDINGS","warning","Scene has bindings but no CAD asset URI",[join(input.runtimeRoot??"","current/scene.json")],[repairUri("bind-grounded-assets")]);
   const sourceText=input.dashboardSource?await readFile(input.dashboardSource,"utf8").catch(()=>""):"";
   if(assetBindings.length && sourceText.includes("loadStl") && !sourceText.includes("loadStep") && !sourceText.includes("GLTFLoader") && !sourceText.includes("loadGlb")) add("SCENE_FORMAT_RENDERER_GAP","error","Dashboard renderer supports STL but not tessellated glTF/GLB assets",[input.dashboardSource??""],[repairUri("tessellate-cad-to-gltf"),repairUri("bind-grounded-assets")]);
-  const placeholders=bindings.filter((b:any)=>!b?.assetUri && ["cube","cylinder","sphere","scope"].includes(String(b?.primitive))).length;
+  // `scope` represents a semantic grouping/assembly node and intentionally has no mesh.
+  // Counting it as placeholder geometry makes the repair loop try to tessellate identity.
+  const placeholders=bindings.filter((b:any)=>!b?.assetUri && ["cube","cylinder","sphere"].includes(String(b?.primitive))).length;
   if(placeholders>0) add("SCENE_PLACEHOLDER_GEOMETRY","warning",`${placeholders} scene binding(s) use conceptual primitive geometry`,[join(input.runtimeRoot??"","current/scene.json")],[repairUri("bind-grounded-assets"),repairUri("tessellate-cad-to-gltf")]);
   if(Array.isArray(evidence?.rejected) && evidence.rejected.length) add("PHYSICAL_EVIDENCE_REJECTED","error",`${evidence.rejected.length} physical-evidence record(s) were rejected`,[join(input.runtimeRoot??"","current/physical-evidence.report.json")],[repairUri("repair-physical-evidence")]);
   const audit=await json(input.runtimeRoot?join(input.runtimeRoot,"current/generation-audit.json"):undefined);
