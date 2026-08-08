@@ -1,16 +1,18 @@
 flowchart TD
-%% generated in 0.01s
+%% generated in 0.02s
 
     %% Entry points (blue)
     classDef entry fill:#4dabf7,stroke:#1971c2,color:#fff
 
     subgraph CLI
-        deploy__docling__server__health["health"]
-        deploy__docling__server__convert["convert"]
         src__cli__main__json["json"]
         src__cli__main__save["save"]
         src__cli__main__main["main"]
         src__cli__main__t2c["t2c"]
+        src__cli__main__report["report"]
+        src__cli__main__runtime["runtime"]
+        src__cli__main__cycle["cycle"]
+        src__cli__main__iteration["iteration"]
         src__cli__main__issued["issued"]
         src__cli__main__result["result"]
         src__cli__main__project["project"]
@@ -18,28 +20,26 @@ flowchart TD
         src__cli__main__receipt["receipt"]
         src__cli__main__grantPath["grantPath"]
         src__cli__main__adapter["adapter"]
-        src__cli__main__server["server"]
-        src__cli__main__stop["stop"]
-        ...["+4 more"]
+        ...["+8 more"]
     end
 
     subgraph Core
-        src__core__uri__assertProcessUri["assertProcessUri"]
-        src__core__uri__assertResourceUri["assertResourceUri"]
-        src__core__uri__isImmutableResourceUri["isImmutableResourceUri"]
-        src__core__canonical__contentUri["contentUri"]
-        src__research__crawler__privateIp{{privateIp CC=15}}
-        src__research__crawler__p["p"]
-        src__research__crawler__assertPublic["assertPublic"]
-        src__research__crawler__decode["decode"]
-        src__research__crawler__stripTags["stripTags"]
-        src__research__crawler__first["first"]
-        src__research__crawler__htmlToMarkdown["htmlToMarkdown"]
-        src__research__crawler__title["title"]
-        src__research__crawler__DqlCrawler__crawl["crawl"]
-        src__research__crawler__DqlCrawler__robots["robots"]
-        src__research__researcher__runResearcherDemo["runResearcherDemo"]
-        ...["+625 more"]
+        js__f2md__src__types__ExternalConverterRequired__super["super"]
+        js__f2md__src__detect__base["base"]
+        js__f2md__src__detect__mediaTypeFor["mediaTypeFor"]
+        js__f2md__src__detect__isTextKind["isTextKind"]
+        js__f2md__src__cli__chainFor["chainFor"]
+        js__f2md__src__cli__main["main"]
+        js__f2md__src__cli__json["json"]
+        js__f2md__src__cli__detect["detect"]
+        js__f2md__src__cli__quiet["quiet"]
+        js__f2md__src__cli__arg["arg"]
+        js__f2md__src__cli__result["result"]
+        js__f2md__src__cli__chain["chain"]
+        js__f2md__src__cli__failures["failures"]
+        js__f2md__src__cli__document["document"]
+        js__f2md__src__cli__invokedDirectly["invokedDirectly"]
+        ...["+732 more"]
     end
 
-    class src__core__uri__assertProcessUri,src__core__uri__assertResourceUri,src__core__uri__isImmutableResourceUri,src__core__canonical__contentUri,src__research__crawler__p,src__research__crawler__assertPublic,src__research__crawler__title,src__research__crawler__DqlCrawler__crawl,src__research__crawler__DqlCrawler__robots,src__research__researcher__runResearcherDemo entry
+    class js__f2md__src__types__ExternalConverterRequired__super,js__f2md__src__detect__base,js__f2md__src__detect__mediaTypeFor,js__f2md__src__detect__isTextKind,js__f2md__src__cli__chainFor,js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__f2md__src__cli__arg entry

@@ -230,6 +230,48 @@ export interface GeometryValidationReport {
   failures: string[];
 }
 
+export type ProjectIntegrityLayer = "requirements" | "research" | "design" | "development" | "runtime" | "twin" | "scene" | "validation";
+export type ProjectIntegrityCategory = "missing-evidence" | "ungrounded-assumption" | "invalid-parameter" | "broken-dependency" | "inconsistency";
+export interface ProjectIntegrityFinding {
+  code: string;
+  severity: "info" | "warning" | "error";
+  category: ProjectIntegrityCategory;
+  layer: ProjectIntegrityLayer;
+  message: string;
+  subjects: string[];
+  evidenceUris: string[];
+  repairProcess: string;
+}
+export interface ProjectDependencyCheck {
+  id: string;
+  from: ProjectIntegrityLayer;
+  to: ProjectIntegrityLayer;
+  ok: boolean;
+  complete: boolean;
+  message: string;
+}
+export interface ProjectIntegrityReport {
+  schema: "subactor.project-integrity/v1";
+  projectId: string;
+  method: "deterministic-cross-layer";
+  ok: boolean;
+  complete: boolean;
+  coverage: {
+    layers: number;
+    evidencedLayers: number;
+    dependencies: number;
+    validatedDependencies: number;
+    parameters: number;
+    validParameters: number;
+    assumptions: number;
+    groundedAssumptions: number;
+  };
+  layers: Array<{ layer: ProjectIntegrityLayer; evidenced: boolean; evidenceCount: number }>;
+  dependencies: ProjectDependencyCheck[];
+  findings: ProjectIntegrityFinding[];
+  repairProcesses: Array<{ uri: string; findingCodes: string[] }>;
+}
+
 export interface ObservationRecord {
   id: string;
   observedAt: string;

@@ -91,6 +91,15 @@
       <div class="kv"><span>applied / rejected</span><span id="i-app">–</span></div>
     </div>
     <div class="card">
+      <h2>Cross-layer integrity</h2>
+      <div class="kv"><span>result</span><span id="p-validation">–</span></div>
+      <div class="kv"><span>layers</span><span id="p-layers" class="mono">–</span></div>
+      <div class="kv"><span>dependencies</span><span id="p-dependencies" class="mono">–</span></div>
+      <div class="kv"><span>parameters</span><span id="p-parameters" class="mono">–</span></div>
+      <div class="kv"><span>assumptions</span><span id="p-assumptions" class="mono">–</span></div>
+      <div id="p-findings"></div>
+    </div>
+    <div class="card">
       <h2>Runtime observations</h2>
       <div id="obs"><span class="mono" style="color:var(--muted)">none</span></div>
     </div>
@@ -411,6 +420,13 @@ function paintStats(state,events){
   $('g-validation').innerHTML=gv.ok===true?`<span class="${gv.complete?'ok':'warn'}">${gv.complete?'PASS · COMPLETE':'PASS · INCOMPLETE'}</span>`:gv.ok===false?'<span class="bad">FAIL</span>':'–';
   $('g-coverage').textContent=`${coverage.positionEvidence??0} / ${coverage.sizeEvidence??0} / ${coverage.orientationEvidence??0} of ${coverage.bindings??0}`;
   $('g-constraints').textContent=String(coverage.constraints??0);
+  const pi=state.projectIntegrity||{},pc=pi.coverage||{};
+  $('p-validation').innerHTML=pi.ok===true?`<span class="${pi.complete?'ok':'warn'}">${pi.complete?'PASS · COMPLETE':'PASS · INCOMPLETE'}</span>`:pi.ok===false?'<span class="bad">FAIL</span>':'–';
+  $('p-layers').textContent=`${pc.evidencedLayers??0} / ${pc.layers??0}`;
+  $('p-dependencies').textContent=`${pc.validatedDependencies??0} / ${pc.dependencies??0}`;
+  $('p-parameters').textContent=`${pc.validParameters??0} / ${pc.parameters??0}`;
+  $('p-assumptions').textContent=`${pc.groundedAssumptions??0} / ${pc.assumptions??0}`;
+  $('p-findings').innerHTML=(pi.findings||[]).slice(0,6).map(f=>`<div class="kv"><span class="${f.severity==='error'?'bad':f.severity==='warning'?'warn':''}">${escapeCode(f.code)}</span><span class="mono">${escapeCode(f.layer)}</span></div>`).join('')||'<span class="mono ok">no findings</span>';
   const obs=(state.observations&&state.observations.observations)||[];
   $('obs').innerHTML=obs.length?obs.slice(-6).map(o=>
     `<div class="kv"><span>${o.metric}</span><span class="mono">${JSON.stringify(o.value)}${o.unit&&o.unit!=='mixed'?' '+o.unit:''}</span></div>`).join('')

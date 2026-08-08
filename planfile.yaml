@@ -927,3 +927,393 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
+  - id: ticket-a48c2c53
+    name: Fix relative-imports issues
+    description: Resolve 2 relative-imports issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: relative-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7ad3638b
+    name: Fix ast-unused-imports issues
+    description: Resolve 9 ast-unused-imports issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ast-unused-imports
+    count: 9
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-8f40596d
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-33788d98
+    name: Fix ast-print-statements issues
+    description: Resolve 4 ast-print-statements issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ast-print-statements
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-245eef41
+    name: Fix ruff-unused-imports issues
+    description: Resolve 2 ruff-unused-imports issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ruff-unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3cb1efa8
+    name: Fix ruff-print-statements issues
+    description: Resolve 4 ruff-print-statements issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ruff-print-statements
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-d4f405d2
+    name: Fix string-concat-fstring issues
+    description: Resolve 2 string-concat-fstring issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: string-concat-fstring
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6e9cd21a
+    name: Fix unused-imports issues
+    description: Resolve 4 unused-imports issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: unused-imports
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-0073088c
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3ac36432
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ea8c07cd
+    name: Fix string-formatting issues
+    description: Resolve 1 string-formatting issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: string-formatting
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-c88c489e
+    name: Fix import-optimization issues
+    description: Resolve 2 import-optimization issues in py/f2md/src/f2md/audit.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: import-optimization
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-a02c1cc0
+    name: Fix no-relative-imports issues
+    description: Resolve 1 no-relative-imports issues in py/f2md/src/f2md/audit.py
+    task_type: bugfix
+    priority: critical
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/audit.py
+    rule_id: no-relative-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6d9d9897
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in py/f2md/src/f2md/converters.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/converters.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-9da57972
+    name: Fix ast-unused-imports issues
+    description: Resolve 6 ast-unused-imports issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ast-unused-imports
+    count: 6
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7c7e5e99
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-89134145
+    name: Fix ast-string-concat issues
+    description: Resolve 4 ast-string-concat issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ast-string-concat
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e1c11878
+    name: Fix ast-print-statements issues
+    description: Resolve 1 ast-print-statements issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ast-print-statements
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-79ad8fc3
+    name: Fix ruff-unused-imports issues
+    description: Resolve 1 ruff-unused-imports issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ruff-unused-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5e8089a8
+    name: Fix ruff-print-statements issues
+    description: Resolve 1 ruff-print-statements issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ruff-print-statements
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-1fa5af68
+    name: Fix string-concat-fstring issues
+    description: Resolve 12 string-concat-fstring issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: string-concat-fstring
+    count: 12
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b424ca7a
+    name: Fix unused-imports issues
+    description: Resolve 2 unused-imports issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: unused-imports
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-5730b671
+    name: Fix magic-numbers issues
+    description: Resolve 4 magic-numbers issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 2d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: magic-numbers
+    count: 4
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-be18ca01
+    name: Fix ai-boilerplate issues
+    description: Resolve 1 ai-boilerplate issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: ai-boilerplate
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cd139164
+    name: Fix import-optimization issues
+    description: Resolve 2 import-optimization issues in py/f2md/src/f2md/intent_compile.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - py/f2md/src/f2md/intent_compile.py
+    rule_id: import-optimization
+    count: 2
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ef82e2d0
+    name: Fix ast-string-concat issues
+    description: Resolve 3 ast-string-concat issues in scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - scripts/cad-to-gltf.py
+    rule_id: ast-string-concat
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-7eac3111
+    name: Fix ast-print-statements issues
+    description: Resolve 1 ast-print-statements issues in scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - scripts/cad-to-gltf.py
+    rule_id: ast-print-statements
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-6383a634
+    name: Fix ast-missing-return-type issues
+    description: Resolve 1 ast-missing-return-type issues in scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - scripts/cad-to-gltf.py
+    rule_id: ast-missing-return-type
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-24b0eac4
+    name: Fix ruff-print-statements issues
+    description: Resolve 1 ruff-print-statements issues in scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - scripts/cad-to-gltf.py
+    rule_id: ruff-print-statements
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3fcf9308
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - scripts/cad-to-gltf.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced

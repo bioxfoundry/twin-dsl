@@ -14,6 +14,7 @@ import type {
   MathDocument,
   ObservationDocument,
   PhysicalEvidenceReport,
+  ProjectIntegrityReport,
   ObservationRecord,
   ResourceDiff,
   ResourceRecord,
@@ -60,6 +61,7 @@ import {
 import { RUNTIME_GENERATION } from "../core/generation.js";
 import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
+import { analyzeProjectIntegrity, renderProjectIntegrityDsl } from "./project-integrity.js";
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
@@ -390,13 +392,20 @@ export class LivingProjectRuntime {
 
     const allowed = evaluateMath(math,"IterationAllowed") === true && intentDsl.invalid === 0;
     const scenePolicyAllowed = evaluateMath(math,"ScenePublishAllowed") === true && intentDsl.invalid === 0;
-    const publish = scenePolicyAllowed && (geometryValidation?.ok ?? true);
+    const geometryReport = geometryValidation??{schema:"subactor.geometry-validation/v1",evidenceId:"none",method:"world-aabb",ok:true,complete:false,coverage:{bindings:scene.bindings.length,positionEvidence:0,sizeEvidence:0,orientationEvidence:0,constraints:0},checks:[],failures:[]} as GeometryValidationReport;
+    const projectIntegrity:ProjectIntegrityReport = analyzeProjectIntegrity({
+      project,resources,development:developmentEvidence,observations:observation,twin,scene,
+      geometry:geometryReport,physicalEvidence,
+      generationAudits:[mathGeneration.audit,twinGeneration.audit,sceneGeneration.audit],
+    });
+    const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok;
     const failures:string[] = [];
     if(intentDsl.invalid) failures.push(`IntentDslValidationFailed:${intentDsl.invalid}`);
     if(!rateLimitAvailable) failures.push("AutonomyRateLimitExceeded");
     if(!allowed) failures.push("IterationAllowed=false");
     if(!scenePolicyAllowed) failures.push("ScenePublishAllowed=false");
-    if(geometryValidation && !geometryValidation.ok) failures.push(`GeometryValidationFailed:${geometryValidation.failures.join("|")}`);
+    if(!geometryReport.ok) failures.push(`GeometryValidationFailed:${geometryReport.failures.join("|")}`);
+    if(!projectIntegrity.ok) failures.push(`ProjectIntegrityFailed:${projectIntegrity.findings.filter(finding=>finding.severity==="error").map(finding=>finding.code).join("|")}`);
     const researchPresent = resources.some(resource=>["manager","customer","project","archive","internet"].includes(String(resource.sourceRole)));
     const runtimePresent = observation.observations.length > 0;
     const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri]});
@@ -416,15 +425,16 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
     await writeJson(join(candidate,"scene.diff.json"),sceneDiff(await readOptional<SceneDocument>(join(outDir,"current/scene.json")),scene));
     await writeJson(join(candidate,"physical-evidence.report.json"),physicalEvidenceReport??{schema:"subactor.physical-evidence-report/v1",applied:[],rejected:[],componentIdsStable:true,scenePathsStable:true});
-    const geometryReport = geometryValidation??{schema:"subactor.geometry-validation/v1",evidenceId:"none",method:"world-aabb",ok:true,complete:false,coverage:{bindings:scene.bindings.length,positionEvidence:0,sizeEvidence:0,orientationEvidence:0,constraints:0},checks:[],failures:[]} as GeometryValidationReport;
     await writeJson(join(candidate,"geometry-validation.json"),geometryReport);
     await writeFile(join(candidate,"geometry-validation.dsl"),renderGeometryValidationDsl(geometryReport));
+    await writeJson(join(candidate,"project-integrity.json"),projectIntegrity);
+    await writeFile(join(candidate,"project-integrity.dsl"),renderProjectIntegrityDsl(projectIntegrity));
     await writeJson(join(candidate,"intent-dsl.index.json"),{schema:"subactor.intent-dsl-index/v1",...intentDsl,validatedAt:new Date().toISOString()});
     await writeJson(join(candidate,"improvement.json"),improvement);
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
 
-    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-validation.json","geometry-validation.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl","twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -532,6 +542,9 @@ export class LivingProjectRuntime {
       `- intentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       `- Audit report: ${join(runtimeRoot,"current/audit-report.json")}`,
       `- Physical evidence report: ${join(runtimeRoot,"current/physical-evidence.report.json")}`,
+      `- Geometry validation: ${join(runtimeRoot,"current/geometry-validation.dsl")}`,
+      `- Project integrity: ${join(runtimeRoot,"current/project-integrity.dsl")}`,
+      `- Project integrity status: ${projectIntegrity.ok?"PASS":"FAIL"} / ${projectIntegrity.complete?"COMPLETE":"INCOMPLETE"}`,
       `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
       "",
       "## Logs and feedback",

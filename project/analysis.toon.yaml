@@ -1,160 +1,177 @@
-# code2llm | 151f 10570L | typescript:54,json:51,proto:12,python:9,javascript:9,yaml:4,txt:3,shell:2,xml:2,yml:1,toml:1 | 2026-08-08
-# generated in 0.04s
-# CC̅=4.4 | critical:57/885 | dups:0 | cycles:0
+# code2llm | 160f 13747L | typescript:58,json:51,python:13,proto:12,javascript:9,yaml:5,txt:3,shell:2,xml:2,yml:1,toml:1 | 2026-08-08
+# generated in 0.05s
+# CC̅=4.7 | critical:69/1036 | dups:0 | cycles:0
 
 HEALTH[20]:
+  🔴 GOD   src/core/types.ts = 581L, 46 classes, 0m, max CC=0.0
+  🟡 CC    main CC=30 (limit:15)
+  🟡 CC    json CC=15 (limit:15)
+  🟡 CC    detect CC=15 (limit:15)
+  🟡 CC    quiet CC=15 (limit:15)
+  🟡 CC    convertTree CC=22 (limit:15)
+  🟡 CC    paths CC=17 (limit:15)
+  🟡 CC    convert CC=17 (limit:15)
+  🟡 CC    checkJsonSchema CC=60 (limit:15)
+  🟡 CC    main CC=91 (limit:15)
   🟡 CC    privateIp CC=15 (limit:15)
   🟡 CC    crawl CC=25 (limit:15)
   🟡 CC    proposeCodeMutation CC=15 (limit:15)
   🟡 CC    build CC=20 (limit:15)
   🟡 CC    checkExternalServices CC=15 (limit:15)
   🟡 CC    summarizeDevelopment CC=20 (limit:15)
-  🟡 CC    request CC=19 (limit:15)
-  🟡 CC    controller CC=19 (limit:15)
-  🟡 CC    compile CC=18 (limit:15)
-  🟡 CC    validateAutonomCycle CC=15 (limit:15)
-  🟡 CC    readLatestAnalysis CC=19 (limit:15)
-  🟡 CC    validateImprovement CC=29 (limit:15)
-  🟡 CC    ids CC=16 (limit:15)
-  🟡 CC    evaluateMath CC=17 (limit:15)
-  🟡 CC    env CC=16 (limit:15)
-  🟡 CC    ev CC=16 (limit:15)
-  🟡 CC    renderMathDsl CC=18 (limit:15)
-  🟡 CC    parseObservationDsl CC=25 (limit:15)
-  🟡 CC    validateObservation CC=28 (limit:15)
-  🟡 CC    seen CC=18 (limit:15)
+  🟡 CC    observationsFromResources CC=15 (limit:15)
+  🟡 CC    index CC=15 (limit:15)
+  🟡 CC    iterateWithLease CC=82 (limit:15)
+  🟡 CC    iterationUri CC=17 (limit:15)
 
-REFACTOR[1]:
-  1. split 20 high-CC methods  (CC>15)
+REFACTOR[2]:
+  1. split src/core/types.ts  (god module)
+  2. split 19 high-CC methods  (CC>15)
 
-PIPELINES[576]:
-  [1] Src [assertProcessUri]: assertProcessUri
+PIPELINES[664]:
+  [1] Src [base]: base
       PURITY: 100% pure
-  [2] Src [assertResourceUri]: assertResourceUri
+  [2] Src [mediaTypeFor]: mediaTypeFor → detectDocumentKind
       PURITY: 100% pure
-  [3] Src [isImmutableResourceUri]: isImmutableResourceUri
+  [3] Src [isTextKind]: isTextKind
       PURITY: 100% pure
-  [4] Src [contentUri]: contentUri → sha256 → canonicalJson → norm
+  [4] Src [main]: main → chainFor
       PURITY: 100% pure
-  [5] Src [p]: p → privateIp
+  [5] Src [json]: json
       PURITY: 100% pure
-  [6] Src [assertPublic]: assertPublic → privateIp
+  [6] Src [detect]: detect
       PURITY: 100% pure
-  [7] Src [crawl]: crawl → fetchText
+  [7] Src [quiet]: quiet
       PURITY: 100% pure
-  [8] Src [robots]: robots → robotsDisallow
+  [8] Src [arg]: arg
       PURITY: 100% pure
-  [9] Src [runResearcherDemo]: runResearcherDemo → fixtureFetch
+  [9] Src [result]: result
       PURITY: 100% pure
-  [10] Src [local]: local
+  [10] Src [chain]: chain
       PURITY: 100% pure
-  [11] Src [snapshot]: snapshot
+  [11] Src [failures]: failures
       PURITY: 100% pure
-  [12] Src [source]: source
+  [12] Src [document]: document
       PURITY: 100% pure
-  [13] Src [math]: math
+  [13] Src [invokedDirectly]: invokedDirectly
       PURITY: 100% pure
-  [14] Src [proposeCodeMutation]: proposeCodeMutation → loadPlan
+  [14] Src [entry]: entry
       PURITY: 100% pure
-  [15] Src [startedAt]: startedAt
+  [15] Src [SKIP_DIRS]: SKIP_DIRS
       PURITY: 100% pure
-  [16] Src [proposalId]: proposalId
+  [16] Src [path]: path
       PURITY: 100% pure
-  [17] Src [outDir]: outDir
+  [17] Src [convertTree]: convertTree → walkFiles
       PURITY: 100% pure
-  [18] Src [plan]: plan → resolveGrant
+  [18] Src [source]: source
       PURITY: 100% pure
-  [19] Src [planHash]: planHash → resolveGrant
+  [19] Src [target]: target
       PURITY: 100% pure
-  [20] Src [grantResult]: grantResult → resolveGrant
+  [20] Src [paths]: paths → frontMatter → entries
       PURITY: 100% pure
-  [21] Src [adapter]: adapter
+  [21] Src [rel]: rel
       PURITY: 100% pure
-  [22] Src [patchOut]: patchOut
+  [22] Src [kind]: kind
       PURITY: 100% pure
-  [23] Src [planFile]: planFile
+  [23] Src [outPath]: outPath
       PURITY: 100% pure
-  [24] Src [completedAt]: completedAt
+  [24] Src [reason]: reason
       PURITY: 100% pure
-  [25] Src [message]: message
+  [25] Src [size]: size
       PURITY: 100% pure
-  [26] Src [applyCodeMutation]: applyCodeMutation → loadPlan
+  [26] Src [started]: started → convert → defaultChain
       PURITY: 100% pure
-  [27] Src [jtiDir]: jtiDir
+  [27] Src [lastKind]: lastKind → convert → defaultChain
       PURITY: 100% pure
-  [28] Src [consumed]: consumed
+  [28] Src [document]: document
       PURITY: 100% pure
-  [29] Src [workspace]: workspace
+  [29] Src [convertToMarkdown]: convertToMarkdown → convert → defaultChain
       PURITY: 100% pure
-  [30] Src [applyId]: applyId
+  [30] Src [DEFAULT_MAX_CHARS]: DEFAULT_MAX_CHARS
       PURITY: 100% pure
-  [31] Src [receiptPath]: receiptPath
+  [31] Src [DEFAULT_TIMEOUT_MS]: DEFAULT_TIMEOUT_MS
       PURITY: 100% pure
-  [32] Src [jsonFile]: jsonFile
+  [32] Src [info]: info
       PURITY: 100% pure
-  [33] Src [readPrevious]: readPrevious
+  [33] Src [optionalModule]: optionalModule
       PURITY: 100% pure
-  [34] Src [build]: build → snapshot
+  [34] Src [convert]: convert → execFileAsync
       PURITY: 100% pure
-  [35] Src [absoluteConfig]: absoluteConfig
+  [35] Src [kind]: kind → execFileAsync
       PURITY: 100% pure
-  [36] Src [resources]: resources
+  [36] Src [raw]: raw → statMetadata
       PURITY: 100% pure
-  [37] Src [previousResources]: previousResources
+  [37] Src [text]: text → statMetadata
       PURITY: 100% pure
-  [38] Src [changes]: changes → diff
+  [38] Src [fence]: fence → clip
       PURITY: 100% pure
-  [39] Src [policyPath]: policyPath → buildTree
+  [39] Src [convert]: convert → statMetadata
       PURITY: 100% pure
-  [40] Src [policy]: policy → buildTree
+  [40] Src [kind]: kind
       PURITY: 100% pure
-  [41] Src [policyResource]: policyResource → buildTree
+  [41] Src [text]: text
       PURITY: 100% pure
-  [42] Src [mathGen]: mathGen
+  [42] Src [code]: code
       PURITY: 100% pure
-  [43] Src [twinGen]: twinGen
+  [43] Src [detail]: detail
       PURITY: 100% pure
-  [44] Src [sceneGen]: sceneGen
+  [44] Src [text]: text
       PURITY: 100% pure
-  [45] Src [allowed]: allowed → writeJson
+  [45] Src [convert]: convert → clip
       PURITY: 100% pure
-  [46] Src [candidate]: candidate → writeJson
+  [46] Src [kind]: kind
       PURITY: 100% pure
-  [47] Src [append]: append
+  [47] Src [convert]: convert → statMetadata
       PURITY: 100% pure
-  [48] Src [xs]: xs
+  [48] Src [response]: response
       PURITY: 100% pure
-  [49] Src [read]: read
+  [49] Src [convert]: convert → htmlToDocument → Turndown
       PURITY: 100% pure
-  [50] Src [all]: all
+  [50] Src [convert]: convert → convertToHtml
       PURITY: 100% pure
 
 LAYERS:
-  src/                            CC̄=4.6    ←in:0  →out:0
-  │ !! blueprint.ts               641L  0C   27m  CC=66     ←0
-  │ !! living-project.ts          498L  1C  104m  CC=62     ←0
-  │ types.ts                   494L  40C    0m  CC=0.0    ←0
+  py/                             CC̄=5.2    ←in:0  →out:0
+  │ !! converters                 466L  9C   19m  CC=16     ←0
+  │ translate                  247L  5C   12m  CC=14     ←1
+  │ !! tree                       227L  1C    5m  CC=26     ←1
+  │ !! audit                      196L  2C    8m  CC=25     ←0
+  │ !! intent_compile             169L  0C    7m  CC=16     ←0
+  │ cli                        119L  0C    2m  CC=13     ←0
+  │ detect                     100L  0C    4m  CC=4      ←4
+  │ chain                       99L  1C    5m  CC=7      ←2
+  │ types                       78L  3C    3m  CC=1      ←0
+  │ pyproject.toml              75L  0C    0m  CC=0.0    ←0
+  │ __init__                    71L  0C    0m  CC=0.0    ←0
+  │
+  src/                            CC̄=4.8    ←in:0  →out:0
+  │ !! blueprint.ts               651L  0C   28m  CC=68     ←0
+  │ !! living-project.ts          619L  1C  114m  CC=82     ←0
+  │ !! types.ts                   581L  46C    0m  CC=0.0    ←0
   │ biofoundry-concept.ts      435L  1C   22m  CC=13     ←0
   │ wizard.ts                  358L  1C   37m  CC=10     ←0
-  │ mutation-grant.ts          348L  1C   35m  CC=11     ←1
+  │ mutation-grant.ts          348L  1C   35m  CC=11     ←2
+  │ !! dashboard.ts               313L  2C   44m  CC=46     ←0
   │ !! mutation-pipeline.ts       308L  2C   23m  CC=15     ←0
-  │ !! scanner.ts                 250L  2C   25m  CC=22     ←0
+  │ !! scanner.ts                 266L  2C   25m  CC=23     ←0
+  │ !! physical-evidence.ts       257L  0C   36m  CC=61     ←0
   │ !! autonomy.ts                233L  2C   49m  CC=20     ←0
-  │ !! physical-evidence.ts       202L  0C   28m  CC=33     ←0
-  │ !! dashboard.ts               169L  2C   26m  CC=30     ←0
   │ !! twin-probes.ts             149L  5C   19m  CC=15     ←0
-  │ !! openusd.ts                 143L  1C   29m  CC=20     ←0
+  │ !! openusd.ts                 142L  1C   30m  CC=22     ←0
+  │ !! geometry-validation.ts     139L  0C   27m  CC=29     ←1
+  │ !! main.ts                    138L  0C   21m  CC=91     ←0
+  │ !! project-integrity.ts       131L  1C   29m  CC=53     ←0
   │ !! json-schema.ts             124L  1C   12m  CC=60     ←0
   │ !! todo2code.ts               122L  3C   22m  CC=19     ←0
-  │ !! main.ts                    119L  0C   17m  CC=68     ←0
   │ isolated-worktree.ts       116L  1C   15m  CC=5      ←0
-  │ !! openrouter.ts               77L  3C   18m  CC=19     ←0
+  │ !! openrouter.ts               93L  3C   21m  CC=19     ←0
+  │ !! digital-twin-diagnostics.ts    86L  2C   27m  CC=67     ←0
   │ !! biofoundry.ts               73L  6C   23m  CC=20     ←0
-  │ !! improvement.ts              73L  0C   11m  CC=29     ←4
-  │ document-converter.ts       69L  1C    4m  CC=3      ←0
+  │ !! improvement.ts              73L  0C   11m  CC=29     ←0
+  │ document-converter.ts       70L  1C    4m  CC=3      ←0
   │ query.ts                    61L  0C    5m  CC=13     ←0
   │ living-watcher.ts           57L  1C   10m  CC=8      ←0
-  │ !! project.ts                  57L  0C    6m  CC=51     ←0
+  │ !! project.ts                  57L  0C    6m  CC=51     ←5
   │ !! math.ts                     53L  0C   17m  CC=18     ←0
   │ archive.ts                  52L  1C   13m  CC=5      ←0
   │ !! crawler.ts                  47L  3C   18m  CC=25     ←0
@@ -168,44 +185,36 @@ LAYERS:
   │ clickhouse.ts               32L  4C   10m  CC=2      ←0
   │ researcher.ts               23L  0C    6m  CC=9      ←0
   │ query-runtime.ts            17L  1C    4m  CC=10     ←0
-  │ parser-util.ts              16L  0C    6m  CC=3      ←3
-  │ event-store.ts              13L  1C    4m  CC=3      ←0
+  │ parser-util.ts              16L  0C    6m  CC=3      ←6
+  │ generation.ts               16L  0C    0m  CC=0.0    ←0
+  │ event-store.ts              13L  1C    4m  CC=3      ←2
   │ realtime-watcher.ts         13L  1C    4m  CC=10     ←0
   │ canonical.ts                10L  0C    4m  CC=5      ←0
   │ uri.ts                       8L  0C    3m  CC=3      ←0
   │ intent.ts                    4L  0C    2m  CC=5      ←0
   │ twin.ts                      4L  0C    3m  CC=7      ←0
-  │ scene.ts                     3L  0C    1m  CC=13     ←0
+  │ !! scene.ts                     3L  0C    1m  CC=18     ←0
   │ pipeline.ts                  2L  0C    1m  CC=5      ←0
   │
   js/                             CC̄=4.2    ←in:0  →out:0
-  │ !! converters.ts              278L  5C   34m  CC=17     ←0
+  │ !! converters.ts              307L  6C   37m  CC=17     ←0
   │ !! tree.ts                    140L  2C   17m  CC=22     ←0
   │ !! cli.ts                     114L  0C   12m  CC=30     ←0
-  │ chain.ts                    83L  1C    7m  CC=6      ←0
+  │ chain.ts                    84L  1C    7m  CC=6      ←0
   │ detect.ts                   80L  0C    4m  CC=5      ←0
   │ package.json                72L  0C    0m  CC=0.0    ←0
   │ types.ts                    62L  4C    2m  CC=1      ←1
-  │ index.ts                    37L  0C    0m  CC=0.0    ←0
+  │ index.ts                    38L  0C    0m  CC=0.0    ←0
   │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
   │ tsconfig.test.json           9L  0C    0m  CC=0.0    ←0
   │
-  py/                             CC̄=4.0    ←in:0  →out:0
-  │ converters                 405L  8C   18m  CC=9      ←0
-  │ !! tree                       227L  1C    5m  CC=26     ←1
-  │ translate                  215L  5C   12m  CC=10     ←1
-  │ cli                        119L  0C    2m  CC=13     ←0
-  │ detect                     100L  0C    4m  CC=4      ←3
-  │ chain                       96L  1C    5m  CC=7      ←2
-  │ types                       78L  3C    3m  CC=1      ←0
-  │ pyproject.toml              73L  0C    0m  CC=0.0    ←0
-  │ __init__                    69L  0C    0m  CC=0.0    ←0
-  │
-  scripts/                        CC̄=1.8    ←in:0  →out:0
+  scripts/                        CC̄=2.6    ←in:0  →out:1
   │ f2md-conformance.mjs        99L  0C    8m  CC=2      ←0
+  │ !! cad-to-gltf                 97L  0C    3m  CC=17     ←0
   │ demo-mutation.mjs           87L  0C    5m  CC=3      ←0
   │ demo-physical-intake.mjs    79L  0C   12m  CC=1      ←0
   │ check-compose.mjs           33L  0C    4m  CC=9      ←0
+  │ scad-to-markdown            23L  0C    1m  CC=9      ←0
   │ demo-autonomy.mjs           20L  0C    9m  CC=1      ←0
   │ check-proto-contracts.mjs    19L  0C    6m  CC=6      ←0
   │ run-nl-dsl-examples.mjs      5L  0C    0m  CC=0.0    ←0
@@ -219,12 +228,13 @@ LAYERS:
   │ Dockerfile                   8L  0C    0m  CC=0.0    ←0
   │
   ./                              CC̄=0.0    ←in:0  →out:0
-  │ planfile.yaml              149L  0C    0m  CC=0.0    ←0
+  │ !! planfile.yaml             1319L  0C    0m  CC=0.0    ←0
+  │ !! goal.yaml                  526L  0C    0m  CC=0.0    ←0
   │ prefact.yaml                94L  0C    0m  CC=0.0    ←0
   │ Makefile                    82L  0C    0m  CC=0.0    ←0
   │ docker-compose.yml          75L  0C    0m  CC=0.0    ←0
   │ project.sh                  60L  0C    0m  CC=0.0    ←0
-  │ package.json                35L  0C    0m  CC=0.0    ←0
+  │ package.json                39L  0C    0m  CC=0.0    ←0
   │ PACKAGE_MANIFEST.json       30L  0C    0m  CC=0.0    ←0
   │ tsconfig.json               15L  0C    0m  CC=0.0    ←0
   │ nlp2uri.yaml                 8L  0C    0m  CC=0.0    ←0
@@ -239,10 +249,10 @@ LAYERS:
   │ mutation-proposal-receipt.schema.json    77L  0C    0m  CC=0.0    ←0
   │ development-evidence.schema.json    70L  0C    0m  CC=0.0    ←0
   │ twin-build-receipt.schema.json    66L  0C    0m  CC=0.0    ←0
+  │ physical-evidence.schema.json    64L  0C    0m  CC=0.0    ←0
   │ living-failure.schema.json    56L  0C    0m  CC=0.0    ←0
-  │ scene-blueprint.schema.json    46L  0C    0m  CC=0.0    ←0
+  │ scene-blueprint.schema.json    47L  0C    0m  CC=0.0    ←0
   │ signed-mutation-grant.schema.json    44L  0C    0m  CC=0.0    ←0
-  │ physical-evidence.schema.json    44L  0C    0m  CC=0.0    ←0
   │ dql-crawl.schema.json       23L  0C    0m  CC=0.0    ←0
   │ query-result.schema.json    14L  0C    0m  CC=0.0    ←0
   │ observation.schema.json     13L  0C    0m  CC=0.0    ←0
@@ -307,14 +317,17 @@ LAYERS:
   │
 
 COUPLING:
-                   py.f2md      src.dsl  src.runtime      js.f2md
-      py.f2md           ──           11            2            1  !! fan-out
-      src.dsl          ←11           ──                            hub
-  src.runtime           ←2                        ──             
-      js.f2md           ←1                                     ──
+                   py.f2md      src.dsl  src.runtime      js.f2md      scripts    src.scene
+      py.f2md           ──           16            7            1                            !! fan-out
+      src.dsl          ←16           ──                                                      hub
+  src.runtime           ←7                        ──                                         hub
+      js.f2md           ←1                                     ──                          
+      scripts                                                               ──            1
+    src.scene                                                               ←1           ──
   CYCLES: none
-  HUB: src.dsl/ (fan-in=11)
-  SMELL: py.f2md/ fan-out=14 → split needed
+  HUB: src.dsl/ (fan-in=16)
+  HUB: src.runtime/ (fan-in=7)
+  SMELL: py.f2md/ fan-out=24 → split needed
 
 EXTERNAL:
   validation: run `vallm batch .` → validation.toon

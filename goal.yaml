@@ -1,5 +1,5 @@
 # goal.yaml - Goal configuration file
-# Generated: 2026-08-08 17:59:24
+# Generated: 2026-08-08 18:19:35
 # Documentation: https://github.com/wronai/goal#configuration
 #
 # This file configures Goal's behavior for:
@@ -20,6 +20,7 @@ project:
 versioning:
   strategy: semver
   files:
+  - VERSION
   - py/f2md/pyproject.toml:version
   - package.json:version
   - py/f2md/src/f2md/__init__.py:__version__

@@ -29,10 +29,11 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   const server = await startDashboard({ configPath: created.configPath, outDir, port: 0 });
   t.after(() => server.close());
 
-  const state = (await (await fetch(`${server.url}api/state`)).json()) as { twin: TwinDocument; scene: SceneDocument };
+  const state = (await (await fetch(`${server.url}api/state`)).json()) as { twin: TwinDocument; scene: SceneDocument; projectIntegrity: { schema: string; ok: boolean } };
   assert.ok(state.twin.components.length > 0, "no twin components served");
   assert.equal(state.scene.bindings.length, state.twin.components.length);
   assert.equal(state.scene.sourceTwinId, state.twin.id);
+  assert.equal(state.projectIntegrity.schema, "subactor.project-integrity/v1");
 
   const dashboardHtml = await (await fetch(server.url)).text();
   assert.match(dashboardHtml, /function highlightJson/);
@@ -44,6 +45,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /orientation:b\.orientation/);
   assert.match(dashboardHtml, /normalizeAssetMesh/);
   assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size,o\.orientation\)/);
+  assert.match(dashboardHtml, /id="p-validation"/);
+  assert.match(dashboardHtml, /state\.projectIntegrity/);
 
   const eventLog = (await (await fetch(`${server.url}api/events`)).json()) as {
     schema: string; ok: boolean; count: number; events: unknown[];
@@ -58,6 +61,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   };
   assert.equal(dslLog.schema, "subactor.dsl-log-view/v1");
   assert.ok(dslLog.documents.some((document) => document.name === "observations.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
 
   const usda = await (await fetch(`${server.url}api/scene.usda`)).text();

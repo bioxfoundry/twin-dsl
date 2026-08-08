@@ -106,6 +106,14 @@ evaluates spatial constraints. `RESULT PASS` means all executable checks passed;
 `COMPLETENESS INCOMPLETE` means evidence coverage is insufficient for certification. No LLM
 decides either value.
 
+## ProjectIntegrityDSL
+
+Cross-layer validation of requirements, research, design, development, runtime, Twin, scene
+and validation artefacts. It reports independent coverage for layers, dependency links,
+parameters and assumptions, followed by typed findings and authorized repair-process URIs.
+The full contract and epistemic meaning of `PASS · INCOMPLETE` are documented in
+`docs/PROJECT_INTEGRITY_DSL.md`.
+
 ## query-result
 
 Every result binds:

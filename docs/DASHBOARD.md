@@ -30,9 +30,12 @@ triggered from the page run under.
 - **Geometry validation** — a separate `PASS`/`FAIL` result and `COMPLETE`/`INCOMPLETE`
   evidence decision, with position/size/orientation coverage and constraint count. Missing
   orientation is shown as an identity fallback, never silently presented as measured.
+- **Cross-layer integrity** — coverage of requirements through validation, dependency links,
+  parameters and assumptions, plus stable finding codes that lead to repair-process URIs.
 - **Runtime observations** and the current revision URI.
 - **DSL & iteration log** — the latest append-only runtime events plus current
-  `observations.dsl`, `math.dsl`, `improvement.dsl`, GeometryValidationDSL and TestQLDSL,
+  `observations.dsl`, `math.dsl`, `improvement.dsl`, GeometryValidationDSL,
+  ProjectIntegrityDSL and TestQLDSL,
   refreshed without exposing
   filesystem paths. Event payloads are highlighted as JSON and artifacts as DSL; all values are
   escaped before token markup is added. Logs render before the optional WebGL scene update, so a

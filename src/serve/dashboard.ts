@@ -52,7 +52,7 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "math.dsl", "geometry-validation.dsl", "improvement.dsl"]) {
+  for (const name of ["observations.dsl", "math.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
     try { documents.push({ name, content: (await readFile(join(current, name), "utf8")).slice(0, 120_000) }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }
@@ -141,6 +141,7 @@ interface DashboardState {
   scene: SceneDocument | null;
   report: unknown;
   geometryValidation: unknown;
+  projectIntegrity: unknown;
   observations: unknown;
   iteration: unknown;
   updatedAt: string;
@@ -154,15 +155,16 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   let busy = false;
 
   async function state(): Promise<DashboardState> {
-    const [twin, scene, report, geometryValidation, observations, iteration] = await Promise.all([
+    const [twin, scene, report, geometryValidation, projectIntegrity, observations, iteration] = await Promise.all([
       readJson<TwinDocument>(join(current, "twin.json")),
       readJson<SceneDocument>(join(current, "scene.json")),
       readJson(join(current, "physical-evidence.report.json")),
       readJson(join(current, "geometry-validation.json")),
+      readJson(join(current, "project-integrity.json")),
       readJson(join(current, "observations.json")),
       readJson(join(resolve(options.outDir), "latest.json")),
     ]);
-    return { twin, scene, report, geometryValidation, observations, iteration, updatedAt: new Date().toISOString() };
+    return { twin, scene, report, geometryValidation, projectIntegrity, observations, iteration, updatedAt: new Date().toISOString() };
   }
 
   const server = createServer((request, response) => {

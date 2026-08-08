@@ -3,6 +3,68 @@
 ## [Unreleased] - 2026-08-08
 
 ### Fixed
+- Fix relative-imports issues (ticket-a48c2c53)
+- Fix ast-unused-imports issues (ticket-7ad3638b)
+- Fix ast-sorted-imports issues (ticket-8f40596d)
+- Fix ast-print-statements issues (ticket-33788d98)
+- Fix ruff-unused-imports issues (ticket-245eef41)
+- Fix ruff-print-statements issues (ticket-3cb1efa8)
+- Fix string-concat-fstring issues (ticket-d4f405d2)
+- Fix unused-imports issues (ticket-6e9cd21a)
+- Fix magic-numbers issues (ticket-0073088c)
+- Fix ai-boilerplate issues (ticket-3ac36432)
+- Fix string-formatting issues (ticket-ea8c07cd)
+- Fix import-optimization issues (ticket-c88c489e)
+- Fix no-relative-imports issues (ticket-a02c1cc0)
+- Fix ruff-sorted-imports issues (ticket-6d9d9897)
+- Fix ast-unused-imports issues (ticket-9da57972)
+- Fix ast-sorted-imports issues (ticket-7c7e5e99)
+- Fix ast-string-concat issues (ticket-89134145)
+- Fix ast-print-statements issues (ticket-e1c11878)
+- Fix ruff-unused-imports issues (ticket-79ad8fc3)
+- Fix ruff-print-statements issues (ticket-5e8089a8)
+- Fix string-concat-fstring issues (ticket-1fa5af68)
+- Fix unused-imports issues (ticket-b424ca7a)
+- Fix magic-numbers issues (ticket-5730b671)
+- Fix ai-boilerplate issues (ticket-be18ca01)
+- Fix import-optimization issues (ticket-cd139164)
+- Fix ast-string-concat issues (ticket-ef82e2d0)
+- Fix ast-print-statements issues (ticket-7eac3111)
+- Fix ast-missing-return-type issues (ticket-6383a634)
+- Fix ruff-print-statements issues (ticket-24b0eac4)
+- Fix ruff-sorted-imports issues (ticket-3fcf9308)
+
+## [0.5.3] - 2026-08-08
+
+### Docs
+- Update CHANGELOG.md
+- Update TODO.md
+- Update docs/DASHBOARD.md
+- Update docs/DSL_SPEC.md
+- Update docs/PROJECT_INTEGRITY_DSL.md
+- Update project/README.md
+- Update project/context.md
+
+### Test
+- Update test/dashboard.test.ts
+- Update test/project-integrity.test.ts
+
+### Other
+- Update .env.example
+- Update app.doql.less
+- Update planfile.yaml
+- Update project/analysis.toon.yaml
+- Update project/calls.mmd
+- Update project/calls.png
+- Update project/calls.toon.yaml
+- Update project/calls.yaml
+- Update project/compact_flow.mmd
+- Update project/compact_flow.png
+- ... and 16 more files
+
+## [Unreleased] - 2026-08-08
+
+### Fixed
 - Fix ast-sorted-imports issues (ticket-a66ce302)
 - Fix ast-missing-return-type issues (ticket-db4bd1e8)
 - Fix ruff-sorted-imports issues (ticket-6efe5406)

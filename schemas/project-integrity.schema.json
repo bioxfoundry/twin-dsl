@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://subactor.dev/schemas/project-integrity.schema.json",
+  "title": "Deterministic cross-layer project integrity report",
+  "type": "object",
+  "required": ["schema", "projectId", "method", "ok", "complete", "coverage", "layers", "dependencies", "findings", "repairProcesses"],
+  "properties": {
+    "schema": { "const": "subactor.project-integrity/v1" },
+    "projectId": { "type": "string", "minLength": 1 },
+    "method": { "const": "deterministic-cross-layer" },
+    "ok": { "type": "boolean" },
+    "complete": { "type": "boolean" },
+    "coverage": {
+      "type": "object",
+      "required": ["layers", "evidencedLayers", "dependencies", "validatedDependencies", "parameters", "validParameters", "assumptions", "groundedAssumptions"],
+      "additionalProperties": false,
+      "properties": {
+        "layers": { "type": "integer", "minimum": 0 },
+        "evidencedLayers": { "type": "integer", "minimum": 0 },
+        "dependencies": { "type": "integer", "minimum": 0 },
+        "validatedDependencies": { "type": "integer", "minimum": 0 },
+        "parameters": { "type": "integer", "minimum": 0 },
+        "validParameters": { "type": "integer", "minimum": 0 },
+        "assumptions": { "type": "integer", "minimum": 0 },
+        "groundedAssumptions": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "layers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["layer", "evidenced", "evidenceCount"],
+        "additionalProperties": false,
+        "properties": {
+          "layer": { "enum": ["requirements", "research", "design", "development", "runtime", "twin", "scene", "validation"] },
+          "evidenced": { "type": "boolean" },
+          "evidenceCount": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "from", "to", "ok", "complete", "message"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string" },
+          "from": { "enum": ["requirements", "research", "design", "development", "runtime", "twin", "scene", "validation"] },
+          "to": { "enum": ["requirements", "research", "design", "development", "runtime", "twin", "scene", "validation"] },
+          "ok": { "type": "boolean" },
+          "complete": { "type": "boolean" },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["code", "severity", "category", "layer", "message", "subjects", "evidenceUris", "repairProcess"],
+        "additionalProperties": false,
+        "properties": {
+          "code": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]+$" },
+          "severity": { "enum": ["info", "warning", "error"] },
+          "category": { "enum": ["missing-evidence", "ungrounded-assumption", "invalid-parameter", "broken-dependency", "inconsistency"] },
+          "layer": { "enum": ["requirements", "research", "design", "development", "runtime", "twin", "scene", "validation"] },
+          "message": { "type": "string" },
+          "subjects": { "type": "array", "items": { "type": "string" } },
+          "evidenceUris": { "type": "array", "items": { "type": "string" } },
+          "repairProcess": { "type": "string", "pattern": "^subactor://process/repair/project-integrity/" }
+        }
+      }
+    },
+    "repairProcesses": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["uri", "findingCodes"],
+        "additionalProperties": false,
+        "properties": {
+          "uri": { "type": "string", "pattern": "^subactor://process/repair/project-integrity/" },
+          "findingCodes": { "type": "array", "items": { "type": "string" }, "uniqueItems": true }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}
