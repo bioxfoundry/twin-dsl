@@ -31,6 +31,31 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.7] - 2026-08-09
+
+### Docs
+- Update README.md
+- Update docs/AUTONOMY_EXAMPLES.md
+- Update docs/EVENT_HISTORY_AUTONOMY.md
+- Update docs/QUICK_SOURCE_RECIPES.md
+- Update docs/source/AUTONOMY_CONTRACTS(1).md
+- Update project/TICKETS.md
+- Update project/ticket-01-autonomy-policy-without-grant.md
+- Update project/ticket-02-runtime-generation-not-landed.md
+- Update project/ticket-03-development-loop-is-a-fixture.md
+- Update project/ticket-04-feedback-has-no-actuation.md
+- ... and 6 more files
+
+### Test
+- Update test/mutation-grant.test.ts
+- Update test/project-wizard.test.ts
+
+### Other
+- Update .env.example
+- Update src/adapters/twin-probes.ts
+- Update src/cli/main.ts
+- Update src/project/wizard.ts
+
 ## [0.5.6] - 2026-08-09
 
 ### Docs

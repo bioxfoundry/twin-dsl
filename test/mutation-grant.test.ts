@@ -12,7 +12,7 @@ import {
 import { createIsolatedWorkspace } from "../src/runtime/isolated-worktree.js";
 import { proposeCodeMutation } from "../src/runtime/mutation-pipeline.js";
 import { mutationGrantPresent } from "../src/runtime/autonomy.js";
-import { validateAutonomCycle, summarizeProbeCycle } from "../src/adapters/twin-probes.js";
+import { TwinProbesAdapter, validateAutonomCycle, summarizeProbeCycle } from "../src/adapters/twin-probes.js";
 import type { LivingProjectDocument } from "../src/core/types.js";
 
 const SECRET = "test-mutation-grant-secret-for-hmac";
@@ -243,7 +243,7 @@ test("twin-probes autonom-cycle validates watches and summarizes evidence", () =
   const cycle = validateAutonomCycle({
     schema: "subactor.autonom-cycle/v1",
     host: "twin-dsl",
-    startedAt: "2026-08-06T12:00:00.000Z",
+    observed_at: "2026-08-06T12:00:00.000Z",
     finishedAt: "2026-08-06T12:00:01.000Z",
     results: [
       {
@@ -274,9 +274,40 @@ test("twin-probes autonom-cycle validates watches and summarizes evidence", () =
       validateAutonomCycle({
         schema: "subactor.autonom-cycle/v1",
         host: "x",
-        startedAt: "2026-08-06T12:00:00.000Z",
+        observed_at: "2026-08-06T12:00:00.000Z",
         results: [{ id: "bad", ok: true, watches: [] }],
       }),
     /PROBE_RESULT_WATCHES_REQUIRED/,
   );
+});
+
+test("twin-probes adapter derives and executes the CLI directly from source root", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "twin-probes-source-"));
+  const previousRoot = process.env.TWIN_PROBES_ROOT;
+  const previousBin = process.env.TWIN_PROBES_BIN;
+  try {
+    const source = join(dir, "twin-probes");
+    const script = join(source, "src", "run.mjs");
+    const output = join(dir, "cycle.json");
+    await mkdir(join(source, "src"), { recursive: true });
+    await writeFile(script, `
+      import {writeFile} from "node:fs/promises";
+      const out=process.argv[process.argv.indexOf("--out")+1];
+      await writeFile(out,JSON.stringify({schema:"subactor.autonom-cycle/v1",host:"fixture",observed_at:"2026-08-09T00:00:00.000Z",results:[{id:"fixture.source",ok:true,watches:["src/index.ts"]}]}));
+    `);
+    process.env.TWIN_PROBES_ROOT = source;
+    delete process.env.TWIN_PROBES_BIN;
+    const adapter = new TwinProbesAdapter();
+    assert.equal(adapter.bin, script);
+    assert.equal(await adapter.available(), true);
+    const result = await adapter.run(dir, output);
+    assert.equal(result.summary.healthyCount, 1);
+    assert.deepEqual(result.summary.watchedPaths, ["src/index.ts"]);
+  } finally {
+    if (previousRoot === undefined) delete process.env.TWIN_PROBES_ROOT;
+    else process.env.TWIN_PROBES_ROOT = previousRoot;
+    if (previousBin === undefined) delete process.env.TWIN_PROBES_BIN;
+    else process.env.TWIN_PROBES_BIN = previousBin;
+    await rm(dir, { recursive: true, force: true });
+  }
 });

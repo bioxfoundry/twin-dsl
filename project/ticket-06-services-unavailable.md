@@ -4,6 +4,7 @@ signal: diagnose-agent
 code: SVC-301
 title: Docling and ClickHouse are configured but not running, so the ingest path is degraded
 priority: medium
+status: fixed
 labels: [services, ingestion, docker]
 files:
   - docker-compose.yml

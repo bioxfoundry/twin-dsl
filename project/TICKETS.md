@@ -1,4 +1,4 @@
-# Otwarte zadania — 2026-08-08
+# Stan zadań diagnostycznych — zweryfikowany 2026-08-09
 
 Zebrane z realnego przebiegu na `nanobionic-laboratory-md`: `diagnose-agent scan`,
 `doctor`, `docker ps` i inspekcja artefaktów iteracji. Każdy ticket zaczyna się od
@@ -7,19 +7,19 @@ zaobserwowanego dowodu, nie od hipotezy.
 Kontekst: trzy defekty znalezione wcześniej **są naprawione i wypchnięte** (`5ce6523`,
 `801b4bd`). Poniższa lista to stan po nich.
 
-| # | priorytet | co |
-| --- | --- | --- |
-| [01](ticket-01-autonomy-policy-without-grant.md) | **critical** | apply-mode samomodyfikacji bez działającej bramki kryptograficznej |
-| [02](ticket-02-runtime-generation-not-landed.md) | high | naprawa runtime nadal nie dociera do istniejących projektów |
-| [03](ticket-03-development-loop-is-a-fixture.md) | high | pętla developmentu to fixture — brak `todo2code` |
-| [04](ticket-04-feedback-has-no-actuation.md) | high | sprzężenie zwrotne przenosi informację, ale nic jej nie wykonuje |
-| [05](ticket-05-no-probe-for-fixed-defect-classes.md) | medium | brak sond na dwie właśnie naprawione klasy defektów |
-| [06](ticket-06-services-unavailable.md) | medium | Docling i ClickHouse skonfigurowane, ale nie działają |
-| [09](ticket-09-twin-probes-missing.md) | medium | brak `twin-probes` — obserwacje runtime bez źródła fizycznego |
-| [10](ticket-10-degraded-run-not-recorded.md) | medium | przebieg zdegradowany nieodróżnialny od pełnego |
-| [07](ticket-07-docs-paths-drift.md) | low | sześć nierozwiązywalnych ścieżek w docs + zepsuty link |
-| [08](ticket-08-empty-source-role.md) | low | rola `archive` zadeklarowana, ale pusta |
-| [11](ticket-11-gate-scanned-one-project.md) | ~~high~~ **naprawione** | bramka CI skanowała tylko jeden projekt |
+| # | priorytet | status | co |
+| --- | --- | --- | --- |
+| [01](ticket-01-autonomy-policy-without-grant.md) | **critical** | **mitigated** | grant jest wymagany i CFG-603 zamknięty; sekret/grant nadal wymagany przed `apply` |
+| [02](ticket-02-runtime-generation-not-landed.md) | high | **fixed** | `RUNTIME_GENERATION` uczestniczy w stable key i receipt; istnieje `DT_FORCE_ITERATION` |
+| [03](ticket-03-development-loop-is-a-fixture.md) | high | **partial** | `todo2code` działa i ostatnia iteracja go użyła; fixture nadal jest dozwolony |
+| [04](ticket-04-feedback-has-no-actuation.md) | high | **open** | sprzężenie zwrotne przenosi informację, ale nie zarządza cyklem życia działań |
+| [05](ticket-05-no-probe-for-fixed-defect-classes.md) | medium | **open** | nadal brak ART-407/408 i COR-207 |
+| [06](ticket-06-services-unavailable.md) | medium | **fixed** | ClickHouse i Docling są healthy i przechodzą `service-check` |
+| [09](ticket-09-twin-probes-missing.md) | medium | **fixed** | adapter uruchamia lokalny checkout bezpośrednio z `src/run.mjs`; `doctor` potwierdza dostępność |
+| [10](ticket-10-degraded-run-not-recorded.md) | medium | **open** | receipt nie ma jeszcze kompletnego bloku capabilities |
+| [07](ticket-07-docs-paths-drift.md) | low | **fixed** | 0 ostrzeżeń DOC-501/DOC-503 |
+| [08](ticket-08-empty-source-role.md) | low | **fixed** | pusty katalog nie jest już deklarowany jako źródło |
+| [11](ticket-11-gate-scanned-one-project.md) | high | **fixed** | bramka skanuje wszystkie projekty |
 
 ## Co z tego blokuje autonomię
 

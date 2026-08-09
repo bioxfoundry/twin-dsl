@@ -28,7 +28,9 @@ export interface ProbeResult {
 export interface AutonomCycle {
   schema: typeof CYCLE_SCHEMA;
   host: string;
-  startedAt: string;
+  observed_at: string;
+  /** Legacy timestamp accepted for cycles emitted before the canonical source contract. */
+  startedAt?: string;
   finishedAt?: string;
   results: ProbeResult[];
   drift?: Array<Record<string, unknown>>;
@@ -57,7 +59,8 @@ export function validateAutonomCycle(value: unknown): AutonomCycle {
   const data = object(value);
   if (!data || data.schema !== CYCLE_SCHEMA) throw new Error("PROBE_CYCLE_SCHEMA_INVALID");
   if (typeof data.host !== "string" || !data.host.trim()) throw new Error("PROBE_CYCLE_HOST_INVALID");
-  if (typeof data.startedAt !== "string") throw new Error("PROBE_CYCLE_STARTED_INVALID");
+  const observedAt = typeof data.observed_at === "string" ? data.observed_at : data.startedAt;
+  if (typeof observedAt !== "string" || !observedAt.trim()) throw new Error("PROBE_CYCLE_OBSERVED_AT_INVALID");
   if (!Array.isArray(data.results)) throw new Error("PROBE_CYCLE_RESULTS_INVALID");
   for (const item of data.results) {
     const result = object(item);
@@ -66,7 +69,7 @@ export function validateAutonomCycle(value: unknown): AutonomCycle {
       throw new Error(`PROBE_RESULT_WATCHES_REQUIRED:${String(result.id)}`);
     }
   }
-  return data as AutonomCycle;
+  return { ...data, observed_at: observedAt } as AutonomCycle;
 }
 
 export function summarizeProbeCycle(cycle: AutonomCycle): ProbeEvidenceSummary {
@@ -111,7 +114,7 @@ async function run(command: string, args: string[], cwd: string, env: NodeJS.Pro
 
 export class TwinProbesAdapter {
   constructor(
-    readonly bin = process.env.TWIN_PROBES_BIN ?? "",
+    readonly bin = process.env.TWIN_PROBES_BIN ?? (process.env.TWIN_PROBES_ROOT ? join(resolve(process.env.TWIN_PROBES_ROOT), "src/run.mjs") : ""),
     readonly root = process.env.TWIN_PROBES_ROOT ?? "",
   ) {}
 

@@ -124,6 +124,15 @@ async function main():Promise<void>{
     const adapter=new TwinProbesAdapter();const {cycle,summary}=await adapter.loadCycle(cyclePath);await adapter.writeSummary(out,summary);
     console.log(JSON.stringify({host:cycle.host,summary},null,2));return;
   }
+  if(cmd==='probes-run'){
+    const[repo,out='.probe-cycle.json',host,scan,only]=args;
+    if(!repo)throw new Error('usage: probes-run <repo> [cycle.json] [host] [scan] [probe-a,probe-b]');
+    const adapter=new TwinProbesAdapter();
+    const result=await adapter.run(repo,out,{host,scan,only:only?.split(',').map(item=>item.trim()).filter(Boolean)});
+    const summaryOut=`${resolve(out)}.evidence.json`;
+    await adapter.writeSummary(summaryOut,result.summary);
+    console.log(JSON.stringify({cycle:resolve(out),evidence:summaryOut,host:result.cycle.host,summary:result.summary},null,2));return;
+  }
   if(cmd==='nl-to-dsl'){const[kind,input,out,mode='require-llm',fixture]=args;if(!kind||!input||!out)throw new Error('usage: nl-to-dsl <kind> <input> <out> [mode] [fixture.json]');const result=await new NlDslCompiler().compile({kind:kind as DslKind,text:await readFile(input,'utf8'),mode:llmMode(mode),deterministicValue:fixture?await json(fixture):undefined});await save(out,result);console.log(JSON.stringify({kind:result.kind,hash:result.canonicalHash,audit:result.audit},null,2));return;}
   if(cmd==='dashboard'){
     const[config='project.projectdsl',out='.living-runtime',port='7331',mode='deterministic']=args;
@@ -190,6 +199,6 @@ async function main():Promise<void>{
     console.log(JSON.stringify({source:resolve(source),out:resolve(out),archives:analyses.length,coverage:analyses.reduce((sum,item)=>({entries:sum.entries+item.coverage.entries,geometryEntries:sum.geometryEntries+item.coverage.geometryEntries,materializableGeometryEntries:sum.materializableGeometryEntries+item.coverage.materializableGeometryEntries,unsupportedCadEntries:sum.unsupportedCadEntries+item.coverage.unsupportedCadEntries}),{entries:0,geometryEntries:0,materializableGeometryEntries:0,unsupportedCadEntries:0}),materialized:receipts.reduce((sum,item)=>sum+item.coverage.materialized,0),failed:receipts.reduce((sum,item)=>sum+item.coverage.failed,0)},null,2));return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
 await main();

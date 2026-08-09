@@ -468,6 +468,11 @@ Apply jest opcjonalny, wymaga `POLICY_AUTONOMY_MODE apply`, `POLICY_ALLOW_RUNTIM
 Evidence z `subactor/twin-probes`:
 
 ```bash
+# Run the sibling checkout directly from source (no package publication/build required).
+export TWIN_PROBES_ROOT=/path/to/subactor/twin-probes
+node dist/src/cli/main.js probes-run . cycle.json twin-dsl src
+
+# Or ingest an existing cycle.
 node dist/src/cli/main.js probes-ingest cycle.json .living-runtime/candidate/probe.evidence.json
 ```
 

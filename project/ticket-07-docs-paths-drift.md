@@ -4,6 +4,7 @@ signal: diagnose-agent
 code: DOC-501, DOC-503
 title: Six documented paths do not resolve and one internal link is broken
 priority: low
+status: fixed
 labels: [docs, drift]
 files:
   - docs/AUTONOMY_EXAMPLES.md

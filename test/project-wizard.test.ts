@@ -14,6 +14,9 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
   try{
     const projectDir=join(temp,"alpha-twin");
     const created=await createLivingProject({name:"Alpha Twin",outDir:projectDir,managerIntent:"Maintain a validated conceptual twin from customer, code and runtime evidence."});
+    const initialConfig=parseProjectDsl(await readFile(created.configPath,"utf8"));
+    assert.equal(initialConfig.sources.some(source=>source.path==="data/archives"),false,"an empty archive inbox must not pretend to be evidence");
+    assert.equal(await exists(join(projectDir,"data/archives")),true,"the archive inbox remains available for future imports");
     const external=join(temp,"customer file.md");
     await writeFile(external,"# External customer source\n");
     const withExternal=await addProjectSource(created.configPath,"customer",external);

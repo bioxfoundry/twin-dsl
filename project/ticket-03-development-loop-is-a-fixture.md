@@ -3,6 +3,7 @@ id: ticket-03
 signal: manual
 title: The development loop is a fixture — todo2code is not installed, and policy hides it
 priority: high
+status: partial
 labels: [autonomy, evidence, development-loop]
 files:
   - src/adapters/todo2code.ts

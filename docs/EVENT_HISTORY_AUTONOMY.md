@@ -470,7 +470,7 @@ mutations/                     # 0.5.0: propose/apply receipts (gdy użyte)
 
 | Ścieżka | Rola |
 |---------|------|
-| `/home/tom/github/bioxfoundry/idea/Atvirojo kodo biofoundry studija-1.pdf` | intencja strategiczna + evidence customer |
+| `"/home/tom/github/bioxfoundry/idea/Atvirojo kodo biofoundry studija-1.pdf"` | intencja strategiczna + evidence customer |
 | `/home/tom/github/bioxfoundry/nanobionic-laboratory/**` | korpus: SiLA/ROS/OpenTwins, OSCAR, BIO-SPEC, CAD, software |
 
 ### 6.2 Gdzie ma żyć intencja (nie w PDF)

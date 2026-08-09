@@ -3,6 +3,7 @@ id: ticket-04
 signal: manual
 title: The feedback loop carries information but nothing acts on it
 priority: high
+status: open
 labels: [autonomy, feedback-loop, improvement-dsl]
 files:
   - src/runtime/living-project.ts

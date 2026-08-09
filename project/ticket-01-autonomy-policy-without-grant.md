@@ -4,6 +4,7 @@ signal: diagnose-agent
 code: CFG-603
 title: Apply-mode self-modification is enabled with no cryptographic gate behind it
 priority: critical
+status: mitigated
 labels: [security, autonomy, policy, blocker]
 files:
   - ../projects/nanobionic-laboratory-md/project.projectdsl

@@ -49,5 +49,5 @@ projektów. `signing-manifest.json` klasyfikuje każdy kontrakt jako podpisywaln
 delegację człowieka albo kontrakt techniczny. Test portfela wymusza unikalność aktorów, poprawność każdego pliku
 oraz zasadę, że uprawnienie do dalszej delegacji może otrzymać tylko człowiek.
 
-Generowanie całego portfela dokumentów opisuje
-[`CONTRACT_GENERATION.md`](CONTRACT_GENERATION.md).
+Generowanie całego portfela dokumentów opisuje kanoniczna dokumentacja
+[`subactor/platform`](https://github.com/subactor/platform/blob/main/docs/CONTRACT_GENERATION.md).

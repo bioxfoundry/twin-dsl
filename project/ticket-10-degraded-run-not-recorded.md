@@ -3,6 +3,7 @@ id: ticket-10
 signal: manual
 title: A degraded run is indistinguishable from a full one after the fact
 priority: medium
+status: open
 labels: [observability, receipts, autonomy]
 files:
   - src/runtime/living-project.ts

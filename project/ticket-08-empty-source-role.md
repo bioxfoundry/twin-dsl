@@ -4,6 +4,7 @@ signal: diagnose-agent
 code: SRC-102
 title: The archive role is declared but empty, so it grounds nothing
 priority: low
+status: fixed
 labels: [sources, grounding]
 files:
   - ../projects/nanobionic-laboratory-md/project.projectdsl

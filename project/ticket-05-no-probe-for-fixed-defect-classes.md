@@ -3,6 +3,7 @@ id: ticket-05
 signal: manual
 title: diagnose-agent cannot detect the two defect classes just fixed
 priority: medium
+status: open
 labels: [diagnose-agent, coverage, regression-risk]
 files:
   - ../diagnose-agent/src/probes/artifacts.ts

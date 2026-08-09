@@ -3,6 +3,7 @@ id: ticket-09
 signal: manual
 title: twin-probes is unavailable, so runtime evidence has no physical source
 priority: medium
+status: fixed
 labels: [autonomy, evidence, runtime-loop]
 files:
   - src/adapters/twin-probes.ts

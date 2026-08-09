@@ -27,17 +27,19 @@ node dist/src/cli/main.js project-create \
 
 ## Import arbitrary local data
 
-The command copies external data under `imports/`, preserving its availability inside Docker:
+The command copies external data under `imports/`, preserving its availability inside Docker.
+The angle-bracket paths below are illustrative mount points; replace them with paths that exist
+on the host running the command:
 
 ```bash
 node vendor/runtime/dist/src/cli/main.js project-add-source \
-  project.projectdsl customer /srv/customer/specification.pdf
+  project.projectdsl customer <customer-root>/specification.pdf
 
 node vendor/runtime/dist/src/cli/main.js project-add-source \
-  project.projectdsl archive /srv/customer/history.zip
+  project.projectdsl archive <customer-root>/history.zip
 
 node vendor/runtime/dist/src/cli/main.js project-add-source \
-  project.projectdsl development /srv/git/device-runtime
+  project.projectdsl development <development-checkout>
 ```
 
 Inspect `imports/manifest.jsonl` for provenance.

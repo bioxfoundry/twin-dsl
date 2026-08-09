@@ -1,6 +1,6 @@
 {
   "name": "@subactor/digital-twin-runtime-starter",
-  "version": "0.5.6",
+  "version": "0.5.7",
   "private": true,
   "type": "module",
   "engines": {

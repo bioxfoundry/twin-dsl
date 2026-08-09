@@ -3,6 +3,7 @@ id: ticket-02
 signal: manual
 title: A runtime fix still does not reach existing projects — RUNTIME_GENERATION is uncommitted
 priority: high
+status: fixed
 labels: [autonomy, feedback-loop, blocker]
 files:
   - src/core/generation.ts

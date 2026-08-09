@@ -21,13 +21,14 @@ project-add-source project.projectdsl development /work/runtime-repository
 Configure a built todo2code checkout:
 
 ```dotenv
-T2C_HOST_ROOT=/home/user/github/todo2code
+# Replace the placeholder with an absolute host path.
+T2C_HOST_ROOT=<todo2code-checkout>
 ```
 
 ## Runtime logs and environmental data
 
 ```bash
-project-add-source project.projectdsl runtime /var/log/twin
+project-add-source project.projectdsl runtime "$TWIN_LOG_DIR"
 project-add-source project.projectdsl runtime /data/sensors/current.json
 ```
 

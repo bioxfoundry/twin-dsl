@@ -232,7 +232,6 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
       {path:"data/manager",role:"manager",logicalRoot:`subactor://project/${id}/manager`,labels:["authority","policy"]},
       {path:"data/customer",role:"customer",logicalRoot:`subactor://project/${id}/customer`,labels:["requirements"]},
       {path:"data/project",role:"project",logicalRoot:`subactor://project/${id}/data`,labels:["research"]},
-      {path:"data/archives",role:"archive",logicalRoot:`subactor://project/${id}/archives`,labels:["historical"]},
       {path:"feedback",role:"derived",logicalRoot:`subactor://project/${id}/feedback`,labels:["feedback"]},
       {path:"code",role:"development",logicalRoot:`subactor://project/${id}/development`,labels:["code"]},
       {path:"logs",role:"runtime",logicalRoot:`subactor://project/${id}/logs`,labels:["runtime-log"]},
