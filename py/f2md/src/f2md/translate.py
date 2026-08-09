@@ -22,6 +22,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 from .types import ConversionError
+from .llm_patch import PATCH_ENVELOPE_SCHEMA, apply_patch_envelope, patch_messages
 
 #: Chunk size for translation. Argos degrades on very long inputs and LLMs have context limits;
 #: paragraphs are recombined afterwards so Markdown structure survives.
@@ -169,22 +170,14 @@ class OpenRouterTranslator:
         return bool(self.api_key)
 
     def _call(self, prompt: str) -> str:
+        base = {"text": prompt}
+        target_schema = {"type": "object", "properties": {"text": {"type": "string"}}, "required": ["text"], "additionalProperties": False}
         payload = json.dumps(
             {
                 "model": self.model,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": (
-                            f"Translate the user's Markdown into {self.target}. Preserve Markdown "
-                            "structure, headings, tables, lists, code blocks and inline formatting "
-                            "exactly. Do not summarise, comment, or add anything. Output only the "
-                            "translated Markdown."
-                        ),
-                    },
-                    {"role": "user", "content": prompt},
-                ],
+                "messages": patch_messages("markdown-translation", {"task": f"Translate text to {self.target}; preserve Markdown exactly and do not summarize."}, base, ["text"], target_schema),
                 "temperature": 0,
+                "response_format": {"type": "json_schema", "json_schema": {"name": "subactor_patch_envelope", "strict": True, "schema": PATCH_ENVELOPE_SCHEMA}},
             }
         ).encode("utf-8")
         request = urllib.request.Request(
@@ -203,8 +196,12 @@ class OpenRouterTranslator:
         except Exception as error:  # noqa: BLE001
             raise ConversionError(f"OPENROUTER_HTTP:{error}") from error
         try:
-            return str(data["choices"][0]["message"]["content"])
-        except (KeyError, IndexError, TypeError) as error:
+            content = str(data["choices"][0]["message"]["content"])
+            patched = apply_patch_envelope(json.loads(content), "markdown-translation", base, ["text"])
+            if not isinstance(patched.get("text"), str):
+                raise ValueError("TRANSLATION_TEXT_REQUIRED")
+            return patched["text"]
+        except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
             raise ConversionError("OPENROUTER_RESPONSE_MALFORMED") from error
 
     def translate(self, text: str, source: str) -> Translation:

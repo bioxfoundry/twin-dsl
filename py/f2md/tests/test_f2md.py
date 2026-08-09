@@ -29,6 +29,7 @@ from f2md import (
     media_type_for,
 )
 from f2md.cli import main
+from f2md.intent_compile import compile_tree
 from f2md.tree import convert_tree
 
 
@@ -178,6 +179,20 @@ def test_long_text_is_truncated(tmp_path) -> None:
 def test_missing_file_is_reported_clearly(tmp_path) -> None:
     with pytest.raises(ConversionError, match="FILE_NOT_FOUND"):
         convert(str(tmp_path / "nope.md"))
+
+
+def test_intent_compile_removes_generated_packs_excluded_by_language_policy(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    output.mkdir()
+    (source / "kept.md").write_text("---\nlanguage: en\n---\n# Kept\nEvidence\n", encoding="utf-8")
+    (source / "excluded.lt.md").write_text("---\nlanguage: lt\n---\n# Praleista\nDuomenys\n", encoding="utf-8")
+    stale = output / "excluded.lt.md.intent.json"
+    stale.write_text('{"schema":"t2c.intent-pack/v1","records":[{"id":"stale"}]}\n', encoding="utf-8")
+    summary = compile_tree(source, output)
+    assert summary["files"] == 1
+    assert (output / "kept.md.intent.json").exists()
+    assert not stale.exists()
 
 
 # --------------------------------------------------------------------------- chain routing
@@ -450,6 +465,26 @@ def test_unknown_policy_is_rejected() -> None:
 
     with pytest.raises(ConversionError, match="TRANSLATION_POLICY_INVALID"):
         TranslationPolicy("send-it-anywhere", "en")
+
+
+def test_hosted_llm_contract_uses_schema_gbnf_and_hash_bound_patchdsl() -> None:
+    from f2md.llm_patch import apply_patch_envelope, base_hash, patch_messages
+
+    base = {"text": "Dzień dobry"}
+    messages = patch_messages("markdown-translation", {"target": "en"}, base, ["text"], {"type": "object"})
+    assert "TARGET_SCHEMA_JSON" in messages[0]["content"]
+    assert "PATCH_ENVELOPE_SCHEMA_JSON" in messages[0]["content"]
+    assert "PATCH_GBNF" in messages[0]["content"]
+    patch_dsl = "\n".join([
+        'PATCHDSL "subactor.patch-dsl/v1"',
+        'TARGET "markdown-translation"',
+        f'BASE_SHA256 "{base_hash(base)}"',
+        'SET "/text" "Good morning"',
+        "END_PATCH",
+    ])
+    assert apply_patch_envelope({"schema": "subactor.patch-envelope/v1", "patchDsl": patch_dsl}, "markdown-translation", base, ["text"])["text"] == "Good morning"
+    with pytest.raises(ValueError, match="PATCH_PATH_FORBIDDEN"):
+        apply_patch_envelope({"schema": "subactor.patch-envelope/v1", "patchDsl": patch_dsl.replace('/text', '/publish')}, "markdown-translation", base, ["text"])
 
 
 def test_tree_names_originals_by_language_and_keeps_target_unsuffixed(tmp_path) -> None:

@@ -414,8 +414,11 @@ Granica wykonawcza:
 
 ```text
 NL
-→ OpenRouter structured output
-→ lokalna pętla parsera (błąd walidacji wraca do modelu jako repair feedback)
+→ LLM_POLICY + LLM_CONTEXT (target schema + patch schema + GGML GBNF + hash bazy)
+→ OpenRouter: wyłącznie subactor.patch-envelope/v1 z patchDSL
+→ lokalny parser patchDSL (target/hash/capability/JSON Pointer)
+→ deterministyczne zastosowanie patcha do kopii stanu bazowego
+→ lokalna pętla parsera domenowego (błąd wraca jako LLM_REPAIR DSL)
 → canonical DSL AST
 → walidacja domenowa
 → hash
@@ -424,6 +427,9 @@ NL
 ```
 
 Po materializacji runtime współpracuje wyłącznie przez kontrakty DSL i URI. Natural language nie jest przekazywany do executorów.
+Ta sama granica obowiązuje tłumaczenie i kompilację intencji w Pythonowym `f2md`, advisory
+`diagnose-agent` oraz propozycje diffów `repair-agent`; żaden z tych klientów nie akceptuje już
+surowej prozy ani gotowego artefaktu jako odpowiedzi modelu.
 
 ## Aktualny poziom autonomii
 

@@ -15,6 +15,23 @@ import { geometryReceiptEvidence, mergeGeometryEvidence } from "../src/geometry/
 
 const run = promisify(execFile);
 
+test("SCAD intent conversion keeps repeated local variable assignments uniquely addressable", async () => {
+  const root = await mkdtemp(join(tmpdir(), "scad-intent-"));
+  const source = join(root, "model.scad");
+  const markdown = join(root, "model.scad.md");
+  const intent = join(root, "model.scad.md.intent.json");
+  const report = join(root, "compile-report.json");
+  await writeFile(source, "angle = base_a + i;\nangle = base_b + i;\ncylinder(h=1,r=2);\n");
+  await writeFile(report, JSON.stringify({ schema: "subactor.intent-compile-report/v1", source: root, output: root, files: 0, records: 0, failures: [] }));
+  await run("python3", ["scripts/scad-to-markdown.py", source, markdown, intent, "--compile-report", report], { cwd: process.cwd() });
+  const pack = JSON.parse(await readFile(intent, "utf8")) as { records: Array<{ id: string; source: { fragment: string } }> };
+  const summary = JSON.parse(await readFile(report, "utf8")) as { files: number; records: number };
+  assert.equal(new Set(pack.records.map((record) => record.id)).size, pack.records.length);
+  assert.notEqual(pack.records[0].source.fragment, pack.records[1].source.fragment);
+  assert.equal(summary.files, 1);
+  assert.equal(summary.records, pack.records.length);
+});
+
 function contract(sourceHash = "a".repeat(64)): GeometryBuildContract {
   return {
     schema: "subactor.geometry-build/v1",

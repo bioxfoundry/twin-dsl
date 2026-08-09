@@ -31,6 +31,30 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.8] - 2026-08-09
+
+### Docs
+- Update README.md
+- Update docs/OPENROUTER_NL_TO_DSL.md
+
+### Test
+- Update test/geometry-build.test.ts
+- Update test/openrouter.test.ts
+- Update test/patch-dsl.test.ts
+- Update test/todo2code-adapter.test.ts
+
+### Other
+- Update py/f2md/src/f2md/intent_compile.py
+- Update py/f2md/src/f2md/llm_patch.py
+- Update py/f2md/src/f2md/translate.py
+- Update py/f2md/tests/test_f2md.py
+- Update scripts/scad-to-markdown.py
+- Update src/adapters/todo2code.ts
+- Update src/llm/dsl-schemas.ts
+- Update src/llm/nl-dsl-compiler.ts
+- Update src/llm/openrouter.ts
+- Update src/llm/patch-dsl.ts
+
 ## [0.5.7] - 2026-08-09
 
 ### Docs

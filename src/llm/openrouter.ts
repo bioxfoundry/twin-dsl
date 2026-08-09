@@ -1,6 +1,7 @@
 import type { GenerationAudit, LlmMode } from "../core/types.js";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { renderPatchRepair } from "./patch-dsl.js";
 
 export interface OpenRouterConfig {
   apiKey: string;
@@ -65,13 +66,7 @@ export class OpenRouterStructuredClient {
     if(!this.configured())throw new Error('OPENROUTER_NOT_CONFIGURED');
     const started=Date.now();let lastError:unknown;let validationFeedback:string|undefined;
     for(let attempt=0;attempt<=this.config.maxRetries;attempt++){
-      const repairInstruction=validationFeedback?[
-        '',
-        `LOCAL_VALIDATION_REPAIR attempt=${attempt + 1}`,
-        `The previous structured response was rejected by the local DSL parser: ${validationFeedback}`,
-        'Return a corrected response matching the same JSON schema.',
-        'When the schema contains a `dsl` field, its value must be raw DSL text: no Markdown fence, language label, preface or explanation.',
-      ].join('\n'):'';
+      const repairInstruction=validationFeedback?`\n${renderPatchRepair(attempt + 1,validationFeedback)}`:'';
       try{return await this.request({...input,system:input.system+repairInstruction},started,'json_schema');}
       catch(error){
         lastError=error;

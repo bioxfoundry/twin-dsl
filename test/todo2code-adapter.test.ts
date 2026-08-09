@@ -50,3 +50,16 @@ test("todo2code adapter resolves v0.5 artifact pointers relative to the analyzed
     await rm(directory,{recursive:true,force:true});
   }
 });
+
+test("todo2code NL extraction is forced deterministic before local patchDSL enrichment",async()=>{
+  const directory=await mkdtemp(join(tmpdir(),"t2c-adapter-nl-"));
+  try{
+    const bin=join(directory,"fake-t2c.mjs");
+    await writeFile(bin,`import{writeFile}from'node:fs/promises';const a=process.argv.slice(2);if(a[0]!=='extract'||a[1]!=='nl'||process.env.T2C_NL_MODE!=='deterministic')process.exit(2);const out=a[a.indexOf('--out')+1];await writeFile(out,JSON.stringify({schema:'t2c.intent/v1',id:'i-1',type:'request',text:'baseline',actor:'test',targetUris:['urn:test']})+'\\n');`);
+    const adapter=new Todo2CodeAdapter(directory,bin);
+    const records=await adapter.extractNl("request","require-llm");
+    assert.equal((records[0] as {text:string}).text,"baseline");
+  }finally{
+    await rm(directory,{recursive:true,force:true});
+  }
+});

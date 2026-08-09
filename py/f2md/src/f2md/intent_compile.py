@@ -15,6 +15,7 @@ import re
 import urllib.request
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
+from .llm_patch import PATCH_ENVELOPE_SCHEMA, apply_patch_envelope, patch_messages
 
 
 def _hash(value: str) -> str:
@@ -98,6 +99,7 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
 def compile_tree(source: str | Path, output: str | Path, only_english: bool = True) -> Dict[str, Any]:
     root, out = Path(source).resolve(), Path(output).resolve()
     out.mkdir(parents=True, exist_ok=True)
+    expected_targets: set[Path] = set()
     summary: Dict[str, Any] = {"schema": "subactor.intent-compile-report/v1", "source": str(root),
                                "output": str(out), "files": 0, "records": 0, "failures": []}
     for path in sorted(root.rglob("*.md")):
@@ -113,6 +115,7 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
             records = compile_markdown(path, root)
             rel = path.relative_to(root)
             target = out / rel.parent / f"{rel.name}.intent.json"
+            expected_targets.add(target.resolve())
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps({"schema": "t2c.intent-pack/v1", "source": str(path),
                                           "sourceHash": _hash(text), "records": records}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -120,6 +123,12 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
             summary["records"] += len(records)
         except (OSError, ValueError) as error:
             summary["failures"].append({"path": str(path), "error": str(error)})
+    # The output directory is a generated file contract. Without reconciliation, a file
+    # excluded by the current language policy remains visible forever and silently changes
+    # downstream intent even though the compile report no longer counts it.
+    for generated in out.rglob("*.intent.json"):
+        if generated.resolve() not in expected_targets:
+            generated.unlink()
     (out / "compile-report.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     return summary
 
@@ -132,26 +141,18 @@ def openrouter_proposal(markdown: str, model: Optional[str] = None, target_uri: 
     chosen = model or os.environ.get("OPENROUTER_MODEL", "")
     if not chosen:
         raise RuntimeError("OPENROUTER_MODEL_MISSING")
-    target_instruction = f"Use this exact targetUris value in every record: [{json.dumps(target_uri)}]." if target_uri else "Every record must contain at least one target URI copied from the source text."
-    payload = json.dumps({"model": chosen, "temperature": 0, "messages": [
-        {"role": "system", "content": (
-            "Return only a JSON array. Every item MUST exactly use this shape: "
-            "{schema:'t2c.intent/v1',id:string,type:'request'|'plan'|'decision'|'message'|'report'|'result'|'claim',"
-            "text:string,actor:string,targetUris:string[]}. No name, description, trainingPhrases, or other keys. "
-            f"Do not publish, mutate, or invent source URIs. {target_instruction}"
-        )},
-        {"role": "user", "content": markdown[:100000]},
-    ]}).encode()
+    base = {"records": []}
+    record_schema = {"type": "object", "properties": {"schema": {"const": "t2c.intent/v1"}, "id": {"type": "string"}, "type": {"enum": ["request", "plan", "decision", "message", "report", "result", "claim"]}, "text": {"type": "string"}, "actor": {"type": "string"}, "targetUris": {"type": "array", "items": {"type": "string"}, "minItems": 1}}, "required": ["schema", "id", "type", "text", "actor", "targetUris"], "additionalProperties": False}
+    target_schema = {"type": "object", "properties": {"records": {"type": "array", "items": record_schema, "minItems": 1}}, "required": ["records"], "additionalProperties": False}
+    task = {"task": "Compile evidence into t2c.intent/v1 proposals. Do not publish, mutate, or invent source URIs.", "targetUri": target_uri, "markdown": markdown[:100000]}
+    payload = json.dumps({"model": chosen, "temperature": 0, "messages": patch_messages("intent-compile", task, base, ["records"], target_schema), "response_format": {"type": "json_schema", "json_schema": {"name": "subactor_patch_envelope", "strict": True, "schema": PATCH_ENVELOPE_SCHEMA}}}).encode()
     request = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=payload,
                                     headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(request, timeout=180) as response:
         envelope = json.loads(response.read().decode())
     content = str(envelope["choices"][0]["message"]["content"]).strip()
-    # Models frequently wrap otherwise valid JSON in a Markdown fence. Remove only that wrapper;
-    # never repair fields or silently coerce a non-intent response into a different schema.
-    fenced = re.match(r"^```(?:json)?\s*([\s\S]*?)\s*```$", content, re.IGNORECASE)
-    proposed = json.loads(fenced.group(1) if fenced else content)
-    return validate_intents(proposed)
+    patched = apply_patch_envelope(json.loads(content), "intent-compile", base, ["records"])
+    return validate_intents(patched.get("records"))
 
 
 def main(argv: Optional[List[str]] = None) -> int:

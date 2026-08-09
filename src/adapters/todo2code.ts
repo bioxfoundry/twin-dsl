@@ -92,14 +92,17 @@ export class Todo2CodeAdapter {
     return (await this.readLatestAnalysis(analyzedRoot,out))?.graph;
   }
 
-  async extractNl(text:string,mode:LlmMode):Promise<unknown[]> {
+  async extractNl(text:string,_mode:LlmMode):Promise<unknown[]> {
     if(!await this.available()) throw new Error("TODO2CODE_NOT_AVAILABLE");
     const directory = await mkdtemp(join(tmpdir(),"t2c-nl-"));
     try {
       const input = join(directory,"request.md");
       const out = join(directory,"intent.jsonl");
       await writeFile(input,text,"utf8");
-      await run(process.execPath,[this.bin,"extract","nl",input,"--root",directory,"--out",out],this.root||process.cwd(),{...process.env,T2C_NL_MODE:mode});
+      // todo2code owns the deterministic Intent Evidence baseline only. Any optional model
+      // enrichment is performed later by NlDslCompiler through the local schema+GBNF patchDSL
+      // boundary, so no external client can silently reintroduce a raw LLM response here.
+      await run(process.execPath,[this.bin,"extract","nl",input,"--root",directory,"--out",out],this.root||process.cwd(),{...process.env,T2C_NL_MODE:"deterministic"});
       const raw = await readFile(out,"utf8");
       return raw.split(/\r?\n/).filter(Boolean).map(line=>JSON.parse(line));
     } finally {

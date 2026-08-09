@@ -1,11 +1,11 @@
-# OpenRouter: NL → *DSL
+# OpenRouter: NL → patchDSL → *DSL
 
 ## Zakres
 
 `NlDslCompiler` zapewnia jedną granicę dla:
 
 ```text
-NL → intentDSL   przez todo2code
+NL → intentDSL   (deterministyczna baza todo2code + patchDSL)
 NL → resourceDSL plan
 NL → queryDSL
 NL → DQL crawl
@@ -15,7 +15,7 @@ NL → twinDSL
 NL → sceneDSL
 ```
 
-## Dlaczego Intent pozostaje w todo2code
+## Rola todo2code w Intent
 
 `todo2code` już posiada:
 
@@ -26,7 +26,7 @@ NL → sceneDSL
 - walidację structured outputs;
 - graf i diagnostykę Intent vs Reality.
 
-Starter wywołuje jego CLI:
+Starter wywołuje jego CLI w trybie deterministycznym, aby uzyskać stan bazowy:
 
 ```bash
 t2c extract nl request.md --root <tmp> --out intent.jsonl
@@ -37,17 +37,36 @@ Konfiguracja:
 ```dotenv
 T2C_ROOT=/home/tom/github/semcod/todo2code
 T2C_BIN=/home/tom/github/semcod/todo2code/dist/src/cli.js
-T2C_NL_MODE=require-llm
+T2C_NL_MODE=deterministic
 ```
 
-## Pozostałe DSL
+Ewentualne wzbogacenie przez model nie jest delegowane do klienta LLM `todo2code`. Przechodzi
+przez tę samą lokalną granicę patchDSL co pozostałe artefakty.
+
+## Jedyna granica LLM
 
 OpenRouter otrzymuje:
 
-- systemową instrukcję dotyczącą authority i zakazu wymyślania dowodów;
-- natural-language request;
-- runtime context zawierający dozwolone URI, snapshot, manager policy i dane;
-- JSON Schema właściwe dla etapu.
+- `LLM_POLICY subactor.llm-policy/v1` zapisane jako DSL;
+- `LLM_CONTEXT subactor.llm-context/v1` z żądaniem, stanem bazowym i dozwolonymi ścieżkami;
+- JSON Schema docelowego artefaktu i koperty patcha;
+- gramatykę GGML GBNF dla `subactor.patch-dsl/v1`;
+- SHA-256 kanonicznego stanu bazowego.
+
+Model nie zwraca Twin, Scene, mathDSL ani tekstu bezpośrednio. Jedynym wynikiem jest:
+
+```text
+PATCHDSL "subactor.patch-dsl/v1"
+TARGET "math"
+BASE_SHA256 "<64 lowercase hex>"
+SET "/dsl" "MATH proposed-v1\n..."
+END_PATCH
+```
+
+Tekst patchDSL znajduje się w ścisłej kopercie `subactor.patch-envelope/v1`. Lokalny algorytm
+sprawdza kopertę, gramatykę, target, hash bazy, limit operacji, bezpieczeństwo JSON Pointer i
+listę dozwolonych korzeni. Dopiero potem stosuje patch do kopii bazy i przekazuje wynik do
+istniejącego parsera oraz walidatora domenowego. Model nie wykonuje patcha i nie zapisuje plików.
 
 Indeks zasobów jest kompaktowany do pól tożsamości/proweniencji i ograniczony przez
 `DT_LLM_RESOURCE_CONTEXT_LIMIT` (domyślnie 80). Pełny korpus nadal pozostaje wejściem
@@ -61,7 +80,12 @@ Wysyłane ustawienia:
     "type": "json_schema",
     "json_schema": {
       "strict": true,
-      "schema": {}
+      "schema": {
+        "properties": {
+          "schema": {"const":"subactor.patch-envelope/v1"},
+          "patchDsl": {"type":"string"}
+        }
+      }
     }
   },
   "provider": {
@@ -129,9 +153,10 @@ Dopiero importer odczytuje źródło i materializuje immutable resource URI.
 - `data_collection=deny`;
 - `response-healing`;
 - brak klucza API w wyniku;
-- parser `mathDSL` po odpowiedzi.
+- parser patchDSL i parser `mathDSL` po kontrolowanym zastosowaniu patcha;
+- odrzucenie złego hasha bazy, targetu, obcej ścieżki i niebezpiecznego JSON Pointer;
 - korektę słabszego modelu: kod lokalnego parsera (np. `MATH_HEADER_REQUIRED`) wraca w następnej
-  próbie, a odpowiedź w pojedynczym Markdown fence jest normalizowana do surowego DSL.
+  próbie jako `LLM_REPAIR`; Markdown fence i swobodna proza są odrzucane.
 
 ## Zweryfikowany GLM-5.2
 
