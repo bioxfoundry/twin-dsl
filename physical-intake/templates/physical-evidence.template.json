@@ -11,31 +11,31 @@
       "componentId": "facility_shell",
       "kind": "space",
       "evidence": "cad",
-      "position": [0, 0, 0],
-      "size": [1, 1, 1],
+      "position": [0, 0, 1.5],
+      "size": [10, 10, 3],
       "sourceRef": "REPLACE-eg-plan:A3-sheet1 or ifc:1a2B3c4D",
       "properties": {
-        "clearHeightM": 0,
-        "note": "size = [width X, depth Y, slab thickness Z] in metres"
+        "clearHeightM": 3,
+        "note": "position is the AABB centre; size = [width X, depth Y, height Z] in metres"
       }
     },
     {
       "componentId": "build",
       "kind": "space",
       "evidence": "measured",
-      "position": [0, 0, 0],
-      "size": [1, 1, 1],
+      "position": [0, 0, 1.5],
+      "size": [5, 5, 3],
       "sourceRef": "REPLACE-eg-room-schedule-row-12",
       "properties": {
         "roomName": "REPLACE",
-        "clearHeightM": 0
+        "clearHeightM": 3
       }
     },
     {
       "componentId": "liquid_handler_01",
       "kind": "equipment",
       "evidence": "measured",
-      "position": [0, 0, 0],
+      "position": [0, 0, 0.5],
       "size": [1, 1, 1],
       "sourceRef": "REPLACE-eg-register:LH-01",
       "properties": {

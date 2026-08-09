@@ -80,6 +80,10 @@ quaternion in canonical `[x,y,z,w]` order; the OpenUSD renderer converts it to U
 `angleToleranceDeg` make the acceptance threshold explicit instead of hiding it in the
 renderer.
 
+`position` is the centre of the local AABB, not its lower or north-west corner. Therefore a
+3.2 m-high room resting on datum Z=0 has `position[2] = 1.6` and `size[2] = 3.2`. Exporters that
+describe spaces by their floor elevation must add half the height before emitting evidence.
+
 The document may also contain deterministic constraints:
 
 - `inside`: the subject's conservative world AABB must fit inside the object's AABB with

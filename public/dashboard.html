@@ -428,8 +428,14 @@ function draw(pick){
     const m=o.mesh||MESH[o.prim]||MESH.cube;
     gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
-    if(m.parts?.length){for(const part of m.parts){if(!pick)gl.uniform3f(U.color,...part.color);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,part.ib);gl.drawElements(gl.TRIANGLES,part.count,part.type,0);}}
-    else gl.drawArrays(gl.TRIANGLES,0,m.count);
+    // A room or facility envelope is a containing volume, not a solid obstruction. Keep it
+    // pickable with filled faces in the id pass, but show only its boundary in the normal pass
+    // so measured equipment inside remains visible and spatially legible.
+    const spatialVolume=!o.assetUri&&o.prim==='cube'&&o.size[2]>.5&&['facility','system-layer','space'].includes(o.type)&&['physical','hybrid'].includes(o.spatialClass);
+    if(pick||!spatialVolume){
+      if(m.parts?.length){for(const part of m.parts){if(!pick)gl.uniform3f(U.color,...part.color);gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,part.ib);gl.drawElements(gl.TRIANGLES,part.count,part.type,0);}}
+      else gl.drawArrays(gl.TRIANGLES,0,m.count);
+    }
     if(!pick){
       // Outline pass: without it a floor slab and the zone slab on top of it read as one surface.
       gl.uniform1f(U.flat,1);
@@ -584,10 +590,11 @@ function paintStats(state,events){
   const version=latest&&latest.streamVersion;
   const occurred=latest&&(latest.occurredAt||latest.recordedAt);
   const valid=latest&&latest.payload&&latest.payload.validation&&latest.payload.validation.ok;
+  const iterationState=valid===true?'accepted':valid===false&&state.active?.status==='accepted'?'candidate rejected · active preserved':valid===false?'rejected':'status unknown';
   $('last-iteration').textContent=latest
-    ?`iteration v${version??'?'} · ${occurred?new Date(occurred).toLocaleString():'time unknown'} · ${valid===true?'valid':valid===false?'invalid':'status unknown'}`
+    ?`iteration v${version??'?'} · ${occurred?new Date(occurred).toLocaleString():'time unknown'} · ${iterationState}`
     :'no iteration recorded';
-  $('last-iteration').className='sub '+(valid===true?'ok':valid===false?'bad':'');
+  $('last-iteration').className='sub '+(valid===true?'ok':valid===false&&state.active?.status==='accepted'?'warn':valid===false?'bad':'');
   $('last-iteration').title=occurred||'';
 }
 
@@ -668,8 +675,8 @@ $('btn-intake').onclick=async()=>{
     coordinateSystem:{unit:'m',upAxis:'Z',origin:'site-datum-A'},
     records:[
       {componentId:'facility_shell',kind:'space',evidence:'ifc',position:[0,0,0],size:[58.2,34.6,.2],sourceRef:'ifc:0xF17A'},
-      {componentId:'build',kind:'space',evidence:'cad',position:[7.5,9,0],size:[12.4,14.2,3.2],sourceRef:'plan:A3-sheet2'},
-      {componentId:'test',kind:'space',evidence:'cad',position:[22.5,9,0],size:[12.8,14.2,3.2],sourceRef:'plan:A3-sheet2'},
+      {componentId:'build',kind:'space',evidence:'cad',position:[7.5,9,1.6],size:[12.4,14.2,3.2],sourceRef:'plan:A3-sheet2'},
+      {componentId:'test',kind:'space',evidence:'cad',position:[22.5,9,1.6],size:[12.8,14.2,3.2],sourceRef:'plan:A3-sheet2'},
       {componentId:'liquid_handler_01',kind:'equipment',evidence:'measured',position:[4.6,10.1,.9],size:[2.24,1.58,1.81],sourceRef:'register:LH-01'},
       {componentId:'sequencing_01',kind:'equipment',evidence:'measured',position:[19.6,10.2,.9],size:[1.94,1.42,1.72],sourceRef:'register:SEQ-01'},
       {componentId:'biospec_bioreactor_01',kind:'equipment',evidence:'ifc',position:[21,-11.5,1.1],size:[2.86,2.86,2.24],sourceRef:'ifc:2N4mP'},

@@ -882,29 +882,50 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
         glb = artifact_root / "model.glb"
         usda = artifact_root / "model.usda"
         canonical_receipt = output_root.resolve() / "receipts" / f"{contract['id']}-{build_hash}.json"
+        cached_receipts: list[dict[str, Any]] = []
         if canonical_receipt.is_file():
-            cached = json.loads(canonical_receipt.read_text(encoding="utf-8"))
-            cached_artifacts = cached.get("artifacts", {})
-            required_artifacts = [cached_artifacts.get(name) for name in ("3mf", "glb", "usda")]
-            intact = all(
-                isinstance(item, dict)
-                and isinstance(item.get("path"), str)
-                and isinstance(item.get("sha256"), str)
-                and Path(item["path"]).is_file()
-                and sha256_file(Path(item["path"])) == item["sha256"]
-                for item in required_artifacts
+            cached_receipts.append(json.loads(canonical_receipt.read_text(encoding="utf-8")))
+        # A pre-fix run may have replaced the canonical receipt with a transient failure even
+        # though the living runtime still holds the last accepted, verified receipt. Use that
+        # file contract as a recovery source; never infer cache identity from filenames alone.
+        runtime_root = output_root.resolve().parent
+        for scope in ("current", "candidate"):
+            index_path = runtime_root / scope / "geometry-builds.json"
+            if not index_path.is_file():
+                continue
+            index = json.loads(index_path.read_text(encoding="utf-8"))
+            cached_receipts.extend(
+                item for item in index.get("receipts", [])
+                if isinstance(item, dict) and item.get("geometryBuildHash") == build_hash
             )
+        for cached in cached_receipts:
+            cached_artifacts = cached.get("artifacts", {})
+            # Receipt paths are observations of the environment that produced them. The same
+            # content-addressed cache can be mounted at /project in a container and at an
+            # arbitrary host checkout later, so validate the canonical local build paths and
+            # rebase the receipt instead of treating a stale absolute prefix as missing bytes.
+            local_artifacts = {"3mf": canonical, "glb": glb, "usda": usda}
+            intact = all(
+                isinstance(cached_artifacts.get(name), dict)
+                and isinstance(cached_artifacts[name].get("sha256"), str)
+                and path.is_file()
+                and sha256_file(path) == cached_artifacts[name]["sha256"]
+                for name, path in local_artifacts.items()
+            )
+            if intact:
+                for name, path in local_artifacts.items():
+                    cached_artifacts[name]["path"] = str(path.resolve())
+                    cached_artifacts[name]["bytes"] = path.stat().st_size
             if intact and cached.get("status") == "succeeded" and cached.get("validationPolicyHash") == validation_hash and cached.get("geometryHashProfile") == "subactor.semantic-triangle-soup/v2":
                 cached.update({"cacheHit": True, "startedAt": started, "completedAt": utc_now()})
+                canonical_receipt.write_text(json.dumps(cached, indent=2) + "\n", encoding="utf-8")
                 receipt_path.parent.mkdir(parents=True, exist_ok=True)
                 receipt_path.write_text(json.dumps(cached, indent=2) + "\n", encoding="utf-8")
                 return cached
             if intact:
-                canonical = Path(cached_artifacts["3mf"]["path"])
-                glb = Path(cached_artifacts["glb"]["path"])
-                usda = Path(cached_artifacts["usda"]["path"])
                 actual_dependencies = list(cached.get("dependencies", {}).get("actual", []))
                 compile_cache_hit = True
+                break
 
         if not compile_cache_hit:
             actual_dependencies = compile_scad_to_3mf(binary, source, dependencies, contract, artifact_root, canonical)
@@ -1029,7 +1050,10 @@ def run_scad(contract_path: Path, output_root: Path, receipt_path: Path) -> dict
             },
             "error": {"code": error_urn(code), "message": message[:4000]},
         }
-        if canonical_receipt is not None:
+        # A transient recompilation failure must not erase metadata for already verified,
+        # content-addressed artifacts. Keep an existing canonical receipt when this attempt
+        # produced no reusable bytes; the per-attempt receipt below still records the error.
+        if canonical_receipt is not None and (artifacts or not canonical_receipt.exists()):
             canonical_receipt.parent.mkdir(parents=True, exist_ok=True)
             canonical_receipt.write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     receipt_path.parent.mkdir(parents=True, exist_ok=True)

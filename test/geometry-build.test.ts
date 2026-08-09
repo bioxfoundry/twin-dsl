@@ -227,8 +227,15 @@ test("reference extent drift blocks evidence while keeping compiled artifacts re
   assert.ok(Math.abs((first.validation.referenceExtentDeltaM ?? 0) - 0.004) < 1e-12);
   assert.equal(first.repairProcess, "subactor://process/repair/geometry/reconcile-source-evidence");
   assert.ok(first.artifacts["3mf"] && first.artifacts.glb && first.artifacts.usda);
+  const canonicalReceiptPath=join(output,"receipts",`${value.id}-${first.geometryBuildHash}.json`);
+  const portableCache=JSON.parse(await readFile(canonicalReceiptPath,"utf8")) as GeometryBuildReceipt;
+  for(const [name,item] of Object.entries(portableCache.artifacts)) item.path=`/project/.living-runtime/geometry/${name}`;
+  await mkdir(join(root,"current"));
+  await writeFile(join(root,"current/geometry-builds.json"),JSON.stringify({receipts:[portableCache]}));
+  await writeFile(canonicalReceiptPath,JSON.stringify({...portableCache,artifacts:{}}));
   await assert.rejects(run("python3", [...args, "--receipt", secondPath], { cwd: process.cwd(), env: { ...process.env, OPENSCAD_BIN: fake } }));
   const second = validateGeometryBuildReceipt(JSON.parse(await readFile(secondPath, "utf8")));
   assert.equal(second.cacheHit, true);
   assert.equal(second.geometryBuildHash, first.geometryBuildHash);
+  assert.ok(Object.values(second.artifacts).every(item=>item.path.startsWith(output)),"portable cache paths are rebased to the active output root");
 });

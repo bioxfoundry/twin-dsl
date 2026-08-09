@@ -32,8 +32,8 @@
             "enum": ["placeholder", "document", "measured", "cad", "ifc", "verified"],
             "description": "Ranked weakest to strongest."
           },
-          "position": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
-          "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}},
+          "position": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}, "description": "Centre of the local AABB in metres, relative to coordinateSystem.origin; not a floor or corner coordinate."},
+          "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}, "description": "Full local AABB extents [X,Y,Z] in metres."},
           "orientation": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}, "description": "Normalized quaternion [x,y,z,w]."},
           "positionToleranceM": {"type": "number", "minimum": 0},
           "sizeToleranceM": {"type": "number", "minimum": 0},

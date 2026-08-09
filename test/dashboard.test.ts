@@ -88,6 +88,9 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /orientation:b\.orientation/);
   assert.match(dashboardHtml, /normalizeAssetMesh/);
   assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size,o\.orientation\)/);
+  assert.match(dashboardHtml, /const spatialVolume=/);
+  assert.match(dashboardHtml, /candidate rejected · active preserved/);
+  assert.match(dashboardHtml, /position:\[7\.5,9,1\.6\]/);
   assert.match(dashboardHtml, /id="p-validation"/);
   assert.match(dashboardHtml, /state\.projectIntegrity/);
   assert.match(dashboardHtml, /id="r-active"/);
