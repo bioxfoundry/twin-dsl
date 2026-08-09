@@ -1,6 +1,6 @@
 FROM node:22-bookworm-slim
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends git openscad python3 \
+    && apt-get install -y --no-install-recommends git openscad python3 unzip \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/runtime
 COPY dist ./dist

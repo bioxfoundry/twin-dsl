@@ -47,7 +47,7 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     const runtimeDockerfile=await readFile(join(projectDir,"vendor/runtime/Dockerfile"),"utf8");
     assert.match(runtimeDockerfile,/COPY scripts\/cad-to-gltf\.py \.\/scripts\/cad-to-gltf\.py/);
     assert.match(runtimeDockerfile,/COPY public \.\/public/);
-    assert.match(runtimeDockerfile,/apt-get install[^\n]*git openscad python3/);
+    assert.match(runtimeDockerfile,/apt-get install[^\n]*git openscad python3 unzip/);
 
     // Disable live web request for the local fixture test.
     const config=parseProjectDsl(await readFile(created.configPath,"utf8"));
