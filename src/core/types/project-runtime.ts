@@ -327,9 +327,12 @@ export interface MutationProposalReceipt {
   workspace: { kind: "git-worktree" | "directory-copy"; path: string; branch?: string } | null;
   sourcePatchUri: string | null;
   sourcePatchPath: string | null;
+  closeResultUri?: string | null;
+  closeResultPath?: string | null;
+  allAccepted?: boolean | null;
   failures: string[];
   stages: Array<{
-    name: "grant" | "isolate" | "propose-source-patch" | "apply-source-patch";
+    name: "grant" | "isolate" | "propose-source-patch" | "apply-source-patch" | "re-analyze" | "close-code-change";
     status: "succeeded" | "blocked" | "failed";
     reason?: string;
   }>;

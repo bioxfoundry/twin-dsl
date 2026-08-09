@@ -56,6 +56,9 @@
     },
     "sourcePatchUri": { "type": ["string", "null"] },
     "sourcePatchPath": { "type": ["string", "null"] },
+    "closeResultUri": { "type": ["string", "null"] },
+    "closeResultPath": { "type": ["string", "null"] },
+    "allAccepted": { "type": ["boolean", "null"] },
     "failures": { "type": "array", "items": { "type": "string" } },
     "stages": {
       "type": "array",
@@ -65,7 +68,7 @@
         "required": ["name", "status"],
         "properties": {
           "name": {
-            "enum": ["grant", "isolate", "propose-source-patch", "apply-source-patch"]
+            "enum": ["grant", "isolate", "propose-source-patch", "apply-source-patch", "re-analyze", "close-code-change"]
           },
           "status": { "enum": ["succeeded", "blocked", "failed"] },
           "reason": { "type": "string" }

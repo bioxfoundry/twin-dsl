@@ -79,6 +79,11 @@ node dist/src/cli/main.js mutation-apply project.projectdsl plan.json source-pat
 
 Real `semcod/todo2code` is preferred for `propose-source-patch` / `apply-source-patch`. Without it, propose writes a structured empty proposal so the control plane remains testable offline.
 
+After an isolated apply, the runtime runs `todo2code pipeline` again and evaluates the reviewed plan
+with `close-code-change`. Both graphs and diagnostic sets are persisted beside the mutation receipt.
+Only `allAccepted=true` produces `applied-isolated`; failed or rejected acceptance remains isolated
+and is never promoted.
+
 ### twin-probes evidence
 
 ```bash

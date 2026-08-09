@@ -18,7 +18,7 @@ import type {
   SignedMutationGrant,
 } from "../core/types.js";
 import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
-import { Todo2CodeAdapter } from "../adapters/todo2code.js";
+import { Todo2CodeAdapter, type Todo2CodeAnalysis } from "../adapters/todo2code.js";
 import { createIsolatedWorkspace, type IsolatedWorkspace } from "./isolated-worktree.js";
 import {
   consumeMutationGrantJti,
@@ -49,6 +49,19 @@ export interface MutationApplyInput extends MutationProposeInput {
 
 function object(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : undefined;
+}
+
+async function persistAnalysisEvidence(
+  directory: string,
+  prefix: "before" | "after",
+  analysis: { graph: unknown; diagnostics: unknown },
+): Promise<{ graphPath:string; diagnosticsPath:string }> {
+  await mkdir(directory,{recursive:true});
+  const graphPath=join(directory,`${prefix}.graph.json`);
+  const diagnosticsPath=join(directory,`${prefix}.diagnostics.json`);
+  await writeFile(graphPath,JSON.stringify(analysis.graph,null,2)+"\n");
+  await writeFile(diagnosticsPath,JSON.stringify(analysis.diagnostics,null,2)+"\n");
+  return {graphPath,diagnosticsPath};
 }
 
 export function planHashOf(plan: unknown): string {
@@ -231,6 +244,7 @@ export async function proposeCodeMutation(input: MutationProposeInput): Promise<
  * Requires: autonomyMode=apply, allowRuntimeSelfModification, verified grant, approval hash.
  */
 export async function applyCodeMutation(input: MutationApplyInput): Promise<MutationProposalReceipt> {
+  const startedAt = new Date().toISOString();
   if (input.project.policy.autonomyMode !== "apply") throw new Error("MUTATION_APPLY_REQUIRES_APPLY_MODE");
   if (!input.project.policy.allowRuntimeSelfModification) throw new Error("MUTATION_APPLY_SELF_MODIFICATION_DISABLED");
   if (!input.approvalHash?.trim()) throw new Error("MUTATION_APPLY_APPROVAL_HASH_REQUIRED");
@@ -240,34 +254,90 @@ export async function applyCodeMutation(input: MutationApplyInput): Promise<Muta
   const grantResult = await resolveGrant({ ...input, grant: input.grant }, planHash);
   if (!grantResult.ok) throw new Error(`MUTATION_APPLY_GRANT_INVALID:${grantResult.error}`);
 
-  const jtiDir = join(resolve(input.outDir), "mutations", "jti");
-  const consumed = await consumeMutationGrantJti(grantResult.claims.jti, grantResult.claims.expires_at, jtiDir);
-  if (!consumed.ok) throw new Error(`MUTATION_APPLY_GRANT_CONSUME:${consumed.error}`);
-
   const adapter = input.todo2code ?? new Todo2CodeAdapter();
   if (!(await adapter.available())) throw new Error("MUTATION_APPLY_TODO2CODE_REQUIRED");
 
+  const outDir=resolve(input.outDir);
+  const beforeAnalysis=await adapter.readLatestAnalysis(input.developmentRoot,join(outDir,"development"));
+  if(!beforeAnalysis) throw new Error("MUTATION_APPLY_BEFORE_ANALYSIS_REQUIRED");
+
+  const jtiDir = join(outDir, "mutations", "jti");
+  const consumed = await consumeMutationGrantJti(grantResult.claims.jti, grantResult.claims.expires_at, jtiDir);
+  if (!consumed.ok) throw new Error(`MUTATION_APPLY_GRANT_CONSUME:${consumed.error}`);
+
   const workspace = await createIsolatedWorkspace(input.developmentRoot, {
     label: `${input.project.id}-apply`,
-    parentDir: join(resolve(input.outDir), "mutations", "workspaces"),
+    parentDir: join(outDir, "mutations", "workspaces"),
   });
   const applyId = randomUUID();
+  const stages:MutationProposalReceipt["stages"]=[
+    { name: "grant", status: "succeeded", reason: "consumed" },
+    { name: "isolate", status: "succeeded", reason: workspace.kind },
+  ];
+  let closeResult:unknown=null;
+  let closeResultPath:string|null=null;
+  let allAccepted:boolean|null=null;
   try {
-    const receiptPath = join(resolve(input.outDir), "mutations", `${applyId}.apply.receipt.json`);
-    await adapter.applySourcePatch(resolve(input.sourcePatchPath), {
-      actor: input.actor ?? grantResult.claims.actor,
-      approvalHash: input.approvalHash,
-      receiptPath,
-      cwd: workspace.path,
-    });
+    const receiptPath = join(outDir, "mutations", `${applyId}.apply.receipt.json`);
+    try {
+      await adapter.applySourcePatch(resolve(input.sourcePatchPath), {
+        actor: input.actor ?? grantResult.claims.actor,
+        approvalHash: input.approvalHash,
+        receiptPath,
+        cwd: workspace.path,
+      });
+      stages.push({ name: "apply-source-patch", status: "succeeded", reason: receiptPath });
+    } catch(error) {
+      stages.push({name:"apply-source-patch",status:"failed",reason:error instanceof Error?error.message:String(error)});
+      throw error;
+    }
+
+    const reanalysisOut=join(outDir,"mutations",`${applyId}.reanalysis`);
+    let afterAnalysis:Todo2CodeAnalysis|undefined;
+    try {
+      await adapter.extract(workspace.path,reanalysisOut,{
+        task:input.project.development.task,
+        todo:input.project.development.todo,
+        changelog:input.project.development.changelog,
+        docs:input.project.development.docs,
+      });
+      afterAnalysis=await adapter.readLatestAnalysis(workspace.path,reanalysisOut);
+      if(!afterAnalysis) throw new Error("MUTATION_APPLY_AFTER_ANALYSIS_REQUIRED");
+      stages.push({name:"re-analyze",status:"succeeded",reason:afterAnalysis.runDirectory});
+    } catch(error) {
+      stages.push({name:"re-analyze",status:"failed",reason:error instanceof Error?error.message:String(error)});
+      throw error;
+    }
+
+    const evidenceDir=join(outDir,"mutations",`${applyId}.acceptance-evidence`);
+    const before=await persistAnalysisEvidence(evidenceDir,"before",beforeAnalysis);
+    const after=await persistAnalysisEvidence(evidenceDir,"after",afterAnalysis);
+    const planPath=input.planPath?resolve(input.planPath):join(evidenceDir,"plan.json");
+    if(!input.planPath) await writeFile(planPath,JSON.stringify(plan,null,2)+"\n");
+    closeResultPath=join(outDir,"mutations",`${applyId}.close-result.json`);
+    try {
+      closeResult=await adapter.closeCodeChange(planPath,before.graphPath,after.graphPath,closeResultPath,{
+        beforeDiagnosticsPath:before.diagnosticsPath,
+        afterDiagnosticsPath:after.diagnosticsPath,
+        cwd:workspace.path,
+      });
+      const accepted=object(closeResult)?.allAccepted;
+      if(typeof accepted!=="boolean") throw new Error("MUTATION_APPLY_CLOSE_RESULT_INVALID");
+      allAccepted=accepted;
+      stages.push({name:"close-code-change",status:"succeeded",reason:`allAccepted=${allAccepted}`});
+    } catch(error) {
+      stages.push({name:"close-code-change",status:"failed",reason:error instanceof Error?error.message:String(error)});
+      throw error;
+    }
+
     const completedAt = new Date().toISOString();
     const receipt: MutationProposalReceipt = {
       schema: "subactor.mutation-proposal-receipt/v1",
       proposalId: applyId,
       projectId: input.project.id,
       mode: "apply",
-      status: "applied-isolated",
-      startedAt: new Date().toISOString(),
+      status: allAccepted === true ? "applied-isolated" : "failed",
+      startedAt,
       completedAt,
       planHash,
       grantVerified: true,
@@ -277,25 +347,46 @@ export async function applyCodeMutation(input: MutationApplyInput): Promise<Muta
       workspace: { kind: workspace.kind, path: workspace.path, branch: workspace.branch },
       sourcePatchUri: contentUri("source-patch-path", { path: input.sourcePatchPath }),
       sourcePatchPath: resolve(input.sourcePatchPath),
-      failures: [],
-      stages: [
-        { name: "grant", status: "succeeded", reason: "consumed" },
-        { name: "isolate", status: "succeeded", reason: workspace.kind },
-        { name: "apply-source-patch", status: "succeeded", reason: receiptPath },
-      ],
+      closeResultUri:contentUri("code-change-close-result",closeResult),
+      closeResultPath,
+      allAccepted,
+      failures: allAccepted===true?[]:["MUTATION_ACCEPTANCE_REJECTED"],
+      stages,
       proposalUri: "",
     };
     receipt.proposalUri = contentUri("mutation-proposal", receipt);
-    await mkdir(dirname(join(resolve(input.outDir), "mutations", `${applyId}.json`)), { recursive: true });
-    await writeFile(join(resolve(input.outDir), "mutations", `${applyId}.json`), JSON.stringify(receipt, null, 2) + "\n");
-    await appendJsonLine(join(resolve(input.outDir), "events.jsonl"), {
-      eventType: "mutation.apply.isolated",
+    await mkdir(dirname(join(outDir, "mutations", `${applyId}.json`)), { recursive: true });
+    await writeFile(join(outDir, "mutations", `${applyId}.json`), JSON.stringify(receipt, null, 2) + "\n");
+    await appendJsonLine(join(outDir, "events.jsonl"), {
+      eventType: allAccepted===true?"mutation.apply.accepted-isolated":"mutation.apply.rejected-isolated",
       occurredAt: completedAt,
       proposalId: applyId,
       workspace: receipt.workspace,
-      note: "Applied only inside isolated workspace; promotion/canary not performed",
+      closeResultUri:receipt.closeResultUri,
+      note: allAccepted===true
+        ? "Applied and accepted only inside isolated workspace; promotion/canary not performed"
+        : "Applied only inside isolated workspace; acceptance failed and promotion is forbidden",
     });
     return receipt;
+  } catch(error) {
+    const message=error instanceof Error?error.message:String(error);
+    const completedAt=new Date().toISOString();
+    const failed:MutationProposalReceipt={
+      schema:"subactor.mutation-proposal-receipt/v1",proposalId:applyId,projectId:input.project.id,
+      mode:"apply",status:"failed",startedAt,completedAt,planHash,grantVerified:true,
+      grantJti:grantResult.claims.jti,actor:input.actor??grantResult.claims.actor,
+      developmentRoot:resolve(input.developmentRoot),workspace:{kind:workspace.kind,path:workspace.path,branch:workspace.branch},
+      sourcePatchUri:contentUri("source-patch-path",{path:input.sourcePatchPath}),sourcePatchPath:resolve(input.sourcePatchPath),
+      closeResultUri:closeResult===null?null:contentUri("code-change-close-result",closeResult),closeResultPath,allAccepted,
+      failures:[message],stages,proposalUri:"",
+    };
+    failed.proposalUri=contentUri("mutation-proposal",failed);
+    await mkdir(join(outDir,"mutations"),{recursive:true});
+    await writeFile(join(outDir,"mutations",`${applyId}.json`),JSON.stringify(failed,null,2)+"\n");
+    await appendJsonLine(join(outDir,"events.jsonl"),{
+      eventType:"mutation.apply.failed",occurredAt:completedAt,proposalId:applyId,workspace:failed.workspace,error:message,
+    });
+    throw error;
   } finally {
     if (!input.keepWorkspace) {
       try {

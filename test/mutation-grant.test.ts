@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
@@ -10,9 +10,10 @@ import {
   writeMutationGrant,
 } from "../src/runtime/mutation-grant.js";
 import { createIsolatedWorkspace } from "../src/runtime/isolated-worktree.js";
-import { proposeCodeMutation } from "../src/runtime/mutation-pipeline.js";
+import { applyCodeMutation, proposeCodeMutation } from "../src/runtime/mutation-pipeline.js";
 import { mutationGrantPresent } from "../src/runtime/autonomy.js";
 import { TwinProbesAdapter, validateAutonomCycle, summarizeProbeCycle } from "../src/adapters/twin-probes.js";
+import type { Todo2CodeAdapter } from "../src/adapters/todo2code.js";
 import type { LivingProjectDocument } from "../src/core/types.js";
 
 const SECRET = "test-mutation-grant-secret-for-hmac";
@@ -235,6 +236,121 @@ test("mutation propose refuses invalid grant and proposes with valid grant", asy
   } finally {
     if (prev === undefined) delete process.env.MUTATION_GRANT_HMAC_SECRET;
     else process.env.MUTATION_GRANT_HMAC_SECRET = prev;
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("isolated mutation apply re-analyzes and closes the code-change plan", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "mutation-apply-close-"));
+  const previousSecret = process.env.MUTATION_GRANT_HMAC_SECRET;
+  process.env.MUTATION_GRANT_HMAC_SECRET = SECRET;
+  try {
+    const project = sampleProject();
+    project.policy.autonomyMode = "apply";
+    project.policy.allowRuntimeSelfModification = true;
+    const code = join(dir, "code");
+    await mkdir(code, { recursive: true });
+    await writeFile(join(code, "index.ts"), "export const value=1;\n");
+    const plan = { schema: "t2c.code-change-plan/v1", id: "plan-close", planHash: "55".repeat(32) };
+    const planPath = join(dir, "plan.json");
+    const patchPath = join(dir, "patch.json");
+    await writeFile(planPath, JSON.stringify(plan));
+    await writeFile(patchPath, JSON.stringify({ patchHash: "66".repeat(32) }));
+    const issued = issueMutationGrant({
+      runId: "run-close",
+      actor: "manager@example.com",
+      planHash: plan.planHash,
+      artifactSha256: "66".repeat(32),
+      target: "code/index.ts",
+      projectId: project.id,
+    });
+    assert.equal(issued.ok, true);
+    if (!issued.ok) return;
+
+    const before = { graph: { fingerprint: "before" }, diagnostics: [{ id: "DIAG-1" }], manifest: {}, runDirectory: "before-run" };
+    const after = { graph: { fingerprint: "after" }, diagnostics: [], manifest: {}, runDirectory: "after-run" };
+    const fakeAdapter = {
+      available: async () => true,
+      readLatestAnalysis: async (root:string) => root === code ? before : after,
+      applySourcePatch: async (_path:string, options:{cwd?:string}) => {
+        await writeFile(join(options.cwd!, "index.ts"), "export const value=2;\n");
+        return { applied: true };
+      },
+      extract: async () => undefined,
+      closeCodeChange: async (_plan:string,_before:string,_after:string,out:string) => {
+        const result={schemaVersion:"t2c.code-change-close-result/v1",allAccepted:true,acceptedCount:1,rejectedCount:0};
+        await writeFile(out,JSON.stringify(result));
+        return result;
+      },
+    } as unknown as Todo2CodeAdapter;
+
+    const receipt = await applyCodeMutation({
+      project,
+      projectBase: dir,
+      developmentRoot: code,
+      planPath,
+      sourcePatchPath: patchPath,
+      approvalHash: "66".repeat(32),
+      grant: issued.document,
+      outDir: join(dir, "out"),
+      actor: "manager@example.com",
+      keepWorkspace: true,
+      todo2code: fakeAdapter,
+    });
+    assert.equal(receipt.status, "applied-isolated");
+    assert.equal(receipt.allAccepted, true);
+    assert.ok(receipt.closeResultPath);
+    assert.equal(receipt.stages.some(stage => stage.name === "re-analyze" && stage.status === "succeeded"), true);
+    assert.equal(receipt.stages.some(stage => stage.name === "close-code-change" && stage.status === "succeeded"), true);
+    assert.equal(await readFile(join(receipt.workspace!.path, "index.ts"), "utf8"), "export const value=2;\n");
+
+    const rejectedGrant = issueMutationGrant({
+      runId: "run-close-rejected",
+      actor: "manager@example.com",
+      planHash: plan.planHash,
+      artifactSha256: "66".repeat(32),
+      target: "code/index.ts",
+      projectId: project.id,
+    });
+    assert.equal(rejectedGrant.ok, true);
+    if (!rejectedGrant.ok) return;
+    Object.assign(fakeAdapter,{
+      closeCodeChange:async (_plan:string,_before:string,_after:string,out:string) => {
+        const result={schemaVersion:"t2c.code-change-close-result/v1",allAccepted:false,acceptedCount:0,rejectedCount:1};
+        await writeFile(out,JSON.stringify(result));
+        return result;
+      },
+    });
+    const rejected = await applyCodeMutation({
+      project,projectBase:dir,developmentRoot:code,planPath,sourcePatchPath:patchPath,
+      approvalHash:"66".repeat(32),grant:rejectedGrant.document,outDir:join(dir,"out-rejected"),
+      actor:"manager@example.com",keepWorkspace:true,todo2code:fakeAdapter,
+    });
+    assert.equal(rejected.status,"failed");
+    assert.equal(rejected.allAccepted,false);
+    assert.deepEqual(rejected.failures,["MUTATION_ACCEPTANCE_REJECTED"]);
+
+    const failedGrant = issueMutationGrant({
+      runId:"run-close-failed",actor:"manager@example.com",planHash:plan.planHash,
+      artifactSha256:"66".repeat(32),target:"code/index.ts",projectId:project.id,
+    });
+    assert.equal(failedGrant.ok,true);
+    if(!failedGrant.ok) return;
+    Object.assign(fakeAdapter,{extract:async()=>{throw new Error("REANALYSIS_FAILED");}});
+    const failedOut=join(dir,"out-failed");
+    await assert.rejects(applyCodeMutation({
+      project,projectBase:dir,developmentRoot:code,planPath,sourcePatchPath:patchPath,
+      approvalHash:"66".repeat(32),grant:failedGrant.document,outDir:failedOut,
+      actor:"manager@example.com",keepWorkspace:true,todo2code:fakeAdapter,
+    }),/REANALYSIS_FAILED/);
+    const failedReceiptName=(await readdir(join(failedOut,"mutations"))).find(name=>/^[0-9a-f-]+\.json$/.test(name));
+    assert.ok(failedReceiptName);
+    const failedReceipt=JSON.parse(await readFile(join(failedOut,"mutations",failedReceiptName!),"utf8"));
+    assert.equal(failedReceipt.status,"failed");
+    assert.equal(failedReceipt.stages.some((stage:{name:string;status:string})=>stage.name==="re-analyze"&&stage.status==="failed"),true);
+  } finally {
+    if (previousSecret === undefined) delete process.env.MUTATION_GRANT_HMAC_SECRET;
+    else process.env.MUTATION_GRANT_HMAC_SECRET = previousSecret;
     await rm(dir, { recursive: true, force: true });
   }
 });

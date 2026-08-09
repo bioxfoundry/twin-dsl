@@ -31,6 +31,23 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.10] - 2026-08-09
+
+### Docs
+- Update docs/AUTONOMY_MODEL.md
+- Update docs/FULL_AUTONOMY_GAPS.md
+- Update docs/TODO2CODE_INTEGRATION.md
+
+### Test
+- Update test/mutation-grant.test.ts
+- Update test/todo2code-adapter.test.ts
+
+### Other
+- Update schemas/mutation-proposal-receipt.schema.json
+- Update src/adapters/todo2code.ts
+- Update src/core/types/project-runtime.ts
+- Update src/runtime/mutation-pipeline.ts
+
 ## [0.5.9] - 2026-08-09
 
 ### Test

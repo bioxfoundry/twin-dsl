@@ -63,3 +63,23 @@ test("todo2code NL extraction is forced deterministic before local patchDSL enri
     await rm(directory,{recursive:true,force:true});
   }
 });
+
+test("todo2code adapter closes a code change with before and after evidence",async()=>{
+  const directory=await mkdtemp(join(tmpdir(),"t2c-adapter-close-"));
+  try{
+    const bin=join(directory,"fake-t2c.mjs");
+    await writeFile(bin,`import{writeFile}from'node:fs/promises';const a=process.argv.slice(2);if(a[0]!=='close-code-change')process.exit(2);for(const flag of ['--before-graph','--after-graph','--before-diagnostics','--after-diagnostics','--out'])if(!a.includes(flag))throw new Error('missing '+flag);const out=a[a.indexOf('--out')+1];await writeFile(out,JSON.stringify({schemaVersion:'t2c.code-change-close-result/v1',allAccepted:true,acceptedCount:1,rejectedCount:0}));`);
+    const files=["plan.json","before.json","after.json","before-diagnostics.json","after-diagnostics.json"];
+    await Promise.all(files.map(file=>writeFile(join(directory,file),"{}\n")));
+    const adapter=new Todo2CodeAdapter(directory,bin);
+    const out=join(directory,"close.json");
+    const result=await adapter.closeCodeChange(
+      join(directory,"plan.json"),join(directory,"before.json"),join(directory,"after.json"),out,
+      {beforeDiagnosticsPath:join(directory,"before-diagnostics.json"),afterDiagnosticsPath:join(directory,"after-diagnostics.json")},
+    ) as {allAccepted:boolean};
+    assert.equal(result.allAccepted,true);
+    assert.equal(JSON.parse(await readFile(out,"utf8")).allAccepted,true);
+  }finally{
+    await rm(directory,{recursive:true,force:true});
+  }
+});

@@ -70,3 +70,14 @@ node dist/src/cli/main.js nl-to-dsl \
 ```
 
 If `todo2code` is unavailable, `require-llm` fails. Offline package tests use an explicit fixture and do not pretend that the external CLI ran.
+
+## Isolated apply and convergence
+
+`mutation-apply` now requires an existing before-analysis before it consumes the single-use grant.
+After applying an approved source patch in the isolated workspace it runs the deterministic pipeline
+again and calls `close-code-change` with persisted before/after graphs and diagnostics. The mutation
+receipt exposes `closeResultUri`, `closeResultPath` and `allAccepted`.
+
+An apply is reported as `applied-isolated` only when `allAccepted=true`. A rejected close result or a
+failed re-analysis writes a failure receipt and cannot enter a promotion path. Acceptance is evidence,
+not permission to merge into the main tree.

@@ -138,4 +138,30 @@ export class Todo2CodeAdapter {
     }
     return { applied:true };
   }
+
+  /**
+   * Compare a reviewed plan with deterministic before/after analysis graphs.
+   * This only emits acceptance evidence; it never marks a task done or promotes
+   * an isolated workspace.
+   */
+  async closeCodeChange(
+    planPath:string,
+    beforeGraphPath:string,
+    afterGraphPath:string,
+    outPath:string,
+    options:{beforeDiagnosticsPath?:string;afterDiagnosticsPath?:string;cwd?:string}={},
+  ):Promise<unknown> {
+    if(!await this.available()) throw new Error("TODO2CODE_NOT_AVAILABLE");
+    const cwd = options.cwd || this.root || process.cwd();
+    const args = [
+      this.bin,"close-code-change",resolve(planPath),
+      "--before-graph",resolve(beforeGraphPath),
+      "--after-graph",resolve(afterGraphPath),
+      "--out",resolve(outPath),
+    ];
+    if(options.beforeDiagnosticsPath) args.push("--before-diagnostics",resolve(options.beforeDiagnosticsPath));
+    if(options.afterDiagnosticsPath) args.push("--after-diagnostics",resolve(options.afterDiagnosticsPath));
+    await run(process.execPath,args,cwd,process.env);
+    return JSON.parse(await readFile(resolve(outPath),"utf8"));
+  }
 }

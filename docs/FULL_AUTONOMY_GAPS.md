@@ -17,11 +17,15 @@
 - **propose-only mutation pipeline** with typed receipt (`subactor.mutation-proposal-receipt/v1`);
 - **gated isolated apply** (requires `autonomyMode=apply`, `allowRuntimeSelfModification`, grant consume, approval hash);
 - **twin-probes autonom-cycle ingest** (`subactor.autonom-cycle/v1` → probe evidence summary).
+- **post-apply re-analysis and close gate** (`todo2code pipeline` in isolation →
+  `t2c.code-change-close-result/v1`; rejected or unevaluable changes cannot be promoted).
 
 ## Still required for autonomous runtime/code improvement
 
 1. Real `todo2code` checkout in CI and live semantic benchmark (not only adapter + empty local proposal).
-2. End-to-end: diagnostics → code-change-plan from real todo2code → filled unifiedDiff → re-analysis → close-code-change.
+2. Live semantic benchmark: diagnostics → code-change-plan from real todo2code → filled unifiedDiff.
+   The runtime-owned re-analysis and `close-code-change` half is implemented; a real reviewed patch
+   and signed grant are still required to exercise it against the Nanobionic project.
 3. Container isolation (not only git worktree / directory copy).
 4. Unit, integration, TestQL, security, performance and scene acceptance gates after apply.
 5. Full AQL grant profile (cost ceilings, URI process allowlists, multi-principal quorum) — current grants cover plan/artifact/target/actor/jti/expiry.
