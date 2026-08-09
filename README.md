@@ -94,8 +94,8 @@ npm run verify:dist
 Usługi pomocnicze (ClickHouse + Docling) przez `make`:
 
 ```bash
-make up            # tworzy .env z .env.example przy pierwszym uruchomieniu, buduje i startuje
-make service-check # sprawdza, czy oba serwisy odpowiadają
+make up            # tworzy .env, czeka na healthchecki, sonduje endpointy i uruchamia runtime doctor
+make service-check # ponawia sondę ClickHouse + Docling z hosta
 make logs
 make down          # zatrzymuje, ale ZACHOWUJE wolumeny (modele Docling, dane ClickHouse)
 make down-clean    # kasuje też wolumeny — kolejny start pobierze modele od nowa
@@ -106,8 +106,10 @@ kolejne kilka sekund.
 
 ### Usługi, porty i zmienne po `make up`
 
-`make up` uruchamia wyłącznie ClickHouse i Docling. Po zakończeniu wypisuje te same adresy,
-które można wyświetlić ponownie poleceniem `make endpoints`:
+`make up` uruchamia ClickHouse i Docling, czeka aż ich healthchecki Compose przejdą, a następnie
+sonduje oba endpointy z hosta przez `service-check`. Na końcu uruchamia jednorazowy job
+`runtime doctor`, który sprawdza konfigurację runtime i jego połączenie z usługami. Po sukcesie
+wypisuje te same adresy, które można wyświetlić ponownie poleceniem `make endpoints`:
 
 | Usługa | Adres z hosta | Port kontenera | Zmienne `.env` |
 | --- | --- | --- | --- |
@@ -115,6 +117,11 @@ które można wyświetlić ponownie poleceniem `make endpoints`:
 | ClickHouse native | `127.0.0.1:19000` | `9000` | `CLICKHOUSE_NATIVE_PORT` |
 | Docling health/API | `http://127.0.0.1:15001/health` | `5001` | `DOCLING_PORT`, `DOCLING_URL` |
 | Dashboard twina | `http://127.0.0.1:7331/` | — | uruchamiany osobno przez workspace `make dashboard PORT=7331` |
+
+Sekcja `healthcheck` w Compose istnieje dla obu usług długotrwałych: ClickHouse (`/ping`) i
+Docling (`/health`). `runtime` nie ma healthchecka, ponieważ nie jest serwerem — jego komenda
+`doctor` kończy się powodzeniem albo błędem i jest wykonywana przez `make up` dopiero po zdrowym
+stanie zależności.
 
 Adresy hosta są domyślne i można je zmienić w `twin-dsl/.env` przed `make up`; po zmianie portu
 ClickHouse ustaw zgodne `CLICKHOUSE_URL`. Dashboard nie jest kontenerem Compose. Uruchom go z

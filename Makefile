@@ -17,9 +17,12 @@ export COMPOSE_DOCKER_CLI_BUILD = 1
 env: .env
 
 ## --- docker ----------------------------------------------------------------
-## Start the stack, rebuilding only what changed. Repeat runs reuse the pip cache.
+## Start persistent services, wait for their Compose healthchecks, then probe from the host.
+## The runtime is a one-shot `doctor` job and runs only after its dependencies are healthy.
 up: .env
-	$(COMPOSE) up -d --build
+	$(COMPOSE) up -d --build --wait clickhouse docling
+	@$(MAKE) --no-print-directory service-check
+	$(COMPOSE) run --rm runtime
 	@$(MAKE) --no-print-directory endpoints
 
 ## Stop the stack. Named volumes (clickhouse data, docling models) are kept on purpose,
@@ -33,7 +36,7 @@ down-clean:
 
 restart: .env
 	$(COMPOSE) down
-	$(COMPOSE) up -d --build
+	@$(MAKE) --no-print-directory up
 
 ## Build images without starting anything.
 build: .env
@@ -45,13 +48,14 @@ logs:
 ps status:
 	$(COMPOSE) ps
 
-## Check that ClickHouse and Docling answer through their published ports.
-service-check:
-	CLICKHOUSE_URL=http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123} \
-	DOCLING_URL=http://127.0.0.1:$${DOCLING_PORT:-15001} \
-	CLICKHOUSE_USER=$${CLICKHOUSE_USER:-digital_twin} \
-	CLICKHOUSE_PASSWORD=$${CLICKHOUSE_PASSWORD:-digital_twin_local} \
-	node dist/src/cli/main.js service-check
+## Check ClickHouse and Docling through their published host ports, including custom .env ports.
+service-check: .env
+	@set -a; . ./.env; set +a; \
+		CLICKHOUSE_URL="http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}" \
+		DOCLING_URL="http://127.0.0.1:$${DOCLING_PORT:-15001}" \
+		CLICKHOUSE_USER="$${CLICKHOUSE_USER:-digital_twin}" \
+		CLICKHOUSE_PASSWORD="$${CLICKHOUSE_PASSWORD:-digital_twin_local}" \
+		node dist/src/cli/main.js service-check
 
 ## Print the local host endpoints after `make up`.
 endpoints: .env
