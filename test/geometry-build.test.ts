@@ -131,12 +131,22 @@ test("OBJ+MTL converter preserves indexed groups and materials", async () => {
   await mkdir(source);
   await writeFile(join(source,"part.mtl"),"newmtl red\nKd 1 0 0\nNs 100\nnewmtl blue\nKd 0 0 1\nNs 20\n");
   await writeFile(join(source,"part.obj"),"mtllib part.mtl\nv 0 0 0\nv 1 0 0\nv 0 1 0\nv 0 0 1\nvn 0 0 1\ng plate\nusemtl red\nf 1//1 2//1 3//1\ng tip\nusemtl blue\nf 1//1 4//1 2//1\n");
-  await run("python3",["scripts/cad-to-gltf.py",source,output],{cwd:process.cwd()});
+  await run("python3",["scripts/cad-to-gltf.py",source,output,"--source-unit","millimeter"],{cwd:process.cwd()});
   const raw=await readFile(join(output,"part.glb")),jsonLength=raw.readUInt32LE(12),document=JSON.parse(raw.subarray(20,20+jsonLength).toString("utf8"));
   assert.equal(document.meshes[0].primitives.length,2);
   assert.equal(document.materials.length,2);
   assert.ok(document.meshes[0].primitives.every((primitive:{indices?:number})=>primitive.indices!==undefined));
   assert.deepEqual(document.asset.extras.provenancePreserved,["groups","normals","materials"]);
+  assert.deepEqual(document.accessors[0].max,[0.001,0.001,0.001]);
+});
+
+test("unitless OBJ conversion fails closed until its source unit is declared", async () => {
+  const root=await mkdtemp(join(tmpdir(),"geometry-unit-")),source=join(root,"source"),output=join(root,"output");
+  await mkdir(source);
+  await writeFile(join(source,"part.obj"),"v 0 0 0\nv 1 0 0\nv 0 1 0\nf 1 2 3\n");
+  await assert.rejects(run("python3",["scripts/cad-to-gltf.py",source,output],{cwd:process.cwd()}));
+  const report=JSON.parse(await readFile(join(output,"cad-tessellation.report.json"),"utf8"));
+  assert.match(report.records[0].error,/CAD_SOURCE_UNIT_REQUIRED/);
 });
 
 test("semantic mesh hash ignores equivalent vertex and face ordering", async () => {

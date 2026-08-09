@@ -76,4 +76,26 @@ test("physical completeness excludes cyber and logical display markers", () => {
   assert.equal(report.coverage.requiredChecks, 3);
   assert.equal(report.coverage.passedRequiredChecks, 3);
   assert.equal(report.complete, true);
+  assert.deepEqual(report.requirementResults, [{
+    componentId: "robot",
+    required: ["position", "size", "orientation"],
+    satisfied: ["position", "size", "orientation"],
+    missing: [],
+  }]);
+});
+
+test("geometry validation reports every missing component requirement", () => {
+  const classified: TwinDocument = {
+    schema: "subactor.twin/v1", id: "missing-proof", kind: "conceptual", observedAt: "2026-08-08T00:00:00Z", sourceSnapshotHash: "a".repeat(64),
+    components: [
+      { id: "robot", type: "equipment", sourceUris: ["urn:robot"], properties: { spatialClass: "physical", spatialRequire: "position|size|orientation" }, children: [] },
+      { id: "room", type: "space", sourceUris: ["urn:room"], properties: { spatialClass: "physical", spatialRequire: "position|size" }, children: [] },
+    ],
+  };
+  const report = validateGeometry(scene, evidence([]), undefined, geometryRequirementsFromTwin(classified));
+  assert.deepEqual(report.requirementResults, [
+    { componentId: "robot", required: ["position", "size", "orientation"], satisfied: ["position", "size", "orientation"], missing: [] },
+    { componentId: "room", required: ["position", "size"], satisfied: [], missing: ["position", "size"] },
+  ]);
+  assert.match(renderGeometryValidationDsl(report), /REQUIREMENT room[\s\S]*MISSING \["position", "size"\]/);
 });

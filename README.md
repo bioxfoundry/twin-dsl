@@ -608,12 +608,18 @@ kanoniczny 3MF, z którego runtime tworzy GLB i USDA oraz receipt. F3D nadal wym
 backendu — nie jest udawany jako geometria.
 
 ```bash
-CADQUERY_PATH=/path/to/cadquery-deps python3 scripts/cad-to-gltf.py <source-cad-root> <derived-geometry-root> --report cad-tessellation.report.json
+CADQUERY_PATH=/path/to/cadquery-deps python3 scripts/cad-to-gltf.py \
+  <source-cad-root> <derived-geometry-root> --source-unit millimeter \
+  --report cad-tessellation.report.json
 
 node dist/src/cli/main.js geometry-build \
   ../nanobionic-laboratory-md-dsl/geometry/lid-unf.geometry-build.json \
   .geometry-build nanobionic-laboratory-md
 ```
+
+STL i OBJ nie deklarują jednostki, dlatego konwersja odmawia pracy bez `--source-unit`.
+STEP jest normalizowany z kanonicznej jednostki CadQuery (mm), a 3MF korzysta z jednostki
+zapisanej w samym dokumencie. Wszystkie pozycje GLB są emitowane w metrach wymaganych przez glTF.
 
 Dashboard ładuje zarówno STL, jak i GLB (`loadGlb`), a URI GLB jest sprawdzany przez te same
 bramki zasobów co pozostałe evidence. Nieudany receipt pozostaje widoczny w candidate DSL/logach,

@@ -39,6 +39,9 @@ test("cross-layer integrity separates contradictions from incomplete assumptions
   delete input.scene.bindings[0].assetUri;
   input.geometry.complete=false;
   input.geometry.coverage.orientationEvidence=0;
+  input.geometry.coverage.requiredChecks=3;
+  input.geometry.coverage.passedRequiredChecks=2;
+  input.geometry.requirementResults=[{componentId:"a",required:["position","size","orientation"],satisfied:["position","size"],missing:["orientation"]}];
   const report=analyzeProjectIntegrity(input);
   assert.equal(report.ok,false,"invalid parameters and broken revision links are contradictions");
   assert.equal(report.complete,false);
@@ -46,6 +49,8 @@ test("cross-layer integrity separates contradictions from incomplete assumptions
   assert.ok(report.findings.some(finding=>finding.code==="SCENE_TWIN_REVISION_MISMATCH"&&finding.category==="broken-dependency"));
   assert.ok(report.findings.some(finding=>finding.code==="CONCEPTUAL_GEOMETRY_ASSUMPTION"&&finding.category==="ungrounded-assumption"));
   assert.ok(report.findings.some(finding=>finding.code==="GEOMETRY_VALIDATION_INCOMPLETE"&&finding.severity==="warning"));
+  assert.deepEqual(report.findings.find(finding=>finding.code==="GEOMETRY_VALIDATION_INCOMPLETE")?.subjects,["a:orientation"]);
+  assert.match(report.findings.find(finding=>finding.code==="GEOMETRY_VALIDATION_INCOMPLETE")?.message??"",/2\/3 required checks.*orientation=1/);
   assert.ok(report.repairProcesses.every(process=>process.uri.startsWith("subactor://process/repair/project-integrity/")));
 });
 

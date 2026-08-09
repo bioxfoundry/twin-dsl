@@ -135,18 +135,18 @@ export function validateGeometry(
   const required = (kind: GeometryRequirementKind): number => requirements
     ? [...requirements.values()].filter((items) => items.has(kind)).length
     : kind === "constraints" ? 1 : scene.bindings.filter((binding) => binding.primitive !== "scope").length;
-  const requiredCheckPasses = requirements ? [...requirements].reduce((count, [componentId, items]) => {
-    for (const kind of items) {
+  const requirementResults = requirements ? [...requirements].map(([componentId, items]) => {
+    const required = [...items];
+    const satisfied = required.filter((kind) => {
       if (kind === "constraints") {
         const spatial = checks.filter((check) => ["inside", "clearance", "no-overlap"].includes(check.kind) && (check.subjectId === componentId || check.objectId === componentId));
-        if (spatial.length > 0 && spatial.every((check) => check.ok)) count++;
-      } else {
-        const check = checks.find((candidate) => candidate.id === `${kind}:${componentId}`);
-        if (check?.ok) count++;
+        return spatial.length > 0 && spatial.every((check) => check.ok);
       }
-    }
-    return count;
-  }, 0) : 0;
+      return Boolean(checks.find((candidate) => candidate.id === `${kind}:${componentId}`)?.ok);
+    });
+    return { componentId, required, satisfied, missing: required.filter((kind) => !satisfied.includes(kind)) };
+  }) : undefined;
+  const requiredCheckPasses = requirementResults?.reduce((count, result) => count + result.satisfied.length, 0) ?? 0;
   const requiredChecks = required("position") + required("size") + required("orientation") + required("constraints");
   const coverage = {
     bindings: requirements ? requirements.size : scene.bindings.filter((binding) => binding.primitive !== "scope").length,
@@ -164,7 +164,7 @@ export function validateGeometry(
   const complete = requirements
     ? requiredChecks > 0 && requiredCheckPasses === requiredChecks
     : coverage.bindings > 0 && coverage.positionEvidence >= coverage.bindings && coverage.sizeEvidence >= coverage.bindings && coverage.orientationEvidence >= coverage.bindings && coverage.constraints > 0;
-  return { schema: "subactor.geometry-validation/v1", evidenceId: evidence.id, method: "world-aabb", ok: failures.length === 0, complete, coverage, checks, failures };
+  return { schema: "subactor.geometry-validation/v1", evidenceId: evidence.id, method: "world-aabb", ok: failures.length === 0, complete, coverage, requirementResults, checks, failures };
 }
 
 export function renderGeometryValidationDsl(report: GeometryValidationReport): string {
@@ -181,6 +181,15 @@ export function renderGeometryValidationDsl(report: GeometryValidationReport): s
       `  ACTUAL ${check.actual} LIMIT ${check.limit} UNIT ${check.unit}`,
       `  RESULT ${check.ok ? "PASS" : "FAIL"} MESSAGE ${JSON.stringify(check.message)}`,
       "END_CHECK",
+    );
+  }
+  for (const result of report.requirementResults ?? []) {
+    rows.push(
+      `REQUIREMENT ${result.componentId}`,
+      `  REQUIRED [${result.required.map((item) => JSON.stringify(item)).join(", ")}]`,
+      `  SATISFIED [${result.satisfied.map((item) => JSON.stringify(item)).join(", ")}]`,
+      `  MISSING [${result.missing.map((item) => JSON.stringify(item)).join(", ")}]`,
+      "END_REQUIREMENT",
     );
   }
   rows.push(`RESULT ${report.ok ? "PASS" : "FAIL"}`, "END_GEOMETRY_VALIDATION");

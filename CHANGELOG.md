@@ -39,6 +39,23 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.23] - 2026-08-09
+
+### Docs
+- Update README.md
+
+### Test
+- Update test/geometry-build.test.ts
+- Update test/geometry-validation.test.ts
+- Update test/project-integrity.test.ts
+
+### Other
+- Update scripts/cad-to-gltf.py
+- Update src/core/generation.ts
+- Update src/core/types/physical.ts
+- Update src/runtime/project-integrity.ts
+- Update src/scene/geometry-validation.ts
+
 ## [0.5.22] - 2026-08-09
 
 ### Test

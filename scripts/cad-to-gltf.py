@@ -239,7 +239,7 @@ def write_indexed_glb(
     target.write_bytes(glb)
 
 
-def run_obj(source: Path, target: Path) -> None:
+def run_obj(source: Path, target: Path, scale_to_m: float) -> None:
     """Convert OBJ to indexed multi-material GLB while preserving group identity."""
     source_positions: list[tuple[float, float, float]] = []
     source_normals: list[tuple[float, float, float]] = []
@@ -301,7 +301,7 @@ def run_obj(source: Path, target: Path) -> None:
                         if output_index is None:
                             output_index = len(positions) // 3
                             vertex_map[key] = output_index
-                            positions.extend(source_positions[position_index])
+                            positions.extend(value * scale_to_m for value in source_positions[position_index])
                             normals.extend(source_normals[normal_index] if normal_index is not None else fallback)
                         active["indices"].append(output_index)
     groups = [group for group in groups if group["indices"]]
@@ -310,7 +310,7 @@ def run_obj(source: Path, target: Path) -> None:
     write_indexed_glb(positions, normals, groups, read_mtl(material_library) if material_library else {}, target, source.stem)
 
 
-def run_stl(source: Path, target: Path) -> None:
+def run_stl(source: Path, target: Path, scale_to_m: float) -> None:
     """Write a minimal standards-compliant GLB directly from binary or ASCII STL."""
     raw = source.read_bytes()
     positions: list[float] = []
@@ -321,7 +321,7 @@ def run_stl(source: Path, target: Path) -> None:
             offset = 84 + index * 50
             normal = struct.unpack_from("<3f", raw, offset)
             for vertex in range(3):
-                positions.extend(struct.unpack_from("<3f", raw, offset + 12 + vertex * 12))
+                positions.extend(value * scale_to_m for value in struct.unpack_from("<3f", raw, offset + 12 + vertex * 12))
                 normals.extend(normal)
     else:
         text = raw.decode("utf-8", errors="ignore")
@@ -332,6 +332,7 @@ def run_stl(source: Path, target: Path) -> None:
                 values.extend(float(value) for value in fields[1:])
         if len(values) < 9 or len(values) % 9:
             raise RuntimeError("CAD_STL_FACET_TABLE_INVALID")
+        values = [value * scale_to_m for value in values]
         for index in range(0, len(values), 9):
             vertices = [tuple(values[index + vertex:index + vertex + 3]) for vertex in (0, 3, 6)]
             normal = triangle_normal(*vertices)
@@ -351,7 +352,8 @@ def run_step(source: Path, target: Path) -> None:
     with tempfile.NamedTemporaryFile(suffix=".stl") as mesh:
         shape = cq.importers.importStep(str(source))
         cq.exporters.export(shape, mesh.name, exportType="STL")
-        run_stl(Path(mesh.name), target)
+        # CadQuery/OpenCascade exports STL coordinates in its canonical millimetre unit.
+        run_stl(Path(mesh.name), target, UNIT_TO_M["millimeter"])
 
 
 def identity_transform() -> tuple[float, ...]:
@@ -544,6 +546,63 @@ def validate_glb(path: Path) -> dict[str, Any]:
     if accessor.get("componentType") != 5126 or accessor.get("type") != "VEC3" or int(accessor.get("count", 0)) < 3:
         raise RuntimeError("GEOMETRY_GLB_POSITION_ACCESSOR_INVALID")
     return {"vertices": int(accessor["count"]), "bboxM": {"min": accessor["min"], "max": accessor["max"]}}
+
+
+def normalize_glb_units(source: Path, target: Path, source_unit: str) -> dict[str, Any]:
+    """Rewrite POSITION data into glTF's mandatory metre coordinate system."""
+    if source_unit not in UNIT_TO_M or source_unit == "meter":
+        raise RuntimeError("GEOMETRY_SOURCE_UNIT_INVALID")
+    raw = source.read_bytes()
+    if len(raw) < 28 or raw[:4] != b"glTF" or struct.unpack_from("<I", raw, 4)[0] != 2:
+        raise RuntimeError("GEOMETRY_GLB_HEADER_INVALID")
+    json_length, json_type = struct.unpack_from("<I4s", raw, 12)
+    if json_type != b"JSON":
+        raise RuntimeError("GEOMETRY_GLB_JSON_INVALID")
+    json_end = 20 + json_length
+    bin_length, bin_type = struct.unpack_from("<I4s", raw, json_end)
+    if bin_type != b"BIN\0" or json_end + 8 + bin_length > len(raw):
+        raise RuntimeError("GEOMETRY_GLB_BINARY_INVALID")
+    document = json.loads(raw[20:json_end].decode("utf-8"))
+    binary = bytearray(raw[json_end + 8:json_end + 8 + bin_length])
+    position_accessors = {
+        primitive["attributes"]["POSITION"]
+        for mesh in document.get("meshes", [])
+        for primitive in mesh.get("primitives", [])
+        if "POSITION" in primitive.get("attributes", {})
+    }
+    scale = UNIT_TO_M[source_unit]
+    for accessor_index in sorted(position_accessors):
+        accessor = document["accessors"][accessor_index]
+        if accessor.get("componentType") != 5126 or accessor.get("type") != "VEC3" or "sparse" in accessor:
+            raise RuntimeError("GEOMETRY_GLB_POSITION_ACCESSOR_INVALID")
+        view = document["bufferViews"][accessor["bufferView"]]
+        if view.get("buffer", 0) != 0:
+            raise RuntimeError("GEOMETRY_GLB_EXTERNAL_BUFFER_UNSUPPORTED")
+        stride = int(view.get("byteStride", 12))
+        offset = int(view.get("byteOffset", 0)) + int(accessor.get("byteOffset", 0))
+        for index in range(int(accessor["count"])):
+            point_offset = offset + index * stride
+            point = struct.unpack_from("<3f", binary, point_offset)
+            struct.pack_into("<3f", binary, point_offset, *(value * scale for value in point))
+        if "min" in accessor:
+            accessor["min"] = [value * scale for value in accessor["min"]]
+        if "max" in accessor:
+            accessor["max"] = [value * scale for value in accessor["max"]]
+    if not position_accessors:
+        raise RuntimeError("GEOMETRY_GLB_POSITION_ACCESSOR_MISSING")
+    extras = document.setdefault("asset", {}).setdefault("extras", {})
+    extras.update({"coordinateUnit": "meter", "normalizedFromUnit": source_unit})
+    encoded = canonical_json(document).encode()
+    while len(encoded) % 4:
+        encoded += b" "
+    while len(binary) % 4:
+        binary += b"\0"
+    output = struct.pack("<4sII", b"glTF", 2, 12 + 8 + len(encoded) + 8 + len(binary))
+    output += struct.pack("<I4s", len(encoded), b"JSON") + encoded
+    output += struct.pack("<I4s", len(binary), b"BIN\0") + binary
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_bytes(output)
+    return validate_glb(target)
 
 
 def validate_usd(path: Path) -> tuple[bool, bool]:
@@ -993,11 +1052,15 @@ def bulk(args: argparse.Namespace) -> int:
             if source.suffix.lower() in {".step", ".stp"}:
                 run_step(source, target)
             elif source.suffix.lower() == ".stl":
-                run_stl(source, target)
+                if not args.source_unit:
+                    raise RuntimeError("CAD_SOURCE_UNIT_REQUIRED:.stl")
+                run_stl(source, target, UNIT_TO_M[args.source_unit])
             elif source.suffix.lower() == ".3mf":
                 run_3mf(source, target)
             elif source.suffix.lower() == ".obj":
-                run_obj(source, target)
+                if not args.source_unit:
+                    raise RuntimeError("CAD_SOURCE_UNIT_REQUIRED:.obj")
+                run_obj(source, target, UNIT_TO_M[args.source_unit])
             else:
                 raise RuntimeError("GEOMETRY_BUILD_CONTRACT_REQUIRED:.scad")
             record.update({"status": "converted", "targetSha256": sha256_file(target), "bytes": target.stat().st_size})
@@ -1026,7 +1089,15 @@ def main() -> int:
     parser.add_argument("--geometry-build", default=None, metavar="CONTRACT_JSON")
     parser.add_argument("--geometry-output", default=None, metavar="OUTPUT_ROOT")
     parser.add_argument("--receipt", default=None, metavar="RECEIPT_JSON")
+    parser.add_argument("--source-unit", choices=sorted(UNIT_TO_M), default=None)
+    parser.add_argument("--normalize-glb", default=None, metavar="INPUT_GLB")
+    parser.add_argument("--normalized-output", default=None, metavar="OUTPUT_GLB")
     args = parser.parse_args()
+    if args.normalize_glb:
+        if not args.source_unit or not args.normalized_output:
+            parser.error("--normalize-glb requires --source-unit and --normalized-output")
+        print(json.dumps(normalize_glb_units(Path(args.normalize_glb), Path(args.normalized_output), args.source_unit), indent=2))
+        return 0
     if args.geometry_build:
         output = Path(args.geometry_output or ".geometry-build")
         receipt_path = Path(args.receipt or output / "geometry-build-receipt.json")

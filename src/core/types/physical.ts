@@ -77,6 +77,13 @@ export interface GeometryValidationReport {
     requiredChecks?: number;
     passedRequiredChecks?: number;
   };
+  /** Addressable proof matrix for every physical/hybrid component requirement. */
+  requirementResults?: Array<{
+    componentId: string;
+    required: Array<"position" | "size" | "orientation" | "constraints">;
+    satisfied: Array<"position" | "size" | "orientation" | "constraints">;
+    missing: Array<"position" | "size" | "orientation" | "constraints">;
+  }>;
   checks: GeometryValidationCheck[];
   failures: string[];
 }

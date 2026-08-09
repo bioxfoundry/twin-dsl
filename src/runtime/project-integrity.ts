@@ -78,7 +78,17 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   if(placeholders.length) add("CONCEPTUAL_GEOMETRY_ASSUMPTION","warning","ungrounded-assumption","design",`${placeholders.length} rendered object(s) still use conceptual primitive geometry.`,placeholders,[],"replace-conceptual-geometry");
   const unreferencedEvidence=(input.physicalEvidence?.records??[]).filter(record=>!record.sourceRef).map(record=>record.componentId);
   if(unreferencedEvidence.length) add("PHYSICAL_SOURCE_REFERENCE_MISSING","warning","missing-evidence","validation","Physical evidence must identify its survey, drawing, register row or model object.",unreferencedEvidence,[],"ground-physical-evidence");
-  if(!input.geometry.complete) add("GEOMETRY_VALIDATION_INCOMPLETE","warning","missing-evidence","validation","Geometry checks pass only for the supplied subset; pose and spatial evidence is incomplete.",[input.geometry.evidenceId],[],"complete-geometry-evidence");
+  if(!input.geometry.complete) {
+    const missing=input.geometry.requirementResults?.flatMap(result=>result.missing.map(kind=>`${result.componentId}:${kind}`))??[];
+    const missingByKind=input.geometry.requirementResults?.flatMap(result=>result.missing)??[];
+    const counts=["position","size","orientation","constraints"].map(kind=>[kind,missingByKind.filter(item=>item===kind).length] as const).filter(([,count])=>count>0);
+    const detail=counts.length?` Missing: ${counts.map(([kind,count])=>`${kind}=${count}`).join(", ")}.`:"";
+    add(
+      "GEOMETRY_VALIDATION_INCOMPLETE","warning","missing-evidence","validation",
+      `Geometry checks pass only for the supplied subset; ${input.geometry.coverage.passedRequiredChecks??input.geometry.checks.length}/${input.geometry.coverage.requiredChecks??"unknown"} required checks are evidenced.${detail}`,
+      missing.length?missing:[input.geometry.evidenceId],[],"complete-geometry-evidence",
+    );
+  }
   if(!input.geometry.ok) add("GEOMETRY_VALIDATION_FAILED","error","inconsistency","validation","At least one deterministic geometry constraint failed.",input.geometry.failures,[],"repair-geometry");
   for(const receipt of input.geometryBuildReceipts??[]) {
     if(receipt.status==="succeeded"&&receipt.validation.ok) continue;
