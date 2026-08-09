@@ -39,6 +39,16 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.26] - 2026-08-09
+
+### Test
+- Update test/assembly.test.ts
+- Update test/project-wizard.test.ts
+
+### Other
+- Update src/runtime/living-project.ts
+- Update src/runtime/start-document.ts
+
 ## [0.5.25] - 2026-08-09
 
 ### Docs

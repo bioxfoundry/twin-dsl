@@ -1,5 +1,5 @@
 import { access, mkdir, readFile, writeFile } from "node:fs/promises";
-import { dirname, join, relative, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
   DevelopmentEvidenceSummary,
@@ -78,11 +78,7 @@ import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { projectTwinState, renderTwinStateDsl } from "./twin-state.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
 import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
-
-function startDocumentPath(projectRoot:string,path:string):string {
-  const candidate = relative(projectRoot,resolve(path));
-  return candidate === "" ? "." : candidate.startsWith("..") ? resolve(path) : candidate;
-}
+import { renderStartDocument, startDocumentPath, type StartValidationSummary } from "./start-document.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -97,6 +93,7 @@ import { renderArchiveAnalysisDsl } from "../../js/archive-project-analyzer/src/
 
 async function readJson<T>(path:string):Promise<T> { return JSON.parse(await readFile(path,"utf8")) as T; }
 async function readOptional<T>(path:string):Promise<T|undefined> { try { return await readJson<T>(path); } catch { return undefined; } }
+async function fileExists(path:string):Promise<boolean> { try { await access(path);return true; } catch { return false; } }
 async function writeJson(path:string,value:unknown):Promise<void> { await mkdir(dirname(path),{recursive:true}); await writeFile(path,JSON.stringify(value,null,2)+"\n"); }
 function sourceSnapshot(resources:ResourceRecord[]):string {
   return sha256(canonicalJson(resources.map(resource=>({uri:resource.uri,path:resource.sourcePath,role:resource.sourceRole,sha256:resource.sha256})).sort((a,b)=>a.path.localeCompare(b.path))));
@@ -415,63 +412,41 @@ export class LivingProjectRuntime {
     const previousStableState = await readOptional<{stableKey?:string}>(join(outDir,"state/key.json"));
     if(!forced && previous && previousStableState?.stableKey===stableKey && previous.runtimeGeneration===RUNTIME_GENERATION && previous.projectConfigHash===projectConfigHash && previous.researchSnapshotHash===researchHash && previous.developmentFingerprint===developmentFingerprint && previous.observationSnapshotHash===observationHash) {
       const runtimeRoot = resolve(outDir);
-      const startPathFor = (path:string):string => startDocumentPath(base,path);
       const dashboardCli = await startDocumentCli(base);
       const streamVersion = await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER);
       const blocked = !previous.validation.ok;
       const diagnosticScope = blocked ? "candidate" : "current";
       const diagnosticRoot = join(runtimeRoot,diagnosticScope);
-      const [currentTwinState,currentAssemblyReport] = await Promise.all([
+      const [activeTwin,activeScene,activeOpenUsd,activeTwinState,latestTwinState,latestAssemblyReport,latestGeometry,latestIntegrity,latestIntent,latestGeometryBuilds] = await Promise.all([
+        readOptional<TwinDocument>(join(runtimeRoot,"current/twin.json")),
+        readOptional<SceneDocument>(join(runtimeRoot,"current/scene.json")),
+        fileExists(join(runtimeRoot,"current/scene.usda")),
+        readOptional<TwinStateDocument>(join(runtimeRoot,"current/twin-state.json")),
         readOptional<TwinStateDocument>(join(diagnosticRoot,"twin-state.json")),
         readOptional<AssemblyReport>(join(diagnosticRoot,"assembly-report.json")),
+        readOptional<GeometryValidationReport>(join(diagnosticRoot,"geometry-validation.json")),
+        readOptional<ProjectIntegrityReport>(join(diagnosticRoot,"project-integrity.json")),
+        readOptional<IntentDslIndex>(join(diagnosticRoot,"intent-dsl.index.json")),
+        readOptional<{receipts:GeometryBuildReceipt[]}>(join(diagnosticRoot,"geometry-builds.json")),
       ]);
-      await writeFile(resolve(base,"START.md"),[
-        `# ${project.name} — START`, "", `Generated: ${new Date().toISOString()}`,
-        `Status: ACTIVE / ACCEPTED; LATEST ITERATION / ${blocked ? "REJECTED" : "ACCEPTED"}; NO CHANGE`,
-        `Project: ${project.id}`, `Runtime generation: ${RUNTIME_GENERATION}`,
-        `Event stream version: ${streamVersion}`, `Last completed iteration: ${previous.completedAt}`, "",
-        "## Live application", "",
-        `- Dashboard URL: http://127.0.0.1:${dashboardPort}`,
-        `- Project DSL: ${startPathFor(configPath)}`, `- Runtime root: ${startPathFor(runtimeRoot)}`,
-        `- Current Twin: ${startPathFor(join(runtimeRoot,"current/twin.json"))}`,
-        `- Current scene JSON: ${startPathFor(join(runtimeRoot,"current/scene.json"))}`,
-        `- Current OpenUSD: ${startPathFor(join(runtimeRoot,"current/scene.usda"))}`,
-        ...(currentTwinState?[`- Current TwinState: ${startPathFor(join(diagnosticRoot,"twin-state.json"))}`]:[]),
-        `- Rendered ACTIVE artifact scope: ${startPathFor(join(runtimeRoot,"current"))}`,
-        `- Latest diagnostic scope: ${startPathFor(diagnosticRoot)}`,
-        `- API state: http://127.0.0.1:${dashboardPort}/api/state`,
-        `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
-        `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`,
-        `- Component inspection URL pattern: http://127.0.0.1:${dashboardPort}/?focus=<componentId>`, "", "```bash",
-        `DT_DASHBOARD_HOST=0.0.0.0 DT_DASHBOARD_PORT=${dashboardPort} node ${dashboardCli} dashboard ${startPathFor(configPath)} ${startPathFor(runtimeRoot)} ${dashboardPort} ${mode}`,
-        "```", "", "## DSL and validation", "",
-        `- intentDSL index: ${startPathFor(join(diagnosticRoot,"intent-dsl.index.json"))}`,
-        `- Physical evidence report: ${startPathFor(join(diagnosticRoot,"physical-evidence.report.json"))}`,
-        `- Geometry build diagnostics: ${startPathFor(join(diagnosticRoot,"geometry-builds.dsl"))}`,
-        `- Geometry validation: ${startPathFor(join(diagnosticRoot,"geometry-validation.dsl"))}`,
-        `- Project integrity: ${startPathFor(join(diagnosticRoot,"project-integrity.dsl"))}`,
-        `- Evidence sets: ${startPathFor(join(diagnosticRoot,"evidence-sets.dsl"))}`,
-        `- Archive project analysis: ${startPathFor(join(diagnosticRoot,"archive-project-analysis.dsl"))}`,
-        `- Validation: ${blocked ? previous.validation.failures.join(", ") : "passed"}`,
-        "", "## Logs and feedback", "",
-        `- Iteration receipt: ${startPathFor(join(runtimeRoot,"latest.json"))}`,
-        `- Event log: ${startPathFor(join(runtimeRoot,"events.jsonl"))}`,
-        `- Failure log: ${startPathFor(join(runtimeRoot,"dead-letter.jsonl"))}`,
-        `- Dashboard server log: ${startPathFor(resolve(base,"logs",`dashboard-${dashboardPort}.log`))}`,
-        `- Runtime observations: ${startPathFor(join(diagnosticRoot,"observations.json"))}`,
-        ...(currentTwinState?[`- Live bindings: ${startPathFor(resolve(base,project.observations.liveBindingFile!))}`,`- TwinState: ${startPathFor(join(diagnosticRoot,"twin-state.json"))}`,`- TwinState freshness: ${currentTwinState.coverage.fresh} fresh; ${currentTwinState.coverage.stale} stale; ${currentTwinState.coverage.expired} expired; ${currentTwinState.coverage.unknown} unknown`]:[]),
-        ...(currentAssemblyReport?[`- Assembly contract: ${startPathFor(resolve(base,project.scene.assemblyFile!))}`,`- Assembly report: ${startPathFor(join(diagnosticRoot,"assembly-report.dsl"))}`,`- Assembly completeness: ${currentAssemblyReport.coverage.completeAssemblies}/${currentAssemblyReport.coverage.assemblies}; required parts ${currentAssemblyReport.coverage.completeRequiredParts}/${currentAssemblyReport.coverage.requiredParts}`]:[]),
-        `- Feedback: ${startPathFor(resolve(base,"feedback/latest.md"))}`,
-        `- Generation audit: ${startPathFor(join(diagnosticRoot,"generation-audit.json"))}`,
-        "", "## Presentation assets", "",
-        `- Dashboard screenshot: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.png"))}`,
-        `- OSCAR pipette inspection: ${startPathFor(join(runtimeRoot,"current/presentation/oscar-pipette-tool-inspection.png"))}`,
-        `- MOS3S custom-parts inspection: ${startPathFor(join(runtimeRoot,"current/presentation/bioprinter-mos3s-inspection.png"))}`,
-        `- MOS3S custom-parts orbit video: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-mos3s-orbit.webm"))}`,
-        `- 3D orbit video: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-orbit.webm"))}`,
-        `- Dashboard recording: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.webm"))}`,
-        "", `Iteration URI: ${previous.iterationUri}`, "",
-      ].join("\n"),"utf8");
+      const buildFailures=(latestGeometryBuilds?.receipts??[]).filter(item=>item.status==="failed").map(item=>item.error?.code??item.id);
+      const validationSummary:StartValidationSummary = {
+        intentDsl:latestIntent,
+        geometryBuild:latestGeometryBuilds?{failures:buildFailures,contracts:latestGeometryBuilds.receipts.length}:undefined,
+        geometry:latestGeometry?{bindings:latestGeometry.coverage.bindings,passedRequiredChecks:latestGeometry.coverage.passedRequiredChecks,requiredChecks:latestGeometry.coverage.requiredChecks}:undefined,
+        projectIntegrity:latestIntegrity?{ok:latestIntegrity.ok,complete:latestIntegrity.complete}:undefined,
+        archive:{
+          materializableGeometry:scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0),
+          unsupportedCad:scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0),
+        },
+      };
+      await writeFile(resolve(base,"START.md"),renderStartDocument({
+        project,projectRoot:base,configPath,runtimeRoot,dashboardCli,dashboardPort,mode,
+        receipt:previous,streamVersion,evaluation:"no-change",activeAvailable:Boolean(activeTwin&&activeScene&&activeOpenUsd),
+        activeTwinStateAvailable:Boolean(activeTwinState),latestArtifactRoot:diagnosticRoot,
+        iterationPublished:previous.validation.ok,latestTwinState,latestAssemblyReport,
+        validation:validationSummary,feedbackPath:resolve(base,"feedback/latest.md"),
+      }),"utf8");
       return {...previous,noChange:true,diff};
     }
 
@@ -750,82 +725,30 @@ export class LivingProjectRuntime {
     const startPath = resolve(base,"START.md");
     const runtimeRoot = resolve(outDir);
     const latestArtifactRoot = join(runtimeRoot,publish?"current":"candidate");
-    const startPathFor = (path:string):string => startDocumentPath(base,path);
     const dashboardCli = await startDocumentCli(base);
     const streamVersion = (await recentIterationCount(outDir,Number.MAX_SAFE_INTEGER)) + 1;
-    const start = [
-      `# ${project.name} — START`,
-      "",
-      `Generated: ${new Date().toISOString()}`,
-      `Status: ACTIVE / ACCEPTED; LATEST ITERATION / ${receipt.validation.ok ? "ACCEPTED" : "REJECTED"}`,
-      `Project: ${project.id}`,
-      `Runtime generation: ${RUNTIME_GENERATION}`,
-      `Iteration started: ${receipt.startedAt}`,
-      `Iteration completed: ${receipt.completedAt}`,
-      `Event stream version: ${streamVersion}`,
-      "",
-      "## Live application",
-      "",
-      `- Dashboard URL: http://127.0.0.1:${dashboardPort} (start command below)`,
-      `- Project DSL: ${startPathFor(configPath)}`,
-      `- Runtime root: ${startPathFor(runtimeRoot)}`,
-      `- Current Twin: ${startPathFor(join(runtimeRoot,"current/twin.json"))}`,
-      ...(twinState?[`- Current TwinState: ${startPathFor(join(runtimeRoot,"current/twin-state.json"))}`]:[]),
-      `- Current scene JSON: ${startPathFor(join(runtimeRoot,"current/scene.json"))}`,
-      `- Current OpenUSD: ${startPathFor(join(runtimeRoot,"current/scene.usda"))}`,
-      `- Rendered ACTIVE artifact scope: ${startPathFor(join(runtimeRoot,"current"))}`,
-      `- Latest diagnostic scope: ${startPathFor(latestArtifactRoot)}`,
-      `- Iteration artifact scope: ${startPathFor(latestArtifactRoot)}${publish?" (published)":" (rejected candidate; current remains last-known-good)"}`,
-      `- API state: http://127.0.0.1:${dashboardPort}/api/state`,
-      `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
-      `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`,
-      `- Component inspection URL pattern: http://127.0.0.1:${dashboardPort}/?focus=<componentId>`,
-      "",
-      "```bash",
-      `DT_DASHBOARD_HOST=0.0.0.0 DT_DASHBOARD_PORT=${dashboardPort} node ${dashboardCli} dashboard ${startPathFor(configPath)} ${startPathFor(runtimeRoot)} ${dashboardPort} ${mode}`,
-      "```",
-      "",
-      "## DSL and validation",
-      "",
-      `- intentDSL index: ${startPathFor(join(latestArtifactRoot,"intent-dsl.index.json"))}`,
-      `- intentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
-      `- Physical evidence report: ${startPathFor(join(latestArtifactRoot,"physical-evidence.report.json"))}`,
-      `- Latest geometry build diagnostics: ${startPathFor(join(latestArtifactRoot,"geometry-builds.dsl"))}`,
-      `- Geometry build status: ${geometryBuildFailures.length?`FAIL (${geometryBuildFailures.join(", ")})`:`PASS (${geometryMaterializations.length} contract(s))`}`,
-      `- Latest geometry validation: ${startPathFor(join(latestArtifactRoot,"geometry-validation.dsl"))}`,
-      `- Geometry required checks: ${geometryReport.coverage.passedRequiredChecks??"legacy"}/${geometryReport.coverage.requiredChecks??"legacy"} over ${geometryReport.coverage.bindings} physical/hybrid component(s)`,
-      `- Latest project integrity: ${startPathFor(join(latestArtifactRoot,"project-integrity.dsl"))}`,
-      `- Evidence sets: ${startPathFor(join(latestArtifactRoot,"evidence-sets.dsl"))}`,
-      `- Archive project analysis: ${startPathFor(join(latestArtifactRoot,"archive-project-analysis.dsl"))}`,
-      `- Archive materializable geometry: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0)} candidate(s); unsupported native CAD: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0)}`,
-      `- Project integrity status: ${projectIntegrity.ok?"PASS":"FAIL"} / ${projectIntegrity.complete?"COMPLETE":"INCOMPLETE"}`,
-      `- Validation: ${receipt.validation.ok ? "passed" : receipt.validation.failures.join(", ")}`,
-      "",
-      "## Logs and feedback",
-      "",
-      `- Iteration receipt: ${startPathFor(join(runtimeRoot,"latest.json"))}`,
-      `- Event log: ${startPathFor(join(runtimeRoot,"events.jsonl"))}`,
-      `- Failure log: ${startPathFor(join(runtimeRoot,"dead-letter.jsonl"))}`,
-      `- Dashboard server log: ${startPathFor(resolve(base,"logs",`dashboard-${dashboardPort}.log`))}`,
-      `- Runtime observations: ${startPathFor(join(latestArtifactRoot,"observations.json"))}`,
-      ...(twinState?[`- Live bindings: ${startPathFor(resolve(base,project.observations.liveBindingFile!))}`,`- TwinState: ${startPathFor(join(latestArtifactRoot,"twin-state.json"))}`,`- TwinState freshness: ${twinState.coverage.fresh} fresh; ${twinState.coverage.stale} stale; ${twinState.coverage.expired} expired; ${twinState.coverage.unknown} unknown`]:[]),
-      ...(assemblyReport?[`- Assembly contract: ${startPathFor(resolve(base,project.scene.assemblyFile!))}`,`- Assembly report: ${startPathFor(join(latestArtifactRoot,"assembly-report.dsl"))}`,`- Assembly completeness: ${assemblyReport.coverage.completeAssemblies}/${assemblyReport.coverage.assemblies}; required parts ${assemblyReport.coverage.completeRequiredParts}/${assemblyReport.coverage.requiredParts}`]:[]),
-      `- Feedback: ${startPathFor(feedbackPath)}`,
-      `- Generation audit: ${startPathFor(join(latestArtifactRoot,"generation-audit.json"))}`,
-      "",
-      "## Presentation assets",
-      "",
-      `- Dashboard screenshot: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.png"))}`,
-      `- OSCAR pipette inspection: ${startPathFor(join(runtimeRoot,"current/presentation/oscar-pipette-tool-inspection.png"))}`,
-      `- MOS3S custom-parts inspection: ${startPathFor(join(runtimeRoot,"current/presentation/bioprinter-mos3s-inspection.png"))}`,
-      `- MOS3S custom-parts orbit video: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-mos3s-orbit.webm"))}`,
-      `- 3D orbit video: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-orbit.webm"))}`,
-      `- Dashboard recording: ${startPathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.webm"))}`,
-      "",
-      `Previous iteration: ${receipt.previousIterationUri ?? "none"}`,
-      `Iteration URI: ${receipt.iterationUri}`,
-      "",
-    ].join("\n");
+    const [activeTwin,activeScene,activeOpenUsd,activeTwinState] = await Promise.all([
+      readOptional<TwinDocument>(join(runtimeRoot,"current/twin.json")),
+      readOptional<SceneDocument>(join(runtimeRoot,"current/scene.json")),
+      fileExists(join(runtimeRoot,"current/scene.usda")),
+      readOptional<TwinStateDocument>(join(runtimeRoot,"current/twin-state.json")),
+    ]);
+    const validationSummary:StartValidationSummary = {
+      intentDsl,
+      geometryBuild:{failures:geometryBuildFailures,contracts:geometryMaterializations.length},
+      geometry:{bindings:geometryReport.coverage.bindings,passedRequiredChecks:geometryReport.coverage.passedRequiredChecks,requiredChecks:geometryReport.coverage.requiredChecks},
+      projectIntegrity:{ok:projectIntegrity.ok,complete:projectIntegrity.complete},
+      archive:{
+        materializableGeometry:scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0),
+        unsupportedCad:scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0),
+      },
+    };
+    const start = renderStartDocument({
+      project,projectRoot:base,configPath,runtimeRoot,dashboardCli,dashboardPort,mode,receipt,
+      streamVersion,evaluation:"changed",activeAvailable:Boolean(activeTwin&&activeScene&&activeOpenUsd),
+      activeTwinStateAvailable:Boolean(activeTwinState),latestArtifactRoot,iterationPublished:publish,
+      latestTwinState:twinState,latestAssemblyReport:assemblyReport,validation:validationSummary,feedbackPath,
+    });
     await writeFile(startPath,start,"utf8");
 
     await writeJson(join(outDir,"state/resources.json"),resources);

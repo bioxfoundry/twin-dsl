@@ -99,7 +99,9 @@ END_ASSEMBLY
     }
     assert.equal(stable.noChange, true, "derived feedback must converge to an idempotent iteration");
     const start = await readFile(join(created.projectDir, "START.md"), "utf8");
-    assert.match(start, /LATEST ITERATION \/ ACCEPTED; NO CHANGE/);
+    assert.match(start, /Active artifact: ACCEPTED/);
+    assert.match(start, /Last completed iteration: ACCEPTED/);
+    assert.match(start, /Latest evaluation: NO CHANGE \(no receipt or event appended\)/);
     assert.match(start, /## Live application/);
     assert.match(start, /## Logs and feedback/);
     assert.match(start, /Dashboard server log:/);
