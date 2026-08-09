@@ -42,6 +42,8 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     const vendoredPackage=JSON.parse(await readFile(join(projectDir,"vendor/runtime/package.json"),"utf8"));
     assert.equal(vendoredPackage.version,sourcePackage.version);
     assert.match(await readFile(join(projectDir,"README.md"),"utf8"),new RegExp(`Starter ${sourcePackage.version.replaceAll(".","\\.")}\\.`));
+    assert.equal(await exists(join(projectDir,"vendor/runtime/scripts/cad-to-gltf.py")),true,"standalone geometry worker is vendored");
+    assert.match(await readFile(join(projectDir,"vendor/runtime/Dockerfile"),"utf8"),/COPY scripts \.\/scripts/);
 
     // Disable live web request for the local fixture test.
     const config=parseProjectDsl(await readFile(created.configPath,"utf8"));

@@ -22,8 +22,9 @@ docker compose up -d --build
 Each directory is a separate Compose project with its own generated default ports and ClickHouse volume. `COMPOSE_PROJECT_NAME` can override the generated name.
 
 The wizard vendors the currently built runtime into `vendor/runtime` and records the same
-version in the generated README. After upgrading `twin-dsl`, refresh an existing standalone
-project with:
+version in the generated README. The bundle includes the deterministic CAD worker under
+`vendor/runtime/scripts`, and the runtime image copies it together with the compiled CLI.
+After upgrading `twin-dsl`, refresh an existing standalone project with:
 
 ```bash
 node scripts/sync-vendored-runtime.mjs ../projects/plant

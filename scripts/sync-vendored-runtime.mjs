@@ -26,6 +26,8 @@ try {
   for(const entry of ["dist","schemas","proto","deploy"]) {
     await cp(join(sourceRoot,entry),join(staging,entry),{recursive:true});
   }
+  await mkdir(join(staging,"scripts"),{recursive:true});
+  await cp(join(sourceRoot,"scripts/cad-to-gltf.py"),join(staging,"scripts/cad-to-gltf.py"));
   await writeFile(join(staging,"package.json"),JSON.stringify({
     name:"living-digital-twin-runtime-image",version:sourcePackage.version,private:true,type:"module",
   },null,2)+"\n");
@@ -34,6 +36,7 @@ WORKDIR /opt/runtime
 COPY dist ./dist
 COPY schemas ./schemas
 COPY proto ./proto
+COPY scripts ./scripts
 COPY package.json ./package.json
 ENTRYPOINT ["node", "/opt/runtime/dist/src/cli/main.js"]
 `);
