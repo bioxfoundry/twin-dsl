@@ -1,6 +1,19 @@
 import { stat } from "node:fs/promises";
 import { basename } from "node:path";
-import type { GeometryBuildReceipt, PhysicalEvidenceDocument, ResourceRecord } from "../core/types.js";
+import type { AssemblyDocument, GeometryBuildReceipt, PhysicalEvidenceDocument, ResourceRecord } from "../core/types.js";
+
+type Vec3 = [number, number, number];
+
+function worldHalfExtent(size:Vec3,orientation:[number,number,number,number]):Vec3 {
+  const [x,y,z,w]=orientation;
+  const rotation=[
+    [1-2*(y*y+z*z),2*(x*y-z*w),2*(x*z+y*w)],
+    [2*(x*y+z*w),1-2*(x*x+z*z),2*(y*z-x*w)],
+    [2*(x*z-y*w),2*(y*z+x*w),1-2*(x*x+y*y)],
+  ];
+  const half=size.map(value=>value/2) as Vec3;
+  return rotation.map(row=>row.reduce((sum,value,index)=>sum+Math.abs(value)*half[index],0)) as Vec3;
+}
 
 function extent(receipt: GeometryBuildReceipt): [number, number, number] | undefined {
   const bbox = receipt.validation.bboxM;
@@ -60,6 +73,35 @@ export function geometryReceiptEvidence(receipt: GeometryBuildReceipt): Physical
       },
     }],
   };
+}
+
+/** Derive a root assembly world AABB only when every part shares one evidenced CAD frame. */
+export function assemblyAggregateEvidence(document:AssemblyDocument,evidence:PhysicalEvidenceDocument):PhysicalEvidenceDocument|undefined {
+  const byComponent=new Map(evidence.records.map(record=>[record.componentId,record]));
+  const records:PhysicalEvidenceDocument["records"]=[];
+  for(const assembly of document.assemblies) {
+    const parts=assembly.parts.map(part=>byComponent.get(part.componentId));
+    if(parts.some(part=>!part?.position||!part.size||!part.orientation)) continue;
+    const placementMethods=[...new Set(parts.map(part=>String(part!.properties?.placementMethod??"")))];
+    if(placementMethods.length!==1||!placementMethods[0]) continue;
+    const min:Vec3=[Infinity,Infinity,Infinity],max:Vec3=[-Infinity,-Infinity,-Infinity];
+    for(const part of parts) {
+      const half=worldHalfExtent(part!.size!,part!.orientation!);
+      for(let axis=0;axis<3;axis++) {
+        min[axis]=Math.min(min[axis],part!.position![axis]-half[axis]);
+        max[axis]=Math.max(max[axis],part!.position![axis]+half[axis]);
+      }
+    }
+    records.push({
+      componentId:assembly.rootComponentId,kind:"equipment",evidence:"cad",
+      position:max.map((value,axis)=>(value+min[axis])/2) as Vec3,
+      size:max.map((value,axis)=>value-min[axis]) as Vec3,
+      orientation:[0,0,0,1],sourceRef:`assembly:${assembly.id}`,
+      properties:{derivation:"world-aabb-union",derivedFromPartCount:parts.length,placementMethod:placementMethods[0]},
+    });
+  }
+  if(!records.length) return undefined;
+  return {schema:"subactor.physical-evidence/v1",id:`assembly-aggregate-${document.id}`,coordinateSystem:{...evidence.coordinateSystem},records};
 }
 
 /** Merge generated CAD with manual placement/survey facts without lowering evidence strength. */

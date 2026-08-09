@@ -72,7 +72,7 @@ import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physic
 import { geometryRequirementsFromTwin, validateGeometry } from "../scene/geometry-validation.js";
 import { analyzeProjectIntegrity, renderProjectIntegrityDsl } from "./project-integrity.js";
 import { GeometryService, type GeometryMaterialization } from "../geometry/geometry-service.js";
-import { mergeGeometryEvidence } from "../geometry/physical-evidence-adapter.js";
+import { assemblyAggregateEvidence, mergeGeometryEvidence } from "../geometry/physical-evidence-adapter.js";
 import { renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
 import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { projectTwinState, renderTwinStateDsl } from "./twin-state.js";
@@ -548,6 +548,10 @@ export class LivingProjectRuntime {
         continue;
       }
       validGeometryEvidence.push(materialization.evidence);
+    }
+    if(assemblyDocument&&baselinePhysicalEvidence) {
+      const aggregateEvidence=assemblyAggregateEvidence(assemblyDocument,baselinePhysicalEvidence);
+      if(aggregateEvidence) validGeometryEvidence.push(aggregateEvidence);
     }
     const mergedPhysicalEvidence = mergeGeometryEvidence(baselinePhysicalEvidence,validGeometryEvidence);
     const physicalEvidence = mergedPhysicalEvidence ? validatePhysicalEvidence(mergedPhysicalEvidence) : undefined;

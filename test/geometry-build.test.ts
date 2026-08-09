@@ -11,7 +11,7 @@ import { sha256 } from "../src/core/canonical.js";
 import { geometryBuildHash, parameterSetHash } from "../src/geometry/build-hash.js";
 import { validateGeometryBuild, validateGeometryBuildReceipt } from "../src/geometry/build-contract.js";
 import { renderGeometryDsl, renderGeometryReceiptDsl } from "../src/geometry/geometry-dsl.js";
-import { geometryReceiptEvidence, mergeGeometryEvidence } from "../src/geometry/physical-evidence-adapter.js";
+import { assemblyAggregateEvidence, geometryReceiptEvidence, mergeGeometryEvidence } from "../src/geometry/physical-evidence-adapter.js";
 
 const run = promisify(execFile);
 
@@ -110,6 +110,22 @@ test("successful receipt becomes grounded CAD evidence without weakening stronge
   const merged = mergeGeometryEvidence(manual, [generated]);
   assert.equal(merged?.records[0].evidence, "ifc");
   assert.equal(merged?.records[0].sourceRef, "ifc:part");
+});
+
+test("assembly aggregate evidence derives a root AABB only from a complete shared CAD frame", () => {
+  const physical:PhysicalEvidenceDocument={
+    schema:"subactor.physical-evidence/v1",id:"parts",coordinateSystem:{unit:"m",upAxis:"Z"},records:[
+      {componentId:"left",kind:"equipment",evidence:"cad",position:[-1,0,0],size:[1,2,1],orientation:[0,0,0,1],sourceRef:"cad:left",properties:{placementMethod:"shared-frame"}},
+      {componentId:"right",kind:"equipment",evidence:"cad",position:[1,0,0],size:[1,2,1],orientation:[0,0,0,1],sourceRef:"cad:right",properties:{placementMethod:"shared-frame"}},
+    ],
+  };
+  const assembly={schema:"subactor.assembly/v1" as const,id:"machine-assemblies",assemblies:[{id:"machine",rootComponentId:"root",kind:"device" as const,parts:[{id:"left",componentId:"left",required:true},{id:"right",componentId:"right",required:true}]}]};
+  const derived=assemblyAggregateEvidence(assembly,physical);
+  assert.deepEqual(derived?.records[0].position,[0,0,0]);
+  assert.deepEqual(derived?.records[0].size,[3,2,1]);
+  assert.equal(derived?.records[0].sourceRef,"assembly:machine");
+  physical.records[1].properties={placementMethod:"another-frame"};
+  assert.equal(assemblyAggregateEvidence(assembly,physical),undefined);
 });
 
 test("stdlib 3MF converter emits a loadable GLB in metres", async () => {

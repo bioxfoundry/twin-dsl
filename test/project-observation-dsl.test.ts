@@ -5,8 +5,14 @@ import { parseProjectDsl, renderProjectDsl } from "../src/dsl/project.js";
 import { parseObservationDsl, renderObservationDsl } from "../src/dsl/observation.js";
 
 test('projectDSL and observationDSL round-trip deterministically',async()=>{
-  const projectEnvelope=JSON.parse(await readFile('examples/nl-to-dsl/project.fixture.json','utf8')) as {dsl:string};const project=parseProjectDsl(projectEnvelope.dsl);assert.equal(parseProjectDsl(renderProjectDsl(project)).id,project.id);
+  const projectEnvelope=JSON.parse(await readFile('examples/nl-to-dsl/project.fixture.json','utf8')) as {dsl:string};const project=parseProjectDsl(projectEnvelope.dsl);const roundTrip=parseProjectDsl(renderProjectDsl(project));assert.equal(roundTrip.id,project.id);assert.equal(roundTrip.policy.environment,'production');
   const observationEnvelope=JSON.parse(await readFile('examples/nl-to-dsl/observation.fixture.json','utf8')) as {dsl:string};const observation=parseObservationDsl(observationEnvelope.dsl);assert.equal(parseObservationDsl(renderObservationDsl(observation)).observations[0]?.metric,'temperatureC');
+});
+
+test('projectDSL preserves an explicit development policy boundary',()=>{
+  const project=parseProjectDsl(`PROJECT demo\nNAME "Demo"\nPROFILE generic\nMANAGER_INTENT "Develop"\nSOURCE development "code" subactor://project/demo/development\nPOLICY_ENVIRONMENT development\nPOLICY_APPROVED true\nPOLICY_REQUIRE_RESEARCH true\nPOLICY_REQUIRE_DEVELOPMENT true\nPOLICY_REQUIRE_DEVELOPMENT_ACCEPTANCE true\nPOLICY_ALLOW_DEVELOPMENT_FIXTURE false\nPOLICY_REQUIRE_RUNTIME true\nPOLICY_AUTO_PUBLISH_SCENE true\nPOLICY_ALLOW_RUNTIME_SELF_MODIFICATION true\nPOLICY_AUTONOMY_MODE apply\nPOLICY_REQUIRE_SIGNED_MUTATION_GRANT false\nPOLICY_MAX_ITERATIONS_PER_HOUR 12\nPOLICY_MAX_CONSECUTIVE_FAILURES 3\nSCENE_FORMAT openusd\n`);
+  assert.equal(project.policy.environment,'development');
+  assert.match(renderProjectDsl(project),/^POLICY_ENVIRONMENT development$/m);
 });
 
 test('observationDSL preserves receivedAt independently from observedAt',()=>{

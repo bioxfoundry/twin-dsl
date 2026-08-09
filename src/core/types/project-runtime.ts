@@ -97,6 +97,8 @@ export interface LivingProjectDocument {
     fixtureMapFile?: string;
   };
   policy: {
+    /** Deployment boundary for controls that are intentionally relaxed only in local development. */
+    environment?: "development" | "production";
     approved: boolean;
     requireResearch: boolean;
     requireDevelopmentEvidence: boolean;

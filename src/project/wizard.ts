@@ -3,7 +3,7 @@ import { basename, dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { LivingProjectDocument, SourceRole } from "../core/types.js";
 import { parseProjectDsl, renderProjectDsl, validateProject } from "../dsl/project.js";
-import { sha256 } from "../core/canonical.js";
+import { canonicalJson, sha256 } from "../core/canonical.js";
 import { biofoundryLiveBlueprintV02 } from "../scene/blueprint.js";
 import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
@@ -237,7 +237,7 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
     ],
     development:{root:"code",task:"TASK.md",todo:"TODO.md",changelog:"CHANGELOG.md",docs:["README.md","docs/**/*.md"],fixture:"config/development.intent.fixture.json"},
     observations:{paths:["logs","environment"],logicalRoot:`subactor://project/${id}/runtime`},
-    policy:{approved:true,requireResearch:true,requireDevelopmentEvidence:true,requireDevelopmentAcceptance:true,allowDevelopmentFixture:true,requireRuntimeEvidence:true,autoPublishScene:true,allowRuntimeSelfModification:false,autonomyMode:"propose",requireSignedMutationGrant:true,maxIterationsPerHour:12,maxConsecutiveFailures:5},
+    policy:{environment:"development",approved:true,requireResearch:true,requireDevelopmentEvidence:true,requireDevelopmentAcceptance:true,allowDevelopmentFixture:true,requireRuntimeEvidence:true,autoPublishScene:true,allowRuntimeSelfModification:false,autonomyMode:"propose",requireSignedMutationGrant:true,maxIterationsPerHour:12,maxConsecutiveFailures:5},
     scene:{format:"openusd",...(profile==="biofoundry"?{blueprintFile:"baseline/scene-blueprint.json"}:{})},
   };
   validateProject(project);
@@ -335,11 +335,32 @@ export async function addProjectWebsite(configPath:string,url:string,contextTerm
   return document;
 }
 
+/** Rebuild the JSON convenience mirror from the canonical projectDSL contract. */
+export async function syncProjectMirror(configPath:string):Promise<{projectId:string;path:string}> {
+  const absolute = resolve(configPath);
+  const document = parseProjectDsl(await readFile(absolute,"utf8"));
+  validateProject(document);
+  const path = join(dirname(absolute),"project.json");
+  await writeFile(path,JSON.stringify(document,null,2)+"\n");
+  return {projectId:document.id,path};
+}
+
 export async function verifyLivingProject(configPath:string):Promise<{ok:boolean;projectId:string;checks:Array<{name:string;ok:boolean;message:string}>}> {
   const absolute = resolve(configPath);
   const base = dirname(absolute);
   const document = parseProjectDsl(await readFile(absolute,"utf8"));
   const checks:Array<{name:string;ok:boolean;message:string}> = [];
+  const jsonMirrorPath = join(base,"project.json");
+  if(await exists(jsonMirrorPath)) {
+    try {
+      const mirror = JSON.parse(await readFile(jsonMirrorPath,"utf8")) as LivingProjectDocument;
+      validateProject(mirror);
+      const ok = canonicalJson(mirror) === canonicalJson(document);
+      checks.push({name:"project.json-mirror",ok,message:ok?"matches project.projectdsl":"differs from canonical project.projectdsl"});
+    } catch(error) {
+      checks.push({name:"project.json-mirror",ok:false,message:error instanceof Error?error.message:String(error)});
+    }
+  }
   for(const source of document.sources) {
     const path = resolve(base,source.path);
     const ok = await exists(path);

@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
-import { addProjectSource, addProjectWebsite, createLivingProject, verifyLivingProject } from "../src/project/wizard.js";
+import { addProjectSource, addProjectWebsite, createLivingProject, syncProjectMirror, verifyLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
 import { parseProjectDsl, renderProjectDsl } from "../src/dsl/project.js";
 
@@ -30,6 +30,15 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
 
     const verified=await verifyLivingProject(created.configPath);
     assert.equal(verified.ok,true);
+    const mirrorPath=join(projectDir,"project.json");
+    const staleMirror=JSON.parse(await readFile(mirrorPath,"utf8"));
+    staleMirror.policy.requireSignedMutationGrant=!staleMirror.policy.requireSignedMutationGrant;
+    await writeFile(mirrorPath,JSON.stringify(staleMirror,null,2)+"\n");
+    const drifted=await verifyLivingProject(created.configPath);
+    assert.equal(drifted.ok,false);
+    assert.equal(drifted.checks.find(check=>check.name==="project.json-mirror")?.ok,false);
+    await syncProjectMirror(created.configPath);
+    assert.equal((await verifyLivingProject(created.configPath)).ok,true);
     const compose=await readFile(created.composePath,"utf8");
     assert.match(compose,/clickhouse:/);
     assert.match(compose,/docling:/);

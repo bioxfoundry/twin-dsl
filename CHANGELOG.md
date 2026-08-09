@@ -39,6 +39,22 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.24] - 2026-08-09
+
+### Test
+- Update test/geometry-build.test.ts
+- Update test/project-observation-dsl.test.ts
+- Update test/project-wizard.test.ts
+
+### Other
+- Update src/cli/main.ts
+- Update src/core/generation.ts
+- Update src/core/types/project-runtime.ts
+- Update src/dsl/project.ts
+- Update src/geometry/physical-evidence-adapter.ts
+- Update src/project/wizard.ts
+- Update src/runtime/living-project.ts
+
 ## [0.5.23] - 2026-08-09
 
 ### Docs
