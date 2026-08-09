@@ -59,6 +59,11 @@ Files with no text layer — CAD meshes, archives, binaries — still get a Mark
 the front matter and a short stub saying why. Dropping them would leave a tree that silently
 disagrees with its source, which is worse than an explicit "nothing to extract here".
 
+Each successful tree conversion also writes `out/VERSION`. It is a deterministic, line-oriented
+manifest with the f2md version plus SHA-256 snapshots of the complete source tree and generated
+Markdown payloads. It deliberately contains no timestamp, absolute path, credential or machine
+specific value, so it can be committed and compared across runs.
+
 ### Translating to one language
 
 `--translate en` detects each document's language and, for anything not already in the target,

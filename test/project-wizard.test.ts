@@ -43,7 +43,9 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.equal(vendoredPackage.version,sourcePackage.version);
     assert.match(await readFile(join(projectDir,"README.md"),"utf8"),new RegExp(`Starter ${sourcePackage.version.replaceAll(".","\\.")}\\.`));
     assert.equal(await exists(join(projectDir,"vendor/runtime/scripts/cad-to-gltf.py")),true,"standalone geometry worker is vendored");
-    assert.match(await readFile(join(projectDir,"vendor/runtime/Dockerfile"),"utf8"),/COPY scripts \.\/scripts/);
+    const runtimeDockerfile=await readFile(join(projectDir,"vendor/runtime/Dockerfile"),"utf8");
+    assert.match(runtimeDockerfile,/COPY scripts\/cad-to-gltf\.py \.\/scripts\/cad-to-gltf\.py/);
+    assert.match(runtimeDockerfile,/apt-get install[^\n]*git openscad python3/);
 
     // Disable live web request for the local fixture test.
     const config=parseProjectDsl(await readFile(created.configPath,"utf8"));

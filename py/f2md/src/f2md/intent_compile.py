@@ -22,6 +22,39 @@ def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _file_snapshot(root: Path, paths: Iterable[Path]) -> str:
+    """Return a stable content address for generated or source files below *root*."""
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        digest.update(path.relative_to(root).as_posix().encode("utf-8"))
+        digest.update(b"\0")
+        digest.update(path.read_bytes())
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _write_version(source: Path, output: Path, source_paths: Iterable[Path], summary: Dict[str, Any]) -> None:
+    """Write a deterministic identity for the Markdown-to-DSL conversion."""
+    from . import __version__
+
+    sources = list(source_paths)
+    packs = [path for path in output.rglob("*.intent.json") if path.is_file()]
+    lines = [
+        "FORMAT=bioxfoundry.conversion-version/v1",
+        "ARTIFACT=markdown-intent-dsl",
+        "COMPILER=f2md.intent_compile",
+        f"COMPILER_VERSION={__version__}",
+        f"SOURCE_FILES={len(sources)}",
+        f"SOURCE_SNAPSHOT_SHA256={_file_snapshot(source, sources)}",
+        f"OUTPUT_PACKS={len(packs)}",
+        f"OUTPUT_SNAPSHOT_SHA256={_file_snapshot(output, packs)}",
+        f"INTENT_RECORDS={summary['records']}",
+        f"FAILURES={len(summary['failures'])}",
+        "",
+    ]
+    (output / "VERSION").write_text("\n".join(lines), encoding="utf-8")
+
+
 def _frontmatter(text: str) -> Dict[str, str]:
     if not text.startswith("---\n") or "\n---" not in text[4:]:
         return {}
@@ -102,6 +135,7 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
     expected_targets: set[Path] = set()
     summary: Dict[str, Any] = {"schema": "subactor.intent-compile-report/v1", "source": str(root),
                                "output": str(out), "files": 0, "records": 0, "failures": []}
+    source_paths: List[Path] = []
     for path in sorted(root.rglob("*.md")):
         if ".git" in path.parts or ".living-runtime" in path.parts:
             continue
@@ -111,6 +145,7 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
         # human-language detector does not apply. It still belongs in the intent index.
         if only_english and fm.get("language") not in ("", "en", "unknown", None):
             continue
+        source_paths.append(path)
         try:
             records = compile_markdown(path, root)
             rel = path.relative_to(root)
@@ -130,6 +165,7 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
         if generated.resolve() not in expected_targets:
             generated.unlink()
     (out / "compile-report.json").write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _write_version(root, out, source_paths, summary)
     return summary
 
 

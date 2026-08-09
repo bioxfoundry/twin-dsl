@@ -195,6 +195,37 @@ def test_intent_compile_removes_generated_packs_excluded_by_language_policy(tmp_
     assert not stale.exists()
 
 
+def test_tree_conversion_writes_a_deterministic_version_manifest(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "markdown"
+    source.mkdir()
+    source.joinpath("note.txt").write_text("evidence", encoding="utf-8")
+
+    convert_tree(str(source), str(output))
+    first = output.joinpath("VERSION").read_text(encoding="utf-8")
+    convert_tree(str(source), str(output))
+
+    assert first == output.joinpath("VERSION").read_text(encoding="utf-8")
+    assert "FORMAT=bioxfoundry.conversion-version/v1" in first
+    assert "ARTIFACT=markdown-mirror" in first
+    assert "SOURCE_SNAPSHOT_SHA256=" in first
+    assert "OUTPUT_SNAPSHOT_SHA256=" in first
+
+
+def test_intent_compile_writes_a_deterministic_version_manifest(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    source.joinpath("note.md").write_text("---\nlanguage: en\n---\n# Evidence\nBody\n", encoding="utf-8")
+
+    compile_tree(source, output)
+    first = output.joinpath("VERSION").read_text(encoding="utf-8")
+    compile_tree(source, output)
+
+    assert first == output.joinpath("VERSION").read_text(encoding="utf-8")
+    assert "ARTIFACT=markdown-intent-dsl" in first
+    assert "OUTPUT_PACKS=1" in first
+    assert "INTENT_RECORDS=1" in first
+
+
 # --------------------------------------------------------------------------- chain routing
 class _Skips:
     name = "skips"

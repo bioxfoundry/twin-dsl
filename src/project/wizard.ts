@@ -209,15 +209,7 @@ async function vendorRuntime(target:string):Promise<string> {
   await mkdir(join(vendor,"scripts"),{recursive:true});
   await cp(join(root,"scripts/cad-to-gltf.py"),join(vendor,"scripts/cad-to-gltf.py"));
   await text(join(vendor,"package.json"),JSON.stringify({name:"living-digital-twin-runtime-image",version:runtimePackage.version,private:true,type:"module"},null,2)+"\n");
-  await text(join(vendor,"Dockerfile"),`FROM node:22-bookworm-slim
-WORKDIR /opt/runtime
-COPY dist ./dist
-COPY schemas ./schemas
-COPY proto ./proto
-COPY scripts ./scripts
-COPY package.json ./package.json
-ENTRYPOINT ["node", "/opt/runtime/dist/src/cli/main.js"]
-`);
+  await cp(join(root,"deploy/runtime/Dockerfile"),join(vendor,"Dockerfile"));
   await mkdir(join(target,"vendor/todo2code"),{recursive:true});
   await text(join(target,"vendor/todo2code/README.md"),"Run scripts/bootstrap-todo2code.sh or mount a built semcod/todo2code checkout through T2C_HOST_ROOT.\n");
   return runtimePackage.version;

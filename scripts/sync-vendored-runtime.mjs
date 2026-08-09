@@ -31,15 +31,7 @@ try {
   await writeFile(join(staging,"package.json"),JSON.stringify({
     name:"living-digital-twin-runtime-image",version:sourcePackage.version,private:true,type:"module",
   },null,2)+"\n");
-  await writeFile(join(staging,"Dockerfile"),`FROM node:22-bookworm-slim
-WORKDIR /opt/runtime
-COPY dist ./dist
-COPY schemas ./schemas
-COPY proto ./proto
-COPY scripts ./scripts
-COPY package.json ./package.json
-ENTRYPOINT ["node", "/opt/runtime/dist/src/cli/main.js"]
-`);
+  await cp(join(sourceRoot,"deploy/runtime/Dockerfile"),join(staging,"Dockerfile"));
   await rm(vendor,{recursive:true,force:true});
   await rename(staging,vendor);
 } catch(error) {

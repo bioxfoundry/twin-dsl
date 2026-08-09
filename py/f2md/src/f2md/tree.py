@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import os
 import re
+import hashlib
 from dataclasses import dataclass, field
 from typing import Any, Dict, Iterator, List, Optional, Sequence
 
@@ -26,6 +27,47 @@ SECRET_SUFFIX = ".secret"
 
 #: Directories never worth walking into.
 SKIP_DIRS = frozenset({".git", ".svn", "node_modules", "__pycache__", ".venv", "venv", ".mypy_cache", ".pytest_cache"})
+
+
+def _tree_snapshot(root: str, paths: Sequence[str]) -> str:
+    """Return a stable content address for paths below *root*.
+
+    The relative name is part of the digest: identical bytes moved to a different
+    place are a different corpus revision.  Do not include mtimes or timestamps;
+    a conversion must have the same version on every machine for the same input.
+    """
+    digest = hashlib.sha256()
+    for path in sorted(paths):
+        relative = os.path.relpath(path, root).replace(os.sep, "/")
+        digest.update(relative.encode("utf-8"))
+        digest.update(b"\0")
+        with open(path, "rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        digest.update(b"\0")
+    return digest.hexdigest()
+
+
+def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
+    """Write the generated mirror's deterministic conversion identity."""
+    from . import __version__
+
+    # A mirror can share its directory with runtime receipts or reports.  Only Markdown
+    # payloads are conversion output, so unrelated operational files cannot alter this version.
+    output_paths = [path for path in walk_files(root) if path.endswith(".md")]
+    lines = [
+        "FORMAT=bioxfoundry.conversion-version/v1",
+        "ARTIFACT=markdown-mirror",
+        "CONVERTER=f2md",
+        f"CONVERTER_VERSION={__version__}",
+        f"SOURCE_FILES={len(source_paths)}",
+        f"SOURCE_SNAPSHOT_SHA256={_tree_snapshot(source, source_paths)}",
+        f"OUTPUT_FILES={len(output_paths)}",
+        f"OUTPUT_SNAPSHOT_SHA256={_tree_snapshot(root, output_paths)}",
+        "",
+    ]
+    with open(os.path.join(root, "VERSION"), "w", encoding="utf-8") as handle:
+        handle.write("\n".join(lines))
 
 
 def _yaml_scalar(value: Any) -> str:
@@ -224,4 +266,5 @@ def convert_tree(
         result.by_converter[document.converter] = result.by_converter.get(document.converter, 0) + 1
         if on_progress:
             on_progress(index, len(paths), relative, document.converter)
+    _write_version(src, out, paths)
     return result
