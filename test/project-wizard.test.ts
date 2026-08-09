@@ -63,6 +63,15 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.equal(first.stages.find(stage=>stage.name==="runtime")?.status,"succeeded");
     assert.match(await readFile(join(out,"current/scene.usda"),"utf8"),/LivingProject/);
     assert.equal(await exists(join(out,"candidate/improvement.dsl")),true);
+    const integrity=JSON.parse(await readFile(join(out,"current/project-integrity.json"),"utf8"));
+    const improvement=JSON.parse(await readFile(join(out,"current/improvement.json"),"utf8"));
+    for(const finding of integrity.findings) {
+      assert.equal(
+        improvement.actions.some((action:{targetUris:string[]})=>action.targetUris.includes(finding.repairProcess)),
+        true,
+        `improvementDSL must route ${finding.code} to ${finding.repairProcess}`,
+      );
+    }
 
     const second=await runtime.iterate(created.configPath,out,"deterministic");
     assert.equal(second.noChange,true);

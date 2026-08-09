@@ -605,7 +605,16 @@ export class LivingProjectRuntime {
       evidenceUris:[receipt.source.uri,...Object.values(receipt.artifacts).map(artifact=>artifact.uri)],
     }]:[]);
     const assemblyRepairProcesses = (assemblyReport?.findings ?? []).map((finding)=>({failure:`${finding.code}:${finding.componentId}`,title:`Repair assembly ${finding.assemblyId}: ${finding.partId??finding.componentId}`,processUri:finding.repairProcess,evidenceUris:[finding.errorUri]}));
-    const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri],repairProcesses:[...geometryRepairProcesses,...assemblyRepairProcesses]});
+    const specializedRepairUris = new Set([...geometryRepairProcesses,...assemblyRepairProcesses].map(repair=>repair.processUri));
+    const integrityRepairProcesses = projectIntegrity.findings
+      .filter(finding=>!specializedRepairUris.has(finding.repairProcess))
+      .map(finding=>({
+        failure:`ProjectIntegrity:${finding.code}:${finding.subjects.join("|")}`,
+        title:`Resolve project integrity finding ${finding.code}`,
+        processUri:finding.repairProcess,
+        evidenceUris:finding.evidenceUris,
+      }));
+    const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri],repairProcesses:[...geometryRepairProcesses,...assemblyRepairProcesses,...integrityRepairProcesses]});
 
     const candidate = join(outDir,"candidate");
     await writeJson(join(candidate,"project.json"),project);
