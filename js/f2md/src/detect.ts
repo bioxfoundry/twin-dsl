@@ -18,10 +18,18 @@ export const TEXT_EXTENSIONS: readonly string[] = [
   ".testqldsl", ".assemblydsl", ".livebindingdsl", ".geometrydsl", ".dql",
 ];
 
+/** Binary document/image formats accepted by the deployed Docling service. */
+export const DOCLING_EXTENSIONS: readonly string[] = [
+  ".pdf", ".docx", ".doc", ".odt", ".pptx", ".ppt", ".xlsx", ".xls", ".ods", ".odp", ".epub",
+  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tif", ".tiff", ".bmp",
+];
+
+/** Formats for which the document-conversion chain is expected to provide a backend. */
+export const DOCUMENT_CONVERSION_EXTENSIONS: readonly string[] = [...DOCLING_EXTENSIONS, ".rtf"];
+
 /** Extensions that require an external backend, checked against the whole basename. */
 export const BINARY_EXTENSIONS: readonly string[] = [
-  ".pdf", ".docx", ".doc", ".odt", ".rtf", ".pptx", ".ppt", ".xlsx", ".xls", ".ods", ".epub",
-  ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tiff", ".bmp",
+  ...DOCUMENT_CONVERSION_EXTENSIONS,
   ".step", ".stp", ".stl", ".f3d", ".scad", ".glb", ".gltf", ".usda", ".usdz", ".ifc", ".dwg", ".dxf",
   ".zip", ".tar", ".gz", ".tgz", ".7z", ".rar",
 ];
@@ -90,4 +98,12 @@ export function mediaTypeFor(path: string): string {
 
 export function isTextKind(kind: string): boolean {
   return TEXT_EXTENSIONS.includes(kind);
+}
+
+export function isDoclingKind(kind: string): boolean {
+  return DOCLING_EXTENSIONS.includes(kind);
+}
+
+export function isDocumentConversionKind(kind: string): boolean {
+  return DOCUMENT_CONVERSION_EXTENSIONS.includes(kind);
 }

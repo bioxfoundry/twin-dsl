@@ -23,7 +23,7 @@ import urllib.request
 from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Protocol, Tuple, runtime_checkable
 
-from .detect import detect_document_kind, is_text_kind
+from .detect import detect_document_kind, is_docling_kind, is_text_kind
 from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
 
 DEFAULT_MAX_CHARS = int(os.environ.get("F2MD_MAX_CHARS", "400000"))
@@ -401,6 +401,9 @@ class DoclingHttpConverter:
 
     def convert(self, path: str) -> ConvertedDocument:
         kind = detect_document_kind(path)
+        # Decline CAD/mesh resources before reading them or making a network request.
+        if not is_docling_kind(kind):
+            raise ExternalConverterRequired(kind)
         with open(path, "rb") as handle:
             payload = handle.read()
         boundary = "----f2md" + os.urandom(12).hex()

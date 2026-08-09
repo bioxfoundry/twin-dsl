@@ -314,6 +314,13 @@ def test_docling_http_failure_is_a_conversion_error(tmp_path) -> None:
         DoclingHttpConverter("http://127.0.0.1:1", timeout_s=2).convert(str(src))
 
 
+def test_docling_declines_mesh_before_network_io(tmp_path) -> None:
+    src = tmp_path / "model.glb"
+    src.write_bytes(b"glTF")
+    with pytest.raises(ExternalConverterRequired, match=r"EXTERNAL_CONVERTER_REQUIRED:\.glb"):
+        DoclingHttpConverter("http://127.0.0.1:1", timeout_s=2).convert(str(src))
+
+
 # --------------------------------------------------------------------------- cli
 def test_cli_emits_markdown(tmp_path, capsys) -> None:
     src = tmp_path / "note.md"

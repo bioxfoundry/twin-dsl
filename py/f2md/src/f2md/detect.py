@@ -20,10 +20,18 @@ TEXT_EXTENSIONS: Tuple[str, ...] = (
     ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".dql",
 )
 
+#: Binary document/image formats accepted by the deployed Docling service.
+DOCLING_EXTENSIONS: Tuple[str, ...] = (
+    ".pdf", ".docx", ".doc", ".odt", ".pptx", ".ppt", ".xlsx", ".xls", ".ods", ".odp", ".epub",
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tif", ".tiff", ".bmp",
+)
+
+#: Formats for which the document-conversion chain is expected to provide a backend.
+DOCUMENT_CONVERSION_EXTENSIONS: Tuple[str, ...] = (*DOCLING_EXTENSIONS, ".rtf")
+
 #: Extensions that require an external backend, checked against the whole basename.
 BINARY_EXTENSIONS: Tuple[str, ...] = (
-    ".pdf", ".docx", ".doc", ".odt", ".rtf", ".pptx", ".ppt", ".xlsx", ".xls", ".ods", ".epub",
-    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".tiff", ".bmp",
+    *DOCUMENT_CONVERSION_EXTENSIONS,
     ".step", ".stp", ".stl", ".f3d", ".scad", ".glb", ".gltf", ".usda", ".usdz", ".ifc", ".dwg", ".dxf",
     ".zip", ".tar", ".gz", ".tgz", ".7z", ".rar",
 )
@@ -76,6 +84,16 @@ def media_type_for(path: str) -> str:
     """Best-effort IANA media type, falling back to a generic binary type."""
     kind = detect_document_kind(path)
     return MEDIA_TYPES.get(kind) or MEDIA_TYPES.get(os.path.splitext(path.lower())[1]) or "application/octet-stream"
+
+
+def is_docling_kind(kind: str) -> bool:
+    """Return whether the deployed Docling HTTP service accepts ``kind``."""
+    return kind in DOCLING_EXTENSIONS
+
+
+def is_document_conversion_kind(kind: str) -> bool:
+    """Return whether document conversion is expected for ``kind``."""
+    return kind in DOCUMENT_CONVERSION_EXTENSIONS
 
 
 def is_text_kind(kind: str) -> bool:

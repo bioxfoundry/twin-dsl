@@ -17,10 +17,14 @@ export {
   convert,
   convertToMarkdown,
   detectDocumentKind,
+  isDoclingKind,
+  isDocumentConversionKind,
   mediaTypeFor,
   isTextKind,
   TEXT_EXTENSIONS,
   BINARY_EXTENSIONS,
+  DOCLING_EXTENSIONS,
+  DOCUMENT_CONVERSION_EXTENSIONS,
   MEDIA_TYPES,
 } from "../../js/f2md/src/index.js";
 

@@ -8,7 +8,7 @@ import { execFile } from "node:child_process";
 import { readFile, stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { promisify } from "node:util";
-import { detectDocumentKind, isTextKind } from "./detect.js";
+import { detectDocumentKind, isDoclingKind, isTextKind } from "./detect.js";
 import { type BackendType, ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
 
 const execFileAsync = promisify(execFile);
@@ -176,6 +176,9 @@ export class DoclingHttpConverter implements Converter {
 
   async convert(path: string): Promise<ConvertedDocument> {
     const kind = detectDocumentKind(path);
+    // A routing decline must happen before disk or network I/O. CAD/mesh assets are resources,
+    // not documents; posting them to Docling turns an inapplicable backend into a noisy HTTP 500.
+    if (!isDoclingKind(kind)) throw new ExternalConverterRequired(kind);
     const bytes = await readFile(path);
     const form = new FormData();
     form.set("file", new Blob([new Uint8Array(bytes)]), basename(path));

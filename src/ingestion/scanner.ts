@@ -1,7 +1,12 @@
 import { readdir, readFile, stat } from "node:fs/promises";
 import { extname, join, relative, resolve } from "node:path";
 import type { ResourceRecord, SourceRole } from "../core/types.js";
-import { CompositeDocumentConverter, detectDocumentKind } from "../adapters/document-converter.js";
+import {
+  CompositeDocumentConverter,
+  ExternalConverterRequired,
+  detectDocumentKind,
+  isDocumentConversionKind,
+} from "../adapters/document-converter.js";
 import { resourceFromBinary, resourceFromBinaryDigest, resourceFromText } from "../dsl/resource.js";
 import { readZipEntry, sha256File } from "./archive.js";
 import { renderArchiveAnalysisMarkdown, type ArchiveProjectAnalysis } from "../../js/archive-project-analyzer/src/index.js";
@@ -87,13 +92,13 @@ function pushBinary(
   bytes: Buffer | string,
   role: SourceRole | "archive",
   labels: string[],
-  warning: string,
+  warning: string | null,
   warnings: string[],
 ): void {
   const r = resourceFromBinary(id, logical, sourcePath, bytes, mediaTypeFor(sourcePath), role as SourceRole, labels);
   resources.push(r);
   texts.set(r.uri, `BINARY_STUB ${sourcePath}\nlabels:${labels.join(",")}\n`);
-  warnings.push(warning);
+  if (warning !== null) warnings.push(warning);
 }
 
 export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
@@ -204,6 +209,9 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
         texts.set(r.uri, converted.markdown);
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
+        const conversionNotApplicable = error instanceof ExternalConverterRequired
+          && !isDocumentConversionKind(detectDocumentKind(file));
+        const binaryLabels = conversionNotApplicable ? [...labels, "conversion-not-applicable"] : labels;
         try {
           const fileInfo = await stat(file);
           // Large assets are content-addressed by streaming their real bytes. The previous
@@ -213,11 +221,11 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
             const digest = await sha256File(file);
             const r = resourceFromBinaryDigest(
               `res-${resources.length + 1}`, logical, file, digest.sha256, digest.size,
-              mediaTypeFor(file), source.role, [...labels, "large-binary", "stream-hashed"],
+              mediaTypeFor(file), source.role, [...binaryLabels, "large-binary", "stream-hashed"],
             );
             resources.push(r);
             texts.set(r.uri, `BINARY_STUB ${file}\nsha256:${digest.sha256}\nsize:${digest.size}\nlabels:${r.labels?.join(",")}\n`);
-            warnings.push(`BINARY_STREAM_HASHED:${message}`);
+            if (!conversionNotApplicable) warnings.push(`BINARY_STREAM_HASHED:${message}`);
             continue;
           }
           const raw = await readFile(file);
@@ -245,8 +253,8 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
             file,
             raw,
             source.role,
-            labels,
-            `BINARY_STUB:${message}`,
+            binaryLabels,
+            conversionNotApplicable ? null : `BINARY_STUB:${message}`,
             warnings,
           );
         } catch (inner) {

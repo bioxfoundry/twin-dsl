@@ -11,7 +11,7 @@ which backend produced the Markdown.
 
 from __future__ import annotations
 
-__version__ = "0.5.17"
+__version__ = "0.5.18"
 
 from .chain import ConverterChain, convert, convert_to_markdown, default_chain
 from .converters import (
@@ -26,10 +26,14 @@ from .converters import (
 )
 from .detect import (
     BINARY_EXTENSIONS,
+    DOCLING_EXTENSIONS,
+    DOCUMENT_CONVERSION_EXTENSIONS,
     NON_PROSE_EXTENSIONS,
     MEDIA_TYPES,
     TEXT_EXTENSIONS,
     detect_document_kind,
+    is_docling_kind,
+    is_document_conversion_kind,
     is_prose_kind,
     is_text_kind,
     media_type_for,
@@ -67,5 +71,9 @@ __all__ = [
     "NON_PROSE_EXTENSIONS",
     "TEXT_EXTENSIONS",
     "BINARY_EXTENSIONS",
+    "DOCLING_EXTENSIONS",
+    "DOCUMENT_CONVERSION_EXTENSIONS",
+    "is_docling_kind",
+    "is_document_conversion_kind",
     "MEDIA_TYPES",
 ]

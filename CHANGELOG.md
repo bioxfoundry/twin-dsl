@@ -31,6 +31,24 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.18] - 2026-08-09
+
+### Test
+- Update test/scanner-testql.test.ts
+
+### Other
+- Update deploy/docling/server.py
+- Update js/f2md/src/converters.ts
+- Update js/f2md/src/detect.ts
+- Update js/f2md/src/index.ts
+- Update js/f2md/test/f2md.test.ts
+- Update py/f2md/src/f2md/__init__.py
+- Update py/f2md/src/f2md/converters.py
+- Update py/f2md/src/f2md/detect.py
+- Update py/f2md/tests/test_f2md.py
+- Update src/adapters/document-converter.ts
+- ... and 1 more files
+
 ## [0.5.17] - 2026-08-09
 
 ### Other

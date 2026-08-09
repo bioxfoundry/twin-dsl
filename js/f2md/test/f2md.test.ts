@@ -175,6 +175,16 @@ test("docling connection failure surfaces as a conversion error", async (t) => {
   await assert.rejects(() => new DoclingHttpConverter("http://127.0.0.1:1", 2000).convert(path), /DOCLING_HTTP/);
 });
 
+test("docling declines mesh resources before network I/O", async (t) => {
+  const dir = await workspace(t);
+  const path = join(dir, "model.glb");
+  await writeFile(path, Buffer.from([0x67, 0x6c, 0x54, 0x46]));
+  await assert.rejects(
+    () => new DoclingHttpConverter("http://127.0.0.1:1", 2000).convert(path),
+    (error: unknown) => error instanceof ExternalConverterRequired && error.message === "EXTERNAL_CONVERTER_REQUIRED:.glb",
+  );
+});
+
 /* -------------------------------------------------------------------------- cli */
 test("cli emits markdown and reports failures on stderr", async (t) => {
   const dir = await workspace(t);

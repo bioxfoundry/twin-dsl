@@ -30,9 +30,13 @@ export { SKIP_DIRS, convertTree, frontMatter, walkFiles } from "./tree.js";
 export type { TreeOptions, TreeResult } from "./tree.js";
 export {
   BINARY_EXTENSIONS,
+  DOCLING_EXTENSIONS,
+  DOCUMENT_CONVERSION_EXTENSIONS,
   MEDIA_TYPES,
   TEXT_EXTENSIONS,
   detectDocumentKind,
+  isDoclingKind,
+  isDocumentConversionKind,
   isTextKind,
   mediaTypeFor,
 } from "./detect.js";

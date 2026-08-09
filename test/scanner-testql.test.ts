@@ -16,6 +16,24 @@ test("small binary resources use the real byte hash for both digest and URI", ()
   assert.equal(resource.size, bytes.length);
 });
 
+test("scanner records mesh conversion as not applicable without a false warning", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "mesh-scan-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const path = join(root, "model.glb");
+  await writeFile(path, Buffer.from([0x67, 0x6c, 0x54, 0x46, 2, 0, 0, 0]));
+
+  const result = await scanSources([{
+    path,
+    role: "project",
+    logicalRoot: "subactor://project/test/assets",
+  }]);
+
+  assert.equal(result.resources.length, 1);
+  assert.deepEqual(result.warnings, []);
+  assert.ok(result.resources[0]?.labels?.includes("conversion-not-applicable"));
+  assert.match(result.texts.get(result.resources[0]!.uri) ?? "", /^BINARY_STUB /);
+});
+
 test("scanner ingests TestQLDSL as text instead of a binary stub", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "testqldsl-scan-"));
   t.after(() => rm(root, { recursive: true, force: true }));
