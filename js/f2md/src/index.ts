@@ -11,7 +11,7 @@
  * anything else can be routed to a Docling service. Every result carries provenance, so a caller
  * always knows which backend produced the Markdown.
  */
-export const VERSION = "0.2.0";
+export const VERSION = "0.2.1";
 
 export { BACKEND_TYPES, ConversionError, ExternalConverterRequired } from "./types.js";
 export type { BackendType, ConvertedDocument, Converter } from "./types.js";

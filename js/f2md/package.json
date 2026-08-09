@@ -1,6 +1,6 @@
 {
   "name": "@subactor/f2md",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain.",
   "keywords": [
     "markdown",
