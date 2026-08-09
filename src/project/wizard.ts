@@ -202,7 +202,7 @@ async function vendorRuntime(target:string):Promise<string> {
   if(typeof runtimePackage.version!=="string"||!runtimePackage.version.trim()) throw new Error("RUNTIME_PACKAGE_VERSION_MISSING");
   const vendor = join(target,"vendor/runtime");
   await mkdir(vendor,{recursive:true});
-  for(const entry of ["dist","schemas","proto","deploy"]) {
+  for(const entry of ["dist","schemas","proto","deploy","public"]) {
     const source = join(root,entry);
     if(await exists(source)) await cp(source,join(vendor,entry),{recursive:true});
   }

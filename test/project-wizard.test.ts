@@ -43,8 +43,10 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.equal(vendoredPackage.version,sourcePackage.version);
     assert.match(await readFile(join(projectDir,"README.md"),"utf8"),new RegExp(`Starter ${sourcePackage.version.replaceAll(".","\\.")}\\.`));
     assert.equal(await exists(join(projectDir,"vendor/runtime/scripts/cad-to-gltf.py")),true,"standalone geometry worker is vendored");
+    assert.equal(await exists(join(projectDir,"vendor/runtime/public/dashboard.html")),true,"standalone dashboard assets are vendored");
     const runtimeDockerfile=await readFile(join(projectDir,"vendor/runtime/Dockerfile"),"utf8");
     assert.match(runtimeDockerfile,/COPY scripts\/cad-to-gltf\.py \.\/scripts\/cad-to-gltf\.py/);
+    assert.match(runtimeDockerfile,/COPY public \.\/public/);
     assert.match(runtimeDockerfile,/apt-get install[^\n]*git openscad python3/);
 
     // Disable live web request for the local fixture test.
@@ -64,6 +66,11 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
 
     const second=await runtime.iterate(created.configPath,out,"deterministic");
     assert.equal(second.noChange,true);
+    const start=await readFile(join(projectDir,"START.md"),"utf8");
+    assert.match(start,/Project DSL: project\.projectdsl/);
+    assert.match(start,/Runtime root: \.living-runtime/);
+    assert.match(start,/node vendor\/runtime\/dist\/src\/cli\/main\.js dashboard project\.projectdsl \.living-runtime/);
+    assert.doesNotMatch(start,new RegExp(temp.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")),"START must remain portable outside the generation environment");
     const third=await runtime.iterate(created.configPath,out,"deterministic");
     assert.equal(third.noChange,true);
 

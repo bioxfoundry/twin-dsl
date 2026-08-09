@@ -4,6 +4,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/runtime
 COPY dist ./dist
+COPY public ./public
 COPY schemas ./schemas
 COPY proto ./proto
 COPY scripts/cad-to-gltf.py ./scripts/cad-to-gltf.py

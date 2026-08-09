@@ -31,6 +31,20 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.15] - 2026-08-09
+
+### Test
+- Update test/project-wizard.test.ts
+
+### Other
+- Update VERSION
+- Update deploy/runtime/Dockerfile
+- Update package-lock.json
+- Update py/f2md/src/f2md/__init__.py
+- Update scripts/sync-vendored-runtime.mjs
+- Update src/project/wizard.ts
+- Update src/runtime/living-project.ts
+
 ## [0.5.13] - 2026-08-09
 
 ### Docs
