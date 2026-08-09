@@ -104,6 +104,27 @@ make down-clean    # kasuje też wolumeny — kolejny start pobierze modele od n
 Powtórny `make up` korzysta z cache BuildKit: pierwszy build obrazu Docling trwa kilkanaście minut,
 kolejne kilka sekund.
 
+### Usługi, porty i zmienne po `make up`
+
+`make up` uruchamia wyłącznie ClickHouse i Docling. Po zakończeniu wypisuje te same adresy,
+które można wyświetlić ponownie poleceniem `make endpoints`:
+
+| Usługa | Adres z hosta | Port kontenera | Zmienne `.env` |
+| --- | --- | --- | --- |
+| ClickHouse HTTP | `http://127.0.0.1:18123` | `8123` | `CLICKHOUSE_HTTP_PORT`, `CLICKHOUSE_URL`, `CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD` |
+| ClickHouse native | `127.0.0.1:19000` | `9000` | `CLICKHOUSE_NATIVE_PORT` |
+| Docling health/API | `http://127.0.0.1:15001/health` | `5001` | `DOCLING_PORT`, `DOCLING_URL` |
+| Dashboard twina | `http://127.0.0.1:7331/` | — | uruchamiany osobno przez workspace `make dashboard PORT=7331` |
+
+Adresy hosta są domyślne i można je zmienić w `twin-dsl/.env` przed `make up`; po zmianie portu
+ClickHouse ustaw zgodne `CLICKHOUSE_URL`. Dashboard nie jest kontenerem Compose. Uruchom go z
+katalogu workspace przez `make dashboard`; nasłuchuje lokalnie na `127.0.0.1`.
+
+`.env.example` jest katalogiem domyślnej konfiguracji runtime: zawiera integrację todo2code
+(`T2C_*`), twin-probes (`TWIN_PROBES_*`), OpenRouter (`OPENROUTER_*`), usługi (`CLICKHOUSE_*`,
+`DOCLING_*`, `COMPOSE_PROJECT_NAME`, `DT_NETWORK_SUBNET`) i zasady runtime (`DT_*`). Klucz
+`OPENROUTER_API_KEY` jest opcjonalny — tryb `DT_LLM_MODE=deterministic` nie wysyła żądań do LLM.
+
 ## Konwersja dokumentów do Markdown
 
 Do zasilania twina dokumentacją służy **[f2md](py/f2md)** — wyodrębniona paczka, publikowana jako

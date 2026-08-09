@@ -5,7 +5,7 @@ export DOCKER_BUILDKIT = 1
 export COMPOSE_DOCKER_CLI_BUILD = 1
 
 .PHONY: verify demo research biofoundry realtime nl-dsl clean \
-        up down down-clean restart build logs ps status service-check dashboard prune-cache env
+        up down down-clean restart build logs ps status service-check endpoints dashboard prune-cache env
 
 ## --- configuration ---------------------------------------------------------
 ## Create .env from .env.example on first use, so the documented defaults are the ones that
@@ -20,6 +20,7 @@ env: .env
 ## Start the stack, rebuilding only what changed. Repeat runs reuse the pip cache.
 up: .env
 	$(COMPOSE) up -d --build
+	@$(MAKE) --no-print-directory endpoints
 
 ## Stop the stack. Named volumes (clickhouse data, docling models) are kept on purpose,
 ## so the next `make up` does not re-download models or re-init the database.
@@ -51,6 +52,14 @@ service-check:
 	CLICKHOUSE_USER=$${CLICKHOUSE_USER:-digital_twin} \
 	CLICKHOUSE_PASSWORD=$${CLICKHOUSE_PASSWORD:-digital_twin_local} \
 	node dist/src/cli/main.js service-check
+
+## Print the local host endpoints after `make up`.
+endpoints: .env
+	@set -a; . ./.env; set +a; \
+		echo "ClickHouse HTTP: http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}  (container :8123)"; \
+		echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \
+		echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \
+		echo "Dashboard: started separately with workspace 'make dashboard'; default http://127.0.0.1:7331/"
 
 ## Drop the BuildKit cache. Only useful when you actually want a cold rebuild.
 prune-cache:
