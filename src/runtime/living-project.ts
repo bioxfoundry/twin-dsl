@@ -656,7 +656,7 @@ export class LivingProjectRuntime {
     await writeJson(join(candidate,"intent-dsl.index.json"),{schema:"subactor.intent-dsl-index/v1",...intentDsl,validatedAt:new Date().toISOString()});
     await writeJson(join(candidate,"improvement.json"),improvement);
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
-    await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings});
+    await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings,notices:scanned.notices});
 
     const artifactNames = ["project.json","resources.json","archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {

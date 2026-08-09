@@ -40,7 +40,7 @@ const MEDIA: Record<string, string> = {
 };
 
 export interface ScanSource { path: string; role: SourceRole; logicalRoot: string; labels?: string[]; }
-export interface ScanResult { resources: ResourceRecord[]; texts: Map<string, string>; warnings: string[]; archiveAnalyses: ArchiveProjectAnalysis[]; }
+export interface ScanResult { resources: ResourceRecord[]; texts: Map<string, string>; warnings: string[]; notices: string[]; archiveAnalyses: ArchiveProjectAnalysis[]; }
 
 async function walk(root: string): Promise<string[]> {
   const out: string[] = [];
@@ -70,9 +70,10 @@ function mediaTypeFor(path: string): string {
   return MEDIA[detectDocumentKind(path)] ?? MEDIA[extname(path).toLowerCase()] ?? "application/octet-stream";
 }
 
-function archiveFindingSummaries(analysis: ArchiveProjectAnalysis): string[] {
+function archiveFindingSummaries(analysis: ArchiveProjectAnalysis, severities:ReadonlySet<"info"|"warning"|"error">): string[] {
   const grouped = new Map<string, { code:string; repairProcess:string; count:number }>();
   for (const finding of analysis.findings) {
+    if(!severities.has(finding.severity)) continue;
     const key = `${finding.code}\0${finding.repairProcess}`;
     const existing = grouped.get(key);
     if (existing) existing.count += 1;
@@ -105,6 +106,7 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
   const resources: ResourceRecord[] = [];
   const texts = new Map<string, string>();
   const warnings: string[] = [];
+  const notices: string[] = [];
   const archiveAnalyses: ArchiveProjectAnalysis[] = [];
   // Prefer composite (text → pdftotext/pandoc → optional Docling) so PDF body enters the graph offline.
   const converter = new CompositeDocumentConverter();
@@ -145,7 +147,8 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
           texts.set(analysisResource.uri, analysisMarkdown);
           // The full report retains entry-level findings. Runtime generation needs a
           // bounded summary so 100 similar native-CAD files do not flood the LLM audit.
-          warnings.push(...archiveFindingSummaries(analysis));
+          warnings.push(...archiveFindingSummaries(analysis,new Set(["warning","error"])));
+          notices.push(...archiveFindingSummaries(analysis,new Set(["info"])));
           for (const name of analysis.selectedTextEntries) {
             const entryLogical = `${source.logicalRoot}/archive/${encodeURIComponent(name)}`;
             const entryPath = `${file}!/${name}`;
@@ -153,7 +156,8 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
               const content = await readZipEntry(file, name);
               const text = textFromBuffer(content, name);
               if (text === undefined) {
-                warnings.push(`ARCHIVE_SELECTED_TEXT_NOT_TEXT:${entryPath}`);
+                pushBinary(resources,texts,`res-${resources.length + 1}`,entryLogical,entryPath,content,"archive",[source.role,...labels,"archive-entry","binary-content"],null,warnings);
+                notices.push(`ARCHIVE_SELECTED_TEXT_BINARY_CONTENT:${entryPath}`);
                 continue;
               }
               const r = resourceFromText(
@@ -168,7 +172,9 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
               resources.push(r);
               texts.set(r.uri, text);
             } catch (entryError) {
-              warnings.push(entryError instanceof Error ? entryError.message : String(entryError));
+              const detail=entryError instanceof Error?entryError.message:String(entryError);
+              const reason=/invalid compressed data|bad CRC/i.test(detail)?"CORRUPT_COMPRESSED_DATA":/maxBuffer|ARCHIVE_ENTRY_LIMIT/i.test(detail)?"ENTRY_LIMIT":"READ_ERROR";
+              warnings.push(`ARCHIVE_ENTRY_READ_FAILED:${reason}:${entryPath}`);
             }
           }
         } catch (error) {
@@ -263,5 +269,5 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
       }
     }
   }
-  return { resources, texts, warnings, archiveAnalyses };
+  return { resources, texts, warnings, notices, archiveAnalyses };
 }

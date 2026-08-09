@@ -2,6 +2,7 @@ import { readFile, readdir, stat, writeFile, mkdir } from "node:fs/promises";
 import { dirname, extname, relative, resolve, join } from "node:path";
 import { canonicalJson, sha256 } from "../core/canonical.js";
 import { openRouterConfigFromEnv } from "../llm/openrouter.js";
+import { geometryEvidenceRank } from "../scene/physical-evidence.js";
 
 export type DiagnosticSeverity = "info" | "warning" | "error" | "critical";
 export interface DigitalTwinDiagnostic {
@@ -70,13 +71,25 @@ export async function diagnoseDigitalTwin(input:{sourceRoot?:string;markdownRoot
   if(bindings.length && assetBindings.length===0) add("SCENE_NO_CAD_BINDINGS","warning","Scene has bindings but no CAD asset URI",[join(input.runtimeRoot??"","current/scene.json")],[repairUri("bind-grounded-assets")]);
   const sourceText=input.dashboardSource?await readFile(input.dashboardSource,"utf8").catch(()=>""):"";
   if(assetBindings.length && sourceText.includes("loadStl") && !sourceText.includes("loadStep") && !sourceText.includes("GLTFLoader") && !sourceText.includes("loadGlb")) add("SCENE_FORMAT_RENDERER_GAP","error","Dashboard renderer supports STL but not tessellated glTF/GLB assets",[input.dashboardSource??""],[repairUri("tessellate-cad-to-gltf"),repairUri("bind-grounded-assets")]);
-  // `scope` represents a semantic grouping/assembly node and intentionally has no mesh.
-  // Counting it as placeholder geometry makes the repair loop try to tessellate identity.
-  const placeholders=bindings.filter((b:any)=>!b?.assetUri && ["cube","cylinder","sphere"].includes(String(b?.primitive))).length;
-  if(placeholders>0) add("SCENE_PLACEHOLDER_GEOMETRY","warning",`${placeholders} scene binding(s) use conceptual primitive geometry`,[join(input.runtimeRoot??"","current/scene.json")],[repairUri("bind-grounded-assets"),repairUri("tessellate-cad-to-gltf")]);
+  // Logical/cyber markers are presentation, not physical geometry obligations. A primitive
+  // backed by measured/CAD/IFC extents is an evidenced proxy rather than a conceptual guess.
+  const twinComponents=Array.isArray(twin?.components)?twin.components:[];
+  const byComponent=new Map(twinComponents.map((component:any)=>[String(component.id),component]));
+  const physicalPrimitiveBindings=bindings.filter((binding:any)=>{
+    const component:any=byComponent.get(String(binding?.componentId));
+    return ["physical","hybrid"].includes(String(component?.properties?.spatialClass))&&!binding?.assetUri&&["cube","cylinder","sphere"].includes(String(binding?.primitive));
+  });
+  const placeholders=physicalPrimitiveBindings.filter((binding:any)=>geometryEvidenceRank((byComponent.get(String(binding.componentId)) as any)?.properties?.geometryEvidence)<=geometryEvidenceRank("document"));
+  const evidencedProxies=physicalPrimitiveBindings.length-placeholders.length;
+  if(placeholders.length) add("SCENE_PLACEHOLDER_GEOMETRY","warning",`${placeholders.length} physical scene binding(s) still use conceptual primitive geometry`,[join(input.runtimeRoot??"","current/scene.json")],[repairUri("replace-conceptual-geometry")]);
+  if(evidencedProxies) add("SCENE_EVIDENCED_PROXY_GEOMETRY","info",`${evidencedProxies} physical scene binding(s) use measured/CAD/IFC extent proxies without mesh assets`,[join(input.runtimeRoot??"","current/scene.json")],[]);
   if(Array.isArray(evidence?.rejected) && evidence.rejected.length) add("PHYSICAL_EVIDENCE_REJECTED","error",`${evidence.rejected.length} physical-evidence record(s) were rejected`,[join(input.runtimeRoot??"","current/physical-evidence.report.json")],[repairUri("repair-physical-evidence")]);
   const audit=await json(input.runtimeRoot?join(input.runtimeRoot,"current/generation-audit.json"):undefined);
-  if(audit?.warnings?.length) add("GENERATION_WARNINGS","warning",`${audit.warnings.length} generation warning(s) recorded`,[join(input.runtimeRoot??"","current/generation-audit.json")],[repairUri("rerun-generation")]);
+  if(audit?.warnings?.length) {
+    const exactRepairs:string[]=[...new Set<string>((audit.warnings as unknown[]).flatMap((warning:unknown):string[]=>{const text=String(warning),index=text.lastIndexOf("subactor://process/repair/");return index<0?[]:[text.slice(index).trim()];}))];
+    add("GENERATION_WARNINGS","warning",`${audit.warnings.length} generation warning(s) recorded`,[join(input.runtimeRoot??"","current/generation-audit.json")],exactRepairs.length?exactRepairs:[repairUri("rerun-generation")]);
+  }
+  if(audit?.notices?.length) add("GENERATION_NOTICES","info",`${audit.notices.length} non-blocking ingestion notice(s) recorded`,[join(input.runtimeRoot??"","current/generation-audit.json")],[]);
   const cfg=openRouterConfigFromEnv();
   if(!cfg.apiKey) add("OPENROUTER_NOT_CONFIGURED","warning","OpenRouter API key is not available in environment or local .env",["OPENROUTER_API_KEY"],[repairUri("configure-openrouter")]);
   if(!dslFiles.length) add("DSL_INPUT_MISSING","error","No intent DSL files were found",[input.dslRoot??""],[repairUri("generate-intent-dsl")]);

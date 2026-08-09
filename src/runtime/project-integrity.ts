@@ -16,6 +16,7 @@ import type {
   TwinComponent,
   TwinDocument,
 } from "../core/types.js";
+import { geometryEvidenceRank } from "../scene/physical-evidence.js";
 
 export interface ProjectIntegrityInput {
   project: LivingProjectDocument;
@@ -74,7 +75,11 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   const unsupported=components.filter(component=>component.sourceUris.length===0).map(component=>component.id);
   if(unsupported.length) add("TWIN_COMPONENT_UNGROUNDED","warning","missing-evidence","twin",`${unsupported.length} Twin component(s) have no source URI.`,unsupported,[],"ground-twin-components");
   const physicalIds=new Set(components.filter(component=>["physical","hybrid"].includes(String(component.properties.spatialClass??"physical"))).map(component=>component.id));
-  const placeholders=input.scene.bindings.filter(binding=>Boolean(binding.componentId&&physicalIds.has(binding.componentId))&&!binding.assetUri&&binding.primitive&&binding.primitive!=="scope").map(binding=>binding.componentId??binding.scenePath);
+  const byComponent=new Map(components.map(component=>[component.id,component]));
+  const placeholders=input.scene.bindings.filter(binding=>{
+    if(!binding.componentId||!physicalIds.has(binding.componentId)||binding.assetUri||!binding.primitive||binding.primitive==="scope") return false;
+    return geometryEvidenceRank(byComponent.get(binding.componentId)?.properties.geometryEvidence)<=geometryEvidenceRank("document");
+  }).map(binding=>binding.componentId??binding.scenePath);
   if(placeholders.length) add("CONCEPTUAL_GEOMETRY_ASSUMPTION","warning","ungrounded-assumption","design",`${placeholders.length} rendered object(s) still use conceptual primitive geometry.`,placeholders,[],"replace-conceptual-geometry");
   const unreferencedEvidence=(input.physicalEvidence?.records??[]).filter(record=>!record.sourceRef).map(record=>record.componentId);
   if(unreferencedEvidence.length) add("PHYSICAL_SOURCE_REFERENCE_MISSING","warning","missing-evidence","validation","Physical evidence must identify its survey, drawing, register row or model object.",unreferencedEvidence,[],"ground-physical-evidence");

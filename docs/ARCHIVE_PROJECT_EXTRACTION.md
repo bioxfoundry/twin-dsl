@@ -104,6 +104,16 @@ node dist/src/cli/main.js archive-analyze \
 The output contains per-archive JSON, DSL and Markdown reports, an aggregate index, extracted
 content-addressed entries and one materialization receipt per archive.
 
+Archive analysis severity is preserved across the runtime boundary. `info` findings such as a
+bounded text-selection limit are written to `generation-audit.json.notices`; only `warning` and
+`error` findings enter `warnings`. A selected entry whose extension looks textual but whose bytes
+are binary is retained as a content-addressed binary resource and recorded as a notice. Empty ZIP
+members remain visible in inventory but are never presented as selected semantic evidence.
+
+Diagnostics extract the repair URI carried by an archive finding. Missing SolidWorks and Fusion
+360 backends therefore route to `convert-solidworks-to-step` and `convert-fusion360-to-step`
+instead of the non-actionable generic `rerun-generation` process.
+
 ## Current nanobionic-laboratory result
 
 The verified 2026-08-08 scan found:

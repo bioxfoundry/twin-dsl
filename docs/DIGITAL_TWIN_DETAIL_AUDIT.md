@@ -312,6 +312,12 @@ STL and STEP resources that are intentionally opaque to semantic text extraction
 geometry artifacts. Routing this aggregate to `rerun-generation` is not actionable. Semantic
 extraction status, CAD materialization status and Scene binding status need separate diagnostics.
 
+Resolved in runtime generation `2026-08-09.evidence-ranked-diagnostics-v1`: archive informational
+findings and binary-content observations are now non-blocking notices, binary bytes retain their
+own resource hash, and the two remaining backend warnings carry their exact repair processes.
+Physical diagnostics also exclude logical/cyber display markers and distinguish measured/CAD/IFC
+extent proxies from genuinely conceptual physical geometry.
+
 ### P2 — scalable detail and inspection
 
 #### DTQ-LOD-001 — no explicit LOD or representation policy

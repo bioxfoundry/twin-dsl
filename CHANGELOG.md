@@ -39,6 +39,27 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.25] - 2026-08-09
+
+### Docs
+- Update docs/ARCHIVE_PROJECT_EXTRACTION.md
+- Update docs/DIGITAL_TWIN_DETAIL_AUDIT.md
+
+### Test
+- Update test/archive-project.test.ts
+- Update test/digital-twin-diagnostics.test.ts
+- Update test/project-integrity.test.ts
+
+### Other
+- Update js/archive-project-analyzer/src/analyze.ts
+- Update src/core/generation.ts
+- Update src/ingestion/scanner.ts
+- Update src/research/researcher.ts
+- Update src/runtime/biofoundry.ts
+- Update src/runtime/digital-twin-diagnostics.ts
+- Update src/runtime/living-project.ts
+- Update src/runtime/project-integrity.ts
+
 ## [0.5.24] - 2026-08-09
 
 ### Test

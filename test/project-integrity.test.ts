@@ -76,3 +76,12 @@ test("failed geometry receipt becomes an exact repairable integrity finding",()=
   assert.equal(finding?.repairProcess,"subactor://process/repair/geometry/reconcile-source-evidence");
   assert.deepEqual(finding?.subjects,["a","lid-build"]);
 });
+
+test("measured primitive proxy is not mislabeled as a conceptual assumption",()=>{
+  const input=validInput();
+  delete input.scene.bindings[0].assetUri;
+  input.twin.components[0].properties={...input.twin.components[0].properties,spatialClass:"physical",geometryEvidence:"measured"};
+  const report=analyzeProjectIntegrity(input);
+  assert.equal(report.findings.some(finding=>finding.code==="CONCEPTUAL_GEOMETRY_ASSUMPTION"),false);
+  assert.equal(report.coverage.assumptions,0);
+});

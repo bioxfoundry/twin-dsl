@@ -75,3 +75,21 @@ test("archive scanner ingests selected embedded C/C++ sources as evidence text",
   assert.ok([...scanned.texts.values()].some((text)=>text.includes("STEPS_PER_MM")));
   assert.ok(!scanned.warnings.some((warning)=>warning.includes("ARCHIVE_SELECTED_TEXT_NOT_TEXT")));
 });
+
+test("archive scanner separates selection notices and preserves binary content disguised as text", async () => {
+  const root=await mkdtemp(join(tmpdir(),"archive-notices-")),archive=join(root,"mixed.zip");
+  await run("python3",["-c",[
+    "import sys,zipfile", "z=zipfile.ZipFile(sys.argv[1],'w')",
+    "z.writestr('README.md','# Evidence\\n')", "z.writestr('data.txt',b'abc\\x00def')", "z.writestr('empty.py',b'')", "z.close()",
+  ].join(";"),archive]);
+  const old=process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES;process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES="1";
+  try {
+    const limited=await scanSources([{path:archive,role:"archive",logicalRoot:"subactor://fixture/mixed"}]);
+    assert.ok(limited.notices.some((notice)=>notice.includes("ARCHIVE_TEXT_SELECTION_LIMIT")));
+    assert.ok(!limited.warnings.some((warning)=>warning.includes("ARCHIVE_TEXT_SELECTION_LIMIT")));
+  } finally { if(old===undefined)delete process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES;else process.env.DT_MAX_ARCHIVE_TEXT_ENTRIES=old; }
+  const scanned=await scanSources([{path:archive,role:"archive",logicalRoot:"subactor://fixture/mixed"}]);
+  assert.ok(scanned.notices.some((notice)=>notice.includes("ARCHIVE_SELECTED_TEXT_BINARY_CONTENT")));
+  assert.ok(scanned.resources.some((resource)=>resource.sourcePath.endsWith("!/data.txt")&&resource.labels?.includes("binary-content")));
+  assert.ok(!scanned.archiveAnalyses[0].selectedTextEntries.includes("empty.py"));
+});

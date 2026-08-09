@@ -120,7 +120,9 @@ export function analyzeArchiveProject(input: AnalyzeArchiveInput): ArchiveProjec
     });
   }
   const sorted = candidates.sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
-  const textCandidates = sorted.filter((candidate) => TEXT_EXTENSIONS.has(extname(candidate.path).toLowerCase()));
+  // Empty entries carry no semantic evidence and some damaged ZIPs cannot inflate even an
+  // advertised zero-byte member. Keep them in inventory, but never claim they were selected.
+  const textCandidates = sorted.filter((candidate) => candidate.uncompressedSize > 0 && TEXT_EXTENSIONS.has(extname(candidate.path).toLowerCase()));
   const geometryCandidates = sorted.filter((candidate) => candidate.materializable && ["geometry", "assembly", "material"].includes(candidate.expectedUse));
   const maxText = input.maxTextEntries ?? 64;
   const maxGeometry = input.maxGeometryEntries ?? 32;
