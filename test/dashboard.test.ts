@@ -129,6 +129,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "presentation-evidence.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
+  assert.equal(dslLog.documents.some((document) => document.name.startsWith("latest-candidate/")),false,"an accepted staging directory is not a rejected candidate");
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
   const dashboardLog = await readFile(join(created.projectDir, "logs/dashboard-0.log"), "utf8");
   assert.match(dashboardLog, /"event":"server:listening"/);
@@ -209,6 +210,8 @@ test("dashboard keeps rejected candidate diagnostics separate from the active sc
   assert.equal(state.artifactScope,"current");
   assert.equal(state.renderedScope,"current");
   assert.equal(state.diagnosticScope,"candidate");
+  const dslLog=await (await fetch(`${server.url}api/dsl`)).json() as {documents:Array<{name:string}>};
+  assert.equal(dslLog.documents.some(document=>document.name==="latest-candidate/project-integrity.dsl"),true,"rejected candidate diagnostics remain inspectable");
 });
 
 test("read-only dashboard exposes state but rejects every runtime mutation", async (t) => {

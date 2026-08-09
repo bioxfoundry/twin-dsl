@@ -59,12 +59,16 @@ async function readDslArtifacts(current: string, configPath: string): Promise<{ 
     catch { /* artifact is optional before the first accepted iteration */ }
   }
   // A blocked candidate must remain inspectable even though it is deliberately not
-  // promoted to `current/`. This is where geometry compiler URNs and repair URIs live.
-  for (const name of ["archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl"]) {
-    try {
-      const content=(await readFile(join(dirname(current), "candidate", name), "utf8")).slice(0, 120_000);
-      if(content.trim())documents.push({name:`latest-candidate/${name}`,content});
-    } catch { /* no candidate artifact */ }
+  // promoted to `current/`. A successful iteration also leaves its staging directory in
+  // place, so the receipt gate is required to avoid presenting ACTIVE as a rejected candidate.
+  const latest=await readJson<{validation?:{ok?:boolean}}>(join(dirname(current),"latest.json"));
+  if(latest?.validation?.ok===false) {
+    for (const name of ["archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl"]) {
+      try {
+        const content=(await readFile(join(dirname(current), "candidate", name), "utf8")).slice(0, 120_000);
+        if(content.trim())documents.push({name:`latest-candidate/${name}`,content});
+      } catch { /* no candidate artifact */ }
+    }
   }
   try {
     documents.push({
