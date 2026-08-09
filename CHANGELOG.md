@@ -39,6 +39,12 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.31] - 2026-08-09
+
+### Other
+- Update py/f2md/src/f2md/intent_compile.py
+- Update py/f2md/tests/test_f2md.py
+
 ## [0.5.30] - 2026-08-09
 
 ### Other

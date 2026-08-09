@@ -60,6 +60,54 @@ def _write_version(source: Path, output: Path, source_paths: Iterable[Path], sum
     (output / "VERSION").write_text("\n".join(lines), encoding="utf-8")
 
 
+def refresh_output_identity(output: str | Path) -> Dict[str, Any]:
+    """Refresh the generated-output identity after a trusted downstream normalizer.
+
+    A consumer may replace execution-local source paths in intent packs with its own
+    logical URIs.  The source identity remains unchanged, while the output snapshot
+    must describe the final bytes that cross the file-contract boundary.
+    """
+    out = Path(output).resolve()
+    version_path = out / "VERSION"
+    if not version_path.is_file():
+        raise ValueError("INTENT_VERSION_MISSING")
+    packs = sorted(path for path in out.rglob("*.intent.json") if path.is_file())
+    records = 0
+    for index, path in enumerate(packs):
+        try:
+            pack = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            raise ValueError(f"INVALID_INTENT_PACK_JSON:{path}") from error
+        if pack.get("schema") != "t2c.intent-pack/v1":
+            raise ValueError(f"INVALID_INTENT_PACK_SCHEMA:{index}")
+        records += len(validate_intents(pack.get("records")))
+
+    replacements = {
+        "OUTPUT_PACKS": str(len(packs)),
+        "OUTPUT_SNAPSHOT_SHA256": _file_snapshot(out, packs),
+        "INTENT_RECORDS": str(records),
+    }
+    original = version_path.read_text(encoding="utf-8").splitlines()
+    present: set[str] = set()
+    refreshed: List[str] = []
+    for line in original:
+        key, separator, _value = line.partition("=")
+        if separator and key in replacements:
+            refreshed.append(f"{key}={replacements[key]}")
+            present.add(key)
+        else:
+            refreshed.append(line)
+    missing = sorted(set(replacements) - present)
+    if missing:
+        raise ValueError("INTENT_VERSION_FIELDS_MISSING:" + ",".join(missing))
+    version_path.write_text("\n".join(refreshed).rstrip("\n") + "\n", encoding="utf-8")
+    return {
+        "packs": len(packs),
+        "records": records,
+        "outputSnapshotSha256": replacements["OUTPUT_SNAPSHOT_SHA256"],
+    }
+
+
 def _frontmatter(text: str) -> Dict[str, str]:
     if not text.startswith("---\n") or "\n---" not in text[4:]:
         return {}

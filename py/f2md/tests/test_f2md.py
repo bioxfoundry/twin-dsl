@@ -32,7 +32,7 @@ from f2md import (
     media_type_for,
 )
 from f2md.cli import main
-from f2md.intent_compile import compile_tree, refresh_contract
+from f2md.intent_compile import compile_tree, refresh_contract, refresh_output_identity
 from f2md.tree import convert_tree
 
 
@@ -288,6 +288,29 @@ def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
 
     assert summary["records"] == 2
     assert "INTENT_RECORDS=2" in output.joinpath("VERSION").read_text(encoding="utf-8")
+
+
+def test_refresh_output_identity_tracks_normalized_pack_bytes(tmp_path) -> None:
+    source = tmp_path / "source"
+    output = tmp_path / "output"
+    source.mkdir()
+    (source / "README.md").write_text("# Device\n\nWidth is 42 mm.\n", encoding="utf-8")
+    compile_tree(source, output, only_english=False)
+    pack_path = next(output.rglob("*.intent.json"))
+    pack = json.loads(pack_path.read_text(encoding="utf-8"))
+    pack["source"] = "dodsl://project/device/source-md/README.md"
+    for record in pack["records"]:
+        if isinstance(record.get("source"), dict):
+            record["source"]["artifactUri"] = pack["source"]
+    pack_path.write_text(json.dumps(pack, indent=2) + "\n", encoding="utf-8")
+
+    first = refresh_output_identity(output)
+    first_version = (output / "VERSION").read_text(encoding="utf-8")
+    second = refresh_output_identity(output)
+
+    assert first == second
+    assert (output / "VERSION").read_text(encoding="utf-8") == first_version
+    assert f"OUTPUT_SNAPSHOT_SHA256={first['outputSnapshotSha256']}" in first_version
 
 
 def test_refresh_contract_rejects_source_hash_drift(tmp_path) -> None:

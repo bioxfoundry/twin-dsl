@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "f2md"
-version = "0.5.30"
+version = "0.5.31"
 description = "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain."
 readme = "README.md"
 requires-python = ">=3.9"
