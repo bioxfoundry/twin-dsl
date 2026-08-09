@@ -21,6 +21,7 @@ from .converters import (
     LocalToolConverter,
     MarkItDownConverter,
     PyMuPDFConverter,
+    ScadSourceConverter,
     STLMetadataConverter,
     TextConverter,
 )
@@ -54,6 +55,7 @@ __all__ = [
     "DoclingLocalConverter",
     "MarkItDownConverter",
     "PyMuPDFConverter",
+    "ScadSourceConverter",
     "STLMetadataConverter",
     "BACKEND_TYPES",
     "TranslationPolicy",

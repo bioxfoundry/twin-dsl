@@ -169,6 +169,34 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
     return summary
 
 
+def refresh_contract(source: str | Path, output: str | Path) -> Dict[str, Any]:
+    """Recount existing packs and refresh their report/version after a specialised compiler pass."""
+    root, out = Path(source).resolve(), Path(output).resolve()
+    report_path = out / "compile-report.json"
+    summary: Dict[str, Any] = json.loads(report_path.read_text(encoding="utf-8"))
+    packs = sorted(path for path in out.rglob("*.intent.json") if path.is_file())
+    sources: List[Path] = []
+    records = 0
+    for path in packs:
+        pack = json.loads(path.read_text(encoding="utf-8"))
+        if pack.get("schema") != "t2c.intent-pack/v1" or not isinstance(pack.get("records"), list):
+            raise ValueError(f"INVALID_INTENT_PACK:{path}")
+        source_path = Path(str(pack.get("source", ""))).resolve()
+        try:
+            source_path.relative_to(root)
+        except ValueError as error:
+            raise ValueError(f"INTENT_SOURCE_OUTSIDE_ROOT:{source_path}") from error
+        if not source_path.is_file():
+            raise ValueError(f"INTENT_SOURCE_MISSING:{source_path}")
+        sources.append(source_path)
+        records += len(pack["records"])
+    summary["files"] = len(packs)
+    summary["records"] = records
+    report_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    _write_version(root, out, sources, summary)
+    return summary
+
+
 def openrouter_proposal(markdown: str, model: Optional[str] = None, target_uri: Optional[str] = None) -> Any:
     """Ask OpenRouter for a proposal only; return the validated records, never apply them."""
     key = os.environ.get("OPENROUTER_API_KEY", "")
@@ -196,8 +224,11 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("source")
     parser.add_argument("output")
     parser.add_argument("--all-languages", action="store_true")
+    parser.add_argument("--refresh-contract", action="store_true",
+                        help="recount existing intent packs and refresh report/VERSION only")
     args = parser.parse_args(argv)
-    summary = compile_tree(args.source, args.output, only_english=not args.all_languages)
+    summary = (refresh_contract(args.source, args.output) if args.refresh_contract
+               else compile_tree(args.source, args.output, only_english=not args.all_languages))
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if not summary["failures"] else 2
 

@@ -21,6 +21,7 @@ from f2md import (
     LocalToolConverter,
     MarkItDownConverter,
     PyMuPDFConverter,
+    ScadSourceConverter,
     STLMetadataConverter,
     TextConverter,
     convert,
@@ -29,7 +30,7 @@ from f2md import (
     media_type_for,
 )
 from f2md.cli import main
-from f2md.intent_compile import compile_tree
+from f2md.intent_compile import compile_tree, refresh_contract
 from f2md.tree import convert_tree
 
 
@@ -168,6 +169,16 @@ def test_binary_content_is_not_treated_as_text(tmp_path) -> None:
         TextConverter().convert(str(src))
 
 
+def test_scad_source_exposes_parametric_intent_without_docling(tmp_path) -> None:
+    src = tmp_path / "lid.scad"
+    src.write_text("radius = 12;\nuse <threads.scad>\ndifference() { cylinder(r=radius, h=4); }\n", encoding="utf-8")
+    doc = ScadSourceConverter().convert(str(src))
+    assert doc.converter == "scad-source"
+    assert "radius = 12" in doc.markdown
+    assert "threads.scad" in doc.markdown
+    assert "cylinder, difference" in doc.markdown
+
+
 def test_long_text_is_truncated(tmp_path) -> None:
     src = tmp_path / "big.txt"
     src.write_text("a" * 5000, encoding="utf-8")
@@ -224,6 +235,23 @@ def test_intent_compile_writes_a_deterministic_version_manifest(tmp_path) -> Non
     assert "ARTIFACT=markdown-intent-dsl" in first
     assert "OUTPUT_PACKS=1" in first
     assert "INTENT_RECORDS=1" in first
+
+
+def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    note = source / "note.md"
+    note.write_text("---\nlanguage: en\n---\n# Evidence\nBody\n", encoding="utf-8")
+    compile_tree(source, output)
+    pack_path = output / "note.md.intent.json"
+    pack = json.loads(pack_path.read_text(encoding="utf-8"))
+    pack["records"].append({**pack["records"][0], "id": "specialised-record"})
+    pack_path.write_text(json.dumps(pack), encoding="utf-8")
+
+    summary = refresh_contract(source, output)
+
+    assert summary["records"] == 2
+    assert "INTENT_RECORDS=2" in output.joinpath("VERSION").read_text(encoding="utf-8")
 
 
 # --------------------------------------------------------------------------- chain routing

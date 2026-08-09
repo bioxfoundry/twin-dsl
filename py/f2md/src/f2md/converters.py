@@ -143,6 +143,43 @@ class TextConverter:
         )
 
 
+class ScadSourceConverter:
+    """Preserve OpenSCAD source and expose its parametric intent deterministically."""
+
+    name = "scad-source"
+    backend_type = "stdlib"
+    version = "1.1.0"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        kind = detect_document_kind(path)
+        if kind != ".scad":
+            raise ExternalConverterRequired(kind)
+        text = open(path, "r", encoding="utf-8", errors="replace").read()
+        parameters = [
+            f"{match.group(1)} = {match.group(2).strip()}"
+            for match in re.finditer(r"(?m)^\s*([A-Za-z_]\w*)\s*=\s*([^;]+);", text)
+        ]
+        dependencies = re.findall(r"(?m)^\s*(?:use|include)\s*<([^>]+)>", text)
+        operators = sorted(set(re.findall(
+            r"\b(cylinder|sphere|cube|polyhedron|linear_extrude|rotate_extrude|translate|rotate|scale|"
+            r"mirror|hull|minkowski|difference|union|intersection)\s*\(", text,
+        )))
+        body = (
+            f"# {os.path.basename(path)}\n\n"
+            "## Extracted SCAD intent\n\n"
+            f"- Parameters: {len(parameters)}\n"
+            f"- Dependencies: {', '.join(dependencies) or 'none'}\n"
+            f"- Geometry/operators: {', '.join(operators) or 'none'}\n\n"
+            + "\n".join(f"- {item}" for item in parameters)
+            + f"\n\n## Source\n\n```scad\n{text.rstrip()}\n```\n"
+        )
+        metadata = _stat_metadata(path)
+        metadata.update({"extractedChars": len(text), "parameters": len(parameters),
+                         "dependencies": dependencies, "operators": operators})
+        return ConvertedDocument(body, metadata, [], self.name, self.version,
+                                 backend_type=self.backend_type, input_kind=kind)
+
+
 class STLMetadataConverter:
     """Extract deterministic, text-friendly geometry metadata from STL meshes.
 

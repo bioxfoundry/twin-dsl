@@ -70,6 +70,14 @@ def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
         handle.write("\n".join(lines))
 
 
+def refresh_version(source: str, root: str) -> Dict[str, int]:
+    """Refresh the mirror identity without reconverting its already-reviewed Markdown files."""
+    source_paths = list(walk_files(os.path.abspath(source)))
+    output_paths = [path for path in walk_files(os.path.abspath(root)) if path.endswith(".md")]
+    _write_version(os.path.abspath(source), os.path.abspath(root), source_paths)
+    return {"sourceFiles": len(source_paths), "outputFiles": len(output_paths)}
+
+
 def _yaml_scalar(value: Any) -> str:
     """Render a scalar for front matter. Strings are quoted so paths and messages stay safe."""
     if isinstance(value, bool):

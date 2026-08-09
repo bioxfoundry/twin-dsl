@@ -11,7 +11,7 @@ from . import __version__
 from .chain import ConverterChain, default_chain
 from .converters import DoclingHttpConverter, DoclingLocalConverter, LocalToolConverter, TextConverter
 from .detect import detect_document_kind, media_type_for
-from .tree import convert_tree
+from .tree import convert_tree, refresh_version
 from .types import ConversionError
 
 
@@ -66,7 +66,15 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="with --tree, write matching documents as <name>.secret.md (case-insensitive regex)",
     )
     parser.add_argument("--version", action="version", version=f"f2md {__version__}")
+    parser.add_argument(
+        "--refresh-version", nargs=2, metavar=("SRC", "OUT"),
+        help="refresh an already-reviewed mirror VERSION without reconverting files",
+    )
     args = parser.parse_args(argv)
+
+    if args.refresh_version:
+        print(json.dumps(refresh_version(*args.refresh_version), ensure_ascii=False, indent=2))
+        return 0
 
     if args.tree:
         src, out = args.tree

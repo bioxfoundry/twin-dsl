@@ -12,6 +12,7 @@ from .converters import (
     LocalToolConverter,
     MarkItDownConverter,
     PyMuPDFConverter,
+    ScadSourceConverter,
     STLMetadataConverter,
     TextConverter,
 )
@@ -75,6 +76,7 @@ def default_chain(docling_url: Optional[str] = None) -> ConverterChain:
         # and TextConverter then still produces something usable.
         MarkItDownConverter(kinds=MarkItDownConverter.MARKUP),
         TextConverter(),
+        ScadSourceConverter(),
         # Meshes have no prose; retain deterministic triangle/bounds evidence locally.
         STLMetadataConverter(),
         # Structured Markdown from PDFs that have a text layer; declines scans.

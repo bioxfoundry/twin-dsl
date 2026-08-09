@@ -3,7 +3,7 @@ import argparse, hashlib, json, re
 from pathlib import Path
 
 def main():
-    ap=argparse.ArgumentParser(); ap.add_argument("source"); ap.add_argument("markdown"); ap.add_argument("intent"); ap.add_argument("--compile-report"); a=ap.parse_args()
+    ap=argparse.ArgumentParser(); ap.add_argument("source"); ap.add_argument("markdown"); ap.add_argument("intent"); ap.add_argument("--compile-report"); ap.add_argument("--preserve-markdown",action="store_true"); a=ap.parse_args()
     src=Path(a.source).resolve(); text=src.read_text(encoding="utf-8",errors="replace"); digest=hashlib.sha256(src.read_bytes()).hexdigest()
     params=[]
     for match in re.finditer(r"(?m)^\s*([A-Za-z_][\w]*)\s*=\s*([^;]+);",text): params.append({"name":match.group(1),"value":match.group(2).strip()})
@@ -12,7 +12,11 @@ def main():
     modules=re.findall(r"(?m)^\s*module\s+([A-Za-z_][\w]*)\s*\(",text)
     calls=sorted(set(re.findall(r"(?m)^\s*([A-Za-z_][\w]*)\s*\(",text)))
     md='''---\nsource: %s\nsourceRelative: %s\ninputKind: ".scad"\nmediaType: "text/x-scad"\nconverter: "scad-source"\nconverterVersion: "1.1.0"\nconverted: true\nsourceSha256: %s\n---\n\n# %s\n\n## Extracted SCAD intent\n\n- Parameters: %d\n- Dependencies: %s\n- Modules: %s\n- Geometry/operators: %s\n\n## Source\n\n```scad\n%s\n```\n''' % (str(src),src.name,digest,src.name,len(params),", ".join(includes) or "none",", ".join(modules) or "none",", ".join(primitives) or "none",text.rstrip())
-    Path(a.markdown).parent.mkdir(parents=True,exist_ok=True); Path(a.markdown).write_text(md,encoding="utf-8")
+    markdown_path=Path(a.markdown)
+    if a.preserve_markdown:
+        md=markdown_path.read_text(encoding="utf-8")
+    else:
+        markdown_path.parent.mkdir(parents=True,exist_ok=True); markdown_path.write_text(md,encoding="utf-8")
     records=[]
     for index,item in enumerate(params): records.append({"schema":"t2c.intent/v1","id":hashlib.sha256((f"param:{index}:{item['name']}:{item['value']}:{digest}").encode()).hexdigest()[:16],"type":"claim","text":f"SCAD parameter {item['name']} = {item['value']}","actor":"scad-parser","targetUris":[f"urn:subactor:resource:sha256:{digest}"],"source":{"artifactUri":f"urn:subactor:resource:sha256:{digest}","revisionHash":digest,"fragment":f"{item['name']}@{index + 1}","converter":"scad-source","converterVersion":"1.1.0"}})
     for dep in includes: records.append({"schema":"t2c.intent/v1","id":hashlib.sha256(("dep:"+dep+digest).encode()).hexdigest()[:16],"type":"claim","text":f"SCAD dependency use <{dep}>","actor":"scad-parser","targetUris":[f"urn:subactor:resource:sha256:{digest}"],"source":{"artifactUri":f"urn:subactor:resource:sha256:{digest}","revisionHash":digest,"fragment":dep,"converter":"scad-source","converterVersion":"1.1.0"}})
