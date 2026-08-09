@@ -55,8 +55,7 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.equal(await exists(join(out,"candidate/improvement.dsl")),true);
 
     const second=await runtime.iterate(created.configPath,out,"deterministic");
-    assert.equal(second.noChange,false);
-    assert.equal(second.diff.added.some(path=>path.endsWith("feedback/latest.md")),true);
+    assert.equal(second.noChange,true);
     const third=await runtime.iterate(created.configPath,out,"deterministic");
     assert.equal(third.noChange,true);
 

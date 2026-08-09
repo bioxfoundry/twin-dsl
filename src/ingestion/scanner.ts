@@ -107,7 +107,12 @@ export async function scanSources(sources: ScanSource[]): Promise<ScanResult> {
   for (const source of sources) {
     const absolute = resolve(source.path);
     const s = await stat(absolute);
-    const files = s.isDirectory() ? await walk(absolute) : [absolute];
+    const files = s.isDirectory()
+      ? (await walk(absolute)).filter(file => !(
+          source.labels?.includes("feedback")
+          && relative(absolute, file) === "latest.md"
+        ))
+      : [absolute];
     for (const file of files) {
       const rel = s.isDirectory() ? relative(absolute, file) : file.split("/").at(-1)!;
       const ext = extname(file).toLowerCase();

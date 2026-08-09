@@ -34,3 +34,20 @@ test("scanner ingests TestQLDSL as text instead of a binary stub", async (t) => 
   assert.equal((resource.labels ?? []).includes("binary-stub"), false);
   assert.equal(result.texts.get(resource.uri), content);
 });
+
+test("feedback directory scans exclude the runtime-managed latest file", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "feedback-scan-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  await writeFile(join(root, "latest.md"), "runtime feedback\n");
+  await writeFile(join(root, "manual.md"), "operator feedback\n");
+
+  const result = await scanSources([{
+    path: root,
+    role: "derived",
+    logicalRoot: "subactor://project/test/feedback",
+    labels: ["feedback"],
+  }]);
+
+  assert.deepEqual(result.resources.map(resource => resource.sourcePath), [join(root, "manual.md")]);
+  assert.equal([...result.texts.values()].includes("operator feedback\n"), true);
+});
