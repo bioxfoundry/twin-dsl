@@ -643,6 +643,12 @@ node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port
 # domyślnie http://127.0.0.1:7331/, tryb deterministic
 ```
 
+W workspace uruchom `make dashboard` (opcjonalnie `PORT=7444`): Makefile poczeka na gotowość
+serwera i otworzy URL w domyślnej przeglądarce przez systemowy handler. Gdy przeglądarka już
+działa, standardowy handler zwykle otwiera nową kartę; jej dokładne zachowanie pozostaje
+kontrolowane przez system i ustawienia przeglądarki. Proces dashboardu pozostaje aktywny w
+terminalu — zakończ go `Ctrl+C`.
+
 Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
 twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`, niebieski
 `measured`, zielony `cad`, fioletowy `ifc`, miętowy `verified`. Obok sceny raportowane są

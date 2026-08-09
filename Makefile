@@ -89,7 +89,20 @@ nl-dsl:
 	npm run demo:nl-dsl
 
 dashboard:
-	npm run build && node dist/src/cli/main.js dashboard .factory-demo/project/project.projectdsl .factory-demo/runtime 7331
+	@npm run build
+	@url="http://127.0.0.1:7331/"; \
+		node dist/src/cli/main.js dashboard .factory-demo/project/project.projectdsl .factory-demo/runtime 7331 & server_pid=$$!; \
+		trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \
+		ready=0; for attempt in $$(seq 1 50); do \
+			node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$$url/api/state" && { ready=1; break; }; \
+			kill -0 $$server_pid 2>/dev/null || exit 1; sleep 0.2; \
+		done; \
+		[ $$ready -eq 1 ] || { echo "dashboard did not become ready: $$url"; exit 1; }; \
+		if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \
+		elif command -v open >/dev/null 2>&1; then open "$$url"; \
+		elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \
+		else echo "dashboard ready: $$url (open this URL in a browser)"; fi; \
+		wait $$server_pid
 
 clean:
 	npm run clean
