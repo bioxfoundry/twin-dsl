@@ -2,6 +2,7 @@ python/.env.example
 node_modules/
 dist/
 .env
+!.env.example
 .intent/
 .intent-*/
 coverage/
