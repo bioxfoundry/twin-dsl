@@ -31,6 +31,18 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.11] - 2026-08-09
+
+### Docs
+- Update docs/PROJECT_WIZARD.md
+
+### Test
+- Update test/project-wizard.test.ts
+
+### Other
+- Update scripts/sync-vendored-runtime.mjs
+- Update src/project/wizard.ts
+
 ## [0.5.10] - 2026-08-09
 
 ### Docs

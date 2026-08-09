@@ -38,6 +38,10 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.match(ci,/bootstrap-todo2code/);
     assert.match(ci,/docker compose up -d --wait/);
     assert.match(ci,/runtime service-check/);
+    const sourcePackage=JSON.parse(await readFile(resolve("package.json"),"utf8"));
+    const vendoredPackage=JSON.parse(await readFile(join(projectDir,"vendor/runtime/package.json"),"utf8"));
+    assert.equal(vendoredPackage.version,sourcePackage.version);
+    assert.match(await readFile(join(projectDir,"README.md"),"utf8"),new RegExp(`Starter ${sourcePackage.version.replaceAll(".","\\.")}\\.`));
 
     // Disable live web request for the local fixture test.
     const config=parseProjectDsl(await readFile(created.configPath,"utf8"));
