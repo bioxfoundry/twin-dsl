@@ -8,10 +8,12 @@ import threading
 import shutil
 import struct
 from http.server import BaseHTTPRequestHandler, HTTPServer
+from pathlib import Path
 
 import pytest
 
 from f2md import (
+    __version__,
     BACKEND_TYPES,
     ConversionError,
     ConverterChain,
@@ -32,6 +34,21 @@ from f2md import (
 from f2md.cli import main
 from f2md.intent_compile import compile_tree, refresh_contract
 from f2md.tree import convert_tree
+
+
+F2MD_ROOT = Path(__file__).resolve().parents[1]
+REPOSITORY_ROOT = Path(__file__).resolve().parents[3]
+
+
+def test_f2md_version_matches_repository_and_distribution_metadata() -> None:
+    metadata = (F2MD_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    declared = next(
+        line.split("=", 1)[1].strip().strip('"')
+        for line in metadata.splitlines()
+        if line.startswith("version = ")
+    )
+    assert declared == __version__
+    assert declared == (REPOSITORY_ROOT / "VERSION").read_text(encoding="utf-8").strip()
 
 
 # --------------------------------------------------------------------------- detection
