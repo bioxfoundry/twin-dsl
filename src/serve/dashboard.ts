@@ -54,13 +54,13 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "improvement.dsl"]) {
+  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl", "improvement.dsl"]) {
     try { const content=(await readFile(join(current, name), "utf8")).slice(0, 120_000);if(content.trim())documents.push({ name, content }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }
   // A blocked candidate must remain inspectable even though it is deliberately not
   // promoted to `current/`. This is where geometry compiler URNs and repair URIs live.
-  for (const name of ["archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl"]) {
+  for (const name of ["archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl"]) {
     try {
       const content=(await readFile(join(dirname(current), "candidate", name), "utf8")).slice(0, 120_000);
       if(content.trim())documents.push({name:`latest-candidate/${name}`,content});

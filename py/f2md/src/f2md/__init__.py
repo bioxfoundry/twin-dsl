@@ -11,7 +11,7 @@ which backend produced the Markdown.
 
 from __future__ import annotations
 
-__version__ = "0.5.31"
+__version__ = "0.5.32"
 
 from .chain import ConverterChain, convert, convert_to_markdown, default_chain
 from .converters import (

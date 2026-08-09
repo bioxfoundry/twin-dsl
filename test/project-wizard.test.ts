@@ -94,6 +94,8 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.match(start,/Last completed iteration: ACCEPTED/);
     assert.match(start,/Latest evaluation: NO CHANGE \(no receipt or event appended\)/);
     assert.match(start,/Last persisted iteration receipt: \.living-runtime\/latest\.json/);
+    assert.match(start,/Presentation evidence status: MISSING/);
+    assert.match(start,/Presentation problem: CAPTURES_MISSING/);
     assert.equal(JSON.parse(await readFile(join(out,"latest.json"),"utf8")).noChange,false,"a no-change evaluation must not mislabel the last persisted receipt");
     assert.doesNotMatch(start,new RegExp(temp.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")),"START must remain portable outside the generation environment");
     const third=await runtime.iterate(created.configPath,out,"deterministic");

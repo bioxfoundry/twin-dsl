@@ -6,6 +6,7 @@ import type {
   LlmMode,
   TwinStateDocument,
 } from "../core/types.js";
+import type { PresentationEvidenceSummary } from "./presentation-evidence.js";
 
 export function startDocumentPath(projectRoot:string,path:string):string {
   const candidate = relative(projectRoot,resolve(path));
@@ -38,6 +39,7 @@ export interface StartDocumentInput {
   latestTwinState?:TwinStateDocument;
   latestAssemblyReport?:AssemblyReport;
   validation?:StartValidationSummary;
+  presentationEvidence?:PresentationEvidenceSummary;
   feedbackPath:string;
   generatedAt?:string;
 }
@@ -47,7 +49,7 @@ export function renderStartDocument(input:StartDocumentInput):string {
   const {
     project,projectRoot,configPath,runtimeRoot,dashboardCli,dashboardPort,mode,receipt,
     streamVersion,evaluation,activeAvailable,activeTwinStateAvailable,latestArtifactRoot,
-    iterationPublished,latestTwinState,latestAssemblyReport,validation,feedbackPath,
+    iterationPublished,latestTwinState,latestAssemblyReport,validation,presentationEvidence,feedbackPath,
   } = input;
   const pathFor = (path:string):string => startDocumentPath(projectRoot,path);
   const completedStatus = receipt.validation.ok ? "ACCEPTED" : "REJECTED";
@@ -136,12 +138,10 @@ export function renderStartDocument(input:StartDocumentInput):string {
     "",
     "## Presentation assets",
     "",
-    `- Dashboard screenshot: ${pathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.png"))}`,
-    `- OSCAR pipette inspection: ${pathFor(join(runtimeRoot,"current/presentation/oscar-pipette-tool-inspection.png"))}`,
-    `- MOS3S custom-parts inspection: ${pathFor(join(runtimeRoot,"current/presentation/bioprinter-mos3s-inspection.png"))}`,
-    `- MOS3S custom-parts orbit video: ${pathFor(join(runtimeRoot,"current/presentation/digital-twin-mos3s-orbit.webm"))}`,
-    `- 3D orbit video: ${pathFor(join(runtimeRoot,"current/presentation/digital-twin-orbit.webm"))}`,
-    `- Dashboard recording: ${pathFor(join(runtimeRoot,"current/presentation/digital-twin-dashboard.webm"))}`,
+    `- Presentation evidence status: ${presentationEvidence?.status.toUpperCase()??"NOT EVALUATED"}`,
+    ...(presentationEvidence?[`- Presentation evidence report: ${pathFor(join(runtimeRoot,"current/presentation-evidence.dsl"))}`,`- Revision manifest: ${pathFor(join(runtimeRoot,"current",presentationEvidence.manifestPath))}${presentationEvidence.status==="current"?" (verified)":" (missing, stale or invalid; captures below are not current-revision evidence)"}`]:[]),
+    ...(presentationEvidence?.captures.map(capture=>`- ${presentationEvidence.status==="current"?"Verified":"Historical/unverified"} ${capture.mediaType}: ${pathFor(join(runtimeRoot,"current/presentation",capture.path))} (sha256:${capture.sha256})`)??[]),
+    ...(presentationEvidence?.problems.map(problem=>`- Presentation problem: ${problem}`)??[]),
     "",
     `Previous iteration: ${receipt.previousIterationUri??"none"}`,
     `Last completed iteration URI: ${receipt.iterationUri}`,

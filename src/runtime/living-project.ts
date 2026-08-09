@@ -79,6 +79,7 @@ import { projectTwinState, renderTwinStateDsl } from "./twin-state.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
 import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
 import { renderStartDocument, startDocumentPath, type StartValidationSummary } from "./start-document.js";
+import { inspectPresentationEvidence, presentationDirectoryFingerprint, renderPresentationEvidenceDsl } from "./presentation-evidence.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -403,7 +404,8 @@ export class LivingProjectRuntime {
     });
     const observation = observationsFromResources(project,resources,scanned.texts,researchHash);
     const observationHash = sha256(canonicalJson(observation));
-    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,geometryFingerprint,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
+    const presentationFingerprint=await presentationDirectoryFingerprint(join(outDir,"current/presentation"));
+    const stableKey = sha256(canonicalJson({researchHash,developmentFingerprint,observationHash,projectConfigHash,geometryFingerprint,presentationFingerprint,intentDsl,runtimeGeneration:RUNTIME_GENERATION}));
     // Unchanged inputs alone are not enough to skip: a runtime whose generation semantics
     // changed derives a different twin from the very same sources, so RUNTIME_GENERATION
     // has to match too, or a shipped fix would never reach an existing project.
@@ -430,6 +432,7 @@ export class LivingProjectRuntime {
         readOptional<{receipts:GeometryBuildReceipt[]}>(join(diagnosticRoot,"geometry-builds.json")),
       ]);
       const buildFailures=(latestGeometryBuilds?.receipts??[]).filter(item=>item.status==="failed").map(item=>item.error?.code??item.id);
+      const presentationEvidence=activeTwin&&activeScene?await inspectPresentationEvidence(join(runtimeRoot,"current/presentation"),activeTwin,activeScene):undefined;
       const validationSummary:StartValidationSummary = {
         intentDsl:latestIntent,
         geometryBuild:latestGeometryBuilds?{failures:buildFailures,contracts:latestGeometryBuilds.receipts.length}:undefined,
@@ -445,7 +448,7 @@ export class LivingProjectRuntime {
         receipt:previous,streamVersion,evaluation:"no-change",activeAvailable:Boolean(activeTwin&&activeScene&&activeOpenUsd),
         activeTwinStateAvailable:Boolean(activeTwinState),latestArtifactRoot:diagnosticRoot,
         iterationPublished:previous.validation.ok,latestTwinState,latestAssemblyReport,
-        validation:validationSummary,feedbackPath:resolve(base,"feedback/latest.md"),
+        validation:validationSummary,presentationEvidence,feedbackPath:resolve(base,"feedback/latest.md"),
       }),"utf8");
       return {...previous,noChange:true,diff};
     }
@@ -559,11 +562,13 @@ export class LivingProjectRuntime {
       undefined,
       geometryRequirementsFromTwin(twin),
     );
+    const presentationEvidence=await inspectPresentationEvidence(join(outDir,"current/presentation"),twin,scene);
     const projectIntegrity:ProjectIntegrityReport = analyzeProjectIntegrity({
       project,resources,development:developmentEvidence,observations:observation,twin,scene,
       geometry:geometryReport,physicalEvidence,
       geometryBuildReceipts:geometryMaterializations.map(item=>item.receipt),
       generationAudits:[mathGeneration.audit,twinGeneration.audit,sceneGeneration.audit],
+      presentationEvidence,
     });
     const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok && (assemblyReport?.ok ?? true) && geometryBuildFailures.length===0;
     const failures:string[] = [];
@@ -628,12 +633,14 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"geometry-validation.dsl"),renderGeometryValidationDsl(geometryReport));
     await writeJson(join(candidate,"project-integrity.json"),projectIntegrity);
     await writeFile(join(candidate,"project-integrity.dsl"),renderProjectIntegrityDsl(projectIntegrity));
+    await writeJson(join(candidate,"presentation-evidence.json"),presentationEvidence);
+    await writeFile(join(candidate,"presentation-evidence.dsl"),renderPresentationEvidenceDsl(presentationEvidence));
     await writeJson(join(candidate,"intent-dsl.index.json"),{schema:"subactor.intent-dsl-index/v1",...intentDsl,validatedAt:new Date().toISOString()});
     await writeJson(join(candidate,"improvement.json"),improvement);
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings,notices:scanned.notices});
 
-    const artifactNames = ["project.json","resources.json","archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json","archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -733,6 +740,7 @@ export class LivingProjectRuntime {
       fileExists(join(runtimeRoot,"current/scene.usda")),
       readOptional<TwinStateDocument>(join(runtimeRoot,"current/twin-state.json")),
     ]);
+    const activePresentationEvidence=activeTwin&&activeScene?await inspectPresentationEvidence(join(runtimeRoot,"current/presentation"),activeTwin,activeScene):undefined;
     const validationSummary:StartValidationSummary = {
       intentDsl,
       geometryBuild:{failures:geometryBuildFailures,contracts:geometryMaterializations.length},
@@ -747,7 +755,7 @@ export class LivingProjectRuntime {
       project,projectRoot:base,configPath,runtimeRoot,dashboardCli,dashboardPort,mode,receipt,
       streamVersion,evaluation:"changed",activeAvailable:Boolean(activeTwin&&activeScene&&activeOpenUsd),
       activeTwinStateAvailable:Boolean(activeTwinState),latestArtifactRoot,iterationPublished:publish,
-      latestTwinState:twinState,latestAssemblyReport:assemblyReport,validation:validationSummary,feedbackPath,
+      latestTwinState:twinState,latestAssemblyReport:assemblyReport,validation:validationSummary,presentationEvidence:activePresentationEvidence,feedbackPath,
     });
     await writeFile(startPath,start,"utf8");
 

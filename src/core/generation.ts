@@ -13,4 +13,4 @@
  * iteration. Do not bump it for changes that cannot alter output (docs, tests, logging):
  * a needless bump costs every project a full regeneration.
  */
-export const RUNTIME_GENERATION = "2026-08-09.evidence-ranked-diagnostics-v1";
+export const RUNTIME_GENERATION = "2026-08-10.revision-bound-presentation-v1";

@@ -85,9 +85,12 @@ W bieżącym Chromium headless sam Blob `MediaRecorder` został sprawdzony: 113 
 63 dekodowalne klatki. Warstwa pobierania `blob:` w Playwright/Snap zwróciła natomiast pusty plik,
 dlatego test rozdziela walidację encodera od walidacji pobierania i zawsze uruchamia `ffprobe`.
 `digital-twin-dashboard.webm` jest zremuksowanym, dekodowalnym zapisem przechwyconej rewizji, a
-`digital-twin-orbit.webm` pozostaje 3-sekundowym testem ruchu kamery. Runtime nie generuje jeszcze
-manifestu wiążącego te pliki z `twinUri`, `sceneUri`, kamerą i wersją renderera, dlatego obecność
-pliku pod `current/presentation/` oznacza ostatni udany capture, a nie dowód bieżącej rewizji.
+`digital-twin-orbit.webm` pozostaje 3-sekundowym testem ruchu kamery. Runtime waliduje teraz ścisły
+`subactor.presentation-evidence/v1`: ponownie liczy hash i rozmiar każdego PNG/WebM, porównuje
+`twinUri` i `sceneUri`, zapisuje `presentation-evidence.json` + PresentationEvidenceDSL i klasyfikuje
+wynik jako `CURRENT`, `STALE`, `UNVERIFIED`, `MISSING` albo `INVALID`. Istniejące pliki nie mają
+jeszcze manifestu ani opisu kamery, więc pozostają ostatnim udanym capture, nie dowodem bieżącej
+rewizji; `START.md` i ProjectIntegrityDSL pokazują ten brak jawnie.
 Szczegóły i wymagane bramki opisuje
 [`DIGITAL_TWIN_DETAIL_AUDIT.md`](DIGITAL_TWIN_DETAIL_AUDIT.md).
 

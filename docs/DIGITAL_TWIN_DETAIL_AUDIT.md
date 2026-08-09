@@ -297,10 +297,12 @@ live behavioural twin.
 Error URN: `urn:subactor:error:detail:visual-artifact-revision-drift`  
 Repair process: `subactor://process/repair/visual-qa/capture-active-revision`
 
-PNG/WebM files are copied under `current/presentation`, but no manifest binds their content hash,
-camera, renderer version, Twin URI and Scene URI. `START.md` links them after every iteration even
-when they were not regenerated. Generate presentation artifacts per accepted revision and publish
-only a receipt-backed alias as `current`.
+PNG/WebM files are copied under `current/presentation`, but the existing captures have no manifest
+binding their content hash, camera, renderer version, Twin URI and Scene URI. The runtime now
+detects this deterministically: it validates `subactor.presentation-evidence/v1`, re-hashes every
+declared capture, emits JSON + PresentationEvidenceDSL, adds a ProjectIntegrity warning and marks
+the files historical/unverified in `START.md`. Automatic per-revision capture and camera provenance
+are still missing; until they exist, only a manifest-backed capture may become `CURRENT`.
 
 #### DTQ-DIAG-001 — expected binary stubs are reported as generation failures
 
@@ -496,7 +498,8 @@ Acceptance:
 
 - `pxr.Usd.Stage.Open` and default-prim checks pass in CI/runtime;
 - visual artifacts name and hash the exact Twin URI, Scene URI, camera and renderer version;
-- `START.md` marks missing/stale presentation evidence instead of linking it as current;
+- `START.md` marks missing/stale/unverified presentation evidence instead of linking it as current
+  (implemented; automatic capture remains open);
 - screenshot regression failures remain diagnostic signals unless an explicit visual authority gate
   promotes them.
 

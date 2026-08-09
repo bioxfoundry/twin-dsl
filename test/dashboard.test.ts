@@ -127,6 +127,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.equal(dslLog.schema, "subactor.dsl-log-view/v1");
   assert.ok(dslLog.documents.some((document) => document.name === "observations.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "presentation-evidence.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
   const dashboardLog = await readFile(join(created.projectDir, "logs/dashboard-0.log"), "utf8");

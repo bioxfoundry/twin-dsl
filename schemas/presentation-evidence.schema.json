@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://subactor.dev/schemas/presentation-evidence.schema.json",
+  "title": "Revision-bound Digital Twin presentation evidence",
+  "type": "object",
+  "required": ["schema", "twinUri", "sceneUri", "capturedAt", "renderer", "captures"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "subactor.presentation-evidence/v1" },
+    "twinUri": { "type": "string", "pattern": "^urn:subactor:twin:sha256:[a-f0-9]{64}$" },
+    "sceneUri": { "type": "string", "pattern": "^urn:subactor:scene:sha256:[a-f0-9]{64}$" },
+    "capturedAt": { "type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?Z$" },
+    "renderer": {
+      "type": "object",
+      "required": ["name", "version"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "version": { "type": "string", "minLength": 1 }
+      }
+    },
+    "captures": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "object",
+        "required": ["path", "sha256", "bytes", "mediaType"],
+        "additionalProperties": false,
+        "properties": {
+          "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+" },
+          "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "bytes": { "type": "integer", "minimum": 1 },
+          "mediaType": { "enum": ["image/png", "video/webm"] }
+        }
+      }
+    }
+  }
+}

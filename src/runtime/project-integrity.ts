@@ -17,6 +17,7 @@ import type {
   TwinDocument,
 } from "../core/types.js";
 import { geometryEvidenceRank } from "../scene/physical-evidence.js";
+import type { PresentationEvidenceSummary } from "./presentation-evidence.js";
 
 export interface ProjectIntegrityInput {
   project: LivingProjectDocument;
@@ -29,6 +30,7 @@ export interface ProjectIntegrityInput {
   physicalEvidence?: PhysicalEvidenceDocument;
   generationAudits?: GenerationAudit[];
   geometryBuildReceipts?: GeometryBuildReceipt[];
+  presentationEvidence?: PresentationEvidenceSummary;
 }
 
 const LAYERS: ProjectIntegrityLayer[] = ["requirements","research","design","development","runtime","twin","scene","validation"];
@@ -95,6 +97,18 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
     );
   }
   if(!input.geometry.ok) add("GEOMETRY_VALIDATION_FAILED","error","inconsistency","validation","At least one deterministic geometry constraint failed.",input.geometry.failures,[],"repair-geometry");
+  if(input.presentationEvidence&&input.presentationEvidence.status!=="current") {
+    const status=input.presentationEvidence.status;
+    const code=status==="missing"?"PRESENTATION_EVIDENCE_MISSING"
+      :status==="unverified"?"PRESENTATION_EVIDENCE_UNVERIFIED"
+      :status==="stale"?"PRESENTATION_EVIDENCE_STALE"
+      :"PRESENTATION_EVIDENCE_INVALID";
+    const message=status==="missing"?"No PNG/WebM capture and no revision manifest prove the currently generated Twin and Scene."
+      :status==="unverified"?"Presentation files exist, but no valid manifest binds their hashes to the currently generated Twin and Scene."
+      :status==="stale"?"The presentation manifest proves a different Twin or Scene revision than the currently generated artifacts."
+      :"The presentation manifest or one of its declared capture hashes is invalid.";
+    add(code,"warning",status==="invalid"?"inconsistency":"missing-evidence","validation",message,input.presentationEvidence.problems,input.presentationEvidence.captures.map(capture=>`urn:subactor:presentation-capture:sha256:${capture.sha256}`),"capture-active-revision");
+  }
   for(const receipt of input.geometryBuildReceipts??[]) {
     if(receipt.status==="succeeded"&&receipt.validation.ok) continue;
     const code=receipt.validation.failures[0]
