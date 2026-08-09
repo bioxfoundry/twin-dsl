@@ -88,6 +88,8 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.match(start,/Project DSL: project\.projectdsl/);
     assert.match(start,/Runtime root: \.living-runtime/);
     assert.match(start,/node vendor\/runtime\/dist\/src\/cli\/main\.js dashboard project\.projectdsl \.living-runtime/);
+    assert.match(start,/DT_DASHBOARD_READ_ONLY=1/);
+    assert.match(start,/bash scripts\/iterate\.sh/);
     assert.match(start,/Active artifact: ACCEPTED/);
     assert.match(start,/Last completed iteration: ACCEPTED/);
     assert.match(start,/Latest evaluation: NO CHANGE \(no receipt or event appended\)/);

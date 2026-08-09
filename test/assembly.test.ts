@@ -102,6 +102,7 @@ END_ASSEMBLY
     assert.match(start, /Active artifact: ACCEPTED/);
     assert.match(start, /Last completed iteration: ACCEPTED/);
     assert.match(start, /Latest evaluation: NO CHANGE \(no receipt or event appended\)/);
+    assert.match(start, /Dashboard control mode: read-only/);
     assert.match(start, /## Live application/);
     assert.match(start, /## Logs and feedback/);
     assert.match(start, /Dashboard server log:/);
