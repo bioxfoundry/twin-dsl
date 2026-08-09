@@ -1,4 +1,8 @@
 COMPOSE ?= docker compose
+PORT ?= 7331
+MODE ?= deterministic
+DASHBOARD_PROJECT ?= .factory-demo/project/project.projectdsl
+DASHBOARD_RUNTIME ?= .factory-demo/runtime
 # BuildKit is required for the pip cache mounts in deploy/docling/Dockerfile; without it every
 # build re-downloads gigabytes of wheels.
 export DOCKER_BUILDKIT = 1
@@ -63,7 +67,8 @@ endpoints: .env
 		echo "ClickHouse HTTP: http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}  (container :8123)"; \
 		echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \
 		echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \
-		echo "Dashboard: NOT started by make up; run workspace 'make dashboard' to open http://127.0.0.1:7331/"
+		echo "Dashboard: NOT started by make up; from the workspace root run 'make dashboard' to open http://127.0.0.1:7331/"; \
+		echo "Factory demo: run 'make dashboard PORT=7332' in twin-dsl when port 7331 is used by the workspace project"
 
 ## Drop the BuildKit cache. Only useful when you actually want a cold rebuild.
 prune-cache:
@@ -90,8 +95,17 @@ nl-dsl:
 
 dashboard:
 	@npm run build
-	@url="http://127.0.0.1:7331/"; \
-		node dist/src/cli/main.js dashboard .factory-demo/project/project.projectdsl .factory-demo/runtime 7331 & server_pid=$$!; \
+	@url="http://127.0.0.1:$(PORT)/"; \
+		probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \
+			echo "hint: use the existing workspace dashboard with 'make -C .. dashboard', or choose another demo port with 'make dashboard PORT=7332'"; exit 2; }; \
+		echo "$$probe"; \
+		case "$$probe" in DASHBOARD_PORT_REUSE:*) \
+			if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \
+			elif command -v open >/dev/null 2>&1; then open "$$url"; \
+			elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \
+			else echo "dashboard already running: $$url"; fi; exit 0;; \
+		esac; \
+		node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \
 		trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \
 		ready=0; for attempt in $$(seq 1 50); do \
 			node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$$url/api/state" && { ready=1; break; }; \

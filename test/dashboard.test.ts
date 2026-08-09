@@ -12,6 +12,26 @@ import { createLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
 import type { MathDocument, SceneDocument, TwinDocument } from "../src/core/types.js";
 
+test("dashboard reports an occupied port as a deterministic diagnostic", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "dt-dashboard-port-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const first = await startDashboard({
+    configPath: join(root, "first", "project.projectdsl"),
+    outDir: join(root, "first-runtime"),
+    port: 0,
+  });
+  t.after(() => first.close());
+  const port = Number(new URL(first.url).port);
+  await assert.rejects(
+    startDashboard({
+      configPath: join(root, "second", "project.projectdsl"),
+      outDir: join(root, "second-runtime"),
+      port,
+    }),
+    (error: unknown) => error instanceof Error && error.message === `DASHBOARD_PORT_IN_USE:127.0.0.1:${port}`,
+  );
+});
+
 test("dashboard serves the live twin, scene and USD, and applies intake durably", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "dt-dashboard-"));
   t.after(() => rm(root, { recursive: true, force: true }));

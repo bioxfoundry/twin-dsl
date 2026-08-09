@@ -647,7 +647,10 @@ W workspace uruchom `make dashboard` (opcjonalnie `PORT=7444`): Makefile poczeka
 serwera i otworzy URL w domyślnej przeglądarce przez systemowy handler. Gdy przeglądarka już
 działa, standardowy handler zwykle otwiera nową kartę; jej dokładne zachowanie pozostaje
 kontrolowane przez system i ustawienia przeglądarki. Proces dashboardu pozostaje aktywny w
-terminalu — zakończ go `Ctrl+C`.
+terminalu — zakończ go `Ctrl+C`. Preflight portu ponownie używa zdrowej instancji tylko wtedy,
+gdy jej aktywny Twin należy do żądanego projektu. Inny projekt lub inna usługa na tym porcie
+daje `DASHBOARD_PORT_CONFLICT` z identyfikatorami `expected` i `actual`; wybierz wtedy inny
+`PORT` albo uruchom dashboard właściwego projektu z jego katalogu workspace.
 
 Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
 twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`, niebieski

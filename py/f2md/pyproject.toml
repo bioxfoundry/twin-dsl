@@ -4,13 +4,13 @@ build-backend = "hatchling.build"
 
 [project]
 name = "f2md"
-version = "0.5.19"
+version = "0.5.20"
 description = "Convert any file to a unified Markdown envelope, with provenance and a graceful converter chain."
 readme = "README.md"
 requires-python = ">=3.9"
 license = "Apache-2.0"
 license-files = ["LICENSE"]
-authors = [{ name = "Softreck", email = "info@softreck.com" }]
+authors = [{ name = "Softreck", email = "info@softreck.com" }, {name = "Tom Sapletta",email = "tom@sapletta.com"}]
 keywords = ["markdown", "conversion", "pdf", "docx", "docling", "pandoc", "ingestion", "rag"]
 classifiers = [
   "Development Status :: 4 - Beta",

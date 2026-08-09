@@ -9,6 +9,13 @@ node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port
 # default: port 7331, deterministic mode
 ```
 
+Workspace Makefile wykonuje przed startem kontrolę portu. Zgodny, zdrowy dashboard tego samego
+projektu jest używany ponownie; inny Twin lub usługa zwraca jawny
+`DASHBOARD_PORT_CONFLICT:<host>:<port>:expected=<twin>:actual=<twin-or-service>`. Sam serwer
+zamienia systemowy `EADDRINUSE` na stabilne `DASHBOARD_PORT_IN_USE`, bez nieobsłużonego zdarzenia
+Node.js. Dla demonstracji uruchamianej z repozytorium `twin-dsl` można podać np.
+`make dashboard PORT=7332`.
+
 `Run iteration` reports `[digital-twin] iteration:start`, `iteration:complete` or
 `iteration:error` in the browser console. The server prints matching `[dashboard]` entries to its
 stdout and persists JSONL records in `logs/dashboard-<port>.log`; HTTP errors are shown in the

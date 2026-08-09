@@ -201,4 +201,7 @@ async function main():Promise<void>{
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
   console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
-await main();
+main().catch((error: unknown) => {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+});

@@ -448,7 +448,22 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   });
 
   const host = options.host ?? "127.0.0.1";
-  await new Promise<void>((done) => server.listen(options.port, host, done));
+  await new Promise<void>((done, fail) => {
+    const listening = (): void => {
+      server.off("error", failed);
+      done();
+    };
+    const failed = (error: NodeJS.ErrnoException): void => {
+      server.off("listening", listening);
+      const detail = error.code === "EADDRINUSE"
+        ? `DASHBOARD_PORT_IN_USE:${host}:${options.port}`
+        : `DASHBOARD_LISTEN_FAILED:${host}:${options.port}:${error.code ?? error.message}`;
+      fail(new Error(detail));
+    };
+    server.once("error", failed);
+    server.once("listening", listening);
+    server.listen(options.port, host);
+  });
   const address = server.address();
   const port = typeof address === "object" && address ? address.port : options.port;
   await dashboardLog("info","server:listening",{host,actualPort:port,url:`http://${host}:${port}/`});

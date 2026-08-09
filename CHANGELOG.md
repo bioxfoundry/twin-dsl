@@ -31,6 +31,21 @@
   and AssemblyDSL.
 - Fix ast-string-concat issues (ticket-92a0cecc)
 
+## [0.5.20] - 2026-08-09
+
+### Docs
+- Update README.md
+- Update docs/DASHBOARD.md
+
+### Test
+- Update test/dashboard.test.ts
+
+### Other
+- Update Makefile
+- Update scripts/dashboard-port-check.mjs
+- Update src/cli/main.ts
+- Update src/serve/dashboard.ts
+
 ## [0.5.19] - 2026-08-09
 
 ### Other
