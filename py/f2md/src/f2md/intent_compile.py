@@ -22,6 +22,11 @@ def _hash(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
+def _file_hash(path: Path) -> str:
+    """Hash the addressable artifact bytes; never normalize line endings implicitly."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
 def _file_snapshot(root: Path, paths: Iterable[Path]) -> str:
     """Return a stable content address for generated or source files below *root*."""
     digest = hashlib.sha256()
@@ -88,6 +93,29 @@ def validate_intents(records: Any) -> List[Dict[str, Any]]:
     return records
 
 
+def _source_policy(root: Path, only_english: bool = True) -> tuple[List[Path], List[Dict[str, str]]]:
+    included: List[Path] = []
+    excluded: List[Dict[str, str]] = []
+    for path in sorted(root.rglob("*.md")):
+        if ".git" in path.parts or ".living-runtime" in path.parts:
+            continue
+        language = _frontmatter(path.read_text(encoding="utf-8", errors="replace")).get("language", "")
+        if only_english and language not in ("", "en", "unknown"):
+            excluded.append({"path": path.relative_to(root).as_posix(), "language": language,
+                             "reason": "language-policy"})
+        else:
+            included.append(path)
+    return included, excluded
+
+
+def _validate_pack(pack: Any, source_path: Path, pack_path: Path) -> List[Dict[str, Any]]:
+    if not isinstance(pack, dict) or pack.get("schema") != "t2c.intent-pack/v1":
+        raise ValueError(f"INVALID_INTENT_PACK:{pack_path}")
+    if pack.get("sourceHash") != _file_hash(source_path):
+        raise ValueError(f"INTENT_SOURCE_HASH_MISMATCH:{source_path}")
+    return validate_intents(pack.get("records"))
+
+
 def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]:
     source = Path(path).resolve()
     base = Path(root).resolve()
@@ -96,9 +124,10 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
     body = text.split("\n---\n", 1)[-1]
     relative = source.relative_to(base).as_posix()
     source_uri = f"subactor://markdown/{relative}"
+    source_digest = _file_hash(source)
     source_anchor = {
         "artifactUri": source_uri,
-        "revisionHash": _hash(text),
+        "revisionHash": source_digest,
         "fragment": relative,
         "converter": fm.get("converter", "unknown"),
         "converterVersion": fm.get("converterVersion", "unknown"),
@@ -133,19 +162,14 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
     root, out = Path(source).resolve(), Path(output).resolve()
     out.mkdir(parents=True, exist_ok=True)
     expected_targets: set[Path] = set()
+    source_paths, exclusions = _source_policy(root, only_english)
     summary: Dict[str, Any] = {"schema": "subactor.intent-compile-report/v1", "source": str(root),
-                               "output": str(out), "files": 0, "records": 0, "failures": []}
-    source_paths: List[Path] = []
-    for path in sorted(root.rglob("*.md")):
-        if ".git" in path.parts or ".living-runtime" in path.parts:
-            continue
+                               "output": str(out), "languagePolicy": "english-or-unknown" if only_english else "all",
+                               "discoveredMarkdown": len(source_paths) + len(exclusions),
+                               "eligibleFiles": len(source_paths), "excludedFiles": len(exclusions),
+                               "exclusions": exclusions, "files": 0, "records": 0, "failures": []}
+    for path in source_paths:
         text = path.read_text(encoding="utf-8", errors="replace")
-        fm = _frontmatter(text)
-        # Non-prose evidence (CAD/STL/archives) is marked ``unknown`` by f2md because a
-        # human-language detector does not apply. It still belongs in the intent index.
-        if only_english and fm.get("language") not in ("", "en", "unknown", None):
-            continue
-        source_paths.append(path)
         try:
             records = compile_markdown(path, root)
             rel = path.relative_to(root)
@@ -153,7 +177,7 @@ def compile_tree(source: str | Path, output: str | Path, only_english: bool = Tr
             expected_targets.add(target.resolve())
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_text(json.dumps({"schema": "t2c.intent-pack/v1", "source": str(path),
-                                          "sourceHash": _hash(text), "records": records}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                                          "sourceHash": _file_hash(path), "records": records}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
             summary["files"] += 1
             summary["records"] += len(records)
         except (OSError, ValueError) as error:
@@ -174,13 +198,13 @@ def refresh_contract(source: str | Path, output: str | Path) -> Dict[str, Any]:
     root, out = Path(source).resolve(), Path(output).resolve()
     report_path = out / "compile-report.json"
     summary: Dict[str, Any] = json.loads(report_path.read_text(encoding="utf-8"))
+    only_english = summary.get("languagePolicy", "english-or-unknown") != "all"
+    eligible, exclusions = _source_policy(root, only_english)
     packs = sorted(path for path in out.rglob("*.intent.json") if path.is_file())
     sources: List[Path] = []
     records = 0
     for path in packs:
         pack = json.loads(path.read_text(encoding="utf-8"))
-        if pack.get("schema") != "t2c.intent-pack/v1" or not isinstance(pack.get("records"), list):
-            raise ValueError(f"INVALID_INTENT_PACK:{path}")
         source_path = Path(str(pack.get("source", ""))).resolve()
         try:
             source_path.relative_to(root)
@@ -188,8 +212,20 @@ def refresh_contract(source: str | Path, output: str | Path) -> Dict[str, Any]:
             raise ValueError(f"INTENT_SOURCE_OUTSIDE_ROOT:{source_path}") from error
         if not source_path.is_file():
             raise ValueError(f"INTENT_SOURCE_MISSING:{source_path}")
+        validated = _validate_pack(pack, source_path, path)
         sources.append(source_path)
-        records += len(pack["records"])
+        records += len(validated)
+    expected_sources = {path.resolve() for path in eligible}
+    actual_sources = set(sources)
+    if expected_sources != actual_sources:
+        missing = sorted(path.relative_to(root).as_posix() for path in expected_sources - actual_sources)
+        unexpected = sorted(str(path) for path in actual_sources - expected_sources)
+        raise ValueError(f"INTENT_SOURCE_COVERAGE_MISMATCH:missing={missing}:unexpected={unexpected}")
+    summary["languagePolicy"] = "english-or-unknown" if only_english else "all"
+    summary["discoveredMarkdown"] = len(eligible) + len(exclusions)
+    summary["eligibleFiles"] = len(eligible)
+    summary["excludedFiles"] = len(exclusions)
+    summary["exclusions"] = exclusions
     summary["files"] = len(packs)
     summary["records"] = records
     report_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

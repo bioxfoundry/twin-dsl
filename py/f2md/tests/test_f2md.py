@@ -237,6 +237,25 @@ def test_intent_compile_writes_a_deterministic_version_manifest(tmp_path) -> Non
     assert "INTENT_RECORDS=1" in first
 
 
+def test_intent_compile_hashes_source_bytes_without_normalizing_crlf(tmp_path) -> None:
+    import hashlib
+
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    note = source / "note.md"
+    note.write_bytes(b"---\r\nlanguage: en\r\n---\r\n# Evidence\r\nBody\r\n")
+
+    summary = compile_tree(source, output)
+    pack = json.loads(output.joinpath("note.md.intent.json").read_text(encoding="utf-8"))
+    expected = hashlib.sha256(note.read_bytes()).hexdigest()
+
+    assert summary["discoveredMarkdown"] == 1
+    assert summary["eligibleFiles"] == 1
+    assert summary["excludedFiles"] == 0
+    assert pack["sourceHash"] == expected
+    assert pack["records"][0]["source"]["revisionHash"] == expected
+
+
 def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
     source, output = tmp_path / "source", tmp_path / "dsl"
     source.mkdir()
@@ -252,6 +271,21 @@ def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
 
     assert summary["records"] == 2
     assert "INTENT_RECORDS=2" in output.joinpath("VERSION").read_text(encoding="utf-8")
+
+
+def test_refresh_contract_rejects_source_hash_drift(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    note = source / "note.md"
+    note.write_text("---\nlanguage: en\n---\n# Evidence\nBody\n", encoding="utf-8")
+    compile_tree(source, output)
+    pack_path = output / "note.md.intent.json"
+    pack = json.loads(pack_path.read_text(encoding="utf-8"))
+    pack["sourceHash"] = "0" * 64
+    pack_path.write_text(json.dumps(pack), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="INTENT_SOURCE_HASH_MISMATCH"):
+        refresh_contract(source, output)
 
 
 # --------------------------------------------------------------------------- chain routing

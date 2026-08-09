@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.5.21] - 2026-08-09
+
+### Fixed
+- Address intentDSL source and record revisions by raw Markdown bytes, including CRLF files.
+- Validate complete language-policy coverage, source hashes, record provenance and exact source sets
+  before refreshing a generated DSL conversion contract.
+- Keep specialized SCAD packs under the same raw-byte Markdown source-hash convention.
+
 ## [Unreleased] - 2026-08-08
 
 ### Added
