@@ -116,7 +116,7 @@ wypisuje te same adresy, które można wyświetlić ponownie poleceniem `make en
 | ClickHouse HTTP | `http://127.0.0.1:18123` | `8123` | `CLICKHOUSE_HTTP_PORT`, `CLICKHOUSE_URL`, `CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD` |
 | ClickHouse native | `127.0.0.1:19000` | `9000` | `CLICKHOUSE_NATIVE_PORT` |
 | Docling health/API | `http://127.0.0.1:15001/health` | `5001` | `DOCLING_PORT`, `DOCLING_URL` |
-| Dashboard twina | `http://127.0.0.1:7331/` | — | uruchamiany osobno przez workspace `make dashboard PORT=7331` |
+| Dashboard twina | `http://127.0.0.1:7331/` | — | **nie uruchamia go `make up`**; start: workspace `make dashboard PORT=7331` |
 
 Sekcja `healthcheck` w Compose istnieje dla obu usług długotrwałych: ClickHouse (`/ping`) i
 Docling (`/health`). `runtime` nie ma healthchecka, ponieważ nie jest serwerem — jego komenda

@@ -63,7 +63,7 @@ endpoints: .env
 		echo "ClickHouse HTTP: http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}  (container :8123)"; \
 		echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \
 		echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \
-		echo "Dashboard: started separately with workspace 'make dashboard'; default http://127.0.0.1:7331/"
+		echo "Dashboard: NOT started by make up; run workspace 'make dashboard' to open http://127.0.0.1:7331/"
 
 ## Drop the BuildKit cache. Only useful when you actually want a cold rebuild.
 prune-cache:
