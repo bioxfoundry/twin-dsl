@@ -25,13 +25,26 @@
       "uniqueItems": true,
       "items": {
         "type": "object",
-        "required": ["path", "sha256", "bytes", "mediaType"],
+        "required": ["path", "sha256", "bytes", "mediaType", "camera"],
         "additionalProperties": false,
         "properties": {
           "path": { "type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+" },
           "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
           "bytes": { "type": "integer", "minimum": 1 },
-          "mediaType": { "enum": ["image/png", "video/webm"] }
+          "mediaType": { "enum": ["image/png", "video/webm"] },
+          "camera": {
+            "type": "object",
+            "required": ["mode", "eye", "target", "up", "verticalFovDeg", "trajectorySha256"],
+            "additionalProperties": false,
+            "properties": {
+              "mode": { "enum": ["static", "orbit"] },
+              "eye": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+              "target": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+              "up": { "type": "array", "minItems": 3, "maxItems": 3, "items": { "type": "number" } },
+              "verticalFovDeg": { "type": "number", "exclusiveMinimum": 0, "exclusiveMaximum": 180 },
+              "trajectorySha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" }
+            }
+          }
         }
       }
     }

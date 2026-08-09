@@ -91,7 +91,7 @@ test("unbound presentation files are incomplete evidence, not a passing current 
   input.presentationEvidence={
     schema:"subactor.presentation-evidence-status/v1",status:"unverified",
     expectedTwinUri:"urn:subactor:twin:sha256:"+"a".repeat(64),expectedSceneUri:"urn:subactor:scene:sha256:"+"b".repeat(64),
-    manifestPath:"presentation/manifest.json",captures:[{path:"overview.png",sha256:"c".repeat(64),bytes:10,mediaType:"image/png"}],
+    manifestPath:"presentation/manifest.json",captures:[{path:"overview.png",sha256:"c".repeat(64),bytes:10,mediaType:"image/png",camera:null}],
     problems:["MANIFEST_MISSING"],fingerprint:"d".repeat(64),
   };
   const report=analyzeProjectIntegrity(input);

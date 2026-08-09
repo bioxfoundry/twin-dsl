@@ -300,9 +300,10 @@ Repair process: `subactor://process/repair/visual-qa/capture-active-revision`
 PNG/WebM files are copied under `current/presentation`, but the existing captures have no manifest
 binding their content hash, camera, renderer version, Twin URI and Scene URI. The runtime now
 detects this deterministically: it validates `subactor.presentation-evidence/v1`, re-hashes every
-declared capture, emits JSON + PresentationEvidenceDSL, adds a ProjectIntegrity warning and marks
-the files historical/unverified in `START.md`. Automatic per-revision capture and camera provenance
-are still missing; until they exist, only a manifest-backed capture may become `CURRENT`.
+declared capture, requires a static/orbit camera description, emits JSON + PresentationEvidenceDSL,
+adds a ProjectIntegrity warning and marks the files historical/unverified in `START.md`. Automatic
+per-revision capture and camera provenance for the existing files are still missing; until they
+exist, only a manifest-backed capture may become `CURRENT`.
 
 #### DTQ-DIAG-001 — expected binary stubs are reported as generation failures
 

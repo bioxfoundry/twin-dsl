@@ -87,7 +87,8 @@ dlatego test rozdziela walidację encodera od walidacji pobierania i zawsze uruc
 `digital-twin-dashboard.webm` jest zremuksowanym, dekodowalnym zapisem przechwyconej rewizji, a
 `digital-twin-orbit.webm` pozostaje 3-sekundowym testem ruchu kamery. Runtime waliduje teraz ścisły
 `subactor.presentation-evidence/v1`: ponownie liczy hash i rozmiar każdego PNG/WebM, porównuje
-`twinUri` i `sceneUri`, zapisuje `presentation-evidence.json` + PresentationEvidenceDSL i klasyfikuje
+`twinUri` i `sceneUri`, wymaga parametrów kamery (eye/target/up/FOV oraz hash trajektorii orbity),
+zapisuje `presentation-evidence.json` + PresentationEvidenceDSL i klasyfikuje
 wynik jako `CURRENT`, `STALE`, `UNVERIFIED`, `MISSING` albo `INVALID`. Istniejące pliki nie mają
 jeszcze manifestu ani opisu kamery, więc pozostają ostatnim udanym capture, nie dowodem bieżącej
 rewizji; `START.md` i ProjectIntegrityDSL pokazują ten brak jawnie.
