@@ -1,25 +1,29 @@
 flowchart TD
-%% generated in 0.03s
-    js__archive_project_analyzer["js.archive-project-analyzer<br/>31 funcs"]
+%% generated in 0.04s
+    js__archive_project_analyzer["js.archive-project-analyzer<br/>33 funcs"]
     js__assembly_dsl["js.assembly-dsl<br/>41 funcs"]
     js__f2md["js.f2md<br/>81 funcs"]
     js__live_twin_state["js.live-twin-state<br/>49 funcs"]
-    py__f2md["py.f2md<br/>65 funcs"]
-    scripts__cad_to_gltf["scripts.cad-to-gltf<br/>41 funcs"]
+    py__f2md["py.f2md<br/>69 funcs"]
+    scripts__cad_to_gltf["scripts.cad-to-gltf<br/>44 funcs"]
     scripts__scad_to_markdown["scripts.scad-to-markdown<br/>1 funcs"]
     src__dsl["src.dsl<br/>77 funcs"]
-    src__runtime["src.runtime<br/>413 funcs"]
+    src__llm["src.llm<br/>72 funcs"]
+    src__runtime["src.runtime<br/>415 funcs"]
     src__serve["src.serve<br/>56 funcs"]
     scripts__cad_to_gltf ==>|11| js__archive_project_analyzer
-    scripts__cad_to_gltf ==>|10| js__live_twin_state
+    scripts__cad_to_gltf ==>|11| js__live_twin_state
     py__f2md ==>|8| src__dsl
     py__f2md ==>|8| js__assembly_dsl
-    py__f2md ==>|7| src__runtime
+    py__f2md ==>|7| src__serve
     py__f2md ==>|7| js__archive_project_analyzer
     scripts__cad_to_gltf ==>|6| src__runtime
+    py__f2md ==>|5| src__llm
     py__f2md ==>|4| js__live_twin_state
+    scripts__cad_to_gltf ==>|4| src__dsl
+    scripts__cad_to_gltf -->|3| src__llm
     scripts__cad_to_gltf -->|3| js__assembly_dsl
-    scripts__cad_to_gltf -->|2| src__dsl
-    scripts__scad_to_markdown -->|2| js__archive_project_analyzer
-    py__f2md -->|2| src__serve
+    scripts__scad_to_markdown -->|3| js__archive_project_analyzer
+    scripts__scad_to_markdown -->|2| src__llm
+    py__f2md -->|2| src__runtime
     py__f2md -->|1| js__f2md

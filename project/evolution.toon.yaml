@@ -1,18 +1,18 @@
-# code2llm/evolution | 1329 func | 80f | 2026-08-08
-# generated in 0.00s
+# code2llm/evolution | 1378 func | 82f | 2026-08-09
+# generated in 0.01s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           src/runtime/living-project.ts
-      WHY: 823L, 1 classes, max CC=169
-      EFFORT: ~4h  IMPACT: 139087
+      WHY: 847L, 1 classes, max CC=171
+      EFFORT: ~4h  IMPACT: 144837
 
-  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=169  fan=93
-      WHY: CC=169 exceeds 15
-      EFFORT: ~1h  IMPACT: 15717
+  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=171  fan=95
+      WHY: CC=171 exceeds 15
+      EFFORT: ~1h  IMPACT: 16245
 
-  [3] !! SPLIT-FUNC      main  CC=100  fan=84
-      WHY: CC=100 exceeds 15
-      EFFORT: ~1h  IMPACT: 8400
+  [3] !! SPLIT-FUNC      main  CC=103  fan=85
+      WHY: CC=103 exceeds 15
+      EFFORT: ~1h  IMPACT: 8755
 
   [4] !! SPLIT-FUNC      startDashboard  CC=81  fan=50
       WHY: CC=81 exceeds 15
@@ -46,13 +46,13 @@ NEXT[10] (ranked by impact):
 RISKS[3]:
   ⚠ Splitting planfile.yaml may break 0 import paths
   ⚠ Splitting src/core/types.ts may break 0 import paths
-  ⚠ Splitting src/runtime/living-project.ts may break 144 import paths
+  ⚠ Splitting src/runtime/living-project.ts may break 145 import paths
 
 METRICS-TARGET:
-  CC̄:          5.4 → ≤3.8
-  max-CC:      169 → ≤20
+  CC̄:          5.3 → ≤3.7
+  max-CC:      171 → ≤20
   god-modules: 5 → 0
-  high-CC(≥15): 104 → ≤52
+  high-CC(≥15): 107 → ≤53
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -80,4 +80,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=5.4 → now CC̄=5.4
+  prev CC̄=5.4 → now CC̄=5.3

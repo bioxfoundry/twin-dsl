@@ -15,3 +15,14 @@ test('observationDSL preserves receivedAt independently from observedAt',()=>{
   assert.equal(record?.observedAt,'2026-08-08T20:00:00Z');
   assert.equal(record?.receivedAt,'2026-08-08T20:00:01Z');
 });
+
+test('observationDSL round-trips empty optional source and label collections',()=>{
+  const source=`OBSERVATIONS live SNAPSHOT ${'b'.repeat(64)}\nOBSERVATION obs-empty\nAT "2026-08-08T20:00:00Z"\nSUBJECT urn:component:test\nMETRIC "state"\nVALUE true\nSEVERITY info\nSOURCES\nLABELS\nEND\n`;
+  const parsed=parseObservationDsl(source);
+  assert.deepEqual(parsed.observations[0]?.sourceUris,[]);
+  assert.deepEqual(parsed.observations[0]?.labels,[]);
+  const rendered=renderObservationDsl(parsed);
+  assert.doesNotMatch(rendered,/^SOURCES$/m);
+  assert.doesNotMatch(rendered,/^LABELS$/m);
+  assert.deepEqual(parseObservationDsl(rendered),parsed);
+});

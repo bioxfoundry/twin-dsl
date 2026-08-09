@@ -18,6 +18,9 @@ export function parseObservationDsl(source:string):ObservationDocument{
     if(line.startsWith('OBSERVATION ')){if(current)throw new Error('OBSERVATION_END_REQUIRED');current={id:line.slice('OBSERVATION '.length).trim(),labels:[],sourceUris:[]};continue;}
     if(line==='END'){if(!current)throw new Error('OBSERVATION_NOT_STARTED');const required=['id','observedAt','subjectUri','metric','value','severity'] as const;for(const key of required)if(current[key]===undefined)throw new Error(`OBSERVATION_MISSING:${key}`);observations.push(current as ObservationRecord);current=undefined;continue;}
     if(!current)throw new Error(`OBSERVATION_LINE_OUTSIDE:${line}`);
+    // Runtime v0.5.7 emitted empty optional collections as a bare key.
+    if(line==='SOURCES'){current.sourceUris=[];continue;}
+    if(line==='LABELS'){current.labels=[];continue;}
     const i=line.indexOf(' ');if(i<0)throw new Error(`OBSERVATION_KEY_VALUE_REQUIRED:${line}`);const key=line.slice(0,i).toUpperCase(),raw=line.slice(i+1).trim();
     if(key==='AT')current.observedAt=unquote(raw);
     else if(key==='RECEIVED_AT')current.receivedAt=unquote(raw);
@@ -35,7 +38,7 @@ export function parseObservationDsl(source:string):ObservationDocument{
 }
 export function renderObservationDsl(doc:ObservationDocument):string{
   validateObservation(doc);const out=[`OBSERVATIONS ${doc.id} SNAPSHOT ${doc.sourceSnapshotHash}`];
-  for(const o of doc.observations){out.push(`OBSERVATION ${o.id}`,`AT ${JSON.stringify(o.observedAt)}`);if(o.receivedAt)out.push(`RECEIVED_AT ${JSON.stringify(o.receivedAt)}`);out.push(`SUBJECT ${o.subjectUri}`,`METRIC ${JSON.stringify(o.metric)}`,`VALUE ${typeof o.value==='string'?JSON.stringify(o.value):JSON.stringify(o.value)}`);if(o.unit)out.push(`UNIT ${JSON.stringify(o.unit)}`);out.push(`SEVERITY ${o.severity}`,`SOURCES ${o.sourceUris.join(',')}`,`LABELS ${o.labels.join(',')}`,'END');}
+  for(const o of doc.observations){out.push(`OBSERVATION ${o.id}`,`AT ${JSON.stringify(o.observedAt)}`);if(o.receivedAt)out.push(`RECEIVED_AT ${JSON.stringify(o.receivedAt)}`);out.push(`SUBJECT ${o.subjectUri}`,`METRIC ${JSON.stringify(o.metric)}`,`VALUE ${typeof o.value==='string'?JSON.stringify(o.value):JSON.stringify(o.value)}`);if(o.unit)out.push(`UNIT ${JSON.stringify(o.unit)}`);out.push(`SEVERITY ${o.severity}`);if(o.sourceUris.length)out.push(`SOURCES ${o.sourceUris.join(',')}`);if(o.labels.length)out.push(`LABELS ${o.labels.join(',')}`);out.push('END');}
   return out.join('\n')+'\n';
 }
 export function validateObservation(value:unknown):ObservationDocument{

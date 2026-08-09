@@ -1,54 +1,62 @@
 # code2llm call graph | /home/tom/github/bioxfoundry/twin-dsl
-# generated in 0.24s
-# nodes: 431 | edges: 500 | modules: 44
+# generated in 0.35s
+# nodes: 448 | edges: 500 | modules: 57
 # CC̄=5.3
 
 HUBS[20]:
-  src.runtime.project-integrity.finite
-    CC=68  in:5  out:30  total:35
+  py.f2md.src.f2md.tree.convert_tree
+    CC=26  in:1  out:66  total:67
+  py.f2md.src.f2md.audit.audit_markdown_tree
+    CC=25  in:1  out:50  total:51
+  py.f2md.src.f2md.audit.audit_twin_artifacts
+    CC=23  in:1  out:49  total:50
+  src.serve.dashboard.startDashboard
+    CC=81  in:0  out:50  total:50
+  src.serve.dashboard.server
+    CC=50  in:0  out:36  total:36
   src.runtime.project-integrity.flatten
     CC=68  in:5  out:30  total:35
+  src.runtime.project-integrity.finite
+    CC=68  in:5  out:30  total:35
+  py.f2md.src.f2md.converters.DoclingHttpConverter.convert
+    CC=9  in:0  out:34  total:34
   src.scene.openusd.emitNode
     CC=42  in:6  out:27  total:33
-  src.runtime.digital-twin-diagnostics.diagnoseDigitalTwin
-    CC=67  in:0  out:32  total:32
+  py.f2md.src.f2md.converters.STLMetadataConverter.convert
+    CC=16  in:0  out:32  total:32
   src.runtime.project-integrity.analyzeProjectIntegrity
     CC=68  in:0  out:31  total:31
   src.research.researcher.runResearcherDemo
     CC=9  in:0  out:29  total:29
+  py.f2md.src.f2md.converters.PyMuPDFConverter.convert
+    CC=9  in:0  out:26  total:26
   src.research.crawler.DqlCrawler.crawl
     CC=25  in:0  out:26  total:26
   src.scene.geometry-validation.validateGeometry
     CC=40  in:0  out:25  total:25
-  src.project.wizard.addProjectSource
-    CC=7  in:0  out:24  total:24
-  src.scene.physical-evidence.applyPhysicalEvidence
-    CC=29  in:0  out:23  total:23
+  js.archive-project-analyzer.src.analyze.sorted
+    CC=2  in:21  out:3  total:24
   src.runtime.mutation-pipeline.proposeCodeMutation
     CC=15  in:0  out:23  total:23
+  src.scene.physical-evidence.applyPhysicalEvidence
+    CC=29  in:0  out:23  total:23
   js.f2md.src.tree.convertTree
     CC=22  in:0  out:22  total:22
   src.runtime.mutation-pipeline.applyCodeMutation
     CC=13  in:0  out:22  total:22
-  src.geometry.dependency-resolver.geometryDependencyHash
-    CC=5  in:5  out:15  total:20
-  src.scene.blueprint.materializeBlueprintTwin
-    CC=32  in:0  out:20  total:20
-  src.scene.blueprint.validateSceneBlueprint
-    CC=91  in:1  out:18  total:19
-  src.geometry.dependency-resolver.base
-    CC=14  in:0  out:18  total:18
-  js.assembly-dsl.src.analyze.analyzeAssemblies
-    CC=29  in:0  out:18  total:18
-  src.project.wizard.createLivingProject
-    CC=9  in:0  out:18  total:18
-  src.core.json-schema.checkJsonSchema
-    CC=60  in:1  out:17  total:18
 
 MODULES:
-  js.archive-project-analyzer.src.dsl  [2 funcs]
-    quoted  CC=1  out:1
-    renderArchiveAnalysisDsl  CC=8  out:5
+  js.archive-project-analyzer.src.analyze  [16 funcs]
+    analyzeArchiveProject  CC=18  out:18
+    backend  CC=6  out:4
+    ext  CC=6  out:4
+    geometryCandidates  CC=2  out:3
+    kind  CC=6  out:4
+    kindFor  CC=19  out:7
+    materializable  CC=6  out:4
+    maxGeometry  CC=2  out:3
+    maxText  CC=2  out:3
+    repair  CC=1  out:1
   js.assembly-dsl.src.analyze  [19 funcs]
     actualAssetUri  CC=1  out:2
     addFinding  CC=2  out:2
@@ -94,6 +102,8 @@ MODULES:
     frontMatter  CC=5  out:5
     walkFiles  CC=6  out:9
     yamlScalar  CC=5  out:3
+  js.f2md.src.types  [1 funcs]
+    super  CC=1  out:0
   js.live-twin-state.src.canonical  [4 funcs]
     canonicalJson  CC=1  out:2
     contentUri  CC=1  out:1
@@ -113,6 +123,59 @@ MODULES:
     mappedState  CC=9  out:2
     observation  CC=6  out:3
     projectTwinState  CC=13  out:17
+  py.f2md.src.f2md.audit  [3 funcs]
+    audit_markdown_tree  CC=25  out:50
+    audit_twin_artifacts  CC=23  out:49
+    main  CC=6  out:16
+  py.f2md.src.f2md.chain  [4 funcs]
+    __init__  CC=2  out:2
+    convert  CC=1  out:2
+    convert_to_markdown  CC=1  out:1
+    default_chain  CC=3  out:10
+  py.f2md.src.f2md.cli  [1 funcs]
+    _build_chain  CC=5  out:10
+  py.f2md.src.f2md.converters  [14 funcs]
+    convert  CC=9  out:34
+    __init__  CC=2  out:3
+    convert  CC=2  out:8
+    convert  CC=6  out:14
+    __init__  CC=2  out:1
+    convert  CC=8  out:17
+    __init__  CC=1  out:1
+    convert  CC=9  out:26
+    convert  CC=16  out:32
+    convert  CC=7  out:15
+  py.f2md.src.f2md.detect  [4 funcs]
+    detect_document_kind  CC=4  out:4
+    is_prose_kind  CC=2  out:1
+    is_text_kind  CC=1  out:0
+    media_type_for  CC=3  out:5
+  py.f2md.src.f2md.tree  [5 funcs]
+    to_dict  CC=1  out:6
+    _yaml_scalar  CC=4  out:6
+    convert_tree  CC=26  out:66
+    front_matter  CC=5  out:10
+    walk_files  CC=7  out:6
+  py.f2md.src.f2md.types  [2 funcs]
+    to_dict  CC=1  out:3
+    __init__  CC=1  out:2
+  scripts.check-compose  [3 funcs]
+    credentialCount  CC=2  out:4
+    secretLine  CC=9  out:9
+    value  CC=9  out:9
+  scripts.check-proto-contracts  [2 funcs]
+    checkMessageFields  CC=5  out:8
+    files  CC=3  out:4
+  scripts.demo-physical-intake  [2 funcs]
+    evidenceOf  CC=1  out:3
+    sizeOf  CC=1  out:3
+  scripts.f2md-conformance  [6 funcs]
+    convertWithNode  CC=1  out:3
+    convertWithPython  CC=1  out:3
+    execFileAsync  CC=1  out:2
+    fixtures  CC=1  out:3
+    path  CC=2  out:5
+    root  CC=1  out:3
   src.adapters.clickhouse  [6 funcs]
     all  CC=1  out:6
     query  CC=2  out:5
@@ -130,26 +193,6 @@ MODULES:
     timeout  CC=1  out:2
     existing  CC=3  out:3
     workerScript  CC=3  out:5
-  src.adapters.todo2code  [16 funcs]
-    applySourcePatch  CC=11  out:9
-    available  CC=3  out:1
-    cwd  CC=3  out:3
-    directory  CC=3  out:10
-    extract  CC=8  out:7
-    extractNl  CC=4  out:14
-    input  CC=2  out:2
-    latest  CC=2  out:2
-    out  CC=2  out:2
-    proposeSourcePatch  CC=5  out:7
-  src.adapters.twin-probes  [8 funcs]
-    available  CC=3  out:1
-    cycle  CC=1  out:1
-    loadCycle  CC=1  out:4
-    run  CC=11  out:10
-    data  CC=9  out:6
-    object  CC=4  out:1
-    summarizeProbeCycle  CC=7  out:7
-    validateAutonomCycle  CC=15  out:6
   src.core.canonical  [4 funcs]
     canonicalJson  CC=1  out:2
     contentUri  CC=1  out:1
@@ -161,6 +204,46 @@ MODULES:
     matchesType  CC=5  out:3
     typeOf  CC=3  out:1
     types  CC=2  out:5
+  src.dsl.dql  [2 funcs]
+    parseDql  CC=22  out:13
+    positiveInt  CC=4  out:3
+  src.dsl.improvement  [6 funcs]
+    bool  CC=3  out:1
+    match  CC=2  out:1
+    parseImprovementDsl  CC=14  out:12
+    raw  CC=6  out:7
+    renderImprovementDsl  CC=3  out:5
+    validateImprovement  CC=29  out:7
+  src.dsl.math  [14 funcs]
+    e  CC=2  out:2
+    env  CC=16  out:10
+    ev  CC=16  out:9
+    evaluateMath  CC=17  out:12
+    ex  CC=13  out:8
+    expr  CC=13  out:11
+    m  CC=3  out:3
+    numeric  CC=5  out:2
+    parseMathDsl  CC=9  out:8
+    rational  CC=2  out:1
+  src.dsl.parser-util  [2 funcs]
+    list  CC=2  out:5
+    unquote  CC=3  out:4
+  src.dsl.project  [2 funcs]
+    renderProjectDsl  CC=17  out:6
+    validateProject  CC=59  out:8
+  src.dsl.query  [4 funcs]
+    id  CC=11  out:8
+    match  CC=2  out:1
+    parseQueryDsl  CC=13  out:14
+    xs  CC=11  out:8
+  src.dsl.tree  [4 funcs]
+    match  CC=1  out:1
+    parseTreeDsl  CC=8  out:11
+    renderTreeDsl  CC=1  out:5
+    walk  CC=1  out:3
+  src.dsl.twin  [2 funcs]
+    validateTwin  CC=6  out:4
+    visit  CC=7  out:4
   src.geometry.build-contract  [22 funcs]
     coordinateSystem  CC=17  out:9
     dependency  CC=11  out:5
@@ -195,52 +278,17 @@ MODULES:
     geometryReceiptEvidence  CC=8  out:2
     usd  CC=4  out:2
     web  CC=4  out:2
-  src.ingestion.archive  [7 funcs]
+  src.ingestion.archive  [14 funcs]
     execFileAsync  CC=1  out:0
     inventoryZip  CC=6  out:9
     limit  CC=3  out:2
     listZip  CC=4  out:7
+    maxEntry  CC=3  out:3
+    maxFiles  CC=1  out:1
     maxInventory  CC=1  out:1
+    maxTotal  CC=3  out:3
     name  CC=1  out:3
-    safeArchivePath  CC=5  out:4
-  src.llm.dsl-schemas  [12 funcs]
-    component  CC=4  out:6
-    exact  CC=5  out:3
-    fenced  CC=2  out:5
-    generationContract  CC=15  out:4
-    obj  CC=4  out:2
-    rawDsl  CC=3  out:3
-    strings  CC=3  out:4
-    textDsl  CC=2  out:5
-    trimmed  CC=2  out:5
-    validateResourcePlan  CC=10  out:8
-  src.llm.nl-dsl-compiler  [4 funcs]
-    compile  CC=18  out:9
-    contract  CC=6  out:6
-    deterministic  CC=3  out:6
-    started  CC=12  out:6
-  src.llm.openrouter  [15 funcs]
-    configured  CC=1  out:0
-    controller  CC=19  out:11
-    envelope  CC=5  out:3
-    generate  CC=16  out:13
-    message  CC=5  out:3
-    request  CC=19  out:14
-    started  CC=12  out:10
-    text  CC=2  out:2
-    contentText  CC=7  out:5
-    envBool  CC=2  out:1
-  src.project.wizard  [14 funcs]
-    addProjectSource  CC=7  out:24
-    basePort  CC=2  out:1
-    createLivingProject  CC=9  out:18
-    exists  CC=2  out:1
-    id  CC=3  out:3
-    port  CC=3  out:3
-    profile  CC=3  out:3
-    projectDir  CC=3  out:3
-    slug  CC=2  out:5
-    source  CC=2  out:3
+    names  CC=3  out:3
   src.research.crawler  [14 funcs]
     crawl  CC=25  out:26
     robots  CC=7  out:7
@@ -255,17 +303,6 @@ MODULES:
   src.research.researcher  [2 funcs]
     fixtureFetch  CC=3  out:5
     runResearcherDemo  CC=9  out:29
-  src.runtime.autonomy  [26 funcs]
-    add  CC=1  out:2
-    allowedAssets  CC=8  out:4
-    allowedUris  CC=5  out:4
-    array  CC=2  out:1
-    buildImprovementPlan  CC=17  out:10
-    components  CC=8  out:4
-    configuration  CC=11  out:4
-    developmentAnalysisFingerprint  CC=28  out:9
-    diagnosticSeverity  CC=7  out:3
-    diagnostics  CC=6  out:1
   src.runtime.biofoundry  [12 funcs]
     allowed  CC=1  out:5
     candidate  CC=1  out:5
@@ -286,17 +323,6 @@ MODULES:
     matchZoneResources  CC=1  out:5
     matched  CC=2  out:3
     zoneSourceUris  CC=3  out:5
-  src.runtime.digital-twin-diagnostics  [20 funcs]
-    CAD  CC=8  out:7
-    add  CC=5  out:4
-    assetBindings  CC=3  out:4
-    audit  CC=5  out:4
-    bindings  CC=3  out:4
-    byName  CC=5  out:5
-    cad  CC=5  out:5
-    diagnoseDigitalTwin  CC=67  out:32
-    diagnostic  CC=1  out:4
-    evidence  CC=3  out:4
   src.runtime.isolated-worktree  [3 funcs]
     add  CC=5  out:5
     isGitToplevel  CC=4  out:3
@@ -399,6 +425,17 @@ MODULES:
     fieldsOf  CC=5  out:1
     geometryEvidenceRank  CC=1  out:2
     isNonNegative  CC=3  out:1
+  src.serve.dashboard  [28 funcs]
+    accepted  CC=2  out:1
+    address  CC=1  out:1
+    assetRoot  CC=3  out:6
+    dashboardLog  CC=2  out:6
+    evidence  CC=1  out:3
+    evidencePath  CC=1  out:2
+    host  CC=1  out:1
+    incoming  CC=3  out:1
+    ingestedResourceUris  CC=3  out:5
+    mergeEvidence  CC=14  out:4
 
 EDGES:
   js.f2md.src.detect.mediaTypeFor → js.f2md.src.detect.detectDocumentKind
@@ -427,7 +464,6 @@ EDGES:
   js.f2md.src.converters.MammothConverter.htmlToDocument → js.f2md.src.converters.clip
   js.f2md.src.converters.MammothConverter.htmlToDocument → js.f2md.src.converters.statMetadata
   js.f2md.src.converters.MammothConverter.clipped → js.f2md.src.converters.statMetadata
-  js.archive-project-analyzer.src.dsl.renderArchiveAnalysisDsl → js.archive-project-analyzer.src.dsl.quoted
   js.live-twin-state.src.projector.projectTwinState → js.live-twin-state.src.projector.componentIds
   js.live-twin-state.src.projector.observation → js.live-twin-state.src.projector.mappedState
   js.live-twin-state.src.canonical.canonicalJson → js.live-twin-state.src.canonical.normalize
@@ -451,3 +487,4 @@ EDGES:
   js.assembly-dsl.src.analyze.rootExists → js.assembly-dsl.src.analyze.addFinding
   js.assembly-dsl.src.analyze.rootExists → js.assembly-dsl.src.analyze.finding
   js.assembly-dsl.src.analyze.parts → js.assembly-dsl.src.analyze.addFinding
+  js.assembly-dsl.src.analyze.parts → js.assembly-dsl.src.analyze.finding

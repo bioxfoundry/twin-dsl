@@ -15,11 +15,10 @@ export function resourceFromBinary(
   const payload = typeof bytes === "string" ? Buffer.from(bytes) : bytes;
   const hash = sha256(payload);
   const size = typeof bytes === "string" ? Buffer.byteLength(bytes) : bytes.length;
-  const body = `binary-stub\npath:${sourcePath}\nsha256:${hash}\nmediaType:${mediaType}\nsize:${size}\n`;
   return {
     schema:"subactor.resource/v1",
     id,
-    uri:contentUri("resource", body),
+    uri:`urn:subactor:resource:sha256:${hash}`,
     logicalUri,
     mediaType,
     sha256:hash,

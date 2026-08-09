@@ -3,7 +3,18 @@ import assert from "node:assert/strict";
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { createHash } from "node:crypto";
 import { scanSources } from "../src/ingestion/scanner.js";
+import { resourceFromBinary } from "../src/dsl/resource.js";
+
+test("small binary resources use the real byte hash for both digest and URI", () => {
+  const bytes = Buffer.from([0, 255, 1, 2, 3, 128]);
+  const expected = createHash("sha256").update(bytes).digest("hex");
+  const resource = resourceFromBinary("binary-1", "subactor://fixture/model.glb", "/tmp/model.glb", bytes, "model/gltf-binary");
+  assert.equal(resource.sha256, expected);
+  assert.equal(resource.uri, `urn:subactor:resource:sha256:${expected}`);
+  assert.equal(resource.size, bytes.length);
+});
 
 test("scanner ingests TestQLDSL as text instead of a binary stub", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "testqldsl-scan-"));
