@@ -297,6 +297,12 @@ test("tree mode mirrors structure and keeps the original extension", async (t) =
   const stub = await readFile(join(out, "sub", "model.stl.md"), "utf8");
   assert.match(stub, /converted: false/);
   assert.match(stub, /EXTERNAL_CONVERTER_REQUIRED/);
+
+  const version = await readFile(join(out, "VERSION"), "utf8");
+  assert.match(version, /FORMAT=bioxfoundry\.conversion-version\/v1/);
+  assert.match(version, /ARTIFACT=markdown-mirror/);
+  assert.match(version, /SOURCE_SNAPSHOT_SHA256=[a-f0-9]{64}/);
+  assert.match(version, /OUTPUT_SNAPSHOT_SHA256=[a-f0-9]{64}/);
 });
 
 test("tree mode refuses to write inside its own source", async (t) => {

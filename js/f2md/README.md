@@ -21,7 +21,12 @@ npx f2md notes.md                    # Markdown to stdout
 npx f2md report.pdf --json           # full envelope as JSON
 npx f2md imports/deck.pptx-9f2c      # content-addressed names work too
 npx f2md scan.pdf --backend docling  # force a specific backend
+npx f2md --tree source/ source-md/   # writes source-md/VERSION as well as Markdown
 ```
+
+Tree conversion writes a deterministic `VERSION` manifest beside the Markdown mirror. It records
+the Node f2md version and SHA-256 snapshots of the input tree and generated Markdown only; it has
+no timestamp, absolute path or secret, so the same conversion has the same version everywhere.
 
 ## Why another converter
 

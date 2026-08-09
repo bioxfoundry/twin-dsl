@@ -9,10 +9,12 @@
  * Markdown file containing the provenance front matter and a stub body. Dropping them would leave
  * a tree that silently disagrees with its source, which is worse than an explicit "no text here".
  */
-import { mkdir, readdir, stat, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { ConverterChain, defaultChain } from "./chain.js";
 import { detectDocumentKind, mediaTypeFor } from "./detect.js";
+import { VERSION } from "./index.js";
 import { ConversionError } from "./types.js";
 
 /** Directories never worth walking into. */
@@ -65,6 +67,35 @@ export async function walkFiles(root: string): Promise<string[]> {
     }
   }
   return out;
+}
+
+async function treeSnapshot(root: string, paths: string[]): Promise<string> {
+  const digest = createHash("sha256");
+  for (const path of [...paths].sort()) {
+    // Paths are part of the snapshot: moving identical bytes is a new corpus revision.
+    digest.update(relative(root, path).split(sep).join("/"));
+    digest.update("\0");
+    digest.update(await readFile(path));
+    digest.update("\0");
+  }
+  return digest.digest("hex");
+}
+
+async function writeVersion(source: string, target: string, sourcePaths: string[]): Promise<void> {
+  // A mirror can coexist with operational output. Only Markdown files are conversion payloads.
+  const outputPaths = (await walkFiles(target)).filter((path) => path.endsWith(".md"));
+  const lines = [
+    "FORMAT=bioxfoundry.conversion-version/v1",
+    "ARTIFACT=markdown-mirror",
+    "CONVERTER=node-f2md",
+    `CONVERTER_VERSION=${VERSION}`,
+    `SOURCE_FILES=${sourcePaths.length}`,
+    `SOURCE_SNAPSHOT_SHA256=${await treeSnapshot(source, sourcePaths)}`,
+    `OUTPUT_FILES=${outputPaths.length}`,
+    `OUTPUT_SNAPSHOT_SHA256=${await treeSnapshot(target, outputPaths)}`,
+    "",
+  ];
+  await writeFile(join(target, "VERSION"), lines.join("\n"));
 }
 
 export interface TreeOptions {
@@ -136,5 +167,6 @@ export async function convertTree(src: string, out: string, options: TreeOptions
       options.onProgress?.(index + 1, paths.length, rel, `STUB:${reason.slice(0, 60)}`);
     }
   }
+  await writeVersion(source, target, paths);
   return result;
 }
