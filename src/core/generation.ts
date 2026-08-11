@@ -13,4 +13,4 @@
  * iteration. Do not bump it for changes that cannot alter output (docs, tests, logging):
  * a needless bump costs every project a full regeneration.
  */
-export const RUNTIME_GENERATION = "2026-08-12.source-grounded-process-animation-v6";
+export const RUNTIME_GENERATION = "2026-08-12.device-process-evidence-v7";

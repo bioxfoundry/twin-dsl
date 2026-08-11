@@ -63,6 +63,7 @@
   .process-step.done{border-color:#3ddc97;color:#a7f3d0}
   .process-step.recovery{border-color:#ff6b6b}
   .process-evidence{display:block;color:#7f8ca0;font-size:10px}
+  .process-parameters{display:block;color:#9fb3c8;font-size:10px;margin-top:2px}
 </style>
 </head>
 <body>
@@ -631,7 +632,9 @@ function paintProcessPanel(){
   $('process-steps').innerHTML=sequence.map((stepId,index)=>{
     const item=process.steps.find(step=>step.id===stepId),evidence=item&&item.evidence[0];if(!item)return'';
     const cls=index<PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'done':index===PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'active':'';
-    return `<div class="process-step ${cls} ${item.phase==='recover'?'recovery':''}"><b>${index+1}. ${escapeCode(item.label)}</b><span class="process-evidence">${escapeCode(item.phase)} · ${evidence?`source page ${evidence.page||'?'} · intent ${evidence.intentId}`:'evidence missing'}</span></div>`;
+    const locator=evidence?(evidence.page?`page ${evidence.page}`:evidence.fragment?`fragment ${evidence.fragment.split('#').pop()}`:'fragment unavailable'):'';
+    const sourced=(item.parameters||[]).map(parameter=>`${parameter.name}=${String(parameter.value)}${parameter.unit?' '+parameter.unit:''}`).join(' · ');
+    return `<div class="process-step ${cls} ${item.phase==='recover'?'recovery':''}"><b>${index+1}. ${escapeCode(item.label)}</b><span class="process-evidence">${escapeCode(item.phase)} · ${evidence?`source ${escapeCode(locator)} · intent ${escapeCode(evidence.intentId)}`:'evidence missing'}</span>${sourced?`<span class="process-parameters">${escapeCode(sourced)}</span>`:''}</div>`;
   }).join('')||'<div class="process-step">No executable sequence is supported by the source.</div>';
   $('process-gaps').innerHTML=process.gaps.length?`<div class="warn mono">Known gaps</div>${process.gaps.map(gap=>`<div class="process-step recovery">${escapeCode(gap)}</div>`).join('')}:'';
   $('process-timing').textContent=(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.disclaimer)||'Domain timing unavailable.';

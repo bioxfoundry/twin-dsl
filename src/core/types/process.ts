@@ -24,12 +24,21 @@ export interface ProcessInteraction {
   state?: string;
 }
 
+export interface ProcessParameter {
+  name: string;
+  value: string | number | boolean;
+  unit?: string;
+  basis: "source";
+  evidenceIntentId: string;
+}
+
 export interface ProcessStep {
   id: string;
   label: string;
   phase: ProcessPhase;
   componentIds: string[];
   interactions: ProcessInteraction[];
+  parameters: ProcessParameter[];
   transitions: { success?: string; failure?: string };
   evidence: ProcessEvidence[];
   gaps: string[];

@@ -363,9 +363,14 @@ deterministic projections enriched with source locations discovered by
 | [PROCESS_COMPONENT_MISSING](./PROCESS_COMPONENT_MISSING.md) | process | configuration | false |
 | [PROCESS_DETAIL_DECLARED_ONLY](./PROCESS_DETAIL_DECLARED_ONLY.md) | process | state | false |
 | [PROCESS_DSL_INVALID](./PROCESS_DSL_INVALID.md) | process | configuration | false |
+| [PROCESS_EVIDENCE_INDEX_INVALID](./PROCESS_EVIDENCE_INDEX_INVALID.md) | process | configuration | false |
 | [PROCESS_EVIDENCE_MISSING](./PROCESS_EVIDENCE_MISSING.md) | process | state | false |
 | [PROCESS_ID_DUPLICATE](./PROCESS_ID_DUPLICATE.md) | process | integrity | false |
 | [PROCESS_ORDERING_UNEVIDENCED](./PROCESS_ORDERING_UNEVIDENCED.md) | process | state | false |
+| [PROCESS_PARAMETER_DUPLICATE](./PROCESS_PARAMETER_DUPLICATE.md) | process | integrity | false |
+| [PROCESS_PARAMETER_EVIDENCE_INVALID](./PROCESS_PARAMETER_EVIDENCE_INVALID.md) | process | configuration | false |
+| [PROCESS_PARAMETER_INVALID](./PROCESS_PARAMETER_INVALID.md) | process | configuration | false |
+| [PROCESS_PROTOCOL_INCOMPLETE](./PROCESS_PROTOCOL_INCOMPLETE.md) | process | state | false |
 | [PROCESS_STEP_ID_DUPLICATE](./PROCESS_STEP_ID_DUPLICATE.md) | process | integrity | false |
 | [PROCESS_TIMING_UNSPECIFIED](./PROCESS_TIMING_UNSPECIFIED.md) | process | state | false |
 | [PROCESS_TRANSITION_INVALID](./PROCESS_TRANSITION_INVALID.md) | process | configuration | false |

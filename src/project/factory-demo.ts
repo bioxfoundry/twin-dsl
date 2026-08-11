@@ -88,6 +88,13 @@ export async function ensureFactoryDemo(
     await writeFile(blueprintPath, `${JSON.stringify(replacement, null, 2)}\n`);
     migrations.push(detail(error).split(":", 1)[0]);
   }
+  const historicalBlueprint = blueprint.id === "biofoundry-live-v0.2.1" || blueprint.id === "biofoundry-live-v0.3.0";
+  if (historicalBlueprint && migrations.length === 0) {
+    const replacement = biofoundryLiveBlueprintV02();
+    validateSceneBlueprint(replacement);
+    await writeFile(blueprintPath, `${JSON.stringify(replacement, null, 2)}\n`);
+    migrations.push("FACTORY_DEMO_BLUEPRINT_V03");
+  }
 
   const environment = await json(environmentPath, "environment");
   if (environment.unit === "mixed") {

@@ -20,7 +20,7 @@ import { validateSourceCoverage } from "../src/runtime/source-coverage.js";
 import { deriveBiofoundryProcesses } from "../src/runtime/process-model.js";
 import { compileProcessAnimation, validateProcessAnimation } from "../src/runtime/process-animation.js";
 import { buildSourceCoverage } from "../js/f2md/src/source-coverage.js";
-import { canonicalIntents, COMPONENT_IDS, twin } from "./fixtures/process-fixture.js";
+import { canonicalIntents, COMPONENT_IDS, deviceIntents, twin } from "./fixtures/process-fixture.js";
 import type { SceneDocument } from "../src/core/types.js";
 
 const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
@@ -371,7 +371,7 @@ test("process and animation schemas accept emitted documents and reject contract
   const processes = deriveBiofoundryProcesses({
     projectId: "biofoundry",
     sourceSnapshotHash: "d".repeat(64),
-    intents: canonicalIntents(),
+    intents: [...canonicalIntents(), ...deviceIntents()],
     twin: twin(),
   });
   const scene: SceneDocument = {
@@ -392,12 +392,18 @@ test("process and animation schemas accept emitted documents and reject contract
   const animation = compileProcessAnimation(processes, scene);
   const badProcessKind = structuredClone(processes) as unknown as { processes: Array<{ kind: string }> };
   badProcessKind.processes[0].kind = "invented";
+  const badParameterBasis = structuredClone(processes) as unknown as { processes: Array<{ steps: Array<{ parameters: Array<{ basis: string }> }> }> };
+  badParameterBasis.processes.find((process) => process.steps.some((step) => step.parameters.length))!.steps.find((step) => step.parameters.length)!.parameters[0].basis = "inferred";
+  const emptyParameterValue = structuredClone(processes) as unknown as { processes: Array<{ steps: Array<{ parameters: Array<{ value: unknown }> }> }> };
+  emptyParameterValue.processes.find((process) => process.steps.some((step) => step.parameters.length))!.steps.find((step) => step.parameters.length)!.parameters[0].value = "";
   const factualAnimation = structuredClone(animation) as unknown as { timing: { factualProcessDuration: boolean } };
   factualAnimation.timing.factualProcessDuration = true;
 
   await assertNoDrift("process.schema.json", validateProcessDocument, [
     { name: "emitted process", document: processes },
     { name: "unknown process kind", document: badProcessKind },
+    { name: "parameter basis must be source", document: badParameterBasis },
+    { name: "parameter value cannot be empty", document: emptyParameterValue },
   ]);
   await assertNoDrift("process-animation.schema.json", (value) => validateProcessAnimation(value, processes, scene), [
     { name: "emitted animation", document: animation },

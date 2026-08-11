@@ -25,6 +25,10 @@ function findingValid(value: ProcessFinding): boolean {
     value.message && value.resolution);
 }
 
+function parameterValueValid(value: unknown): boolean {
+  return (typeof value === "string" && value.length > 0) || (typeof value === "number" && Number.isFinite(value)) || typeof value === "boolean";
+}
+
 export function processCoverage(document: Pick<ProcessDocument, "processes" | "findings">): ProcessDocument["coverage"] {
   const steps = document.processes.flatMap((process) => process.steps);
   return {
@@ -56,7 +60,8 @@ export function validateProcessDocument(value: unknown, componentIds?: Iterable<
     if (process.completeness === "declared-only" && (process.steps.length || process.entryStepId || process.successStepId || process.failureStepId)) {
       fail("PROCESS_DSL_INVALID", `${process.id}:declared-only-has-steps`);
     }
-    if (process.completeness === "complete" && process.gaps.length) fail("PROCESS_COMPLETE_WITH_GAPS", process.id);
+    if (process.completeness === "complete" && (process.ordering !== "source" || process.gaps.length ||
+      process.steps.some((step) => !step.evidence.length || step.gaps.length))) fail("PROCESS_COMPLETE_WITH_GAPS", process.id);
     const stepIds = new Set(process.steps.map((step) => step.id));
     if (stepIds.size !== process.steps.length) fail("PROCESS_STEP_ID_DUPLICATE", process.id);
     for (const reference of [process.entryStepId, process.successStepId, process.failureStepId].filter(Boolean) as string[]) {
@@ -68,8 +73,18 @@ export function validateProcessDocument(value: unknown, componentIds?: Iterable<
     }
     for (const step of process.steps) {
       if (!step.id || !step.label || !PHASES.has(step.phase) || !strings(step.componentIds) ||
-        !Array.isArray(step.interactions) || !step.transitions || !Array.isArray(step.evidence) ||
+        !Array.isArray(step.interactions) || !Array.isArray(step.parameters) || !step.transitions || !Array.isArray(step.evidence) ||
         !step.evidence.every(evidenceValid) || !stringsOrEmpty(step.gaps)) fail("PROCESS_DSL_INVALID", `${process.id}:${step.id || "step"}`);
+      if (new Set(step.parameters.map((parameter) => parameter.name)).size !== step.parameters.length) fail("PROCESS_PARAMETER_DUPLICATE", `${process.id}:${step.id}`);
+      const evidenceIds = new Set(step.evidence.map((item) => item.intentId));
+      for (const parameter of step.parameters) {
+        if (!parameter || typeof parameter !== "object" || !parameter.name || parameter.basis !== "source" ||
+          !parameter.evidenceIntentId || !parameterValueValid(parameter.value) ||
+          parameter.unit !== undefined && (typeof parameter.unit !== "string" || !parameter.unit)) {
+          fail("PROCESS_PARAMETER_INVALID", `${process.id}:${step.id}`);
+        }
+        if (!evidenceIds.has(parameter.evidenceIntentId)) fail("PROCESS_PARAMETER_EVIDENCE_INVALID", `${process.id}:${step.id}:${parameter.name}`);
+      }
       for (const target of [step.transitions.success, step.transitions.failure].filter(Boolean) as string[]) {
         if (!stepIds.has(target)) fail("PROCESS_TRANSITION_INVALID", `${process.id}:${step.id}:${target}`);
       }
@@ -86,6 +101,11 @@ export function validateProcessDocument(value: unknown, componentIds?: Iterable<
         if (!process.componentIds.includes(componentId)) fail("PROCESS_DSL_INVALID", `${process.id}:${step.id}:undeclared-component:${componentId}`);
         if (knownComponents && !knownComponents.has(componentId)) fail("PROCESS_COMPONENT_MISSING", `${process.id}:${step.id}:${componentId}`);
       }
+    }
+    if (process.completeness !== "declared-only") {
+      const indexedEvidence = [...new Set(process.evidence.map((item) => item.intentId))].sort();
+      const stepEvidence = [...new Set(process.steps.flatMap((step) => step.evidence.map((item) => item.intentId)))].sort();
+      if (JSON.stringify(indexedEvidence) !== JSON.stringify(stepEvidence)) fail("PROCESS_EVIDENCE_INDEX_INVALID", process.id);
     }
   }
   if (!document.findings.every(findingValid)) fail("PROCESS_DSL_INVALID", "findings");

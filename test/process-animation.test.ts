@@ -9,7 +9,7 @@ import {
   renderProcessAnimationDsl,
   validateProcessAnimation,
 } from "../src/runtime/process-animation.js";
-import { canonicalIntents, COMPONENT_IDS, twin } from "./fixtures/process-fixture.js";
+import { canonicalIntents, COMPONENT_IDS, deviceIntents, twin } from "./fixtures/process-fixture.js";
 
 function scene(): SceneDocument {
   return {
@@ -44,4 +44,17 @@ test("AnimationDSL round-trips and rejects effects outside the accepted Scene", 
   const invalid = structuredClone(document);
   invalid.animations[0].clips[0].effects[0].componentId = "missing_component";
   assert.throws(() => validateProcessAnimation(invalid, processes, acceptedScene), /PROCESS_ANIMATION_COMPONENT_MISSING/);
+});
+
+test("device workflows animate their distinct controller, actuator, sensor and workstation actors", () => {
+  const processes = deriveBiofoundryProcesses({ projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64), intents: [...canonicalIntents(), ...deviceIntents()], twin: twin() });
+  const document = compileProcessAnimation(processes, scene());
+  const componentIds = (processId: string): Set<string> => new Set(document.animations.find((animation) => animation.processId === processId)?.clips.flatMap((clip) => clip.effects.flatMap((effect) => [effect.componentId, effect.fromComponentId, effect.toComponentId].filter((value): value is string => Boolean(value)))) ?? []);
+  assert.deepEqual([...componentIds("microscopy_acquisition")].sort(), [
+    "microscope_module_01", "microscopy_acquisition_unit_01", "microscopy_orchestrator_01", "microscopy_reconstruction_unit_01", "opentwins_state_01", "sila_orchestrator_01",
+  ]);
+  assert.ok(componentIds("cultivation_monitoring").has("biospec_gas_valve_01"));
+  assert.ok(componentIds("microfluidic_sample_preparation").has("microfluidic_flow_sensor_01"));
+  assert.ok(componentIds("syringebot_synthesis").has("syringebot_valve_bank_01"));
+  assert.ok(componentIds("plasmid_cloning").has("oscar_gel_electrophoresis_01"));
 });

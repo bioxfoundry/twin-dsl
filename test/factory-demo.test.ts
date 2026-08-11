@@ -53,3 +53,28 @@ test("factory demo migration refuses an unrelated blueprint", async () => {
     await rm(temp, { recursive: true, force: true });
   }
 });
+
+test("factory demo upgrades the valid v0.2 blueprint to device-level process actors", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "factory-demo-v03-"));
+  const projectDir = join(temp, "project");
+  try {
+    await createLivingProject({ name: "Biofoundry Factory Floor", outDir: projectDir, profile: "biofoundry" });
+    const blueprintPath = join(projectDir, "baseline/scene-blueprint.json");
+    const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
+    blueprint.id = "biofoundry-live-v0.2.1";
+    blueprint.components = blueprint.components.filter((component: { id: string }) => component.id !== "biospec_controller_01");
+    blueprint.bindings = blueprint.bindings.filter((binding: { componentId: string }) => binding.componentId !== "biospec_controller_01");
+    await writeFile(blueprintPath, `${JSON.stringify(blueprint, null, 2)}\n`);
+
+    const result = await ensureFactoryDemo(projectDir, projectDir);
+    assert.equal(result.action, "migrated:FACTORY_DEMO_BLUEPRINT_V03");
+    const migrated = JSON.parse(await readFile(blueprintPath, "utf8"));
+    assert.equal(migrated.id, "biofoundry-live-v0.3.1");
+    assert.ok(migrated.components.some((component: { id: string }) => component.id === "biospec_controller_01"));
+    assert.ok(migrated.components.some((component: { id: string }) => component.id === "bioprinter_part_plunger_retainer_2ml"));
+    assert.equal(migrated.components.length, 64);
+    assert.equal(migrated.components.length, migrated.bindings.length);
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
+});

@@ -111,6 +111,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /Failure path/);
   assert.match(dashboardHtml, /function processVisual/);
   assert.match(dashboardHtml, /presentation only/);
+  assert.match(dashboardHtml, /process-parameters/);
+  assert.match(dashboardHtml, /fragment\.split\('#'\)\.pop\(\)/);
   assert.match(dashboardHtml, /PROCESS_MODEL=state\.processModel/);
   assert.match(dashboardHtml, /state\.processAnimation/);
   assert.match(dashboardHtml, /canvas\.captureStream\(30\)/);

@@ -54,7 +54,7 @@ test("distinct scene paths sharing a leaf name render as distinct USD prims", ()
 
 test("USD prim hierarchy mirrors scenePath so component identity stays addressable", () => {
   const blueprint = biofoundryLiveBlueprintV02();
-  const roles: ResourceRecord["sourceRole"][] = ["manager", "customer", "project", "runtime", "development"];
+  const roles: ResourceRecord["sourceRole"][] = ["manager", "customer", "project", "derived", "runtime", "development"];
   const resources: ResourceRecord[] = roles.map((role, i) => ({
     schema: "subactor.resource/v1",
     id: String(role),
@@ -89,7 +89,10 @@ test("USD prim hierarchy mirrors scenePath so component identity stays addressab
     sourceSnapshotHash: "b".repeat(64),
   });
   const reactor = twin.components.find((component) => component.id === "biospec_bioreactor_01");
-  assert.deepEqual(reactor?.children.map((component) => component.id), ["biospec_cad_lid_unf", "biospec_cad_gl45", "biospec_cad_plate"]);
+  assert.deepEqual(reactor?.children.map((component) => component.id), [
+    "biospec_controller_01", "biospec_feed_pump_01", "biospec_gas_valve_01", "biospec_stirrer_01", "biospec_condenser_01",
+    "biospec_cad_lid_unf", "biospec_cad_gl45", "biospec_cad_plate",
+  ]);
   const scene = materializeBlueprintScene({ blueprint, projectId: "bf", format: "openusd", twin });
   const paths = new Set(primPaths(renderOpenUsd(scene, twin)));
   for (const binding of scene.bindings) {

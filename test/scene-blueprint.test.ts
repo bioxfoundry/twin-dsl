@@ -178,9 +178,10 @@ test("identity stable when state changes (temperature)", () => {
   );
 });
 
-test("biofoundry live detailed blueprint keeps v0.2 IDs and adds corpus modules", () => {
+test("biofoundry live v0.3 blueprint keeps stable IDs and all 64 detailed actors", () => {
   const bp = biofoundryLiveBlueprintV02();
-  assert.ok(bp.components.length >= 17);
+  assert.equal(bp.id, "biofoundry-live-v0.3.1");
+  assert.equal(bp.components.length, 64);
   assert.equal(bp.components.length, bp.bindings.length);
   for (const id of [
     "facility_shell",
@@ -197,6 +198,8 @@ test("biofoundry live detailed blueprint keeps v0.2 IDs and adds corpus modules"
   assert.equal(bp.components.find((c) => c.id === "chemos_planner_01")?.spatialClass, "cyber");
   assert.equal(bp.components.find((c) => c.id === "biospec_bioreactor_01")?.spatialClass, "physical");
   assert.equal(bp.components.find((c) => c.id === "biospec_cad_lid_unf")?.parentId, "biospec_bioreactor_01");
+  assert.equal(bp.components.find((c) => c.id === "microfluidic_flow_sensor_01")?.parentId, "microfluidic_assembly_01");
+  assert.equal(bp.components.find((c) => c.id === "bioprinter_part_plunger_retainer_2ml")?.parentId, "bioprinter_mos3s_01");
 });
 
 /**
