@@ -11,6 +11,7 @@ import type {
   GeometryValidationReport,
   GeometryBuildReceipt,
   ImprovementPlan,
+  IntentRecord,
   LivingFailureReceipt,
   LivingIterationReceipt,
   LiveBindingDocument,
@@ -65,6 +66,8 @@ import {
   biofoundryConceptTree,
   biofoundryConceptTwin,
   biofoundryReadinessBindings,
+  projectBiofoundryIntentEvidence,
+  type GroundedIntentEvidence,
 } from "./biofoundry-concept.js";
 import { RUNTIME_GENERATION } from "../core/generation.js";
 import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
@@ -110,9 +113,37 @@ function evidenceSet(id:string,memberUris:string[]):EvidenceSetRecord {
 function renderEvidenceSets(sets:EvidenceSetRecord[]):string {
   return sets.map(set=>["```evidencesetdsl",`EVIDENCE_SET ${set.id}`,`URI ${set.uri}`,`QUERY ${set.queryUri}`,`MEMBERS ${set.members}`,`HASH ${set.membersHash}`,"END_EVIDENCE_SET","```"].join("\n")).join("\n\n")+"\n";
 }
-type IntentDslIndex = { packs:number; records:number; invalid:number; sourceUris:string[] };
-async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslIndex> {
-  const result:IntentDslIndex = {packs:0, records:0, invalid:0, sourceUris:[]};
+type IntentDslSample = Pick<IntentRecord,"id"|"type"|"text"|"targetUris"> & {sourceUri:string};
+type IntentDslIndex = {
+  packs:number;
+  records:number;
+  invalid:number;
+  sourceUris:string[];
+  byType:Partial<Record<IntentRecord["type"],number>>;
+  semanticHash:string;
+  highPriority:IntentDslSample[];
+};
+type IntentDslLoad = {index:IntentDslIndex;evidence:GroundedIntentEvidence[]};
+const INTENT_PRIORITY:Record<IntentRecord["type"],number> = {
+  decision:0,
+  request:1,
+  plan:2,
+  result:3,
+  report:4,
+  message:5,
+  claim:6,
+};
+async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslLoad> {
+  const evidence:GroundedIntentEvidence[] = [];
+  const result:IntentDslIndex = {
+    packs:0,
+    records:0,
+    invalid:0,
+    sourceUris:[],
+    byType:{},
+    semanticHash:sha256(canonicalJson([])),
+    highPriority:[],
+  };
   for(const resource of resources) {
     if(!resource.logicalUri.endsWith(".intent.json")) continue;
     // Compound names such as `report.docx.md.intent.json` are misdetected by generic ingestion;
@@ -121,12 +152,37 @@ async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,strin
     try { raw = await readFile(resource.sourcePath, "utf8"); } catch { /* use scanned text */ }
     if(!raw) { result.invalid++; continue; }
     try {
-      const pack = JSON.parse(raw) as {records?:unknown};
+      const pack = JSON.parse(raw) as {schema?:unknown;source?:unknown;sourceHash?:unknown;records?:unknown};
+      if(pack.schema!=="t2c.intent-pack/v1"||typeof pack.source!=="string"||!pack.source||
+        typeof pack.sourceHash!=="string"||!/^[a-f0-9]{64}$/.test(pack.sourceHash)) {
+        throw new Error("INVALID_T2C_INTENT_PACK");
+      }
       const records = validateT2cIntent(pack.records);
-      result.packs++; result.records += records.length; result.sourceUris.push(resource.uri);
+      result.packs++;
+      result.records += records.length;
+      result.sourceUris.push(resource.uri);
+      for(const record of records) {
+        result.byType[record.type] = (result.byType[record.type]??0)+1;
+        evidence.push({record,sourceUri:resource.uri});
+      }
     } catch { result.invalid++; }
   }
-  return result;
+  evidence.sort((left,right)=>left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id));
+  result.sourceUris = [...new Set(result.sourceUris)].sort();
+  result.semanticHash = sha256(canonicalJson(evidence));
+  result.highPriority = evidence
+    .filter(({record})=>record.type!=="claim")
+    .sort((left,right)=>INTENT_PRIORITY[left.record.type]-INTENT_PRIORITY[right.record.type]
+      ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
+    .slice(0,40)
+    .map(({record,sourceUri})=>({
+      id:record.id,
+      type:record.type,
+      text:record.text.slice(0,500),
+      targetUris:record.targetUris,
+      sourceUri,
+    }));
+  return {index:result,evidence};
 }
 function resourceDiff(previous:ResourceRecord[],current:ResourceRecord[]):ResourceDiff {
   const oldMap = new Map(previous.map(resource=>[resource.sourcePath,resource.sha256]));
@@ -138,8 +194,8 @@ function resourceDiff(previous:ResourceRecord[],current:ResourceRecord[]):Resour
     unchanged:[...newMap].filter(([path,hash])=>oldMap.get(path)===hash).map(([path])=>path),
   };
 }
-function groupTree(project:LivingProjectDocument,resources:ResourceRecord[]):TreeDocument {
-  if(project.profile === "biofoundry") return biofoundryConceptTree(project,resources);
+function groupTree(project:LivingProjectDocument,resources:ResourceRecord[],intents:GroundedIntentEvidence[]=[]):TreeDocument {
+  if(project.profile === "biofoundry") return biofoundryConceptTree(project,resources,intents);
   const byRole = new Map<SourceRole,TreeNode>();
   for(const resource of resources) {
     const role = resource.sourceRole??"project";
@@ -242,9 +298,12 @@ function reasoning(input:{project:LivingProjectDocument;resources:ResourceRecord
     },
   };
 }
-function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[],observations:ObservationDocument,snapshot:string,development:DevelopmentEvidenceSummary,blueprint?:SceneBlueprint):TwinDocument {
-  if(blueprint) return materializeBlueprintTwin({blueprint,projectId:project.id,resources,observations,development,sourceSnapshotHash:snapshot});
-  if(project.profile === "biofoundry") return biofoundryConceptTwin(project,resources,observations,snapshot,development);
+function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[],observations:ObservationDocument,snapshot:string,development:DevelopmentEvidenceSummary,blueprint?:SceneBlueprint,intents:GroundedIntentEvidence[]=[]):TwinDocument {
+  if(blueprint) {
+    const twin = materializeBlueprintTwin({blueprint,projectId:project.id,resources,observations,development,sourceSnapshotHash:snapshot});
+    return project.profile === "biofoundry" ? projectBiofoundryIntentEvidence(twin,intents) : twin;
+  }
+  if(project.profile === "biofoundry") return biofoundryConceptTwin(project,resources,observations,snapshot,development,intents);
   const roles = [...new Set(resources.map(resource=>resource.sourceRole??"project"))];
   return {
     schema:"subactor.twin/v1",
@@ -369,7 +428,8 @@ export class LivingProjectRuntime {
     };
     // Derived Markdown→intentDSL is an active, validated input to every iteration. Invalid packs
     // never reach the LLM/twin stages and are reported as a hard validation failure.
-    const intentDsl = await indexIntentDsl(resources, scanned.texts);
+    const intentLoad = await indexIntentDsl(resources, scanned.texts);
+    const intentDsl = intentLoad.index;
     if(intentDsl.invalid) scanned.warnings.push(`INTENT_DSL_INVALID_PACKS:${intentDsl.invalid}`);
     const researchHash = sourceSnapshot(resources);
     const previousResources = await readOptional<ResourceRecord[]>(join(outDir,"state/resources.json"))??[];
@@ -459,9 +519,9 @@ export class LivingProjectRuntime {
     const iterationsLastHour = await recentIterationCount(outDir);
     const rateLimitAvailable = iterationsLastHour < project.policy.maxIterationsPerHour;
     const grantPresent = await mutationGrantPresent(project,base);
-    const tree = groupTree(project,resources);
+    const tree = groupTree(project,resources,intentLoad.evidence);
     const authoritativeMath = reasoning({project,resources,development:developmentEvidence,observations:observation,grantPresent,rateLimitAvailable,evidenceSets});
-    const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint);
+    const deterministicTwin = conceptualTwin(project,resources,observation,researchHash,developmentEvidence,sceneBlueprint,intentLoad.evidence);
     const deterministicScene = conceptualScene(project,deterministicTwin,sceneBlueprint);
     const llmResourceLimit=Math.max(10,Math.min(200,Number(process.env.DT_LLM_RESOURCE_CONTEXT_LIMIT??80)||80));
     // LLMs receive the immutable evidence index, not scanner implementation timestamps or

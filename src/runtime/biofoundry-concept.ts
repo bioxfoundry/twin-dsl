@@ -10,6 +10,7 @@
  */
 import type {
   DevelopmentEvidenceSummary,
+  IntentRecord,
   LivingProjectDocument,
   ObservationDocument,
   ResourceRecord,
@@ -19,8 +20,14 @@ import type {
   TwinComponent,
   TwinDocument,
 } from "../core/types.js";
-import { contentUri } from "../core/canonical.js";
+import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
 import { observationHorizon } from "../dsl/observation.js";
+import { intentUri } from "../dsl/intent.js";
+
+export interface GroundedIntentEvidence {
+  record: IntentRecord;
+  sourceUri: string;
+}
 
 export interface BiofoundryZoneSpec {
   id: string;
@@ -144,47 +151,167 @@ export function matchZoneResources(zone: BiofoundryZoneSpec, resources: Resource
   });
 }
 
+const GENERIC_INTENT_KEYWORDS = new Set(["biofoundry", "specifikacija", "study", "manager"]);
+const INTENT_EPISTEMIC_PRIORITY: Record<IntentRecord["type"], number> = {
+  decision: 0,
+  request: 1,
+  plan: 2,
+  result: 3,
+  report: 4,
+  message: 5,
+  claim: 6,
+};
+
+function intentKeywordMatches(text: string, keyword: string): boolean {
+  const normalized = keyword.toLowerCase();
+  if (/^[a-z0-9]+$/.test(normalized) && normalized.length <= 3) {
+    return new RegExp(`\\b${normalized}\\b`, "i").test(text);
+  }
+  return text.includes(normalized);
+}
+
+export function matchZoneIntents(
+  zone: BiofoundryZoneSpec,
+  intents: GroundedIntentEvidence[],
+): GroundedIntentEvidence[] {
+  const keywords = zone.keywords.filter((keyword) => !GENERIC_INTENT_KEYWORDS.has(keyword));
+  return intents.filter(({ record }) => {
+    const text = [record.text, ...record.targetUris].join(" ").toLowerCase();
+    return keywords.some((keyword) => intentKeywordMatches(text, keyword));
+  });
+}
+
 function fallbackResearchUris(resources: ResourceRecord[]): string[] {
   return resources
     .filter((resource) => ["manager", "customer", "project", "archive", "internet"].includes(String(resource.sourceRole)))
     .map((resource) => resource.uri);
 }
 
-function zoneSourceUris(zone: BiofoundryZoneSpec, resources: ResourceRecord[]): string[] {
+function zoneSourceUris(
+  zone: BiofoundryZoneSpec,
+  resources: ResourceRecord[],
+  intents: GroundedIntentEvidence[] = [],
+): string[] {
   const matched = matchZoneResources(zone, resources).map((resource) => resource.uri);
-  if (matched.length > 0) return [...new Set(matched)];
+  const intentSources = matchZoneIntents(zone, intents).map((intent) => intent.sourceUri);
+  if (matched.length > 0 || intentSources.length > 0) return [...new Set([...matched, ...intentSources])];
   // Fail-soft: bind to research evidence so grounding stays satisfied and geometry stays placeholder.
   const fallback = fallbackResearchUris(resources);
   return fallback.length > 0 ? fallback : resources.map((resource) => resource.uri).slice(0, 8);
 }
 
-export function biofoundryConceptTree(project: LivingProjectDocument, resources: ResourceRecord[]): TreeDocument {
+function intentTypeCounts(intents: GroundedIntentEvidence[]): Record<string, number> {
+  return intents.reduce<Record<string, number>>((counts, { record }) => {
+    counts[record.type] = (counts[record.type] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function canonicalStudyRank(intent: GroundedIntentEvidence): number {
+  return intent.record.targetUris.some((target) =>
+    target.toLowerCase().includes("atvirojo kodo biofoundry studija")) ? 0 : 1;
+}
+
+function intentEvidenceHash(intents: GroundedIntentEvidence[]): string {
+  return sha256(canonicalJson(intents.map(({ record, sourceUri }) => ({record,sourceUri}))));
+}
+
+function intentTwinEvidence(zone: BiofoundryZoneSpec, intents: GroundedIntentEvidence[]): Array<Record<string, unknown>> {
+  return [...matchZoneIntents(zone, intents)]
+    .sort((left,right)=>canonicalStudyRank(left)-canonicalStudyRank(right)
+      ||INTENT_EPISTEMIC_PRIORITY[left.record.type]-INTENT_EPISTEMIC_PRIORITY[right.record.type]
+      ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
+    .slice(0, 12).map(({ record, sourceUri }) => ({
+    intentId: record.id,
+    intentUri: intentUri(record),
+    epistemicType: record.type,
+    text: record.text.slice(0, 500),
+    targetUris: record.targetUris,
+    sourceUri,
+  }));
+}
+
+/** Add validated semantic evidence to stable blueprint components without changing geometry. */
+export function projectBiofoundryIntentEvidence(
+  twin: TwinDocument,
+  intents: GroundedIntentEvidence[],
+): TwinDocument {
+  const zoneById = new Map(BIOFOUNDRY_ZONES.map((zone) => [zone.id, zone]));
+  return {
+    ...twin,
+    components: twin.components.map((component) => {
+      const zone = zoneById.get(component.id);
+      if (!zone) return component;
+      const matched = matchZoneIntents(zone, intents);
+      return {
+        ...component,
+        sourceUris: [...new Set([
+          ...component.sourceUris,
+          ...matched.map((intent) => intent.sourceUri),
+        ])],
+        properties: {
+          ...component.properties,
+          matchedIntentCount: matched.length,
+          intentEvidenceHash: intentEvidenceHash(matched),
+          intentTypes: intentTypeCounts(matched),
+          intentEvidence: intentTwinEvidence(zone, intents),
+        },
+        // Semantic statements are evidence about the assembly, not renderable parts.
+        // Keep them out of `children`, whose identity must remain in one-to-one
+        // correspondence with Scene bindings.
+        children: component.children.filter((child) => child.type !== "intent-evidence"),
+      };
+    }),
+  };
+}
+
+export function biofoundryConceptTree(
+  project: LivingProjectDocument,
+  resources: ResourceRecord[],
+  intents: GroundedIntentEvidence[] = [],
+): TreeDocument {
   const layerNodes: TreeNode[] = BIOFOUNDRY_ZONES.map((zone) => {
     const matched = matchZoneResources(zone, resources);
+    const matchedIntents = matchZoneIntents(zone, intents);
     return {
       id: zone.id,
       uri: zone.semanticId,
       label: zone.label,
       kind: zone.type,
       relation: zone.type === "reference-workflow" ? "implements" : "layer",
-      sourceUris: zoneSourceUris(zone, resources),
+      sourceUris: zoneSourceUris(zone, resources, intents),
       properties: {
         evidenceAnchor: zone.evidenceAnchor,
         geometryStatus: zone.geometryStatus,
         semanticId: zone.semanticId,
         resourceCount: matched.length,
+        intentCount: matchedIntents.length,
+        intentEvidenceHash: intentEvidenceHash(matchedIntents),
       },
-      children: matched.slice(0, 40).map((resource) => ({
-        id: `${zone.id}-${resource.id}`,
-        uri: resource.logicalUri,
-        label: resource.sourcePath.split("/").at(-1) ?? resource.sourcePath,
-        kind: "resource",
-        parentId: zone.id,
-        relation: "evidence",
-        sourceUris: [resource.uri],
-        properties: { role: resource.sourceRole ?? "project" },
-        children: [],
-      })),
+      children: [
+        ...matched.slice(0, 30).map((resource) => ({
+          id: `${zone.id}-${resource.id}`,
+          uri: resource.logicalUri,
+          label: resource.sourcePath.split("/").at(-1) ?? resource.sourcePath,
+          kind: "resource",
+          parentId: zone.id,
+          relation: "evidence",
+          sourceUris: [resource.uri],
+          properties: { role: resource.sourceRole ?? "project" },
+          children: [],
+        })),
+        ...matchedIntents.slice(0, 20).map(({ record, sourceUri }) => ({
+          id: `${zone.id}-intent-${record.id}`,
+          uri: intentUri(record),
+          label: record.text.slice(0, 160),
+          kind: "intent-evidence",
+          parentId: zone.id,
+          relation: "specifies",
+          sourceUris: [sourceUri],
+          properties: { intentId: record.id, epistemicType: record.type, actor: record.actor },
+          children: [],
+        })),
+      ],
     };
   });
 
@@ -248,13 +375,16 @@ export function biofoundryConceptTwin(
   observations: ObservationDocument,
   snapshot: string,
   development: DevelopmentEvidenceSummary,
+  intents: GroundedIntentEvidence[] = [],
 ): TwinDocument {
   const layerComponents: TwinComponent[] = BIOFOUNDRY_ZONES.map((zone, index) => {
     const matched = matchZoneResources(zone, resources);
+    const matchedIntents = matchZoneIntents(zone, intents);
+    const intentTypes = intentTypeCounts(matchedIntents);
     return {
       id: zone.id,
       type: zone.type,
-      sourceUris: zoneSourceUris(zone, resources),
+      sourceUris: zoneSourceUris(zone, resources, intents),
       properties: {
         label: zone.label,
         semanticId: zone.semanticId,
@@ -265,18 +395,24 @@ export function biofoundryConceptTwin(
         size: zone.size,
         index,
         matchedResourceCount: matched.length,
+        matchedIntentCount: matchedIntents.length,
+        intentEvidenceHash: intentEvidenceHash(matchedIntents),
+        intentTypes,
+        intentEvidence: intentTwinEvidence(zone, intents),
         buildingBoundaryM: [60, 36, 4],
       },
-      children: matched.slice(0, 12).map((resource) => ({
-        id: `${zone.id}__${resource.id}`,
-        type: "evidence-resource",
-        sourceUris: [resource.uri],
-        properties: {
-          path: resource.sourcePath,
-          role: resource.sourceRole ?? "project",
-        },
-        children: [],
-      })),
+      children: [
+        ...matched.slice(0, 8).map((resource) => ({
+          id: `${zone.id}__${resource.id}`,
+          type: "evidence-resource",
+          sourceUris: [resource.uri],
+          properties: {
+            path: resource.sourcePath,
+            role: resource.sourceRole ?? "project",
+          },
+          children: [],
+        })),
+      ],
     };
   });
 
@@ -338,6 +474,7 @@ export function biofoundryConceptScene(project: LivingProjectDocument, twin: Twi
         semanticId: "subactor:semanticId",
         geometryStatus: "subactor:geometryStatus",
         matchedResourceCount: "subactor:matchedResourceCount",
+        matchedIntentCount: "subactor:matchedIntentCount",
         physicalFidelity: "subactor:physicalFidelity",
       },
     });

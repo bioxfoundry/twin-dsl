@@ -12,6 +12,11 @@ export interface SourceAnchor {
   page?: number;
   lines?: [number, number];
   bbox?: [number, number, number, number];
+  blockId?: string;
+  artifactId?: string;
+  artifactUrn?: string;
+  evidenceArtifactIds?: string[];
+  evidenceArtifactUrns?: string[];
   converter: string;
   converterVersion: string;
 }

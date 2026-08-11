@@ -6,6 +6,8 @@ import {
   biofoundryConceptTree,
   biofoundryConceptTwin,
   biofoundryReadinessBindings,
+  projectBiofoundryIntentEvidence,
+  type GroundedIntentEvidence,
 } from "../src/runtime/biofoundry-concept.js";
 import type { DevelopmentEvidenceSummary, LivingProjectDocument, ObservationDocument, ResourceRecord } from "../src/core/types.js";
 import { evaluateMath } from "../src/dsl/math.js";
@@ -199,4 +201,79 @@ test("biofoundry concept tree includes semantic layers and knowledge index", () 
   assert.ok(root.children.some((child) => child.id === "knowledge-sources"));
   const layers = root.children.find((child) => child.id === "semantic-layers")!;
   assert.equal(layers.children.length, 8);
+});
+
+test("validated intentDSL evidence is projected into matching Twin zones and tree nodes", () => {
+  const corpus = resources();
+  const intents: GroundedIntentEvidence[] = [{
+    sourceUri: corpus[1].uri,
+    record: {
+      schema: "t2c.intent/v1",
+      id: "biosafety-decision",
+      type: "decision",
+      text: "Every biosafety requirement must be audited before deployment.",
+      actor: "source:markdown",
+      targetUris: ["subactor://markdown/study.md"],
+    },
+  }];
+  const twin = biofoundryConceptTwin(
+    project(), corpus, observations, "22".repeat(32), development, intents,
+  );
+  validateTwin(twin);
+  validateTwinGrounding(twin, twin, corpus);
+
+  const mission = twin.components.find((component) => component.id === "mission_requirements")!;
+  const governance = twin.components.find((component) => component.id === "governance_translation")!;
+  const learn = twin.components.find((component) => component.id === "learn")!;
+  assert.equal(mission.properties.matchedIntentCount, 1);
+  assert.equal(governance.properties.matchedIntentCount, 1);
+  assert.equal(learn.properties.matchedIntentCount, 0, "short AI keyword must use token boundaries");
+  assert.equal(mission.children.some((child) => child.type === "intent-evidence"), false);
+  assert.equal((mission.properties.intentEvidence as unknown[]).length, 1);
+
+  const tree = biofoundryConceptTree(project(), corpus, intents);
+  const layers = tree.roots[0].children.find((child) => child.id === "semantic-layers")!;
+  const missionNode = layers.children.find((child) => child.id === "mission_requirements")!;
+  assert.ok(missionNode.children.some((child) => child.kind === "intent-evidence"));
+});
+
+test("intent evidence enriches a blueprint-derived Twin without changing zone geometry", () => {
+  const corpus = resources();
+  const baseline = biofoundryConceptTwin(
+    project(), corpus, observations, "22".repeat(32), development,
+  );
+  const originalPosition = baseline.components.find(
+    (component) => component.id === "mission_requirements",
+  )!.properties.position;
+  const genericIntents: GroundedIntentEvidence[] = Array.from({length:13},(_,index)=>({
+    sourceUri: corpus[0].uri,
+    record: {
+      schema: "t2c.intent/v1",
+      id: `generic-mission-${index}`,
+      type: "decision",
+      text: `Requirement ${index} defines a policy boundary.`,
+      actor: "source:markdown",
+      targetUris: ["subactor://markdown/other.md"],
+    },
+  }));
+  const canonicalIntent: GroundedIntentEvidence = {
+    sourceUri: corpus[1].uri,
+    record: {
+      schema: "t2c.intent/v1",
+      id: "mission-plan",
+      type: "plan",
+      text: "The implementation requirement defines a staged deployment plan.",
+      actor: "source:markdown",
+      targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"],
+    },
+  };
+  const projected = projectBiofoundryIntentEvidence(baseline, [...genericIntents,canonicalIntent]);
+  const mission = projected.components.find((component) => component.id === "mission_requirements")!;
+  assert.deepEqual(mission.properties.position, originalPosition);
+  assert.equal(mission.properties.matchedIntentCount, 14);
+  assert.equal(String(mission.properties.intentEvidenceHash).length, 64);
+  assert.ok((mission.properties.intentEvidence as Array<{intentId?:string}>).some(
+    (evidence) => evidence.intentId === "mission-plan"),
+    "the declared canonical study must survive bounded evidence projection");
+  validateTwinGrounding(projected, projected, corpus);
 });

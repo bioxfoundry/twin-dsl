@@ -35,7 +35,7 @@ from f2md import (
 from f2md.cli import main
 from f2md.audit import audit_markdown_tree
 from f2md.artifact_store import materialize_artifact_store
-from f2md.intent_compile import compile_tree, refresh_contract, refresh_output_identity
+from f2md.intent_compile import MAX_INTENT_TEXT, compile_tree, refresh_contract, refresh_output_identity
 from f2md.quality import PageMarkdown, normalize_document
 from f2md.tree import convert_tree
 from f2md.document_ast import (
@@ -291,6 +291,86 @@ def test_intent_compile_hashes_source_bytes_without_normalizing_crlf(tmp_path) -
     assert pack["records"][0]["source"]["revisionHash"] == expected
 
 
+def test_intent_compile_removes_navigation_repairs_translated_terms_and_preserves_full_sections(
+    tmp_path,
+) -> None:
+    source, output = tmp_path / "source", tmp_path / "dsl"
+    source.mkdir()
+    tail = "terminal-proof-marker"
+    opaque = "X" * (MAX_INTENT_TEXT + 300)
+    source.joinpath("study.md").write_text(
+        """---
+language: en
+translatedFrom: lt
+converter: argos
+converterVersion: fixture
+---
+# Open source biophoundry study
+
+Project evidence.
+
+## Contents
+
+| Section | Page |
+|---|---|
+| Requirements | 3 |
+
+## Part III
+
+## Safety requirements
+
+The SLA 2 orchestrator must bind every ROM 2 action to OpenTwins.<br>Audit is required.
+sila_ros is the bridge identifier.
+* * 8.2 * *: """
+        + "-" * 3000
+        + "@@\n"
+        + opaque
+        + "\n"
+        + """
+
+## Implementation plan
+
+"""
+        + "word " * 900
+        + tail
+        + "\n",
+        encoding="utf-8",
+    )
+
+    summary = compile_tree(source, output)
+    pack = json.loads(output.joinpath("study.md.intent.json").read_text(encoding="utf-8"))
+    records = pack["records"]
+    combined = " ".join(record["text"] for record in records)
+
+    assert summary["failures"] == []
+    assert "Contents" not in combined and "Part III: Part III" not in combined
+    assert "biofoundry" in combined and "biophoundry" not in combined
+    assert "SiLA 2" in combined and "ROS 2" in combined and "<br>" not in combined
+    assert "sila_ros" in combined
+    assert "-----" not in combined
+    assert combined.count("X") == len(opaque)
+    assert tail in combined, "long sections must be split, never truncated"
+    assert any(record["type"] == "decision" for record in records)
+    assert any(record["type"] == "plan" for record in records)
+    assert all("#" in record["source"]["fragment"] for record in records)
+    assert all(len(record["text"]) <= MAX_INTENT_TEXT + len("Implementation plan: ") for record in records)
+
+
+def test_legacy_structure_retains_explicit_artifact_anchor_and_page(tmp_path) -> None:
+    urn = "urn:subactor:artifact:sha256:" + "ab" * 32
+    source = tmp_path / "study.pdf"
+    source.write_bytes(b"%PDF fixture")
+    artifacts = normalize_document(
+        f"<!-- source-page:3 -->\n\n<!-- artifact:{urn} id=artifact-heading-abcd -->\n# Safety\n\nEvidence.\n",
+        str(source),
+        normalize=False,
+    )
+    heading = next(block for block in artifacts.structure["blocks"] if block["type"] == "heading")
+    assert heading["page"] == 3
+    assert heading["artifactId"] == "artifact-heading-abcd"
+    assert heading["artifactUrn"] == urn
+
+
 def test_pdf_quality_v1_repairs_layout_and_preserves_uncertainty(tmp_path) -> None:
     source = tmp_path / "study.pdf"
     source.write_bytes(b"%PDF fixture")
@@ -299,7 +379,12 @@ def test_pdf_quality_v1_repairs_layout_and_preserves_uncertainty(tmp_path) -> No
     )
     pages = [PageMarkdown(page["number"], page["markdown"]) for page in fixture["pages"]]
 
-    artifacts = normalize_document("\f".join(page.markdown for page in pages), str(source), pages=pages)
+    artifacts = normalize_document(
+        "\f".join(page.markdown for page in pages),
+        str(source),
+        pages=pages,
+        ocr_audit={"ocrActuallyUsed": True, "ocrEngine": "tesseract"},
+    )
 
     assert "Atvirojo kodo biofoundry" not in artifacts.markdown
     assert "Integruota studija" not in artifacts.markdown
@@ -314,6 +399,16 @@ def test_pdf_quality_v1_repairs_layout_and_preserves_uncertainty(tmp_path) -> No
     assert artifacts.quality["repairs"]["pageHeadersFootersRemoved"] == fixture["invariants"]["pageHeadersFootersRemoved"]
     assert artifacts.quality["repairs"]["pageNumbersRemoved"] == fixture["invariants"]["pageNumbersRemoved"]
     assert artifacts.quality["suspectTokens"] == ["ėNra"]
+
+
+def test_ocr_token_probe_is_not_run_without_ocr(tmp_path) -> None:
+    source = tmp_path / "native.pdf"
+    source.write_bytes(b"%PDF fixture")
+    artifacts = normalize_document("Native layout token ėNra.", str(source), normalize=False)
+    check = next(item for item in artifacts.quality["checks"] if item["id"] == "OCR_SUSPECT_TOKENS")
+    assert check["status"] == "not-run"
+    assert check["reason"] == "ocrActuallyUsed=false"
+    assert artifacts.quality["status"] == "pass"
 
 
 def test_pdf_quality_v1_stitches_tables_across_pages(tmp_path) -> None:
@@ -355,6 +450,11 @@ Tekstas.
     assert "  - [1.1 Tikslai](#11-tikslai) <!-- target-page:4 -->" in artifacts.markdown
     assert artifacts.quality["repairs"]["tocBlocksNormalized"] == 1
     assert artifacts.quality["repairs"]["tocEntriesNormalized"] == 3
+    navigation = [
+        block for block in artifacts.structure["blocks"]
+        if block.get("reason") == "table-of-contents"
+    ]
+    assert navigation and all(block["semantic"] is False for block in navigation)
     assert next(
         check for check in artifacts.quality["checks"] if check["id"] == "TOC_STRUCTURE"
     )["status"] == "pass"
@@ -1250,6 +1350,57 @@ def test_unknown_policy_is_rejected() -> None:
 
     with pytest.raises(ConversionError, match="TRANSLATION_POLICY_INVALID"):
         TranslationPolicy("send-it-anywhere", "en")
+
+
+def test_argos_preserves_technical_terms_tables_and_text_after_code() -> None:
+    from f2md.translate import ArgosTranslator
+
+    class Pair:
+        def translate(self, value: str) -> str:
+            return (
+                value.replace("Diegimas", "Deployment")
+                .replace("Komponentas", "Component")
+                .replace("Valdymas", "Control")
+                .replace("jutiklis", "sensor")
+                .replace("SiLA", "Syla")
+                .replace("ROS", "ROM")
+            )
+
+    translator = ArgosTranslator("en")
+    translator._installed[("lt", "en")] = Pair()
+    source = """<!-- artifact:urn:subactor:artifact:sha256:abcd id=artifact-heading-abcd -->
+# SiLA 2 Diegimas
+
+| Komponentas | Protokolas |
+|---|---|
+| jutiklis | ROS 2 |
+
+<!-- artifact:urn:subactor:artifact:sha256:efgh id=artifact-code-efgh -->
+```bash
+python -m sila2.server
+```
+
+## OpenTwins Valdymas
+
+ChemOS 2.0 valdo biofoundry dark-factory.
+
+SiLA client links ROS data.
+sila_ros remains stable.
+"""
+
+    translated = translator.translate(source, "lt").text
+
+    assert "# SiLA 2 Deployment" in translated
+    assert "<!-- artifact:urn:subactor:artifact:sha256:abcd id=artifact-heading-abcd -->" in translated
+    assert "| Component | Protokolas |" in translated
+    assert "| sensor | ROS 2 |" in translated
+    assert "<!-- artifact:urn:subactor:artifact:sha256:efgh id=artifact-code-efgh -->" in translated
+    assert "```bash\npython -m sila2.server\n```" in translated
+    assert "python -m sila2.server" in translated
+    assert "## OpenTwins Control" in translated
+    assert "ChemOS 2.0 valdo biofoundry dark-factory." in translated
+    assert "SiLA client links ROS data." in translated
+    assert "sila_ros remains stable." in translated
 
 
 def test_hosted_llm_contract_uses_schema_gbnf_and_hash_bound_patchdsl() -> None:

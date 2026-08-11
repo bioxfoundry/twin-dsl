@@ -307,7 +307,12 @@ def _normalize_toc(markdown: str) -> Tuple[str, int, int]:
         if len(entries) < 2:
             index += 1
             continue
-        output.extend(["", *_render_toc(entries)])
+        output.extend([
+            "",
+            "<!-- f2md-semantic:false type=navigation reason=table-of-contents -->",
+            *_render_toc(entries),
+            "<!-- /f2md-semantic -->",
+        ])
         blocks += 1
         entries_count += len(entries)
         index = end
@@ -519,10 +524,11 @@ def _blocks(markdown: str, source_hash: str) -> List[Dict[str, Any]]:
     index = 0
     semantic = True
     semantic_reason: Optional[str] = None
+    pending_artifact: Optional[tuple[str, str]] = None
     position = 0
 
     def add(kind: str, text: str, *, language: Optional[str] = None) -> None:
-        nonlocal position
+        nonlocal pending_artifact, position
         value = text.strip()
         if not value:
             return
@@ -538,6 +544,9 @@ def _blocks(markdown: str, source_hash: str) -> List[Dict[str, Any]]:
         }
         if semantic_reason:
             block["reason"] = semantic_reason
+        if pending_artifact:
+            block["artifactUrn"], block["artifactId"] = pending_artifact
+            pending_artifact = None
         if language:
             block["language"] = language
         image = _IMAGE.search(value)
@@ -552,6 +561,11 @@ def _blocks(markdown: str, source_hash: str) -> List[Dict[str, Any]]:
         anchor = re.match(r"<!--\s*source-page:(\d+)", line)
         if anchor:
             page = int(anchor.group(1))
+            index += 1
+            continue
+        artifact_anchor = re.match(r"<!--\s*artifact:(\S+)\s+id=([^\s>]+)\s*-->", line)
+        if artifact_anchor:
+            pending_artifact = (artifact_anchor.group(1), artifact_anchor.group(2))
             index += 1
             continue
         if line.startswith("<!-- f2md-semantic:false"):
@@ -766,6 +780,17 @@ def normalize_document(
         "ocrConfidence": confidence,
     }
 
+    ocr_suspect_check = (
+        _check("OCR_SUSPECT_TOKENS", not suspect_tokens, len(suspect_tokens), 0, "warn")
+        if ocr["ocrActuallyUsed"]
+        else {
+            "id": "OCR_SUSPECT_TOKENS",
+            "status": "not-run",
+            "actual": len(suspect_tokens),
+            "expected": "OCR actually used",
+            "reason": "ocrActuallyUsed=false",
+        }
+    )
     checks = [
         _check("PAGE_HEADERS", not repeated or repairs["pageHeadersFootersRemoved"] > 0,
                len(repeated), "all repeated page-margin text removed"),
@@ -778,7 +803,7 @@ def normalize_document(
                f"{figures}/{raw_picture_blocks}", f"{raw_picture_blocks}/{raw_picture_blocks}", "warn"),
         _check("HEADING_TREE", heading_valid, "valid" if heading_valid else "invalid", "valid"),
         _check("TOC_STRUCTURE", toc_residuals == 0, toc_residuals, 0, "warn"),
-        _check("OCR_SUSPECT_TOKENS", not suspect_tokens, len(suspect_tokens), 0, "warn"),
+        ocr_suspect_check,
         _check("OCR_PROVENANCE", not ocr["ocrActuallyUsed"] or ocr["ocrEngine"] != "none",
                ocr, "actual OCR has an engine"),
     ]

@@ -420,7 +420,8 @@ def _extract_layout_tables(
         if toc is not None:
             artifacts.append(make_artifact(
                 source_hash, "list", [page_number], table_box, toc,
-                subtype="table-of-contents", confidence=0.94, quality="reconstructed",
+                subtype="table-of-contents", semantic=False,
+                confidence=0.94, quality="reconstructed",
                 source_bboxes=[{"page": page_number, "bbox": table_box}],
             ))
             index = consumed

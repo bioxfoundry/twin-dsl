@@ -241,8 +241,13 @@ def render_markdown(ast: Dict[str, Any], manifest: Optional[Dict[str, Any]] = No
             items = content.get("items", [])
             if isinstance(items, list):
                 if artifact.get("subtype") == "table-of-contents":
-                    output.append(_artifact_reference(artifact))
+                    output.extend([
+                        "<!-- f2md-semantic:false type=navigation reason=table-of-contents -->",
+                        _artifact_reference(artifact),
+                    ])
                 output.extend([*(_render_list_item(item) for item in items), ""])
+                if artifact.get("subtype") == "table-of-contents":
+                    output.extend(["<!-- /f2md-semantic -->", ""])
         elif artifact_type == "code":
             language = str(content.get("language", "text"))
             output.extend([

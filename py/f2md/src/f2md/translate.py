@@ -29,6 +29,59 @@ from .types import ConversionError
 #: paragraphs are recombined afterwards so Markdown structure survives.
 DEFAULT_CHUNK_CHARS = 2500
 
+# Product names and protocol identifiers are evidence, not prose.  Offline NMT used to turn
+# ``SiLA 2`` into ``SLA 2``/``Silicon 2`` and ``ROS 2`` into ``ROM 2`` in the canonical project
+# study.  Translate the surrounding language while copying these tokens byte-for-byte.
+_PROTECTED_TERMS = re.compile(
+    r"\b(?:sila_ros|biofoundry|SiLA(?:\s*2)?|ROS(?:\s*2)?|ChemOS(?:\s*2(?:\.0)?)?|OpenTwins|OSCAR|BIO-SPEC|"
+    r"Syringebot|ImSwitch|napari|MoveIt\s*2|Raspberry\s+Pi|Ubuntu|gRPC|mDNS|OpenUSD|"
+    r"Design[–-]Build[–-]Test[–-]Learn|dark[–-]factory)\b",
+    re.IGNORECASE,
+)
+
+
+def _translated_text(translator: Any, value: str) -> str:
+    """Translate prose around protected technical terms without exposing placeholders to NMT."""
+    def segment_text(segment: str) -> str:
+        if not segment or not segment.strip():
+            return segment
+        leading = segment[:len(segment) - len(segment.lstrip())]
+        trailing = segment[len(segment.rstrip()):]
+        translated = str(translator.translate(segment.strip())).strip()
+        return leading + translated + trailing
+
+    rendered: List[str] = []
+    position = 0
+    for match in _PROTECTED_TERMS.finditer(value):
+        if match.start() > position:
+            rendered.append(segment_text(value[position:match.start()]))
+        rendered.append(match.group(0))
+        position = match.end()
+    if position < len(value):
+        rendered.append(segment_text(value[position:]))
+    return "".join(rendered) if rendered else segment_text(value)
+
+
+def _translate_table_row(translator: Any, line: str) -> str:
+    """Translate Markdown table cells while preserving column and alignment syntax."""
+    cells = line.split("|")
+    translated: List[str] = []
+    for cell in cells:
+        stripped = cell.strip()
+        if not stripped or re.fullmatch(r":?-{3,}:?", stripped):
+            translated.append(cell)
+            continue
+        leading = cell[:len(cell) - len(cell.lstrip())]
+        trailing = cell[len(cell.rstrip()):]
+        fragments = re.split(r"(<br\s*/?>)", stripped, flags=re.IGNORECASE)
+        translated_cell = "".join(
+            fragment if re.fullmatch(r"<br\s*/?>", fragment, re.IGNORECASE)
+            else _translated_text(translator, fragment)
+            for fragment in fragments
+        )
+        translated.append(leading + translated_cell + trailing)
+    return "|".join(translated)
+
 
 class TranslationUnavailable(ConversionError):
     """The requested engine is not usable here — missing library, model or credentials."""
@@ -78,6 +131,45 @@ def _chunks(text: str, size: int) -> List[str]:
     return out or [""]
 
 
+def _translate_markdown_block(translator: Any, block: str, chunk_chars: int) -> str:
+    """Translate one non-code block while retaining Markdown-owned comment and line syntax."""
+    stripped = block.strip()
+    if stripped.startswith("```"):
+        return block
+    lines = stripped.splitlines()
+    comment_line = re.compile(r"^\s*<!--.*-->\s*$")
+    if any(comment_line.fullmatch(line) for line in lines):
+        rendered: List[str] = []
+        prose: List[str] = []
+
+        def flush() -> None:
+            if prose:
+                rendered.append(_translate_markdown_block(translator, "\n".join(prose), chunk_chars))
+                prose.clear()
+
+        for line in lines:
+            if comment_line.fullmatch(line):
+                flush()
+                rendered.append(line)
+            else:
+                prose.append(line)
+        flush()
+        return "\n".join(rendered)
+    if lines and all(line.lstrip().startswith("|") for line in lines if line.strip()):
+        return "\n".join(_translate_table_row(translator, line) for line in lines)
+    heading = re.match(r"^(#{1,6})\s+(.*)$", stripped)
+    if heading:
+        return f"{heading.group(1)} {_translated_text(translator, heading.group(2))}"
+    if lines and all(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", line) for line in lines):
+        translated_lines = []
+        for line in lines:
+            marker = re.match(r"^(\s*(?:[-*+]\s+|\d+[.)]\s+))(.*)$", line)
+            assert marker is not None
+            translated_lines.append(marker.group(1) + _translated_text(translator, marker.group(2)))
+        return "\n".join(translated_lines)
+    return "\n\n".join(_translated_text(translator, chunk) for chunk in _chunks(block, chunk_chars))
+
+
 class ArgosTranslator:
     """Offline neural translation. Nothing leaves this machine."""
 
@@ -122,27 +214,19 @@ class ArgosTranslator:
                 translated_blocks.append(block)
                 continue
             if stripped.startswith("```"):
-                in_fence = not in_fence
+                # A normal fenced block contains both markers in the same blank-line block.
+                # Toggling only on the opening marker caused every later paragraph to be treated
+                # as code and silently left untranslated.
+                if stripped.count("```") % 2:
+                    in_fence = not in_fence
                 translated_blocks.append(block)
                 continue
-            if in_fence or stripped.startswith(":::") or stripped.startswith("|"):
+            if in_fence or stripped.startswith(":::") or (
+                stripped.startswith("<!--") and stripped.endswith("-->")
+            ):
                 translated_blocks.append(block)
                 continue
-            heading = re.match(r"^(#{1,6})\s+(.*)$", stripped)
-            if heading:
-                translated = pair.translate(heading.group(2))
-                translated_blocks.append(f"{heading.group(1)} {translated}")
-                continue
-            lines = stripped.splitlines()
-            if lines and all(re.match(r"^\s*(?:[-*+]\s+|\d+[.)]\s+)", line) for line in lines):
-                translated_lines = []
-                for line in lines:
-                    marker = re.match(r"^(\s*(?:[-*+]\s+|\d+[.)]\s+))(.*)$", line)
-                    assert marker is not None
-                    translated_lines.append(marker.group(1) + pair.translate(marker.group(2)))
-                translated_blocks.append("\n".join(translated_lines))
-                continue
-            translated_blocks.extend(pair.translate(chunk) for chunk in _chunks(block, self.chunk_chars))
+            translated_blocks.append(_translate_markdown_block(pair, block, self.chunk_chars))
         return Translation("\n\n".join(translated_blocks).strip(), self.engine, f"argos:{source}-{self.target}", source)
 
 

@@ -425,7 +425,11 @@ def convert_tree(
                 "artifactQualityArtifact", "artifactTreeDsl",
             ):
                 translated_fields.pop(ast_field, None)
-            translated_artifacts = normalize_document(translation.text, path, normalize=False)
+            # The structure hash describes the exact materialized Markdown body, including its
+            # conventional final newline.  Hashing the pre-write, newline-less translation made
+            # every translated structure fail the intent compiler's byte contract.
+            translated_body = translation.text.rstrip() + "\n"
+            translated_artifacts = normalize_document(translated_body, path, normalize=False)
             translated_structure_path, translated_quality_path = _write_artifacts(
                 translated_path, translated_artifacts.structure, translated_artifacts.quality,
             )
@@ -434,9 +438,17 @@ def convert_tree(
                 "qualityScore": translated_artifacts.quality["score"],
                 "structureArtifact": os.path.basename(translated_structure_path),
                 "qualityArtifact": os.path.basename(translated_quality_path),
+                "warnings": [
+                    warning for warning in translated_fields.get("warnings", [])
+                    if not str(warning).startswith("MARKDOWN_QUALITY:")
+                ] + ([
+                    "MARKDOWN_QUALITY:"
+                    f"{translated_artifacts.quality['status'].upper()}:"
+                    f"{translated_artifacts.quality['score']}"
+                ] if translated_artifacts.quality["status"] != "pass" else []),
             })
             with open(translated_path, "w", encoding="utf-8") as handle:
-                handle.write(front_matter(translated_fields) + translated_artifacts.markdown.rstrip() + "\n")
+                handle.write(front_matter(translated_fields) + translated_artifacts.markdown)
             result.translated += 1
         if on_progress:
             on_progress(index, len(paths), relative, document.converter)
