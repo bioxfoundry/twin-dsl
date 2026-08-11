@@ -1,15 +1,24 @@
 COMPOSE ?= docker compose
 PORT ?= 7331
 MODE ?= deterministic
-DASHBOARD_PROJECT ?= .factory-demo/project/project.projectdsl
-DASHBOARD_RUNTIME ?= .factory-demo/runtime
+FACTORY_DEMO_PROJECT := .factory-demo/project/project.projectdsl
+FACTORY_DEMO_RUNTIME := .factory-demo/runtime
+WORKSPACE_PROJECT := $(abspath ../projects/nanobionic-laboratory-md/project.projectdsl)
+WORKSPACE_RUNTIME := $(abspath ../projects/nanobionic-laboratory-md/.living-runtime)
+ifneq ($(wildcard $(WORKSPACE_PROJECT)),)
+DASHBOARD_PROJECT ?= $(WORKSPACE_PROJECT)
+DASHBOARD_RUNTIME ?= $(WORKSPACE_RUNTIME)
+else
+DASHBOARD_PROJECT ?= $(FACTORY_DEMO_PROJECT)
+DASHBOARD_RUNTIME ?= $(FACTORY_DEMO_RUNTIME)
+endif
 # BuildKit is required for the pip cache mounts in deploy/docling/Dockerfile; without it every
 # build re-downloads gigabytes of wheels.
 export DOCKER_BUILDKIT = 1
 export COMPOSE_DOCKER_CLI_BUILD = 1
 
 .PHONY: verify demo research biofoundry realtime nl-dsl clean \
-        up down down-clean restart build logs ps status service-check endpoints dashboard prune-cache env
+        up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo prune-cache env
 
 ## --- configuration ---------------------------------------------------------
 ## Create .env from .env.example on first use, so the documented defaults are the ones that
@@ -95,10 +104,11 @@ nl-dsl:
 
 dashboard:
 	@npm run build
-	@if [ "$(DASHBOARD_PROJECT)" = ".factory-demo/project/project.projectdsl" ]; then node scripts/ensure-factory-demo.mjs; fi
+	@if [ "$(DASHBOARD_PROJECT)" = "$(FACTORY_DEMO_PROJECT)" ]; then node scripts/ensure-factory-demo.mjs; fi
+	@echo "Dashboard project: $(DASHBOARD_PROJECT)"
 	@url="http://127.0.0.1:$(PORT)/"; \
 		probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \
-			echo "hint: use the existing workspace dashboard with 'make -C .. dashboard', or choose another demo port with 'make dashboard PORT=7332'"; exit 2; }; \
+			echo "hint: stop the conflicting process or choose another port with 'make dashboard PORT=7332'"; exit 2; }; \
 		echo "$$probe"; \
 		case "$$probe" in DASHBOARD_PORT_REUSE:*) \
 			if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \
@@ -118,6 +128,11 @@ dashboard:
 		elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \
 		else echo "dashboard ready: $$url (open this URL in a browser)"; fi; \
 		wait $$server_pid
+
+dashboard-demo:
+	@$(MAKE) --no-print-directory dashboard \
+		DASHBOARD_PROJECT="$(FACTORY_DEMO_PROJECT)" \
+		DASHBOARD_RUNTIME="$(FACTORY_DEMO_RUNTIME)"
 
 clean:
 	npm run clean

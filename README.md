@@ -704,10 +704,13 @@ gdy jej aktywny Twin należy do żądanego projektu. Inny projekt lub inna usłu
 daje `DASHBOARD_PORT_CONFLICT` z identyfikatorami `expected` i `actual`; wybierz wtedy inny
 `PORT` albo uruchom dashboard właściwego projektu z jego katalogu workspace.
 
-Uruchomienie `make dashboard` bez własnego `DASHBOARD_PROJECT` używa generowanego
-`.factory-demo`. Przed startem bezpieczny migrator odświeża tylko kanoniczny blueprint
-`biofoundry-live-*`, jeżeli stary wariant nie spełnia aktualnego kontraktu komponentu. Nie
-nadpisuje projektów niestandardowych; te wymagają jawnej migracji w ich własnym workflow.
+W checkoutcie osadzonym w workspace `make dashboard` automatycznie wybiera pełny projekt
+`../projects/nanobionic-laboratory-md`, zamiast ograniczonego demonstratora. Dzięki temu ten sam
+skrót uruchomiony z katalogu `twin-dsl` zachowuje wszystkie 45 komponentów i ich fizyczne
+bindingi. Jawne `make dashboard-demo` uruchamia 30-elementowy `.factory-demo`; w samodzielnym
+checkoutcie bez sąsiedniego projektu jest on również bezpiecznym fallbackiem. Przed startem
+demonstratora migrator odświeża tylko kanoniczny blueprint `biofoundry-live-*` i nigdy nie
+nadpisuje projektu niestandardowego.
 
 Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
 twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`, niebieski
