@@ -68,7 +68,7 @@ endpoints: .env
 		echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \
 		echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \
 		echo "Dashboard: NOT started by make up; from the workspace root run 'make dashboard' to open http://127.0.0.1:7331/"; \
-		echo "Factory demo: run 'make dashboard PORT=7332' in twin-dsl when port 7331 is used by the workspace project"
+		echo "Workspace factory: from the workspace root run 'make dashboard PORT=7332' when port 7331 is occupied"
 
 ## Drop the BuildKit cache. Only useful when you actually want a cold rebuild.
 prune-cache:
@@ -108,10 +108,10 @@ dashboard:
 		node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \
 		trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \
 		ready=0; for attempt in $$(seq 1 50); do \
-			node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$$url/api/state" && { ready=1; break; }; \
+		node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$${url}api/state" && { ready=1; break; }; \
 			kill -0 $$server_pid 2>/dev/null || exit 1; sleep 0.2; \
 		done; \
-		[ $$ready -eq 1 ] || { echo "dashboard did not become ready: $$url"; exit 1; }; \
+		[ $$ready -eq 1 ] || { echo "DASHBOARD_READINESS_TIMEOUT:$$url"; exit 1; }; \
 		if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \
 		elif command -v open >/dev/null 2>&1; then open "$$url"; \
 		elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \

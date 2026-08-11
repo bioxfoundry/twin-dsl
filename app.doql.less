@@ -61,7 +61,7 @@ workflow[name="endpoints"] {
   step-3: run cmd=echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \;
   step-4: run cmd=echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \;
   step-5: run cmd=echo "Dashboard: NOT started by make up; from the workspace root run 'make dashboard' to open http://127.0.0.1:7331/"; \;
-  step-6: run cmd=echo "Factory demo: run 'make dashboard PORT=7332' in twin-dsl when port 7331 is used by the workspace project";
+  step-6: run cmd=echo "Workspace factory: from the workspace root run 'make dashboard PORT=7332' when port 7331 is occupied";
 }
 
 workflow[name="prune-cache"] {
@@ -115,10 +115,10 @@ workflow[name="dashboard"] {
   step-12: run cmd=node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \;
   step-13: run cmd=trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \;
   step-14: run cmd=ready=0; for attempt in $$(seq 1 50); do \;
-  step-15: run cmd=node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$$url/api/state" && { ready=1; break; }; \;
+  step-15: run cmd=node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$${url}api/state" && { ready=1; break; }; \;
   step-16: run cmd=kill -0 $$server_pid 2>/dev/null || exit 1; sleep 0.2; \;
   step-17: run cmd=done; \;
-  step-18: run cmd=[ $$ready -eq 1 ] || { echo "dashboard did not become ready: $$url"; exit 1; }; \;
+  step-18: run cmd=[ $$ready -eq 1 ] || { echo "DASHBOARD_READINESS_TIMEOUT:$$url"; exit 1; }; \;
   step-19: run cmd=if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \;
   step-20: run cmd=elif command -v open >/dev/null 2>&1; then open "$$url"; \;
   step-21: run cmd=elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \;
