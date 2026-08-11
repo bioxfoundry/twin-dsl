@@ -132,16 +132,15 @@ Kryteria akceptacji:
 
 ### 1.2 Pinowanie zależności po tożsamości Git
 
-Na hoście są dwa checkouty `semcod/todo2code` w wersji 0.5.1, lecz wskazują różne commity:
+Kanoniczny checkout `semcod/todo2code` znajduje się w jednej lokalizacji:
 
 ```text
-/home/tom/github/subactor/todo2code -> 7ecea31a2f0e...
-/home/tom/github/semcod/todo2code  -> 738d7be93168...
+/home/tom/github/semcod/todo2code -> 2380dd8b2f7d...
 ```
 
-Numer wersji nie wystarcza. Receipt development powinien zapisywać `remote`, pełny commit,
-`packageVersion`, hash schematu i hash pliku wykonywalnego. Jeżeli dwa dostępne checkouty deklarują
-tę samą wersję, lecz różne commity lub schematy, `doctor` ma zwrócić jawny błąd konfiguracji.
+Numer wersji nadal nie wystarcza. Receipt development powinien zapisywać `remote`, pełny commit,
+`packageVersion`, hash schematu i hash pliku wykonywalnego. Jeżeli konfiguracja wskazuje checkout
+o innym commicie lub schemacie niż przypięta tożsamość, `doctor` ma zwrócić jawny błąd konfiguracji.
 
 Ta sama reguła powinna objąć `onlyDSL`, `doDSL`, `f2md` i vendora `twin-dsl`. Proponowany
 `dependency-lock.json` ma być generowany z faktycznie uruchomionych narzędzi, nie ręcznie z README.
