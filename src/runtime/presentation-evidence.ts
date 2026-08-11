@@ -48,7 +48,7 @@ const SCENE_URI=/^urn:subactor:scene:sha256:[a-f0-9]{64}$/;
 const ISO=/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z$/;
 const vec3=(value:unknown):value is [number,number,number]=>Array.isArray(value)&&value.length===3&&value.every(item=>typeof item==="number"&&Number.isFinite(item));
 const exact=(value:Record<string,unknown>,keys:string[],code:string):void=>{
-  if(Object.keys(value).some(key=>!keys.includes(key))) throw new Error(`${code}_UNKNOWN_KEY`);
+  if(Object.keys(value).some(key=>!keys.includes(key))) throw new Error(`PRESENTATION_UNKNOWN_KEY:${code}`);
 };
 const record=(value:unknown,code:string):Record<string,unknown>=>{
   if(!value||typeof value!=="object"||Array.isArray(value)) throw new Error(code);

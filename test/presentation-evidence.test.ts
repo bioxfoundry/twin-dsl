@@ -52,5 +52,5 @@ test("presentation manifest rejects traversal, duplicate paths and unknown field
   assert.throws(()=>validatePresentationEvidence({...base,captures:[base.captures[0],base.captures[0]]}),/PRESENTATION_CAPTURE_DUPLICATE/);
   assert.throws(()=>validatePresentationEvidence({...base,twinUri:"urn:subactor:twin:sha256:abc"}),/PRESENTATION_EVIDENCE_HEADER_INVALID/);
   assert.throws(()=>validatePresentationEvidence({...base,captures:[{...base.captures[0],camera:{...base.captures[0].camera,mode:"orbit",trajectorySha256:null}}]}),/PRESENTATION_CAMERA_INVALID/);
-  assert.throws(()=>validatePresentationEvidence({...base,note:"trust me"}),/PRESENTATION_EVIDENCE_UNKNOWN_KEY/);
+  assert.throws(()=>validatePresentationEvidence({...base,note:"trust me"}),/PRESENTATION_UNKNOWN_KEY:PRESENTATION_EVIDENCE/);
 });

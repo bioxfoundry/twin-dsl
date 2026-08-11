@@ -25,7 +25,7 @@ function tcpOpen(host, port) {
 
 async function main() {
   const [configArg, portArg = "7331", host = "127.0.0.1"] = process.argv.slice(2);
-  if (!configArg) throw new Error("usage: dashboard-port-check <project.projectdsl> [port] [host]");
+  if (!configArg) throw new Error("DASHBOARD_ARGUMENTS_REQUIRED:usage=dashboard-port-check <project.projectdsl> [port] [host]");
   const port = Number(portArg);
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error(`DASHBOARD_PORT_INVALID:${portArg}`);
   const expectedProject = projectId(await readFile(resolve(configArg), "utf8"));

@@ -22,9 +22,9 @@ const sceneSchema:Record<string,unknown>={type:'object',properties:{document:{ty
 const intentRecordSchema:Record<string,unknown>={type:'object',properties:{schema:{const:'t2c.intent/v1'},id:{type:'string'},type:{type:'string',enum:['request','plan','decision','message','report','result','claim']},text:{type:'string',minLength:1},actor:{type:'string'},targetUris:{type:'array',items:{type:'string'}},ticket:{type:'string'},source:{type:'object'}},required:['schema','id','type','text','actor','targetUris'],additionalProperties:false};
 const intentSchema:Record<string,unknown>={type:'object',properties:{document:{type:'array',items:intentRecordSchema,minItems:1}},required:['document'],additionalProperties:false};
 
-function obj(x:unknown,name:string):Record<string,unknown>{if(!x||typeof x!=='object'||Array.isArray(x))throw new Error(`${name}_OBJECT_REQUIRED`);return x as Record<string,unknown>;}
-function exact(x:Record<string,unknown>,keys:string[],name:string):void{for(const k of Object.keys(x))if(!keys.includes(k))throw new Error(`${name}_UNKNOWN_KEY:${k}`);for(const k of keys)if(!(k in x))throw new Error(`${name}_MISSING_KEY:${k}`);}
-function strings(x:unknown,name:string):string[]{if(!Array.isArray(x)||!x.every(v=>typeof v==='string'))throw new Error(`${name}_STRING_ARRAY_REQUIRED`);return [...new Set(x)];}
+function obj(x:unknown,name:string):Record<string,unknown>{if(!x||typeof x!=='object'||Array.isArray(x))throw new Error(`DSL_OBJECT_REQUIRED:${name}`);return x as Record<string,unknown>;}
+function exact(x:Record<string,unknown>,keys:string[],name:string):void{for(const k of Object.keys(x))if(!keys.includes(k))throw new Error(`DSL_UNKNOWN_KEY:${name}:${k}`);for(const k of keys)if(!(k in x))throw new Error(`DSL_MISSING_KEY:${name}:${k}`);}
+function strings(x:unknown,name:string):string[]{if(!Array.isArray(x)||!x.every(v=>typeof v==='string'))throw new Error(`DSL_STRING_ARRAY_REQUIRED:${name}`);return [...new Set(x)];}
 function rawDsl(text:string):string{
   const trimmed=text.trim();
   const fenced=trimmed.match(/^```(?:[A-Za-z0-9_-]+)?\s*\n([\s\S]*?)\n```$/);

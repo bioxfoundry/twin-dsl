@@ -133,7 +133,7 @@ export function issueMutationGrant(
     project_id: input.projectId,
   };
   for (const [key, value] of Object.entries(required)) {
-    if (!String(value || "").trim()) return { ok: false, error: `mutation_grant_${key}_required` };
+    if (!String(value || "").trim()) return { ok: false, error: `mutation_grant_field_required:${key}` };
   }
 
   const iatMs = now;

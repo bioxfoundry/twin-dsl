@@ -34,7 +34,7 @@ export interface ParsedPatch { target:string;baseSha256:string;operations:PatchO
 export interface PatchEnvelope {schema:"subactor.patch-envelope/v1";patchDsl:string;}
 
 function object(value:unknown,name:string):Record<string,unknown>{
-  if(!value||typeof value!=="object"||Array.isArray(value))throw new Error(`${name}_OBJECT_REQUIRED`);
+  if(!value||typeof value!=="object"||Array.isArray(value))throw new Error(`PATCH_OBJECT_REQUIRED:${name}`);
   return value as Record<string,unknown>;
 }
 
@@ -48,8 +48,8 @@ export function validatePatchEnvelope(value:unknown):PatchEnvelope{
 
 function jsonString(token:string,name:string):string{
   let value:unknown;
-  try{value=JSON.parse(token);}catch{throw new Error(`${name}_JSON_STRING_INVALID`);}
-  if(typeof value!=="string")throw new Error(`${name}_STRING_REQUIRED`);
+  try{value=JSON.parse(token);}catch{throw new Error(`PATCH_JSON_STRING_INVALID:${name}`);}
+  if(typeof value!=="string")throw new Error(`PATCH_STRING_REQUIRED:${name}`);
   return value;
 }
 

@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 
 const sourceRoot=resolve(dirname(fileURLToPath(import.meta.url)),"..");
 const projectRoot=resolve(process.argv[2]??"");
-if(!process.argv[2]) throw new Error("usage: sync-vendored-runtime.mjs <living-project-root>");
+if(!process.argv[2]) throw new Error("VENDORED_RUNTIME_ARGUMENT_REQUIRED:usage=sync-vendored-runtime.mjs <living-project-root>");
 await access(join(projectRoot,"project.projectdsl"));
 
 const sourcePackage=JSON.parse(await readFile(join(sourceRoot,"package.json"),"utf8"));

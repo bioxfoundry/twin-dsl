@@ -628,6 +628,17 @@ napraw wskazują m.in. tessellację CAD do glTF, ponowne generowanie sceny, napr
 ponowienie konwersji Docling. Lokalny `.env` jest automatycznie ładowany (bez nadpisywania
 zmiennych środowiskowych), więc `doctor` pokazuje aktywny model OpenRouter bez ujawniania klucza.
 
+### Katalog błędów
+
+Każdy statyczny kod emitowany przez runtime, dashboard, adaptery i lokalne pakiety JavaScript ma
+wpis w [`error/catalog.json`](error/catalog.json) oraz generowaną stronę
+[`error/<KOD>.md`](error/README.md). `npm run errors:check` porównuje katalog ze źródłami i blokuje
+kod bez objaśnienia, osierocony wpis albo ręcznie zmienioną stronę. Znaczenie zmienia się wyłącznie
+w katalogu; `npm run errors:docs` odtwarza projekcje Markdown. Nowe kody mają stałą postać
+`UPPER_SNAKE_CASE`; zmienne dane (ścieżka, status HTTP, identyfikator) trafiają dopiero po
+dwukropku, więc nie tworzą osobnych kodów. Opublikowane wcześniej kody `mutation_grant_*`
+pozostają w dotychczasowej postaci i również podlegają kontroli katalogu.
+
 ### CAD/SCAD → executable geometry
 
 `scripts/cad-to-gltf.py` konwertuje binary/ASCII STL, 3MF oraz OBJ+MTL do walidowalnego GLB.

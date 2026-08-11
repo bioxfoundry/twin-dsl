@@ -65,15 +65,15 @@ async function main():Promise<void>{
   if(cmd==='researcher-demo'){const[base='examples/researcher',out='.research-run']=args;console.log(JSON.stringify(await runResearcherDemo(base,out),null,2));return;}
   if(cmd==='biofoundry-build'){const[config='examples/biofoundry/biofoundry.config.json',out='.biofoundry-run',mode='deterministic']=args;console.log(JSON.stringify(await new BiofoundryRuntime().build(config,out,llmMode(mode)),null,2));return;}
   if(cmd==='biofoundry-watch'){const[config='examples/biofoundry/biofoundry.config.json',out='.biofoundry-run',mode='deterministic']=args;const watcher=new RealtimeTwinWatcher();watcher.start(config,out,llmMode(mode),Number(process.env.DT_WATCH_INTERVAL_MS??2000),r=>console.log(JSON.stringify(r)));process.once('SIGINT',()=>{watcher.stop();process.exit(0);});return;}
-  if(cmd==='project-create'){const[name,out,profile='generic',...intentParts]=args;if(!name||!out)throw new Error('usage: project-create <name> <out-dir> [generic|biofoundry] [manager intent]');console.log(JSON.stringify(await createLivingProject({name,outDir:out,profile:profile as 'generic'|'biofoundry',managerIntent:intentParts.join(' ')||undefined}),null,2));return;}
-  if(cmd==='project-add-source'){const[config,role,path]=args;if(!config||!role||!path)throw new Error('usage: project-add-source <project.projectdsl> <role> <path>');console.log(JSON.stringify(await addProjectSource(config,role as SourceRole,path),null,2));return;}
-  if(cmd==='project-add-website'){const[config,url,...terms]=args;if(!config||!url)throw new Error('usage: project-add-website <project.projectdsl> <url> [context terms]');console.log(JSON.stringify(await addProjectWebsite(config,url,terms.join(' ').split(',').map(x=>x.trim()).filter(Boolean)),null,2));return;}
+  if(cmd==='project-create'){const[name,out,profile='generic',...intentParts]=args;if(!name||!out)throw new Error('CLI_ARGUMENTS_REQUIRED:project-create:usage=project-create <name> <out-dir> [generic|biofoundry] [manager intent]');console.log(JSON.stringify(await createLivingProject({name,outDir:out,profile:profile as 'generic'|'biofoundry',managerIntent:intentParts.join(' ')||undefined}),null,2));return;}
+  if(cmd==='project-add-source'){const[config,role,path]=args;if(!config||!role||!path)throw new Error('CLI_ARGUMENTS_REQUIRED:project-add-source:usage=project-add-source <project.projectdsl> <role> <path>');console.log(JSON.stringify(await addProjectSource(config,role as SourceRole,path),null,2));return;}
+  if(cmd==='project-add-website'){const[config,url,...terms]=args;if(!config||!url)throw new Error('CLI_ARGUMENTS_REQUIRED:project-add-website:usage=project-add-website <project.projectdsl> <url> [context terms]');console.log(JSON.stringify(await addProjectWebsite(config,url,terms.join(' ').split(',').map(x=>x.trim()).filter(Boolean)),null,2));return;}
   if(cmd==='project-sync'){const[config='project.projectdsl']=args;console.log(JSON.stringify(await syncProjectMirror(config),null,2));return;}
   if(cmd==='project-verify'){const[config='project.projectdsl']=args;const result=await verifyLivingProject(config);console.log(JSON.stringify(result,null,2));if(!result.ok)process.exitCode=1;return;}
   if(cmd==='project-status'){const[out='.living-runtime']=args;const latest=await json(`${out}/latest.json`).catch(()=>null),failures=await readFile(`${out}/dead-letter.jsonl`,'utf8').then(x=>x.trim().split(/\r?\n/).filter(Boolean).slice(-10).map(line=>JSON.parse(line))).catch(()=>[]),improvement=await json(`${out}/candidate/improvement.json`).catch(()=>null),mutation=await json(`${out}/mutations/latest.json`).catch(()=>null);console.log(JSON.stringify({latest,failures,improvement,mutation},null,2));return;}
   if(cmd==='project-diagnose'){
     const[sourceRoot,markdownRoot,dslRoot,runtimeRoot=`.living-runtime`,out=`${runtimeRoot}/current/digital-twin-diagnostics.json`]=args;
-    if(!sourceRoot||!markdownRoot||!dslRoot)throw new Error('usage: project-diagnose <source-root> <markdown-root> <dsl-root> [runtime-root] [report.json]');
+    if(!sourceRoot||!markdownRoot||!dslRoot)throw new Error('CLI_ARGUMENTS_REQUIRED:project-diagnose:usage=project-diagnose <source-root> <markdown-root> <dsl-root> [runtime-root] [report.json]');
     const report=await diagnoseDigitalTwin({sourceRoot:resolve(sourceRoot),markdownRoot:resolve(markdownRoot),dslRoot:resolve(dslRoot),runtimeRoot:resolve(runtimeRoot),dashboardSource:resolve('public/dashboard.html')});
     await writeDiagnostics(resolve(out),report);console.log(JSON.stringify(report,null,2));if(report.status==='error')process.exitCode=1;return;
   }
@@ -92,19 +92,19 @@ async function main():Promise<void>{
   if(cmd==='project-watch'){const[config='project.projectdsl',out='.living-runtime',mode='prefer-llm']=args;const watcher=new LivingProjectWatcher();watcher.start(config,out,llmMode(mode),Number(process.env.DT_WATCH_INTERVAL_MS??5000),r=>console.log(JSON.stringify(r)));process.once('SIGINT',()=>{watcher.stop();process.exit(0);});process.once('SIGTERM',()=>{watcher.stop();process.exit(0);});return;}
   if(cmd==='grant-issue'){
     const[projectId,planHash,artifactSha256,target,actor,out,ttlSeconds]=args;
-    if(!projectId||!planHash||!artifactSha256||!target||!actor||!out)throw new Error('usage: grant-issue <projectId> <planHash> <artifactSha256> <target> <actor> <out.json> [ttlSeconds]');
+    if(!projectId||!planHash||!artifactSha256||!target||!actor||!out)throw new Error('CLI_ARGUMENTS_REQUIRED:grant-issue:usage=grant-issue <projectId> <planHash> <artifactSha256> <target> <actor> <out.json> [ttlSeconds]');
     const issued=issueMutationGrant({projectId,planHash,artifactSha256,target,actor,runId:`run-${Date.now()}`,ttlSeconds:ttlSeconds?Number(ttlSeconds):undefined});
     if(!issued.ok){console.error(JSON.stringify(issued));process.exitCode=1;return;}
     await writeMutationGrant(out,issued.document);console.log(JSON.stringify({ok:true,out,grantHash:issued.document.grantHash,jti:issued.document.jti,expiresAt:issued.document.expiresAt},null,2));return;
   }
   if(cmd==='grant-verify'){
-    const[grantPath,projectId,planHash]=args;if(!grantPath)throw new Error('usage: grant-verify <grant.json> [projectId] [planHash]');
+    const[grantPath,projectId,planHash]=args;if(!grantPath)throw new Error('CLI_ARGUMENTS_REQUIRED:grant-verify:usage=grant-verify <grant.json> [projectId] [planHash]');
     const result=verifyMutationGrantDocument(await json(grantPath),{projectId,planHash});
     console.log(JSON.stringify(result,null,2));if(!result.ok)process.exitCode=1;return;
   }
   if(cmd==='mutation-propose'){
     const[config,planPath,out='.living-runtime',devRoot]=args;
-    if(!config||!planPath)throw new Error('usage: mutation-propose <project.projectdsl> <plan.json> [out-dir] [development-root]');
+    if(!config||!planPath)throw new Error('CLI_ARGUMENTS_REQUIRED:mutation-propose:usage=mutation-propose <project.projectdsl> <plan.json> [out-dir] [development-root]');
     const project=parseProjectDsl(await readFile(config,'utf8'));
     const base=dirname(resolve(config));
     const receipt=await proposeCodeMutation({project,projectBase:base,developmentRoot:devRoot?resolve(devRoot):resolve(base,project.development.root),planPath:resolve(planPath),outDir:resolve(out),keepWorkspace:true});
@@ -112,7 +112,7 @@ async function main():Promise<void>{
   }
   if(cmd==='mutation-apply'){
     const[config,planPath,sourcePatch,approvalHash,out='.living-runtime',devRoot]=args;
-    if(!config||!planPath||!sourcePatch||!approvalHash)throw new Error('usage: mutation-apply <project.projectdsl> <plan.json> <source-patch.json> <approvalHash> [out-dir] [development-root]');
+    if(!config||!planPath||!sourcePatch||!approvalHash)throw new Error('CLI_ARGUMENTS_REQUIRED:mutation-apply:usage=mutation-apply <project.projectdsl> <plan.json> <source-patch.json> <approvalHash> [out-dir] [development-root]');
     const project=parseProjectDsl(await readFile(config,'utf8'));
     const base=dirname(resolve(config));
     const grantPath=project.policy.mutationGrantFile?resolve(base,project.policy.mutationGrantFile):undefined;
@@ -121,20 +121,20 @@ async function main():Promise<void>{
     console.log(JSON.stringify(receipt,null,2));return;
   }
   if(cmd==='probes-ingest'){
-    const[cyclePath,out='.probe-evidence.json']=args;if(!cyclePath)throw new Error('usage: probes-ingest <cycle.json> [out-summary.json]');
+    const[cyclePath,out='.probe-evidence.json']=args;if(!cyclePath)throw new Error('CLI_ARGUMENTS_REQUIRED:probes-ingest:usage=probes-ingest <cycle.json> [out-summary.json]');
     const adapter=new TwinProbesAdapter();const {cycle,summary}=await adapter.loadCycle(cyclePath);await adapter.writeSummary(out,summary);
     console.log(JSON.stringify({host:cycle.host,summary},null,2));return;
   }
   if(cmd==='probes-run'){
     const[repo,out='.probe-cycle.json',host,scan,only]=args;
-    if(!repo)throw new Error('usage: probes-run <repo> [cycle.json] [host] [scan] [probe-a,probe-b]');
+    if(!repo)throw new Error('CLI_ARGUMENTS_REQUIRED:probes-run:usage=probes-run <repo> [cycle.json] [host] [scan] [probe-a,probe-b]');
     const adapter=new TwinProbesAdapter();
     const result=await adapter.run(repo,out,{host,scan,only:only?.split(',').map(item=>item.trim()).filter(Boolean)});
     const summaryOut=`${resolve(out)}.evidence.json`;
     await adapter.writeSummary(summaryOut,result.summary);
     console.log(JSON.stringify({cycle:resolve(out),evidence:summaryOut,host:result.cycle.host,summary:result.summary},null,2));return;
   }
-  if(cmd==='nl-to-dsl'){const[kind,input,out,mode='require-llm',fixture]=args;if(!kind||!input||!out)throw new Error('usage: nl-to-dsl <kind> <input> <out> [mode] [fixture.json]');const result=await new NlDslCompiler().compile({kind:kind as DslKind,text:await readFile(input,'utf8'),mode:llmMode(mode),deterministicValue:fixture?await json(fixture):undefined});await save(out,result);console.log(JSON.stringify({kind:result.kind,hash:result.canonicalHash,audit:result.audit},null,2));return;}
+  if(cmd==='nl-to-dsl'){const[kind,input,out,mode='require-llm',fixture]=args;if(!kind||!input||!out)throw new Error('CLI_ARGUMENTS_REQUIRED:nl-to-dsl:usage=nl-to-dsl <kind> <input> <out> [mode] [fixture.json]');const result=await new NlDslCompiler().compile({kind:kind as DslKind,text:await readFile(input,'utf8'),mode:llmMode(mode),deterministicValue:fixture?await json(fixture):undefined});await save(out,result);console.log(JSON.stringify({kind:result.kind,hash:result.canonicalHash,audit:result.audit},null,2));return;}
   if(cmd==='dashboard'){
     const[config='project.projectdsl',out='.living-runtime',port='7331',mode='deterministic']=args;
     const server=await startDashboard({
@@ -148,7 +148,7 @@ async function main():Promise<void>{
     return;
   }
   if(cmd==='scene-render'){
-    const[scenePath,twinPath,out]=args;if(!scenePath||!twinPath)throw new Error('usage: scene-render <scene.json> <twin.json> [out.usda]');
+    const[scenePath,twinPath,out]=args;if(!scenePath||!twinPath)throw new Error('CLI_ARGUMENTS_REQUIRED:scene-render:usage=scene-render <scene.json> <twin.json> [out.usda]');
     const scene=await json(scenePath) as SceneDocument,twin=await json(twinPath) as TwinDocument;
     validateScene(scene);validateTwin(twin);
     const usda=renderOpenUsd(scene,twin);
@@ -158,7 +158,7 @@ async function main():Promise<void>{
   }
   if(cmd==='physical-intake'){
     const[twinPath,scenePath,evidencePath,outDir='.physical-intake']=args;
-    if(!twinPath||!scenePath||!evidencePath)throw new Error('usage: physical-intake <twin.json> <scene.json> <evidence.json> [out-dir]');
+    if(!twinPath||!scenePath||!evidencePath)throw new Error('CLI_ARGUMENTS_REQUIRED:physical-intake:usage=physical-intake <twin.json> <scene.json> <evidence.json> [out-dir]');
     const twin=await json(twinPath) as TwinDocument,scene=await json(scenePath) as SceneDocument;
     const evidence=validatePhysicalEvidence(await json(evidencePath));
     const result=applyPhysicalEvidence({twin,scene,evidence});
@@ -174,7 +174,7 @@ async function main():Promise<void>{
   }
   if(cmd==='geometry-build'){
     const[contractPath,outDir='.geometry-build',projectId='geometry-build']=args;
-    if(!contractPath)throw new Error('usage: geometry-build <geometry-build.json> [out-dir] [project-id]');
+    if(!contractPath)throw new Error('CLI_ARGUMENTS_REQUIRED:geometry-build:usage=geometry-build <geometry-build.json> [out-dir] [project-id]');
     const result=await new GeometryService().materializeFile(resolve(contractPath),resolve(outDir),projectId);
     await save(`${outDir}/latest/${result.contract.id}.geometry-build.json`,result.contract);
     await mkdir(resolve(outDir,'latest'),{recursive:true});
@@ -186,7 +186,7 @@ async function main():Promise<void>{
   }
   if(cmd==='archive-analyze'){
     const[source,out='.archive-analysis',mode='analyze']=args;
-    if(!source)throw new Error('usage: archive-analyze <zip-or-directory> [out-dir] [analyze|materialize]');
+    if(!source)throw new Error('CLI_ARGUMENTS_REQUIRED:archive-analyze:usage=archive-analyze <zip-or-directory> [out-dir] [analyze|materialize]');
     if(!['analyze','materialize'].includes(mode))throw new Error(`ARCHIVE_MODE_INVALID:${mode}`);
     const archives=await findZipFiles(resolve(source));
     const analyses=[] as Awaited<ReturnType<typeof analyzeZipFile>>[];
@@ -199,7 +199,7 @@ async function main():Promise<void>{
     await save(join(resolve(out),'archive-project-index.json'),{schema:'subactor.archive-project-index/v1',source:resolve(source),archives:analyses,receipts});
     console.log(JSON.stringify({source:resolve(source),out:resolve(out),archives:analyses.length,coverage:analyses.reduce((sum,item)=>({entries:sum.entries+item.coverage.entries,geometryEntries:sum.geometryEntries+item.coverage.geometryEntries,materializableGeometryEntries:sum.materializableGeometryEntries+item.coverage.materializableGeometryEntries,unsupportedCadEntries:sum.unsupportedCadEntries+item.coverage.unsupportedCadEntries}),{entries:0,geometryEntries:0,materializableGeometryEntries:0,unsupportedCadEntries:0}),materialized:receipts.reduce((sum,item)=>sum+item.coverage.materialized,0),failed:receipts.reduce((sum,item)=>sum+item.coverage.failed,0)},null,2));return;
   }
-  if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('usage: crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
+  if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('CLI_ARGUMENTS_REQUIRED:crawl:usage=crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
   console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
 main().catch((error: unknown) => {

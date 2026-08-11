@@ -284,7 +284,7 @@ export class DoclingHttpConverter implements Converter {
         body: form,
         signal: AbortSignal.timeout(this.timeoutMs),
       });
-      if (!response.ok) throw new Error(`status ${response.status}`);
+      if (!response.ok) throw new Error(`DOCLING_CONVERSION_HTTP:${response.status}`);
       data = (await response.json()) as typeof data;
     } catch (error) {
       throw new ConversionError(`DOCLING_HTTP:${error instanceof Error ? error.message : String(error)}`);
