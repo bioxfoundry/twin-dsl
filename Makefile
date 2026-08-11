@@ -5,6 +5,14 @@ FACTORY_DEMO_PROJECT := .factory-demo/project/project.projectdsl
 FACTORY_DEMO_RUNTIME := .factory-demo/runtime
 WORKSPACE_PROJECT := $(abspath ../projects/nanobionic-laboratory-md/project.projectdsl)
 WORKSPACE_RUNTIME := $(abspath ../projects/nanobionic-laboratory-md/.living-runtime)
+SPEC_SOURCE_DIR ?= $(CURDIR)/../nanobionic-laboratory/A. SPECIFIKACIJA
+SPEC_MARKDOWN_DIR ?= $(CURDIR)/../nanobionic-laboratory-md/A. SPECIFIKACIJA
+SPEC_DSL_DIR ?= $(CURDIR)/../nanobionic-laboratory-md-dsl/A. SPECIFIKACIJA
+SPEC_BLUEPRINT ?= $(abspath ../projects/nanobionic-laboratory-md/baseline/scene-blueprint.json)
+SPEC_INTENT_INDEX ?= $(abspath ../projects/nanobionic-laboratory-md/.living-runtime/current/intent-dsl.index.json)
+SPEC_TWIN ?= $(abspath ../projects/nanobionic-laboratory-md/.living-runtime/current/twin.json)
+SPEC_SCENE ?= $(abspath ../projects/nanobionic-laboratory-md/.living-runtime/current/scene.json)
+SPEC_REPORT ?= $(abspath ../.ci-reports/specification-dsl-validation/final.json)
 ifneq ($(wildcard $(WORKSPACE_PROJECT)),)
 DASHBOARD_PROJECT ?= $(WORKSPACE_PROJECT)
 DASHBOARD_RUNTIME ?= $(WORKSPACE_RUNTIME)
@@ -18,7 +26,8 @@ export DOCKER_BUILDKIT = 1
 export COMPOSE_DOCKER_CLI_BUILD = 1
 
 .PHONY: verify demo research biofoundry realtime nl-dsl clean \
-        up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo prune-cache env
+        up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo \
+        specification-validate prune-cache env
 
 ## --- configuration ---------------------------------------------------------
 ## Create .env from .env.example on first use, so the documented defaults are the ones that
@@ -101,6 +110,20 @@ realtime:
 
 nl-dsl:
 	npm run demo:nl-dsl
+
+## Validate the key specification PDF family through Markdown, intentDSL and the active Twin.
+specification-validate:
+	@test -d "$(SPEC_SOURCE_DIR)" || { echo "SPEC_SOURCE_DIR_MISSING:$(SPEC_SOURCE_DIR)"; exit 2; }
+	@test -d "$(SPEC_MARKDOWN_DIR)" || { echo "SPEC_MARKDOWN_DIR_MISSING:$(SPEC_MARKDOWN_DIR)"; exit 2; }
+	@test -d "$(SPEC_DSL_DIR)" || { echo "SPEC_DSL_DIR_MISSING:$(SPEC_DSL_DIR)"; exit 2; }
+	@test -f "$(SPEC_BLUEPRINT)" || { echo "SPEC_BLUEPRINT_MISSING:$(SPEC_BLUEPRINT)"; exit 2; }
+	@test -f "$(SPEC_INTENT_INDEX)" || { echo "SPEC_INTENT_INDEX_MISSING:$(SPEC_INTENT_INDEX)"; exit 2; }
+	@test -f "$(SPEC_TWIN)" || { echo "SPEC_TWIN_MISSING:$(SPEC_TWIN)"; exit 2; }
+	@test -f "$(SPEC_SCENE)" || { echo "SPEC_SCENE_MISSING:$(SPEC_SCENE)"; exit 2; }
+	@npm run build >/dev/null
+	@node dist/src/cli/main.js specification-dsl-validate \
+		"$(SPEC_SOURCE_DIR)" "$(SPEC_MARKDOWN_DIR)" "$(SPEC_DSL_DIR)" \
+		"$(SPEC_BLUEPRINT)" "$(SPEC_INTENT_INDEX)" "$(SPEC_TWIN)" "$(SPEC_SCENE)" "$(SPEC_REPORT)"
 
 dashboard:
 	@npm run build

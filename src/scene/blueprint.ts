@@ -592,6 +592,20 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
       properties: { semanticEvidence: "direct", geometryEvidence: "document-only", zone: "build" },
     },
     {
+      id: "syringebot_01",
+      type: "equipment",
+      spatialClass: "physical",
+      spatialRequirements: { require: [], optional: ["position", "size", "orientation", "constraints"] },
+      label: "Syringebot 3D chemical synthesis robot",
+      sourceRoles: ["project"],
+      pathIncludes: ["syringebot", "chemical synthesis robot", "atvirojo kodo biofoundry studija"],
+      maxSourceUris: 25,
+      properties: {
+        semanticEvidence: "direct", geometryEvidence: "document-only", zone: "build",
+        note: "The study specifies the module, but provides no verified facility coordinates or envelope.",
+      },
+    },
+    {
       id: "bioprinter_mos3s_01",
       type: "equipment",
       spatialClass: "physical",
@@ -717,6 +731,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     { componentId: "oscar_robot_01", scenePath: "/Biofoundry/Equipment/Build/OscarRobot01", position: [6.0, 12.5, 1.0], size: [3.5, 2.5, 2.0] },
     { componentId: "microscope_module_01", scenePath: "/Biofoundry/Equipment/Test/Microscope01", position: [20.5, 12.5, 0.85], size: [1.8, 1.5, 1.7] },
     { componentId: "microfluidic_assembly_01", scenePath: "/Biofoundry/Equipment/Build/MicrofluidicAssembly01", position: [11.5, 12.0, 0.7], size: [1.6, 1.2, 1.4] },
+    { componentId: "syringebot_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01", primitive: "scope" },
     { componentId: "bioprinter_mos3s_01", scenePath: "/Biofoundry/Equipment/Build/BioprinterMOS3S01", position: [8.5, 7.0, 0.95], size: [2.8, 2.0, 1.9] },
     { componentId: "cleanroom_base_01", scenePath: "/Biofoundry/Facility/CleanroomBase01", position: [-20.0, 0.0, 0.5], size: [8, 10, 1.0], primitive: "cube" },
     // software as tall thin markers (not physical geometry claims)

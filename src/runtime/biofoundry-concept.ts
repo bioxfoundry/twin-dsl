@@ -162,6 +162,19 @@ const INTENT_EPISTEMIC_PRIORITY: Record<IntentRecord["type"], number> = {
   claim: 6,
 };
 
+const COMPONENT_INTENT_KEYWORDS: Readonly<Record<string, readonly string[]>> = {
+  oscar_robot_01: ["oscar", "robotic arm", "pipette"],
+  biospec_bioreactor_01: ["bio-spec", "biospec", "bioreactor"],
+  microscope_module_01: ["microscop", "imswitch", "napari"],
+  microfluidic_assembly_01: ["microfluid", "elveflow"],
+  syringebot_01: ["syringebot", "chemical synthesis robot", "3d synthesis"],
+  cleanroom_base_01: ["cleanroom", "clean room", "laminar flow", "hepa", "ulpa"],
+  chemos_planner_01: ["chemos"],
+  sila_orchestrator_01: ["sila 2", "sila_base", "sila2python"],
+  ros2_robotics_01: ["ros 2", "moveit 2"],
+  opentwins_state_01: ["opentwins", "digital twin"],
+};
+
 function intentKeywordMatches(text: string, keyword: string): boolean {
   const normalized = keyword.toLowerCase();
   if (/^[a-z0-9]+$/.test(normalized) && normalized.length <= 3) {
@@ -175,6 +188,13 @@ export function matchZoneIntents(
   intents: GroundedIntentEvidence[],
 ): GroundedIntentEvidence[] {
   const keywords = zone.keywords.filter((keyword) => !GENERIC_INTENT_KEYWORDS.has(keyword));
+  return matchIntents(keywords, intents);
+}
+
+function matchIntents(
+  keywords: readonly string[],
+  intents: GroundedIntentEvidence[],
+): GroundedIntentEvidence[] {
   return intents.filter(({ record }) => {
     const text = [record.text, ...record.targetUris].join(" ").toLowerCase();
     return keywords.some((keyword) => intentKeywordMatches(text, keyword));
@@ -216,8 +236,8 @@ function intentEvidenceHash(intents: GroundedIntentEvidence[]): string {
   return sha256(canonicalJson(intents.map(({ record, sourceUri }) => ({record,sourceUri}))));
 }
 
-function intentTwinEvidence(zone: BiofoundryZoneSpec, intents: GroundedIntentEvidence[]): Array<Record<string, unknown>> {
-  return [...matchZoneIntents(zone, intents)]
+function intentTwinEvidence(keywords: readonly string[], intents: GroundedIntentEvidence[]): Array<Record<string, unknown>> {
+  return [...matchIntents(keywords, intents)]
     .sort((left,right)=>canonicalStudyRank(left)-canonicalStudyRank(right)
       ||INTENT_EPISTEMIC_PRIORITY[left.record.type]-INTENT_EPISTEMIC_PRIORITY[right.record.type]
       ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
@@ -241,8 +261,9 @@ export function projectBiofoundryIntentEvidence(
     ...twin,
     components: twin.components.map((component) => {
       const zone = zoneById.get(component.id);
-      if (!zone) return component;
-      const matched = matchZoneIntents(zone, intents);
+      const keywords = zone?.keywords ?? COMPONENT_INTENT_KEYWORDS[component.id];
+      if (!keywords) return component;
+      const matched = matchIntents(keywords, intents);
       return {
         ...component,
         sourceUris: [...new Set([
@@ -254,7 +275,7 @@ export function projectBiofoundryIntentEvidence(
           matchedIntentCount: matched.length,
           intentEvidenceHash: intentEvidenceHash(matched),
           intentTypes: intentTypeCounts(matched),
-          intentEvidence: intentTwinEvidence(zone, intents),
+          intentEvidence: intentTwinEvidence(keywords, intents),
         },
         // Semantic statements are evidence about the assembly, not renderable parts.
         // Keep them out of `children`, whose identity must remain in one-to-one
@@ -398,7 +419,7 @@ export function biofoundryConceptTwin(
         matchedIntentCount: matchedIntents.length,
         intentEvidenceHash: intentEvidenceHash(matchedIntents),
         intentTypes,
-        intentEvidence: intentTwinEvidence(zone, intents),
+        intentEvidence: intentTwinEvidence(zone.keywords, intents),
         buildingBoundaryM: [60, 36, 4],
       },
       children: [

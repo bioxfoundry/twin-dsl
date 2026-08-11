@@ -53,6 +53,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("--only", default=None, help="with --tree, restrict to these kinds, e.g. .pdf,.docx")
     parser.add_argument("--quiet", action="store_true", help="with --tree, suppress per-file progress")
     parser.add_argument(
+        "--relative-prefix", default=None, metavar="PATH",
+        help="with --tree, prepend PATH to sourceRelative provenance without changing output layout",
+    )
+    parser.add_argument(
         "--translate",
         default=None,
         metavar="LANG",
@@ -94,6 +98,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 src, out, docling_url=args.docling_url, on_progress=progress,
                 only=only, secret_pattern=args.secret_pattern,
                 translate_to=args.translate, translation_policy=args.translation_policy,
+                relative_prefix=args.relative_prefix,
             )
         except ConversionError as error:
             print(f"f2md: {error}", file=sys.stderr)

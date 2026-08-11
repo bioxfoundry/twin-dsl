@@ -6430,6 +6430,491 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "SPEC_BLUEPRINT_MISSING",
+      "title": "Spec blueprint missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec blueprint input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_DSL_DIR_MISSING",
+      "title": "Spec dsl dir missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec dsl dir input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_INTENT_CORRUPTION_DETECTED",
+      "title": "Spec intent corruption detected",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A compiled intent record contains a known deterministic translation corruption.",
+      "causes": [
+        "the translation engine rewrote a technical identifier or approximate numeric value",
+        "intentDSL was compiled from an older corrupted Markdown revision"
+      ],
+      "impact": "The affected intent pack is rejected because downstream Twin facts would be misleading.",
+      "resolution": "Compare the named phrase with the source-language page, repair the translation rule, regenerate Markdown sidecars and recompile intentDSL."
+    },
+    {
+      "code": "SPEC_INTENT_INDEX_MISSING",
+      "title": "Spec intent index missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec intent index input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_INTENT_PACK_INVALID",
+      "title": "Spec intent pack invalid",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec intent pack input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_INTENT_PACK_MISSING",
+      "title": "Spec intent pack missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec intent pack input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_INTENT_PAGE_COVERAGE_MISSING",
+      "title": "Spec intent page coverage missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec intent page coverage input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_INTENT_PRIORITY_MISSING",
+      "title": "Spec intent priority missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "No canonical-study record survived in the bounded high-priority intent index.",
+      "causes": [
+        "generic source ordering displaced the canonical study",
+        "the study pack was absent, invalid or contained only excluded claim records"
+      ],
+      "impact": "The Twin may ignore the project's authoritative architecture and equipment requirements.",
+      "resolution": "Validate the study pack, rank canonical targets before generic source URIs, rerun the project iteration and inspect intent-dsl.index.json."
+    },
+    {
+      "code": "SPEC_INTENT_PROVENANCE_INVALID",
+      "title": "Spec intent provenance invalid",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "One or more intent records are malformed, duplicated or lack page-level source provenance.",
+      "causes": [
+        "the pack was compiled from legacy line-only Markdown without a structure sidecar",
+        "a record has an invalid schema, type, ID, target URI, fragment, page or revision hash"
+      ],
+      "impact": "The validator cannot trace a Twin assertion back to a stable location in the source PDF.",
+      "resolution": "Regenerate Markdown with source-page anchors and structure JSON, then recompile and validate every t2c.intent/v1 record."
+    },
+    {
+      "code": "SPEC_INTENT_SOURCE_HASH_MISMATCH",
+      "title": "Spec intent source hash mismatch",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The spec intent source evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SPEC_MARKDOWN_CONTENT_HASH_MISMATCH",
+      "title": "Spec markdown content hash mismatch",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The spec markdown content evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SPEC_MARKDOWN_DIAGRAM_COUNT_MISMATCH",
+      "title": "Spec markdown diagram count mismatch",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The spec markdown diagram count evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SPEC_MARKDOWN_DIAGRAM_SYNTAX_INVALID",
+      "title": "Spec markdown diagram syntax invalid",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "Translated Markdown contains a malformed image token and no longer addresses its diagram reliably.",
+      "causes": [
+        "a translator rewrote Markdown delimiters around an image",
+        "the image label and destination were not protected as separate translation spans"
+      ],
+      "impact": "The diagram disappears from rendered documentation and its evidence cannot reach the Twin.",
+      "resolution": "Protect Markdown punctuation and destination bytes during translation, regenerate the document and verify every local target exists."
+    },
+    {
+      "code": "SPEC_MARKDOWN_DIAGRAM_TARGET_MISSING",
+      "title": "Spec markdown diagram target missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec markdown diagram target input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_MARKDOWN_DIR_MISSING",
+      "title": "Spec markdown dir missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec markdown dir input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_MARKDOWN_MISSING",
+      "title": "Spec markdown missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec markdown input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_MARKDOWN_PAGE_COVERAGE_MISMATCH",
+      "title": "Spec markdown page coverage mismatch",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The translated structure does not preserve the same ordered source-page coverage as the native Markdown.",
+      "causes": [
+        "source-page comments were removed or merged during translation",
+        "a multipage artifact was rendered without a boundary anchor or a stale sidecar was reused"
+      ],
+      "impact": "Page-level provenance is incomplete, so intent records cannot be audited against every source page.",
+      "resolution": "Restore the missing source-page boundary, regenerate translated structure and quality files, then recompile intentDSL."
+    },
+    {
+      "code": "SPEC_MARKDOWN_QUALITY_DEGRADED",
+      "title": "Spec markdown quality degraded",
+      "subsystem": "spec",
+      "defaultSeverity": "warning",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The translated Markdown is usable but one or more deterministic quality checks remain warnings.",
+      "causes": [
+        "the source extractor reported a reconstructed or uncertain artifact",
+        "a non-blocking structure check such as TOC normalization remains incomplete"
+      ],
+      "impact": "The document remains addressable, but must not be described as fully verified evidence.",
+      "resolution": "Open the adjacent .quality.mdqldsl file, resolve each WARN check, then regenerate Markdown and intentDSL."
+    },
+    {
+      "code": "SPEC_MARKDOWN_QUALITY_FAILED",
+      "title": "Spec markdown quality failed",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the spec markdown quality failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SPEC_MARKDOWN_QUALITY_FALSE_PASS",
+      "title": "Spec markdown quality false pass",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "MarkdownQualityDSL says PASS while an independent deterministic structure check fails.",
+      "causes": [
+        "the quality contract does not include the failing page, hash or diagram invariant",
+        "quality and structure sidecars came from different artifact revisions"
+      ],
+      "impact": "A corrupt conversion would otherwise be admitted as trusted source evidence.",
+      "resolution": "Add the failed invariant to deterministic quality scoring and regenerate Markdown, structure and quality sidecars atomically."
+    },
+    {
+      "code": "SPEC_MARKDOWN_QUALITY_MISSING",
+      "title": "Spec markdown quality missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The source-language or translated Markdown has no readable .quality.mdqldsl sidecar, so the system cannot prove that conversion quality was evaluated.",
+      "causes": [
+        "only the Markdown file was copied from a conversion workspace",
+        "conversion stopped before sidecars were published atomically",
+        "a cleanup step removed generated quality contracts"
+      ],
+      "impact": "The document and aggregate specification report fail closed even when the Markdown looks readable.",
+      "resolution": "Regenerate the document with f2md so Markdown, structure, AST/artifacts and MarkdownQualityDSL are written together; rebuild intentDSL and validate again."
+    },
+    {
+      "code": "SPEC_MARKDOWN_SOURCE_HASH_MISMATCH",
+      "title": "Spec markdown source hash mismatch",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The spec markdown source evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SPEC_MARKDOWN_STRUCTURE_MISSING",
+      "title": "Spec markdown structure missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec markdown structure input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_SCENE_MISSING",
+      "title": "Spec scene missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec scene input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_SOURCE_DIR_MISSING",
+      "title": "Spec source dir missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec source dir input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_SOURCE_DOCUMENT_MISSING",
+      "title": "Spec source document missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The specification source directory is empty or does not contain the canonical Atvirojo kodo biofoundry studija.pdf.",
+      "causes": [
+        "the binary corpus was not mounted or checked out",
+        "the specification directory was renamed or the validator received the wrong path",
+        "the canonical study was removed while generated Markdown remained"
+      ],
+      "impact": "Cached Markdown, intentDSL and Twin output are not accepted as substitutes for the authoritative source evidence.",
+      "resolution": "Restore the original PDF bytes at the path named by the finding; if those bytes legitimately changed, regenerate every dependent artifact before validating again."
+    },
+    {
+      "code": "SPEC_TWIN_ARTIFACT_INVALID",
+      "title": "Spec twin artifact invalid",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The generated twin.json or scene.json is invalid, unreadable, or does not project the same component identities as the accepted blueprint.",
+      "causes": [
+        "the latest iteration failed before publishing both artifacts atomically",
+        "nested Twin components were counted differently from flat Scene bindings",
+        "a component was dropped, duplicated or renamed between blueprint, Twin and Scene",
+        "a generated artifact violates its domain validator"
+      ],
+      "impact": "A dashboard showing a partial or stale scene is not accepted as the active Digital Twin.",
+      "resolution": "Run a deterministic iteration, compare blueprint IDs with flattened Twin IDs and Scene binding IDs, repair generation rather than runtime output, then validate again."
+    },
+    {
+      "code": "SPEC_TWIN_BINDING_MISSING",
+      "title": "Spec twin binding missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "An addressable component exists in the scene blueprint but has no binding, so it can silently disappear from the Scene and dashboard.",
+      "causes": [
+        "a component was added without updating bindings",
+        "a binding still points at an old component identifier",
+        "unknown geometry caused omission instead of a semantic scope binding"
+      ],
+      "impact": "Component and binding counts alone are not accepted as proof of one-to-one scene coverage.",
+      "resolution": "Add a stable unique scene path; when dimensions or position lack evidence, use primitive scope and leave spatial values absent rather than inventing geometry."
+    },
+    {
+      "code": "SPEC_TWIN_BLUEPRINT_INVALID",
+      "title": "Spec twin blueprint invalid",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec twin blueprint input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_TWIN_COMPONENT_BASELINE_REDUCED",
+      "title": "Spec twin component baseline reduced",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the spec twin component baseline reduced condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SPEC_TWIN_MISSING",
+      "title": "Spec twin missing",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The spec twin input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SPEC_TWIN_REQUIREMENT_UNMAPPED",
+      "title": "Spec twin requirement unmapped",
+      "subsystem": "spec",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A laboratory module explicitly required by the canonical study has no distinct addressable Twin component.",
+      "causes": [
+        "the blueprint omitted a required component identity",
+        "two different devices were incorrectly collapsed into one component"
+      ],
+      "impact": "The dashboard and generator cannot attach evidence, state or future geometry to that requirement independently.",
+      "resolution": "Add a distinct source-grounded component and scene binding; leave position and dimensions missing when the source does not provide them."
+    },
+    {
       "code": "T2C_INTENT_ARRAY_REQUIRED",
       "title": "T2c intent array required",
       "subsystem": "t2c",

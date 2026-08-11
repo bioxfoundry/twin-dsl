@@ -33,11 +33,49 @@ DEFAULT_CHUNK_CHARS = 2500
 # ``SiLA 2`` into ``SLA 2``/``Silicon 2`` and ``ROS 2`` into ``ROM 2`` in the canonical project
 # study.  Translate the surrounding language while copying these tokens byte-for-byte.
 _PROTECTED_TERMS = re.compile(
-    r"\b(?:sila_ros|biofoundry|SiLA(?:\s*2)?|ROS(?:\s*2)?|ChemOS(?:\s*2(?:\.0)?)?|OpenTwins|OSCAR|BIO-SPEC|"
+    r"\b(?:sila_ros|sila_base|sila2python|biofoundry|SiLA(?:\s*2)?|ROS(?:\s*2)?|ChemOS(?:\s*2(?:\.0)?)?|OpenTwins|OSCAR|BIO-SPEC|"
     r"Syringebot|ImSwitch|napari|MoveIt\s*2|Raspberry\s+Pi|Ubuntu|gRPC|mDNS|OpenUSD|"
+    r"GLS80|HEPA|ULPA|ElveFlow|NEMA\s*17|RGB-D|Laminar\s+Flow\s+Hood|"
     r"Design[–-]Build[–-]Test[–-]Learn|dark[–-]factory)\b",
     re.IGNORECASE,
 )
+
+# Markdown syntax is owned by the converter and is evidence-bearing.  Translating a whole image
+# or link lets an NMT engine rewrite both punctuation and the relative asset path.  Inline code
+# and HTML tags are equally structural: translate prose around them, never the tokens themselves.
+_PROTECTED_MARKDOWN = re.compile(
+    r"!\[[^\]\n]*\]\([^\n)]*\)|"
+    r"(?<!!)\[[^\]\n]*\]\([^\n)]*\)|"
+    r"`[^`\n]+`|"
+    r"</?[A-Za-z][^>\n]*>"
+)
+
+# Quantitative source evidence is not prose.  Keeping approximate values intact prevents offline
+# NMT from hallucinating currency codes (``≈6000 EUR`` became ``PLN 6000 EUR``) or company names
+# (``≈3 850`` became ``SmithKline 3 850``).
+_PROTECTED_EVIDENCE = re.compile(
+    r"≈\s*\d[\d\s.,]*(?:[–-]\s*\d[\d\s.,]*)?(?:\s*(?:EUR|m|mm))?",
+    re.IGNORECASE,
+)
+
+_KNOWN_TRANSLATION_REPAIRS: Tuple[Tuple[str, re.Pattern[str], str], ...] = (
+    ("LAMINAR_FLOW_HOOD", re.compile(r"\bLaminar flow food\b", re.IGNORECASE), "Laminar flow hood"),
+    ("APPROX_RANGE", re.compile(r"\bSmithKline\s+3\s*850\s*[-–]\s*7\s*800\b", re.IGNORECASE), "≈3 850–7 800"),
+    ("APPROX_PRICE", re.compile(r"\bPLN\s+6000\s+EUR\b", re.IGNORECASE), "≈6000 EUR"),
+    ("APPROX_REACH", re.compile(r"\breach\s+\.0,5\s*m\b", re.IGNORECASE), "reach ≈0,5 m"),
+    ("SILA_BASE", re.compile(r"\bsila\s+_\s+base\b", re.IGNORECASE), "sila_base"),
+)
+
+
+def _repair_translation(value: str) -> Tuple[str, Tuple[str, ...]]:
+    """Repair a small audited corpus of known NMT corruptions and report every applied rule."""
+    repaired = value
+    applied: List[str] = []
+    for code, pattern, replacement in _KNOWN_TRANSLATION_REPAIRS:
+        repaired, count = pattern.subn(replacement, repaired)
+        if count:
+            applied.append(code)
+    return repaired, tuple(applied)
 
 
 def _translated_text(translator: Any, value: str) -> str:
@@ -50,12 +88,37 @@ def _translated_text(translator: Any, value: str) -> str:
         translated = str(translator.translate(segment.strip())).strip()
         return leading + translated + trailing
 
+    # Merge syntax and terminology matches in source order.  Syntax wins on overlap, so product
+    # names inside a URL or inline-code span are copied once as part of that larger token.
+    candidates = sorted(
+        [
+            *_PROTECTED_MARKDOWN.finditer(value),
+            *_PROTECTED_TERMS.finditer(value),
+            *_PROTECTED_EVIDENCE.finditer(value),
+        ],
+        key=lambda match: (match.start(), -(match.end() - match.start())),
+    )
+    protected: List[Any] = []
+    protected_end = -1
+    for match in candidates:
+        if match.start() < protected_end:
+            continue
+        protected.append(match)
+        protected_end = match.end()
+
     rendered: List[str] = []
     position = 0
-    for match in _PROTECTED_TERMS.finditer(value):
+    for match in protected:
         if match.start() > position:
             rendered.append(segment_text(value[position:match.start()]))
-        rendered.append(match.group(0))
+        token = match.group(0)
+        markdown_link = re.fullmatch(r"(!?)\[([^\]\n]*)\]\(([^\n)]*)\)", token)
+        if markdown_link:
+            # Labels are prose; destinations and delimiters are converter-owned evidence.
+            label = _translated_text(translator, markdown_link.group(2))
+            rendered.append(f"{markdown_link.group(1)}[{label}]({markdown_link.group(3)})")
+        else:
+            rendered.append(token)
         position = match.end()
     if position < len(value):
         rendered.append(segment_text(value[position:]))
@@ -93,6 +156,7 @@ class Translation:
     engine: str
     model: str
     source_language: str
+    repairs: Tuple[str, ...] = ()
 
 
 def detect_language(text: str, minimum_chars: int = 120) -> Optional[str]:
@@ -227,7 +291,8 @@ class ArgosTranslator:
                 translated_blocks.append(block)
                 continue
             translated_blocks.append(_translate_markdown_block(pair, block, self.chunk_chars))
-        return Translation("\n\n".join(translated_blocks).strip(), self.engine, f"argos:{source}-{self.target}", source)
+        text, repairs = _repair_translation("\n\n".join(translated_blocks).strip())
+        return Translation(text, self.engine, f"argos:{source}-{self.target}", source, repairs)
 
 
 class OpenRouterTranslator:
@@ -294,7 +359,8 @@ class OpenRouterTranslator:
         if not self.available():
             raise TranslationUnavailable("OPENROUTER_API_KEY_MISSING")
         parts = [self._call(chunk) for chunk in _chunks(text, self.chunk_chars)]
-        return Translation("\n\n".join(p.strip() for p in parts).strip(), self.engine, self.model, source)
+        text, repairs = _repair_translation("\n\n".join(p.strip() for p in parts).strip())
+        return Translation(text, self.engine, self.model, source, repairs)
 
 
 class TranslationPolicy:

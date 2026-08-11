@@ -31,6 +31,7 @@ import { diagnoseDigitalTwin, writeDiagnostics } from "../runtime/digital-twin-d
 import { GeometryService } from "../geometry/geometry-service.js";
 import { renderGeometryDsl, renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
 import { analyzeZipFile, findZipFiles, materializeArchiveGeometry, writeArchiveAnalysis } from "../ingestion/archive-project.js";
+import { validateSpecificationDsl, writeSpecificationDslValidation } from "../runtime/specification-dsl-validation.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -76,6 +77,12 @@ async function main():Promise<void>{
     if(!sourceRoot||!markdownRoot||!dslRoot)throw new Error('CLI_ARGUMENTS_REQUIRED:project-diagnose:usage=project-diagnose <source-root> <markdown-root> <dsl-root> [runtime-root] [report.json]');
     const report=await diagnoseDigitalTwin({sourceRoot:resolve(sourceRoot),markdownRoot:resolve(markdownRoot),dslRoot:resolve(dslRoot),runtimeRoot:resolve(runtimeRoot),dashboardSource:resolve('public/dashboard.html')});
     await writeDiagnostics(resolve(out),report);console.log(JSON.stringify(report,null,2));if(report.status==='error')process.exitCode=1;return;
+  }
+  if(cmd==='specification-dsl-validate'){
+    const[sourceDir,markdownDir,dslDir,blueprintPath,intentIndexPath,twinPath,scenePath,out='specification-dsl-validation.json']=args;
+    if(!sourceDir||!markdownDir||!dslDir)throw new Error('CLI_ARGUMENTS_REQUIRED:specification-dsl-validate:usage=specification-dsl-validate <source-dir> <markdown-dir> <dsl-dir> [blueprint.json] [intent-index.json] [twin.json] [scene.json] [report.json]');
+    const report=await validateSpecificationDsl({sourceDir,markdownDir,dslDir,blueprintPath,intentIndexPath,twinPath,scenePath});
+    await writeSpecificationDslValidation(resolve(out),report);console.log(JSON.stringify(report,null,2));if(report.status==='FAIL')process.exitCode=1;return;
   }
   if(cmd==='project-autonomous'){
     const[config='project.projectdsl',out='.living-runtime',mode='prefer-llm',interval='60000',sourceRoot,markdownRoot,dslRoot]=args;
@@ -200,7 +207,7 @@ async function main():Promise<void>{
     console.log(JSON.stringify({source:resolve(source),out:resolve(out),archives:analyses.length,coverage:analyses.reduce((sum,item)=>({entries:sum.entries+item.coverage.entries,geometryEntries:sum.geometryEntries+item.coverage.geometryEntries,materializableGeometryEntries:sum.materializableGeometryEntries+item.coverage.materializableGeometryEntries,unsupportedCadEntries:sum.unsupportedCadEntries+item.coverage.unsupportedCadEntries}),{entries:0,geometryEntries:0,materializableGeometryEntries:0,unsupportedCadEntries:0}),materialized:receipts.reduce((sum,item)=>sum+item.coverage.materialized,0),failed:receipts.reduce((sum,item)=>sum+item.coverage.failed,0)},null,2));return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('CLI_ARGUMENTS_REQUIRED:crawl:usage=crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | specification-dsl-validate | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));

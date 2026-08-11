@@ -1319,6 +1319,16 @@ def test_tree_records_both_absolute_and_tree_relative_source(tmp_path) -> None:
     assert 'sourceRelative: "deep/a.md"' in text
 
 
+def test_tree_can_preserve_a_parent_relative_provenance_prefix(tmp_path) -> None:
+    src = tmp_path / "src"
+    src.mkdir()
+    (src / "a.md").write_text("# A\n", encoding="utf-8")
+    out = tmp_path / "out"
+    convert_tree(str(src), str(out), relative_prefix="A. SPECIFIKACIJA")
+    text = (out / "a.md.md").read_text(encoding="utf-8")
+    assert 'sourceRelative: "A. SPECIFIKACIJA/a.md"' in text
+
+
 # --------------------------------------------------------------------- translation routing
 def test_hybrid_policy_keeps_confidential_documents_offline() -> None:
     from f2md.translate import TranslationPolicy
@@ -1361,6 +1371,7 @@ def test_argos_preserves_technical_terms_tables_and_text_after_code() -> None:
                 value.replace("Diegimas", "Deployment")
                 .replace("Komponentas", "Component")
                 .replace("Valdymas", "Control")
+                .replace("Ataskaita", "Report")
                 .replace("jutiklis", "sensor")
                 .replace("SiLA", "Syla")
                 .replace("ROS", "ROM")
@@ -1386,6 +1397,16 @@ ChemOS 2.0 valdo biofoundry dark-factory.
 
 SiLA client links ROS data.
 sila_ros remains stable.
+Reach ≈0,5 m and price ≈6000 EUR; total ≈3 850–7 800.
+Laminar Flow Hood remains evidence.
+
+![Reconstructed diagram](study.lt.artifacts/diagrams/a/diagram.svg)
+
+<details>
+<summary>Šaltinio diagrama</summary>
+
+[Ataskaita](reports/source.md) uses `sila_base` with GLS80, HEPA, ULPA, ElveFlow, NEMA 17 and RGB-D.
+</details>
 """
 
     translated = translator.translate(source, "lt").text
@@ -1401,6 +1422,88 @@ sila_ros remains stable.
     assert "ChemOS 2.0 valdo biofoundry dark-factory." in translated
     assert "SiLA client links ROS data." in translated
     assert "sila_ros remains stable." in translated
+    assert "≈0,5 m" in translated and "≈6000 EUR" in translated and "≈3 850–7 800" in translated
+    assert "Laminar Flow Hood" in translated
+    assert "![Reconstructed diagram](study.lt.artifacts/diagrams/a/diagram.svg)" in translated
+    assert "<details>" in translated
+    assert "</details>" in translated
+    assert "[Report](reports/source.md)" in translated
+    assert "`sila_base`" in translated
+    for term in ("GLS80", "HEPA", "ULPA", "ElveFlow", "NEMA 17", "RGB-D"):
+        assert term in translated
+
+
+def test_translation_repairs_known_nmt_corruptions_and_reports_rules() -> None:
+    from f2md.translate import _repair_translation
+
+    repaired, rules = _repair_translation(
+        "Laminar flow food; SmithKline 3 850-7 800; PLN 6000 EUR; "
+        "reach .0,5 m; sila _ base"
+    )
+    assert repaired == "Laminar flow hood; ≈3 850–7 800; ≈6000 EUR; reach ≈0,5 m; sila_base"
+    assert rules == ("LAMINAR_FLOW_HOOD", "APPROX_RANGE", "APPROX_PRICE", "APPROX_REACH", "SILA_BASE")
+
+
+def test_pass_through_quality_derives_pages_from_source_page_anchors(tmp_path) -> None:
+    from f2md.quality import normalize_document
+
+    source = tmp_path / "study.pdf"
+    source.write_bytes(b"pdf")
+    markdown = """<!-- source-page:1 -->
+
+# One
+
+First page.
+
+<!-- source-page:2 -->
+
+## Two
+
+Second page.
+"""
+
+    artifacts = normalize_document(markdown, str(source), normalize=False)
+
+    assert [page["number"] for page in artifacts.structure["pages"]] == [1, 2]
+    assert artifacts.quality["metrics"]["pages"] == 2
+    assert {block["page"] for block in artifacts.structure["blocks"]} == {1, 2}
+
+
+def test_markdown_quality_rejects_malformed_image_syntax(tmp_path) -> None:
+    source = tmp_path / "study.pdf"
+    source.write_bytes(b"pdf")
+    artifacts = normalize_document(
+        "# Diagram\n\n! Restructured Domain] (assets/diagram.svg)\n",
+        str(source),
+        normalize=False,
+    )
+    check = next(item for item in artifacts.quality["checks"] if item["id"] == "MARKDOWN_IMAGE_SYNTAX")
+    assert check["status"] == "fail"
+    assert artifacts.quality["status"] == "degraded"
+
+
+def test_markdown_quality_does_not_parse_code_as_headings_or_tables(tmp_path) -> None:
+    source = tmp_path / "study.pdf"
+    source.write_bytes(b"pdf")
+    artifacts = normalize_document(
+        "# Integration\n\n```text\n# shell comment\n| diagram node |\n```\n",
+        str(source),
+        normalize=False,
+    )
+    checks = {item["id"]: item["status"] for item in artifacts.quality["checks"]}
+    assert checks["HEADING_TREE"] == "pass"
+    assert checks["TABLE_ORPHAN_CELL"] == "pass"
+
+
+def test_pdf_layout_classifies_split_code_continuations_without_monospace_fonts() -> None:
+    from f2md.pdf_layout import _code_language
+
+    assert _code_language("# Atrado SiLA serverius\nclients = SilaClient.discover(timeout=5)") == "python"
+    assert _code_language("dt.add_stream(") == "python"
+    assert _code_language('source=oscar.CurrentPosition,\ntarget="Twin.Position"\n)') == "python"
+    assert _code_language("# Sukurkite naują paketą\nsila-codegen new-package \\") == "bash"
+    assert _code_language("--package-name biofoundry_oscar \\\n--feature-files ./OscarControl.sila.xml") == "bash"
+    assert _code_language("biofoundry_oscar/\nserver.py\npyproject.toml") == "text-tree"
 
 
 def test_hosted_llm_contract_uses_schema_gbnf_and_hash_bound_patchdsl() -> None:

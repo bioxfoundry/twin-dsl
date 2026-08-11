@@ -264,16 +264,21 @@ def _toc_content(grid: Sequence[Sequence[str]]) -> Optional[Dict[str, Any]]:
     numbered = [
         row for row in grid
         if re.match(r"^(?:[IVXLCDM]+|\d+(?:\.\d+)*)(?:\s|$)", row[0].strip(), re.IGNORECASE)
-        and re.search(r"\d", row[2])
+        and re.search(r"\d", " ".join(row[1:]))
     ]
-    if len(numbered) / len(grid) < 0.75:
+    if len(numbered) / len(grid) < 0.6:
         return None
     items: List[Dict[str, Any]] = []
     for row in grid:
         raw_label = " ".join(cell for cell in row[:2] if cell).strip()
+        page_match = re.search(r"\d+", row[2])
+        if page_match is None:
+            trailing_page = re.search(r"(?:^|\s)(\d{1,4})\s*$", raw_label)
+            if trailing_page:
+                page_match = trailing_page
+                raw_label = raw_label[:trailing_page.start()].rstrip()
         label = re.sub(r"(?:\s*\.\s*){3,}", " ", raw_label)
         label = re.sub(r"\s+", " ", label).strip(" .")
-        page_match = re.search(r"\d+", row[2])
         if not label or page_match is None:
             continue
         number = re.match(r"^([IVXLCDM]+|\d+(?:\.\d+)*)", label, re.IGNORECASE)
@@ -464,12 +469,27 @@ def _code_language(text: str) -> str:
         sample,
     ):
         return "python"
+    # PDF exporters frequently split one proportional-font listing into many layout blocks.  The
+    # continuation may begin with a comment, assignment or method call rather than another import.
+    # Treat syntax, not font choice, as the evidence that these blocks are code.
+    if re.search(
+        r"(?m)^\s*(?:[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*=\s*(?:[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*\s*\(|['\"\d])|"
+        r"[A-Za-z_]\w*(?:\.[A-Za-z_]\w*)+\s*\(|(?:source|target)\s*=)",
+        sample,
+    ):
+        return "python"
     if re.search(
         r"(?m)^\s*(?:sudo\s+|pip(?:3)?\s+|apt(?:-get)?\s+|cd\s+|curl\s+|wget\s+|export\s+|"
-        r"avahi-browse\s+|systemctl\s+|ufw\s+|pytest(?:\s|$)|python(?:3)?\s+-m\s+)",
+        r"avahi-browse\s+|systemctl\s+|ufw\s+|pytest(?:\s|$)|python(?:3)?\s+-m\s+|"
+        r"sila-codegen\s+|--[A-Za-z][\w-]+(?:\s|$))",
         sample,
     ):
         return "bash"
+    meaningful = [line.strip() for line in sample.splitlines() if line.strip()]
+    if meaningful and all(line.startswith("#") for line in meaningful):
+        return "bash"
+    if meaningful and all(re.fullmatch(r"(?:[\w.-]+/|[\w.-]+\.(?:py|toml|xml|yaml|yml|json))", line) for line in meaningful):
+        return "text-tree"
     if len(re.findall(r"(?m)^\s*[A-Za-z_][\w.-]*:\s+\S+", sample)) >= 2:
         return "yaml"
     if re.search(r"\b(?:module|difference|union|translate|rotate|cylinder|cube)\s*\(", sample):
@@ -717,6 +737,51 @@ def _merge_toc_lead_ins(artifacts: Sequence[Dict[str, Any]], source_hash: str) -
     return output
 
 
+def _merge_toc_followers(artifacts: Sequence[Dict[str, Any]], source_hash: str) -> List[Dict[str, Any]]:
+    """Fold page-wrapped ``number / label / page`` blocks into the preceding typed TOC."""
+    output: List[Dict[str, Any]] = []
+    index = 0
+    while index < len(artifacts):
+        artifact = artifacts[index]
+        if artifact.get("subtype") != "table-of-contents":
+            output.append(artifact)
+            index += 1
+            continue
+        followers: List[Tuple[Dict[str, Any], re.Match[str]]] = []
+        cursor = index + 1
+        while cursor < len(artifacts):
+            candidate = artifacts[cursor]
+            text = str(candidate.get("content", {}).get("text", ""))
+            match = re.fullmatch(r"\s*(\d+(?:\.\d+)*)\s*\n(.+?)\n\s*(\d{1,4})\s*", text, re.DOTALL)
+            if candidate.get("type") != "paragraph" or match is None:
+                break
+            followers.append((candidate, match))
+            cursor += 1
+        if not followers:
+            output.append(artifact)
+            index += 1
+            continue
+        # Keep page-wrapped pieces as separate navigation artifacts.  Merging their page sets into
+        # the page-1 artifact would remove the rendered source-page:2 anchor and make a complete
+        # 11-page document look like it covered only ten pages after translation.
+        output.append(artifact)
+        for candidate, match in followers:
+            label = re.sub(r"\s+", " ", match.group(2)).strip()
+            output.append(make_artifact(
+                source_hash, "list", list(candidate.get("pages", [])), candidate.get("bbox"),
+                {"items": [{
+                    "label": f"{match.group(1)} {label}",
+                    "targetPage": int(match.group(3)),
+                    "level": match.group(1).count(".") + 1,
+                }], "detector": "f2md.toc-page-continuation-v1"},
+                subtype="table-of-contents", semantic=False,
+                confidence=float(candidate.get("confidence") or 0), quality="reconstructed",
+                source_bboxes=list(candidate.get("sourceBboxes", [])),
+            ))
+        index = cursor
+    return output
+
+
 def _merge_monospace_blocks(blocks: Sequence[_TextBlock]) -> List[_TextBlock]:
     merged: List[_TextBlock] = []
     for block in sorted(blocks, key=lambda item: (item.bbox[1], item.bbox[0])):
@@ -958,6 +1023,7 @@ def extract_pdf_ast(path: str, *, min_chars: int = 32) -> Dict[str, Any]:
     artifacts = _stitch_monospace_artifacts(artifacts, pages, source_hash)
     artifacts = _normalize_headings(artifacts, source_hash)
     artifacts = _merge_toc_lead_ins(artifacts, source_hash)
+    artifacts = _merge_toc_followers(artifacts, source_hash)
     relations = _attach_section_relations(artifacts)
     return build_document_ast(
         path, pages, artifacts, extractor="pymupdf-layout", version=version, relations=relations,

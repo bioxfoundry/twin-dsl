@@ -35,6 +35,9 @@ _HEADING = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
 _TABLE_ROW = re.compile(r"^\s*\|.*\|\s*$")
 _TABLE_SEPARATOR = re.compile(r"^\s*\|(?:\s*:?-{3,}:?\s*\|)+\s*$")
 _IMAGE = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+_MALFORMED_IMAGE = re.compile(
+    r"(?m)^\s*!\s+[^\]\n]+\]\s*\([^)]+\)\s*$|^\s*!\[[^\]\n]*\]\s+\([^)]+\)\s*$"
+)
 _PICTURE_BLOCK = re.compile(
     r"<!--\s*Start of picture text\s*-->(.*?)<!--\s*End of picture text\s*-->",
     re.IGNORECASE | re.DOTALL,
@@ -51,6 +54,21 @@ _TOC_LEADER = re.compile(r"^(.*?)(?:\.{2,}|\s{2,})\s*(\d{1,4})\s*$")
 _ASCII_STRONG = re.compile(
     r"\][ \t]*\|{2,}[ \t]*\[|(?:--+>|<--+)|[┌┐└┘├┤┬┴─│]{2,}|\+[-=]{2,}\+"
 )
+
+
+def _outside_fenced_code(markdown: str) -> str:
+    """Return prose-only bytes for checks whose Markdown syntax is meaningless inside code."""
+    rendered: List[str] = []
+    in_fence = False
+    for line in markdown.splitlines():
+        if _FENCE.match(line):
+            in_fence = not in_fence
+            rendered.append("")
+        elif in_fence:
+            rendered.append("")
+        else:
+            rendered.append(line)
+    return "\n".join(rendered)
 
 
 @dataclass(frozen=True)
@@ -694,8 +712,19 @@ def normalize_document(
     raw_picture_blocks = len(_PICTURE_BLOCK.findall(raw))
     raw_mark_tags = len(_MARK_TAG.findall(raw))
     if pages is None:
-        parts = raw.split("\f")
-        pages = [PageMarkdown(index + 1, part.strip()) for index, part in enumerate(parts) if part.strip()]
+        # A translated document is derived from canonical Markdown rather than directly from a
+        # layout backend.  Its source-page comments are the page contract.  Treating the entire
+        # translation as one page made a 30-page study report `pages: 1` while its blocks still
+        # carried pages 1..30, and allowed the inconsistent sidecar to claim PASS.
+        anchors = list(re.finditer(r"(?m)^<!--\s*source-page:(\d+)(?:\s+[^>]*)?-->\s*$", raw))
+        if anchors:
+            pages = []
+            for index, anchor in enumerate(anchors):
+                end = anchors[index + 1].start() if index + 1 < len(anchors) else len(raw)
+                pages.append(PageMarkdown(int(anchor.group(1)), raw[anchor.end():end].strip()))
+        else:
+            parts = raw.split("\f")
+            pages = [PageMarkdown(index + 1, part.strip()) for index, part in enumerate(parts) if part.strip()]
     if not pages:
         pages = [PageMarkdown(1, raw)]
 
@@ -740,16 +769,18 @@ def normalize_document(
     source_digest = _source_hash(source_path)
     blocks = _blocks(canonical, source_digest)
 
-    mark_tags = len(_MARK_TAG.findall(canonical))
-    html_breaks = len(_BR.findall(canonical))
-    orphan_rows = _orphan_table_rows(canonical)
-    suspect_tokens = sorted(set(_SUSPECT_OCR_CASE.findall(canonical)))
-    picture_blocks = len(_PICTURE_BLOCK.findall(canonical))
+    analysis_markdown = _outside_fenced_code(canonical)
+    mark_tags = len(_MARK_TAG.findall(analysis_markdown))
+    html_breaks = len(_BR.findall(analysis_markdown))
+    orphan_rows = _orphan_table_rows(analysis_markdown)
+    suspect_tokens = sorted(set(_SUSPECT_OCR_CASE.findall(analysis_markdown)))
+    picture_blocks = len(_PICTURE_BLOCK.findall(analysis_markdown))
     fenced = len(_FENCE.findall(canonical)) // 2
     figures = sum(1 for block in blocks if block["type"] == "figure")
     diagrams = sum(1 for block in blocks if block["type"] == "diagram")
-    heading_valid = _heading_tree_valid(canonical)
-    toc_residuals = _toc_residuals(canonical)
+    malformed_images = len(_MALFORMED_IMAGE.findall(analysis_markdown))
+    heading_valid = _heading_tree_valid(analysis_markdown)
+    toc_residuals = _toc_residuals(analysis_markdown)
     raw_ocr = ocr_audit or {}
     raw_pages = raw_ocr.get("ocrPages", [])
     ocr_pages: List[int] = []
@@ -801,6 +832,7 @@ def normalize_document(
         _check("PICTURE_TEXT_BLOCKS", picture_blocks == 0, picture_blocks, 0),
         _check("FIGURES_LINKED", raw_picture_blocks == 0 or figures >= raw_picture_blocks,
                f"{figures}/{raw_picture_blocks}", f"{raw_picture_blocks}/{raw_picture_blocks}", "warn"),
+        _check("MARKDOWN_IMAGE_SYNTAX", malformed_images == 0, malformed_images, 0),
         _check("HEADING_TREE", heading_valid, "valid" if heading_valid else "invalid", "valid"),
         _check("TOC_STRUCTURE", toc_residuals == 0, toc_residuals, 0, "warn"),
         ocr_suspect_check,
@@ -829,6 +861,7 @@ def normalize_document(
         "fencedCodeBlocks": fenced,
         "figures": figures,
         "diagrams": diagrams,
+        "malformedImages": malformed_images,
         "htmlBreaks": html_breaks,
         "markTags": mark_tags,
         "ocrSuspectTokens": len(suspect_tokens),

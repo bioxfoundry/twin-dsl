@@ -277,3 +277,31 @@ test("intent evidence enriches a blueprint-derived Twin without changing zone ge
     "the declared canonical study must survive bounded evidence projection");
   validateTwinGrounding(projected, projected, corpus);
 });
+
+test("canonical equipment intent is attached to its distinct physical component", () => {
+  const corpus = resources();
+  const baseline = biofoundryConceptTwin(project(), corpus, observations, "22".repeat(32), development);
+  baseline.components.push({
+    id: "syringebot_01",
+    type: "equipment",
+    sourceUris: [corpus[1].uri],
+    properties: {label: "Syringebot", geometryEvidence: "document-only"},
+    children: [],
+  });
+  const intent: GroundedIntentEvidence = {
+    sourceUri: corpus[1].uri,
+    record: {
+      schema: "t2c.intent/v1",
+      id: "syringebot-plan",
+      type: "plan",
+      text: "Syringebot is the open-source 3D chemical synthesis robot in the laboratory workflow.",
+      actor: "source:markdown",
+      targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"],
+    },
+  };
+  const projected = projectBiofoundryIntentEvidence(baseline, [intent]);
+  const component = projected.components.find((item) => item.id === "syringebot_01")!;
+  assert.equal(component.properties.matchedIntentCount, 1);
+  assert.equal((component.properties.intentEvidence as Array<{intentId: string}>)[0].intentId, "syringebot-plan");
+  assert.equal(component.properties.geometryEvidence, "document-only");
+});

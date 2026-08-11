@@ -133,7 +133,11 @@ const INTENT_PRIORITY:Record<IntentRecord["type"],number> = {
   message:5,
   claim:6,
 };
-async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslLoad> {
+function canonicalIntentRank(intent:GroundedIntentEvidence):number {
+  return intent.record.targetUris.some(target=>
+    target.toLowerCase().includes("atvirojo kodo biofoundry studija")) ? 0 : 1;
+}
+export async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslLoad> {
   const evidence:GroundedIntentEvidence[] = [];
   const result:IntentDslIndex = {
     packs:0,
@@ -172,7 +176,8 @@ async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,strin
   result.semanticHash = sha256(canonicalJson(evidence));
   result.highPriority = evidence
     .filter(({record})=>record.type!=="claim")
-    .sort((left,right)=>INTENT_PRIORITY[left.record.type]-INTENT_PRIORITY[right.record.type]
+    .sort((left,right)=>canonicalIntentRank(left)-canonicalIntentRank(right)
+      ||INTENT_PRIORITY[left.record.type]-INTENT_PRIORITY[right.record.type]
       ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
     .slice(0,40)
     .map(({record,sourceUri})=>({

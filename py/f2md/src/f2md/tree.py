@@ -212,6 +212,7 @@ def convert_tree(
     secret_pattern: Optional[str] = None,
     translate_to: Optional[str] = None,
     translation_policy: str = "hybrid",
+    relative_prefix: Optional[str] = None,
 ) -> TreeResult:
     """Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
 
@@ -242,6 +243,7 @@ def convert_tree(
     coverage_records: List[Dict[str, Any]] = []
     for index, path in enumerate(paths, 1):
         relative = os.path.relpath(path, src)
+        source_relative = os.path.join(relative_prefix, relative) if relative_prefix else relative
         coverage_path = relative.replace(os.sep, "/")
         kind = detect_document_kind(path)
         if only and kind not in only:
@@ -262,7 +264,7 @@ def convert_tree(
             # published somewhere else. The tree-relative form is kept alongside it because that
             # is what mirrors the output layout.
             "source": os.path.abspath(path),
-            "sourceRelative": relative,
+            "sourceRelative": source_relative.replace(os.sep, "/"),
             "inputKind": kind,
             "mediaType": media_type_for(path),
         }
@@ -417,6 +419,8 @@ def convert_tree(
                 "translationModel": translation.model,
                 "translationOf": os.path.basename(target),
             }
+            if translation.repairs:
+                translated_fields["translationRepairs"] = list(translation.repairs)
             # Translation is a derived Markdown document, not a faithful layout projection of the
             # source PDF.  It receives its own semantic structure below and must not inherit the
             # original DocumentAST/ArtifactStore provenance by association.
@@ -441,7 +445,7 @@ def convert_tree(
                 "warnings": [
                     warning for warning in translated_fields.get("warnings", [])
                     if not str(warning).startswith("MARKDOWN_QUALITY:")
-                ] + ([
+                ] + [f"TRANSLATION_REPAIR:{code}" for code in translation.repairs] + ([
                     "MARKDOWN_QUALITY:"
                     f"{translated_artifacts.quality['status'].upper()}:"
                     f"{translated_artifacts.quality['score']}"
