@@ -13,6 +13,7 @@ import type {
   ProjectIntegrityReport,
   ResourceRecord,
   SceneDocument,
+  SourceCoverageDocument,
   TwinComponent,
   TwinDocument,
 } from "../core/types.js";
@@ -31,6 +32,8 @@ export interface ProjectIntegrityInput {
   generationAudits?: GenerationAudit[];
   geometryBuildReceipts?: GeometryBuildReceipt[];
   presentationEvidence?: PresentationEvidenceSummary;
+  sourceCoverage?: SourceCoverageDocument[];
+  sourceCoverageProblems?: Array<{ path: string; error: string }>;
 }
 
 const LAYERS: ProjectIntegrityLayer[] = ["requirements","research","design","development","runtime","twin","scene","validation"];
@@ -48,6 +51,8 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   const componentIds=new Set(components.map(component=>component.id));
   const research=input.resources.filter(resource=>["manager","customer","project","internet","archive"].includes(String(resource.sourceRole)));
   const manager=input.resources.filter(resource=>resource.sourceRole==="manager");
+  const coverageRecords=(input.sourceCoverage??[]).flatMap(report=>report.records);
+  const coverageEvidence=coverageRecords.flatMap(record=>record.resourceUri?[record.resourceUri]:[]);
   const parameterChecks:{ok:boolean}[]=[];
   const parameter=(ok:boolean,code:string,layer:ProjectIntegrityLayer,message:string,subject:string):void=>{
     parameterChecks.push({ok});
@@ -57,6 +62,28 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   parameter(input.project.managerIntent.trim().length>0,"MANAGER_INTENT_EMPTY","requirements","Manager intent must not be empty.",input.project.id);
   parameter(Number.isInteger(input.project.policy.maxIterationsPerHour)&&input.project.policy.maxIterationsPerHour>0,"ITERATION_LIMIT_INVALID","requirements","maxIterationsPerHour must be a positive integer.","policy.maxIterationsPerHour");
   parameter(Number.isInteger(input.project.policy.maxConsecutiveFailures)&&input.project.policy.maxConsecutiveFailures>0,"FAILURE_LIMIT_INVALID","requirements","maxConsecutiveFailures must be a positive integer.","policy.maxConsecutiveFailures");
+
+  if(input.sourceCoverageProblems?.length) add(
+    "SOURCE_COVERAGE_INVALID","error","inconsistency","research",
+    `${input.sourceCoverageProblems.length} source coverage report(s) failed deterministic validation.`,
+    input.sourceCoverageProblems.map(problem=>`${problem.path}:${problem.error}`),[],"regenerate-source-coverage",
+  );
+  const coverageSubjects=(state:SourceCoverageDocument["records"][number]["state"]):string[]=>
+    coverageRecords.filter(record=>record.state===state).map(record=>record.path);
+  const failedSources=coverageSubjects("failed");
+  if(failedSources.length) add("SOURCE_CONVERSION_FAILED","error","broken-dependency","research",`${failedSources.length} detected source(s) ended in failed conversion.`,failedSources,coverageEvidence,"repair-source-conversion");
+  const unsupportedSources=coverageSubjects("unsupported");
+  if(unsupportedSources.length) add("SOURCE_UNSUPPORTED","warning","missing-evidence","research",`${unsupportedSources.length} detected source(s) have no applicable converter.`,unsupportedSources,coverageEvidence,"install-source-converter");
+  const quarantinedSources=coverageSubjects("quarantined");
+  if(quarantinedSources.length) add("SOURCE_QUARANTINED","warning","missing-evidence","research",`${quarantinedSources.length} detected source(s) remain quarantined.`,quarantinedSources,coverageEvidence,"review-source-quarantine");
+  const excludedSources=coverageSubjects("excluded-by-policy");
+  if(excludedSources.length) add("SOURCE_EXCLUDED_BY_POLICY","info","ungrounded-assumption","research",`${excludedSources.length} detected source(s) were explicitly excluded by policy.`,excludedSources,[],"review-source-policy");
+  const treeUnlinked=coverageRecords.filter(record=>["converted","binary-provenance"].includes(record.state)&&record.treeRefs.length===0).map(record=>record.path);
+  if(treeUnlinked.length) add("SOURCE_TREE_UNLINKED","warning","missing-evidence","research",`${treeUnlinked.length} materialized source(s) are not referenced by TreeDSL.`,treeUnlinked,coverageEvidence,"link-source-tree");
+  const twinUnevaluated=coverageRecords.filter(record=>["converted","binary-provenance"].includes(record.state)&&record.twinRevisionStatus==="not-evaluated").map(record=>record.path);
+  if(twinUnevaluated.length) add("SOURCE_TWIN_USAGE_UNEVALUATED","warning","missing-evidence","twin",`${twinUnevaluated.length} materialized source(s) have not been evaluated against the active Twin revision.`,twinUnevaluated,coverageEvidence,"evaluate-source-twin-usage");
+  const twinExcluded=coverageRecords.filter(record=>["converted","binary-provenance"].includes(record.state)&&record.twinRevisionStatus==="excluded").map(record=>record.path);
+  if(twinExcluded.length) add("SOURCE_UNUSED_BY_TWIN","info","ungrounded-assumption","twin",`${twinExcluded.length} materialized source(s) are explicitly outside the active Twin revision.`,twinExcluded,coverageEvidence,"review-source-twin-selection");
 
   const duplicatePaths=input.scene.bindings.map(binding=>binding.scenePath).filter((path,index,all)=>all.indexOf(path)!==index);
   if(duplicatePaths.length) add("SCENE_PATH_DUPLICATE","error","inconsistency","scene","Scene paths must be unique.",duplicatePaths,[],"repair-scene-bindings");
@@ -151,6 +178,16 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
     {id:"twin-to-scene",from:"twin",to:"scene",ok:unknown.length===0&&input.scene.sourceTwinId===input.twin.id,complete:components.length>0&&boundComponents===components.length,message:`${boundComponents}/${components.length} Twin components are bound into the scene.`},
     {id:"scene-to-validation",from:"scene",to:"validation",ok:input.geometry.ok,complete:input.geometry.complete,message:`Geometry validation is ${input.geometry.ok?"passing":"failing"} and ${input.geometry.complete?"complete":"incomplete"}.`},
   ];
+  if((input.sourceCoverage?.length??0)>0 || (input.sourceCoverageProblems?.length??0)>0) {
+    const coverageBlocking=failedSources.length+(input.sourceCoverageProblems?.length??0);
+    const coverageIncomplete=unsupportedSources.length+quarantinedSources.length+treeUnlinked.length+twinUnevaluated.length;
+    dependencies.push({
+      id:"source-coverage-to-twin",from:"research",to:"twin",
+      ok:coverageBlocking===0,
+      complete:coverageBlocking===0&&coverageIncomplete===0,
+      message:`${coverageRecords.length} source(s) have terminal coverage; ${coverageBlocking} blocking and ${coverageIncomplete} incomplete.`,
+    });
+  }
   for(const dependency of dependencies.filter(item=>!item.ok)) add(`DEPENDENCY_${dependency.id.toUpperCase().replaceAll("-","_")}_BROKEN`,"error","broken-dependency",dependency.to,dependency.message,[dependency.id],[],`repair-${dependency.id}`);
 
   const assumptions=placeholders.length+degraded.length;

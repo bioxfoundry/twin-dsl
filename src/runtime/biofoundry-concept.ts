@@ -20,6 +20,7 @@ import type {
   TwinDocument,
 } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
+import { observationHorizon } from "../dsl/observation.js";
 
 export interface BiofoundryZoneSpec {
   id: string;
@@ -283,7 +284,7 @@ export function biofoundryConceptTwin(
     schema: "subactor.twin/v1",
     id: `${project.id}-biofoundry-concept-twin`,
     kind: "conceptual",
-    observedAt: new Date().toISOString(),
+    observedAt: observationHorizon(observations),
     sourceSnapshotHash: snapshot,
     components: [
       ...layerComponents,

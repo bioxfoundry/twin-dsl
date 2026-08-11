@@ -33,9 +33,25 @@ f2md --tree /data/lab /data/lab-md --secret-pattern 'konfidencial|strictly confi
 f2md --tree /data/lab /data/lab-md --translate en
 ```
 
-`src/a/b/report.pdf` becomes `out/a/b/report.pdf.md`. The original extension is kept before `.md`,
-so the output name still says what produced it and two files differing only by extension never
-collide. Each file gets YAML front matter carrying the full envelope:
+`src/a/b/report.pdf` becomes an AST-first artifact contract. The original extension is kept so the
+output name still says what produced it and two files differing only by extension never collide:
+
+```text
+out/a/b/report.pdf.ast.json           canonical f2md.document-ast/v1 SSOT
+out/a/b/report.pdf.md                 human/LLM projection of that AST
+out/a/b/report.pdf.structure.json     backwards-compatible semantic-block projection
+out/a/b/report.pdf.quality.mdqldsl    aggregate Markdown quality gate
+out/a/b/report.pdf.artifacts/
+  manifest.json                       immutable ArtifactStore index
+  artifacts.dsl                       ArtifactDSL identities, URIs and relations
+  artifact-tree.dsl                   deterministic treeDSL projection
+  artifact-quality.dsl               per-artifact quality evidence
+  tables/                             JSON + CSV + Markdown previews
+  code/                               typed source files
+  figures/ diagrams/ charts/          originals and semantic descriptors
+```
+
+Each Markdown file gets YAML front matter carrying the full envelope and links to both sidecars:
 
 ```yaml
 ---
@@ -43,17 +59,68 @@ source: "/data/lab/reports/q3.pdf"
 sourceRelative: "reports/q3.pdf"
 inputKind: ".pdf"
 mediaType: "application/pdf"
-converter: "pymupdf4llm"
-converterVersion: "1.28.2"
+converter: "pymupdf-layout"
+converterVersion: "1.26.3"
 backendType: "python"
 ocr: false
+ocrRequested: false
+ocrActuallyUsed: false
+ocrEngine: "none"
+ocrVersion: "unknown"
+ocrLanguages: []
+ocrPages: []
 fallbackDepth: 2
 durationMs: 842
 extractedChars: 8123
 converted: true
+qualityStatus: "pass"
+qualityScore: 100
+structureArtifact: "q3.pdf.structure.json"
+qualityArtifact: "q3.pdf.quality.mdqldsl"
+sourceModel: "f2md.document-ast/v1"
+documentAstArtifact: "q3.pdf.ast.json"
+artifactManifest: "q3.pdf.artifacts/manifest.json"
+artifactDsl: "q3.pdf.artifacts/artifacts.dsl"
+artifactQualityArtifact: "q3.pdf.artifacts/artifact-quality.dsl"
+artifactTreeDsl: "q3.pdf.artifacts/artifact-tree.dsl"
 warnings: []
 ---
 ```
+
+## f2md-quality-v1
+
+The complete authority, file-contract and regression rules are documented in
+[`docs/F2MD_ARTIFACT_PIPELINE.md`](../../docs/F2MD_ARTIFACT_PIPELINE.md).
+
+Python `f2md` is the canonical PDF quality engine. Its native PyMuPDF path does **not** produce
+Markdown while recognizing layout. It first builds `f2md.document-ast/v1`, classifies typed
+artifacts (`paragraph`, `heading`, `list`, `table`, `figure`, `diagram`, `code`, `equation`,
+`chart`), removes repeated page furniture, stitches tables across pages and records every page/bbox.
+Only then does `MarkdownRenderer` project the AST. Pipes inside an ASCII diagram therefore never
+reach a Markdown table parser, code is fenced from a `CodeArtifact`, and a table exists as a cell
+grid before pipe/HTML/image rendering is selected.
+
+`ArtifactStore` persists tables as JSON/CSV, code as language-specific files and figures/diagrams
+as original crops plus descriptors. Source-backed ASCII diagrams additionally produce validated
+graph JSON, DiagramDSL, Mermaid and SVG; every node label must occur in the transcription and every
+edge must terminate at known nodes. The graph stores the exact transcription SHA-256, and all
+renderers fail closed when that hash or graph provenance is stale. Stable IDs and URNs are derived
+from source hash, geometry, type and content. `ArtifactQualityDSL` validates artifacts independently;
+`MarkdownQualityDSL` aggregates that result. The older Markdown normalization pass remains an
+explicit compatibility adapter for non-layout backends and is never used to reconstruct the
+canonical PDF AST.
+
+The native path never runs OCR. A PDF without a usable text layer is declined so Docling or another
+explicit OCR backend can own `requested`, `actuallyUsed`, engine, language, pages, regions and
+confidence without contradictory provenance.
+
+The converter chain arbitrates document candidates by the versioned quality score. A later backend
+can therefore beat an earlier technical success; the selected envelope records every candidate in
+`metadata.qualityArbitration`. No LLM participates in conversion or scoring.
+
+`f2md-intent` is fail-closed at this boundary: generated `DEGRADED` and `FAILED` Markdown is excluded
+by default, and a structure sidecar limits compilation to blocks with `semantic=true`. A reviewed
+candidate can be inspected with `--allow-degraded`; `FAILED` is never admitted by that switch.
 
 Files with no text layer — CAD meshes, archives, binaries — still get a Markdown file containing
 the front matter and a short stub saying why. Dropping them would leave a tree that silently
@@ -61,8 +128,16 @@ disagrees with its source, which is worse than an explicit "nothing to extract h
 
 Each successful tree conversion also writes `out/VERSION`. It is a deterministic, line-oriented
 manifest with the f2md version plus SHA-256 snapshots of the complete source tree and generated
-Markdown payloads. It deliberately contains no timestamp, absolute path, credential or machine
-specific value, so it can be committed and compared across runs.
+Markdown/structure/quality/figure artifacts. It deliberately contains no timestamp, absolute path,
+credential or machine-specific value, so it can be committed and compared across runs.
+
+The same run writes `source-coverage.json` and `source-coverage.dsl`. Every discovered source has
+exactly one terminal state: `converted`, `binary-provenance`, `excluded-by-policy`, `unsupported`,
+`quarantined` or `failed`. A filtered `--only` input is therefore recorded rather than disappearing.
+Records carry the logical path, source hash, derived Markdown path, resource URI, converter identity,
+TreeDSL references and an explicit `not-evaluated|included|excluded` Twin-revision status. Repeating
+an unchanged conversion leaves both coverage files byte-identical and returns
+`coverageNoChange: true` in the tree result.
 
 ### Translating to one language
 
@@ -122,7 +197,7 @@ extraction from an OCR guess three steps later. Every result is one shape:
 | `markdown` | the converted body |
 | `metadata` | source path, size, mtime, extracted character count |
 | `assets` | extracted side files, when a backend produces them |
-| `converter` | which backend actually ran (`deterministic-text`, `pymupdf4llm`, `pdftotext`, `docling`) |
+| `converter` | which backend actually ran (`deterministic-text`, `pymupdf-layout`, `pdftotext`, `docling`) |
 | `version` | that backend's version, so output changes are traceable |
 | `backendType` | `stdlib`, `binary`, `python` or `http` — what the conversion actually costs |
 | `inputKind` | detected type, independent of what the filename claims |
@@ -140,7 +215,7 @@ MarkItDown (markup)      HTML before the text backend, or it would be fenced as 
         ↓
 text / source files      stdlib only, no install footprint
         ↓
-pymupdf4llm              structured Markdown from PDFs with a text layer; declines scans
+pymupdf-layout           native PDF geometry → DocumentAST; declines scans
         ↓
 pdftotext / pandoc       used only if the binary is on PATH
         ↓

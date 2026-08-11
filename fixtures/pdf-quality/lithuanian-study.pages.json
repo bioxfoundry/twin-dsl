@@ -1,0 +1,28 @@
+{
+  "schema": "bioxfoundry.pdf-quality-fixture/v1",
+  "language": "lt",
+  "description": "Reduced page/block fixture preserving the failure modes from the Lithuanian biofoundry study without redistributing the source PDF.",
+  "pages": [
+    {
+      "number": 1,
+      "markdown": "Atvirojo kodo biofoundry\n8\n###### Santrauka\nGamy-<br>ba\n<mark>sudo apt update</mark>\n<!-- Start of picture text -->Rasp | SiLA 2 Se|rver<br>[R1]||[R2]<!-- End of picture text -->\nIntegruota studija"
+    },
+    {
+      "number": 2,
+      "markdown": "Atvirojo kodo biofoundry\n9\n## 2.1 Metodas\n| A | B |\n|---|---|\n| x | y |\nIntegruota studija"
+    },
+    {
+      "number": 3,
+      "markdown": "Atvirojo kodo biofoundry\n10\n## 2.2 Rezultatas\nTekstas ėNra.\nIntegruota studija"
+    }
+  ],
+  "invariants": {
+    "pageHeadersFootersRemoved": 6,
+    "pageNumbersRemoved": 3,
+    "minimumCodeFences": 1,
+    "htmlBreaks": 0,
+    "markTags": 0,
+    "semanticDiagrams": 0,
+    "qualityStatus": "degraded"
+  }
+}

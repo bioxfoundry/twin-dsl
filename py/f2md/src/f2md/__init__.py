@@ -40,7 +40,40 @@ from .detect import (
     media_type_for,
 )
 from .translate import ArgosTranslator, OpenRouterTranslator, TranslationPolicy, TranslationUnavailable, detect_language
+from .quality import (
+    QUALITY_SCHEMA,
+    STRUCTURE_SCHEMA,
+    PageMarkdown,
+    QualityArtifacts,
+    normalize_document,
+    render_quality_dsl,
+)
 from .types import BACKEND_TYPES, ConversionError, ConvertedDocument, ExternalConverterRequired
+from .document_ast import (
+    ARTIFACT_MANIFEST_SCHEMA,
+    ARTIFACT_QUALITY_SCHEMA,
+    DOCUMENT_AST_SCHEMA,
+    artifact_quality,
+    render_artifact_dsl,
+    render_artifact_quality_dsl,
+    render_artifact_tree_dsl,
+    render_markdown,
+)
+from .diagram_graph import (
+    DIAGRAM_GRAPH_SCHEMA,
+    build_ascii_diagram_graph,
+    diagram_graph_metrics,
+    render_diagram_dsl,
+    render_diagram_mermaid,
+    render_diagram_svg,
+)
+from .pdf_layout import extract_pdf_ast
+from .source_coverage import (
+    SOURCE_COVERAGE_SCHEMA,
+    SOURCE_STATES,
+    build_source_coverage,
+    render_source_coverage_dsl,
+)
 
 __all__ = [
     "__version__",
@@ -78,4 +111,29 @@ __all__ = [
     "is_docling_kind",
     "is_document_conversion_kind",
     "MEDIA_TYPES",
+    "QUALITY_SCHEMA",
+    "STRUCTURE_SCHEMA",
+    "PageMarkdown",
+    "QualityArtifacts",
+    "normalize_document",
+    "render_quality_dsl",
+    "DOCUMENT_AST_SCHEMA",
+    "ARTIFACT_MANIFEST_SCHEMA",
+    "ARTIFACT_QUALITY_SCHEMA",
+    "extract_pdf_ast",
+    "render_markdown",
+    "artifact_quality",
+    "render_artifact_dsl",
+    "render_artifact_quality_dsl",
+    "render_artifact_tree_dsl",
+    "DIAGRAM_GRAPH_SCHEMA",
+    "build_ascii_diagram_graph",
+    "diagram_graph_metrics",
+    "render_diagram_dsl",
+    "render_diagram_mermaid",
+    "render_diagram_svg",
+    "SOURCE_COVERAGE_SCHEMA",
+    "SOURCE_STATES",
+    "build_source_coverage",
+    "render_source_coverage_dsl",
 ]

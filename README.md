@@ -18,6 +18,9 @@
 ![img_4.png](img_4.png)
 
 
+### 6
+![img_5.png](img_5.png)
+
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
 ```text
@@ -155,13 +158,27 @@ DOCLING_URL=http://127.0.0.1:15001 \
        --secret-pattern 'konfidencial'
 ```
 
-Struktura wyjścia odwzorowuje wejście **1:1**, jeden plik na jeden plik:
+Struktura katalogów wyjścia odwzorowuje wejście **1:1**; główną projekcją jest plik Markdown:
 
 ```
 nanobionic-laboratory/A/report.pdf
         ↓
 nanobionic-laboratory-md/A/report.pdf.md
 ```
+
+Od `f2md-quality-v1` kanonicznym modelem PDF jest `report.pdf.ast.json`
+(`f2md.document-ast/v1`), a `report.pdf.md` jest wyłącznie jego projekcją. Towarzyszą mu
+`report.pdf.structure.json`, `report.pdf.quality.mdqldsl` i `report.pdf.artifacts/` z manifestem,
+ArtifactDSL, treeDSL, ArtifactQualityDSL oraz typed sidecarami tabel, kodu i figur. Sidecar
+struktury zachowuje `page`, `bbox`, typ bloku, artifact URN i `semantic`; quality DSL rozróżnia `PASS`,
+`DEGRADED` i `FAILED`. `f2md-intent` domyślnie kompiluje tylko `PASS` i wyłącznie bloki
+`semantic=true`, więc nagłówki stron, numery, diagramowy OCR i treść niskiej jakości nie trafiają
+do intentDSL. Jawne `--allow-degraded` służy wyłącznie do pracy z kandydatem i nie dopuszcza
+`FAILED`. Pakiet Node deleguje formaty dokumentowe przez kopertę plikową do `python3 -m f2md.cli`;
+gdy Python nie jest dostępny, jawnie wraca do lokalnych backendów zamiast udawać jakość kanoniczną.
+W trybie drzewa figury trafiają do ArtifactStore jako oryginalne wycinki z SHA-256, a diagramy
+ASCII są klasyfikowane przed tabelami. Brak natywnej warstwy tekstowej powoduje jawną odmowę
+backendu layoutowego; OCR może wtedy wykonać wyłącznie backend zapisujący pełny audyt OCR.
 
 Oryginalne rozszerzenie zostaje przed `.md`, więc nazwa nadal mówi, co ją wyprodukowało, a dwa
 pliki różniące się tylko rozszerzeniem nigdy nie kolidują.
@@ -227,14 +244,27 @@ sourceRelative: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf"
 inputKind: ".pdf"
 mediaType: "application/pdf"
 confidential: true
-converter: "pymupdf4llm"
-converterVersion: "1.28.2"
+converter: "pymupdf-layout"
+converterVersion: "1.26.3"
 backendType: "python"
-ocr: true
+ocr: false
+ocrRequested: false
+ocrActuallyUsed: false
+ocrEngine: "none"
+ocrVersion: "unknown"
+ocrLanguages: []
+ocrPages: []
 fallbackDepth: 2
 durationMs: 816
 extractedChars: 7495
 converted: true
+qualityStatus: "degraded"
+qualityScore: 84
+structureArtifact: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf.structure.json"
+qualityArtifact: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf.quality.mdqldsl"
+sourceModel: "f2md.document-ast/v1"
+documentAstArtifact: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf.ast.json"
+artifactManifest: "Saptera_Technologine_Kortele_Dark_Factory_v1.pdf.artifacts/manifest.json"
 warnings: []
 ---
 ```

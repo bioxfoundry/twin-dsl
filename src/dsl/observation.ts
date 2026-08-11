@@ -48,3 +48,13 @@ export function validateObservation(value:unknown):ObservationDocument{
   const seen=new Set<string>();for(const raw of d.observations){if(!raw||typeof raw!=='object'||Array.isArray(raw))throw new Error('OBSERVATION_RECORD_INVALID');const o=raw as Record<string,unknown>;const keys=['id','observedAt','receivedAt','subjectUri','metric','value','unit','severity','sourceUris','labels'];for(const k of Object.keys(o))if(!keys.includes(k))throw new Error(`OBSERVATION_RECORD_UNKNOWN_KEY:${k}`);if(typeof o.id!=='string'||seen.has(o.id)||typeof o.observedAt!=='string'||Number.isNaN(Date.parse(o.observedAt))||(o.receivedAt!==undefined&&(typeof o.receivedAt!=='string'||Number.isNaN(Date.parse(o.receivedAt))))||typeof o.subjectUri!=='string'||typeof o.metric!=='string'||!['debug','info','warning','error','critical'].includes(String(o.severity))||!Array.isArray(o.sourceUris)||!o.sourceUris.every(x=>typeof x==='string')||!Array.isArray(o.labels)||!o.labels.every(x=>typeof x==='string'))throw new Error('OBSERVATION_RECORD_INVALID');seen.add(o.id);}
   return value as ObservationDocument;
 }
+
+/**
+ * Semantic time of an observation snapshot. Twin identity must be derived from
+ * evidence, never from the wall clock used to run the renderer.
+ */
+export function observationHorizon(document:ObservationDocument):string{
+  const validated=validateObservation(document);
+  if(validated.observations.length===0)return new Date(0).toISOString();
+  return new Date(Math.max(...validated.observations.map(observation=>Date.parse(observation.observedAt)))).toISOString();
+}

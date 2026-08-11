@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bioxfoundry.dev/schemas/document-ast.schema.json",
+  "title": "Layout-first canonical document AST",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "source", "sourceSha256", "extractor", "pages", "artifacts", "relations", "ocr"],
+  "properties": {
+    "schema": { "const": "f2md.document-ast/v1" },
+    "source": { "type": "string", "minLength": 1 },
+    "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "extractor": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "version", "mode"],
+      "properties": {
+        "name": { "type": "string" },
+        "version": { "type": "string" },
+        "mode": { "enum": ["layout-first", "backend-adapter"] }
+      }
+    },
+    "pages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["number", "width", "height"],
+        "properties": {
+          "number": { "type": "integer", "minimum": 1 },
+          "width": { "type": "number", "exclusiveMinimum": 0 },
+          "height": { "type": "number", "exclusiveMinimum": 0 }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "urn", "type", "subtype", "pages", "bbox", "semantic", "confidence", "quality", "content", "relations"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^artifact-[a-z][a-z0-9-]*-[a-f0-9]{12}$" },
+          "urn": { "type": "string", "pattern": "^urn:subactor:artifact:sha256:[a-f0-9]{64}$" },
+          "type": { "enum": ["paragraph", "heading", "list", "table", "figure", "diagram", "code", "equation", "chart", "caption"] },
+          "subtype": { "type": ["string", "null"] },
+          "pages": { "type": "array", "minItems": 1, "items": { "type": "integer", "minimum": 1 } },
+          "bbox": {
+            "oneOf": [
+              { "type": "null" },
+              { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
+            ]
+          },
+          "sourceBboxes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["page", "bbox"],
+              "properties": {
+                "page": { "type": "integer", "minimum": 1 },
+                "bbox": { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
+              }
+            }
+          },
+          "semantic": { "type": "boolean" },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "quality": { "enum": ["validated", "reconstructed", "degraded", "raw"] },
+          "content": { "type": "object", "additionalProperties": true },
+          "relations": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["from", "predicate", "to", "confidence"],
+              "properties": {
+                "from": { "type": "string" },
+                "predicate": { "enum": ["DESCRIBES", "IMPLEMENTS", "DEPICTS", "PART_OF", "CONTINUES", "DERIVED_FROM"] },
+                "to": { "type": "string" },
+                "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+              }
+            }
+          }
+        }
+      }
+    },
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["from", "predicate", "to", "confidence"],
+        "properties": {
+          "from": { "type": "string" },
+          "predicate": { "enum": ["DESCRIBES", "IMPLEMENTS", "DEPICTS", "PART_OF", "CONTINUES", "DERIVED_FROM"] },
+          "to": { "type": "string" },
+          "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "ocr": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["requested", "actuallyUsed", "engine", "version", "languages", "pages", "regions", "confidence"],
+      "properties": {
+        "requested": { "type": "boolean" },
+        "actuallyUsed": { "type": "boolean" },
+        "engine": { "type": "string" },
+        "version": { "type": "string" },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "pages": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+        "regions": { "type": "array", "items": { "type": "object" } },
+        "confidence": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

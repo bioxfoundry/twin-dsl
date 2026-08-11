@@ -48,6 +48,42 @@ export interface ResourcePlan {
   status: "proposed";
 }
 
+export type SourceCoverageState =
+  | "converted"
+  | "binary-provenance"
+  | "excluded-by-policy"
+  | "unsupported"
+  | "quarantined"
+  | "failed";
+
+export interface SourceCoverageRecord {
+  path: string;
+  inputKind: string;
+  mediaType: string;
+  sourceSha256: string;
+  resourceUri: string | null;
+  markdownPath: string | null;
+  intentUris: string[];
+  treeRefs: string[];
+  converter: string;
+  converterVersion: string;
+  state: SourceCoverageState;
+  reasonCode: string;
+  twinRevisionStatus: "not-evaluated" | "included" | "excluded";
+}
+
+export interface SourceCoverageDocument {
+  schema: "bioxfoundry.source-coverage/v1";
+  sourceSnapshotSha256: string;
+  coverageSha256: string;
+  summary: {
+    discovered: number;
+    terminal: number;
+    byState: Record<SourceCoverageState, number>;
+  };
+  records: SourceCoverageRecord[];
+}
+
 export interface IntentRecord {
   schema: "t2c.intent/v1";
   id: string;

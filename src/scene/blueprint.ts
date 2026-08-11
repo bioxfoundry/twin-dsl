@@ -15,6 +15,7 @@ import type {
 import { contentUri } from "../core/canonical.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
+import { observationHorizon } from "../dsl/observation.js";
 
 function unique<T>(values: T[]): T[] {
   return [...new Set(values)];
@@ -277,7 +278,7 @@ export function materializeBlueprintTwin(input: {
     schema: "subactor.twin/v1",
     id: `${projectId}-twin`,
     kind: blueprint.twinKind,
-    observedAt: new Date().toISOString(),
+    observedAt: observationHorizon(observations),
     sourceSnapshotHash,
     components,
   };

@@ -8,8 +8,8 @@ import { execFile } from "node:child_process";
 import { readFile, stat } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import { promisify } from "node:util";
-import { detectDocumentKind, isDoclingKind, isTextKind } from "./detect.js";
-import { type BackendType, ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
+import { detectDocumentKind, isDoclingKind, isDocumentConversionKind, isTextKind } from "./detect.js";
+import { BACKEND_TYPES, type BackendType, ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -161,6 +161,101 @@ export class LocalToolConverter implements Converter {
       version: this.version,
       backendType: this.backendType, inputKind: kind, ocr: false, fallbackDepth: 0, durationMs: 0, warnings,
     };
+  }
+}
+
+/**
+ * Canonical PDF/Office quality engine exposed through the Python f2md file contract.
+ *
+ * The npm package remains dependency-free. If Python or the `f2md` module is unavailable this
+ * backend declines, allowing the existing Node/binary/HTTP fallbacks to run. `execFile` never
+ * invokes a shell and the returned envelope is validated before it crosses the language boundary.
+ */
+export class PythonCanonicalConverter implements Converter {
+  readonly name = "python-f2md";
+  readonly backendType: BackendType = "python";
+  readonly version = "contract-v1";
+
+  constructor(
+    readonly command = process.env.F2MD_PYTHON ?? "python3",
+    readonly timeoutMs = DEFAULT_TIMEOUT_MS,
+    readonly pythonPath = process.env.PYTHONPATH,
+  ) {}
+
+  async convert(path: string, outputPath?: string): Promise<ConvertedDocument> {
+    const kind = detectDocumentKind(path);
+    if (!isDocumentConversionKind(kind) || this.command === "disabled") {
+      throw new ExternalConverterRequired(kind);
+    }
+    let stdout: string;
+    try {
+      ({ stdout } = await execFileAsync(
+        this.command,
+        [
+          "-m", "f2md.cli", path, "--json",
+          ...(outputPath ? ["--materialize-to", outputPath] : []),
+        ],
+        {
+          encoding: "utf8",
+          env: this.pythonPath ? { ...process.env, PYTHONPATH: this.pythonPath } : process.env,
+          maxBuffer: 64 * 1024 * 1024,
+          timeout: this.timeoutMs,
+        },
+      ));
+    } catch (error) {
+      const failure = error as NodeJS.ErrnoException & { stderr?: string };
+      const detail = String(failure.stderr ?? failure.message ?? error);
+      if (failure.code === "ENOENT" || /No module named ['\"]?f2md|ModuleNotFoundError/.test(detail)) {
+        throw new ExternalConverterRequired(kind);
+      }
+      throw new ConversionError(`PYTHON_F2MD_FAILED:${detail.slice(0, 300)}`);
+    }
+    let value: unknown;
+    try {
+      value = JSON.parse(stdout.trim());
+    } catch (error) {
+      throw new ConversionError(`PYTHON_F2MD_INVALID_JSON:${error instanceof Error ? error.message : String(error)}`);
+    }
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw new ConversionError("PYTHON_F2MD_ENVELOPE_REQUIRED");
+    }
+    const document = value as Partial<ConvertedDocument>;
+    if (
+      typeof document.markdown !== "string"
+      || !document.metadata || typeof document.metadata !== "object" || Array.isArray(document.metadata)
+      || !Array.isArray(document.assets)
+      || typeof document.converter !== "string"
+      || typeof document.version !== "string"
+      || typeof document.backendType !== "string"
+      || typeof document.inputKind !== "string"
+      || typeof document.ocr !== "boolean"
+      || !Array.isArray(document.warnings)
+    ) {
+      throw new ConversionError("PYTHON_F2MD_ENVELOPE_INVALID");
+    }
+    if (!BACKEND_TYPES.includes(document.backendType as BackendType)) {
+      throw new ConversionError(`PYTHON_F2MD_BACKEND_TYPE_INVALID:${document.backendType}`);
+    }
+    const structure = (document.metadata as Record<string, unknown>).structure;
+    const quality = (document.metadata as Record<string, unknown>).conversionQuality;
+    const documentAst = (document.metadata as Record<string, unknown>).documentAst;
+    if (!structure || typeof structure !== "object" || Array.isArray(structure)
+        || (structure as Record<string, unknown>).schema !== "bioxfoundry.document-structure/v1"
+        || !quality || typeof quality !== "object" || Array.isArray(quality)
+        || (quality as Record<string, unknown>).schema !== "bioxfoundry.markdown-quality/v1") {
+      // An older Python f2md can still extract content, but it is not the canonical quality
+      // contract this bridge promises. Route onward instead of presenting NOT RUN as canonical.
+      throw new ExternalConverterRequired(kind);
+    }
+    if (
+      kind === ".pdf"
+      && (!documentAst || typeof documentAst !== "object" || Array.isArray(documentAst)
+        || (documentAst as Record<string, unknown>).schema !== "f2md.document-ast/v1"
+        || !Array.isArray((documentAst as Record<string, unknown>).artifacts))
+    ) {
+      throw new ExternalConverterRequired(kind);
+    }
+    return document as ConvertedDocument;
   }
 }
 

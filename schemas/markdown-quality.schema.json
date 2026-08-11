@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bioxfoundry.dev/schemas/markdown-quality.schema.json",
+  "title": "MarkdownQualityDSL JSON contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "status", "score", "sourceSha256", "canonicalMarkdownSha256", "metrics", "repairs", "suspectTokens", "checks"],
+  "properties": {
+    "schema": { "const": "bioxfoundry.markdown-quality/v1" },
+    "status": { "enum": ["pass", "degraded", "failed"] },
+    "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "canonicalMarkdownSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "metrics": { "type": "object", "additionalProperties": { "type": ["integer", "number", "string", "boolean", "null"] } },
+    "repairs": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "suspectTokens": { "type": "array", "items": { "type": "string" }, "uniqueItems": true },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "status", "actual", "expected"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "status": { "enum": ["pass", "warn", "fail"] },
+          "actual": {},
+          "expected": {}
+        }
+      }
+    }
+  }
+}

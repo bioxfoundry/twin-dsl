@@ -15,7 +15,15 @@ import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { ConverterChain, defaultChain } from "./chain.js";
 import { detectDocumentKind, mediaTypeFor } from "./detect.js";
 import { VERSION } from "./index.js";
-import { ConversionError } from "./types.js";
+import {
+  SOURCE_STATES,
+  buildSourceCoverage,
+  sourceCoverageRecord,
+  writeSourceCoverage,
+  type SourceCoverageRecord,
+  type SourceCoverageState,
+} from "./source-coverage.js";
+import { ConversionError, ExternalConverterRequired } from "./types.js";
 
 /** Directories never worth walking into. */
 export const SKIP_DIRS = new Set([
@@ -50,7 +58,16 @@ export interface TreeResult {
   stubbed: number;
   skipped: number;
   byConverter: Record<string, number>;
+  byQuality: Record<string, number>;
+  byState: Record<SourceCoverageState, number>;
   failures: { source: string; error: string }[];
+  coverageNoChange: boolean;
+  sourceCoverageJson: "source-coverage.json";
+  sourceCoverageDsl: "source-coverage.dsl";
+}
+
+function reasonCode(reason: string, fallback = "CONVERSION_FAILED"): string {
+  return reason.split(":", 1)[0].toUpperCase().replace(/[^A-Z0-9]+/g, "_").replace(/^_+|_+$/g, "") || fallback;
 }
 
 export async function walkFiles(root: string): Promise<string[]> {
@@ -71,7 +88,11 @@ export async function walkFiles(root: string): Promise<string[]> {
 
 async function treeSnapshot(root: string, paths: string[]): Promise<string> {
   const digest = createHash("sha256");
-  for (const path of [...paths].sort()) {
+  const ordered = [...paths].sort((left, right) => Buffer.compare(
+    Buffer.from(relative(root, left).split(sep).join("/")),
+    Buffer.from(relative(root, right).split(sep).join("/")),
+  ));
+  for (const path of ordered) {
     // Paths are part of the snapshot: moving identical bytes is a new corpus revision.
     digest.update(relative(root, path).split(sep).join("/"));
     digest.update("\0");
@@ -82,8 +103,19 @@ async function treeSnapshot(root: string, paths: string[]): Promise<string> {
 }
 
 async function writeVersion(source: string, target: string, sourcePaths: string[]): Promise<void> {
-  // A mirror can coexist with operational output. Only Markdown files are conversion payloads.
-  const outputPaths = (await walkFiles(target)).filter((path) => path.endsWith(".md"));
+  // A mirror can coexist with operational output. Only conversion-contract files are payloads.
+  const generated = await walkFiles(target);
+  const inArtifactStore = (path: string): boolean =>
+    relative(target, path).split(sep).slice(0, -1)
+      .some((part) => part.endsWith(".artifacts") || part.endsWith(".assets"));
+  // Store-local table previews are sidecars. Count and hash them once as artifact files rather
+  // than presenting them as independent converted documents.
+  const markdownPaths = generated.filter((path) => path.endsWith(".md") && !inArtifactStore(path));
+  const structurePaths = generated.filter((path) => path.endsWith(".structure.json"));
+  const qualityPaths = generated.filter((path) => path.endsWith(".quality.mdqldsl"));
+  const astPaths = generated.filter((path) => path.endsWith(".ast.json"));
+  const artifactPaths = generated.filter(inArtifactStore);
+  const outputPaths = [...markdownPaths, ...structurePaths, ...qualityPaths, ...astPaths, ...artifactPaths];
   const lines = [
     "FORMAT=bioxfoundry.conversion-version/v1",
     "ARTIFACT=markdown-mirror",
@@ -91,11 +123,86 @@ async function writeVersion(source: string, target: string, sourcePaths: string[
     `CONVERTER_VERSION=${VERSION}`,
     `SOURCE_FILES=${sourcePaths.length}`,
     `SOURCE_SNAPSHOT_SHA256=${await treeSnapshot(source, sourcePaths)}`,
-    `OUTPUT_FILES=${outputPaths.length}`,
+    `OUTPUT_FILES=${markdownPaths.length}`,
+    `STRUCTURE_FILES=${structurePaths.length}`,
+    `QUALITY_FILES=${qualityPaths.length}`,
+    `AST_FILES=${astPaths.length}`,
+    `ASSET_FILES=${artifactPaths.length}`,
+    `OUTPUT_ARTIFACTS=${outputPaths.length}`,
     `OUTPUT_SNAPSHOT_SHA256=${await treeSnapshot(target, outputPaths)}`,
     "",
   ];
   await writeFile(join(target, "VERSION"), lines.join("\n"));
+}
+
+function renderQualityDsl(report: Record<string, unknown>): string {
+  const lines = [
+    `MARKDOWN_QUALITY ${String(report.sourceSha256 ?? "unknown")}`,
+    `SCHEMA ${String(report.schema ?? "bioxfoundry.markdown-quality/v1")}`,
+    `STATUS ${String(report.status ?? "failed").toUpperCase()}`,
+    `SCORE ${Number(report.score ?? 0)}`,
+  ];
+  const metrics = report.metrics;
+  if (metrics && typeof metrics === "object" && !Array.isArray(metrics)) {
+    for (const key of Object.keys(metrics).sort()) {
+      lines.push(`METRIC ${key} ${JSON.stringify((metrics as Record<string, unknown>)[key])}`);
+    }
+  }
+  const checks = report.checks;
+  if (Array.isArray(checks)) {
+    for (const raw of checks) {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
+      const check = raw as Record<string, unknown>;
+      lines.push(`CHECK ${String(check.id ?? "UNKNOWN")} ${String(check.status ?? "fail").toUpperCase()} ${JSON.stringify(check.actual)}`);
+    }
+  }
+  lines.push("END_MARKDOWN_QUALITY");
+  return lines.join("\n") + "\n";
+}
+
+async function writeQualityArtifacts(
+  markdownPath: string,
+  metadata: Record<string, unknown>,
+): Promise<{
+  status: string;
+  score: number;
+  structureArtifact?: string;
+  qualityArtifact?: string;
+  sourceModel?: string;
+  documentAstArtifact?: string;
+}> {
+  const structure = metadata.structure;
+  const quality = metadata.conversionQuality;
+  if (!structure || typeof structure !== "object" || Array.isArray(structure)
+      || !quality || typeof quality !== "object" || Array.isArray(quality)) {
+    return { status: "not-run", score: 0 };
+  }
+  const stem = markdownPath.endsWith(".md") ? markdownPath.slice(0, -3) : markdownPath;
+  const structurePath = `${stem}.structure.json`;
+  const qualityPath = `${stem}.quality.mdqldsl`;
+  await writeFile(structurePath, JSON.stringify(structure, null, 2) + "\n");
+  await writeFile(qualityPath, renderQualityDsl(quality as Record<string, unknown>));
+  const documentAst = metadata.documentAst;
+  let documentAstArtifact: string | undefined;
+  if (documentAst && typeof documentAst === "object" && !Array.isArray(documentAst)
+      && (documentAst as Record<string, unknown>).schema === "f2md.document-ast/v1") {
+    const astPath = `${stem}.ast.json`;
+    // Python may already have materialized the authoritative bytes. Re-serializing floating-point
+    // geometry through JavaScript would change `842.0` to `842` and break the canonical AST hash.
+    if (!(await stat(astPath).catch(() => null))?.isFile()) {
+      await writeFile(astPath, JSON.stringify(documentAst, null, 2) + "\n");
+    }
+    documentAstArtifact = basename(astPath);
+  }
+  return {
+    status: String((quality as Record<string, unknown>).status ?? "failed"),
+    score: Number((quality as Record<string, unknown>).score ?? 0),
+    structureArtifact: basename(structurePath),
+    qualityArtifact: basename(qualityPath),
+    ...(documentAstArtifact
+      ? { sourceModel: "f2md.document-ast/v1", documentAstArtifact }
+      : {}),
+  };
 }
 
 export interface TreeOptions {
@@ -117,8 +224,20 @@ export async function convertTree(src: string, out: string, options: TreeOptions
   if (target.startsWith(source + sep)) throw new ConversionError(`OUTPUT_INSIDE_SOURCE:${target}`);
 
   const chain = options.chain ?? defaultChain(options.doclingUrl);
-  const result: TreeResult = { converted: 0, stubbed: 0, skipped: 0, byConverter: {}, failures: [] };
+  const result: TreeResult = {
+    converted: 0,
+    stubbed: 0,
+    skipped: 0,
+    byConverter: {},
+    byQuality: {},
+    byState: Object.fromEntries(SOURCE_STATES.map((state) => [state, 0])) as Record<SourceCoverageState, number>,
+    failures: [],
+    coverageNoChange: false,
+    sourceCoverageJson: "source-coverage.json",
+    sourceCoverageDsl: "source-coverage.dsl",
+  };
   const paths = await walkFiles(source);
+  const coverageRecords: SourceCoverageRecord[] = [];
 
   for (let index = 0; index < paths.length; index++) {
     const path = paths[index];
@@ -126,6 +245,14 @@ export async function convertTree(src: string, out: string, options: TreeOptions
     const kind = detectDocumentKind(path);
     if (options.only?.length && !options.only.includes(kind)) {
       result.skipped++;
+      coverageRecords.push(await sourceCoverageRecord({
+        root: source,
+        path,
+        inputKind: kind,
+        mediaType: mediaTypeFor(path),
+        state: "excluded-by-policy",
+        reasonCode: "KIND_NOT_SELECTED",
+      }));
       continue;
     }
     const outPath = join(target, `${rel}.md`);
@@ -135,24 +262,67 @@ export async function convertTree(src: string, out: string, options: TreeOptions
     const base = { source: resolve(path), sourceRelative: rel, inputKind: kind, mediaType: mediaTypeFor(path) };
 
     try {
-      const document = await chain.convert(path);
+      const document = await chain.convert(path, outPath);
+      const quality = await writeQualityArtifacts(outPath, document.metadata);
+      const ocrAudit = document.metadata.ocrAudit && typeof document.metadata.ocrAudit === "object"
+        ? document.metadata.ocrAudit as Record<string, unknown>
+        : {};
       const fields = {
         ...base,
         converter: document.converter,
         converterVersion: document.version,
         backendType: document.backendType,
         ocr: document.ocr,
+        ocrRequested: Boolean(ocrAudit.ocrRequested),
+        ocrActuallyUsed: Boolean(ocrAudit.ocrActuallyUsed ?? document.ocr),
+        ocrEngine: String(ocrAudit.ocrEngine ?? (document.ocr ? "unknown" : "none")),
+        ocrVersion: String(ocrAudit.ocrVersion ?? "unknown"),
+        ocrLanguages: Array.isArray(ocrAudit.ocrLanguages) ? ocrAudit.ocrLanguages : [],
+        ocrPages: Array.isArray(ocrAudit.ocrPages) ? ocrAudit.ocrPages : [],
         fallbackDepth: document.fallbackDepth,
         durationMs: document.durationMs,
         size: (document.metadata.size as number) ?? 0,
         mtime: (document.metadata.mtime as string) ?? "",
         extractedChars: (document.metadata.extractedChars as number) ?? document.markdown.length,
         converted: true,
-        warnings: document.warnings,
+        qualityStatus: quality.status,
+        qualityScore: quality.score,
+        ...(quality.structureArtifact ? { structureArtifact: quality.structureArtifact } : {}),
+        ...(quality.qualityArtifact ? { qualityArtifact: quality.qualityArtifact } : {}),
+        ...(quality.sourceModel ? { sourceModel: quality.sourceModel } : {}),
+        ...(quality.documentAstArtifact ? { documentAstArtifact: quality.documentAstArtifact } : {}),
+        ...(typeof document.metadata.artifactManifestArtifact === "string"
+          ? { artifactManifest: document.metadata.artifactManifestArtifact }
+          : {}),
+        ...(typeof document.metadata.artifactDslArtifact === "string"
+          ? { artifactDsl: document.metadata.artifactDslArtifact }
+          : {}),
+        ...(typeof document.metadata.artifactQualityArtifact === "string"
+          ? { artifactQualityArtifact: document.metadata.artifactQualityArtifact }
+          : {}),
+        ...(typeof document.metadata.artifactTreeDslArtifact === "string"
+          ? { artifactTreeDsl: document.metadata.artifactTreeDslArtifact }
+          : {}),
+        warnings: quality.status === "not-run"
+          ? [...document.warnings, "MARKDOWN_QUALITY:NOT_RUN"]
+          : document.warnings,
       };
       await writeFile(outPath, frontMatter(fields) + document.markdown.replace(/\s+$/, "") + "\n");
       result.converted++;
       result.byConverter[document.converter] = (result.byConverter[document.converter] ?? 0) + 1;
+      result.byQuality[quality.status] = (result.byQuality[quality.status] ?? 0) + 1;
+      const state = document.converter === "stl-metadata" ? "binary-provenance" : "converted";
+      coverageRecords.push(await sourceCoverageRecord({
+        root: source,
+        path,
+        inputKind: kind,
+        mediaType: mediaTypeFor(path),
+        state,
+        reasonCode: state === "binary-provenance" ? "BINARY_PROVENANCE" : "CONVERTED",
+        markdownPath: relative(target, outPath),
+        converter: document.converter,
+        converterVersion: document.version,
+      }));
       options.onProgress?.(index + 1, paths.length, rel, document.converter);
     } catch (error) {
       const reason = error instanceof ConversionError ? error.message : String(error);
@@ -160,13 +330,29 @@ export async function convertTree(src: string, out: string, options: TreeOptions
       const body =
         `# ${basename(path)}\n\nNo text could be extracted from this file.\n\n` +
         `- reason: \`${reason}\`\n- size: ${size} bytes\n`;
-      await writeFile(outPath, frontMatter({ ...base, converter: "none", converted: false, error: reason }) + body);
+      await writeFile(outPath, frontMatter({
+        ...base, converter: "none", converted: false, qualityStatus: "failed", qualityScore: 0, error: reason,
+      }) + body);
       result.stubbed++;
       result.byConverter.none = (result.byConverter.none ?? 0) + 1;
+      result.byQuality.failed = (result.byQuality.failed ?? 0) + 1;
       result.failures.push({ source: rel, error: reason.slice(0, 200) });
+      const state = error instanceof ExternalConverterRequired ? "unsupported" : "failed";
+      coverageRecords.push(await sourceCoverageRecord({
+        root: source,
+        path,
+        inputKind: kind,
+        mediaType: mediaTypeFor(path),
+        state,
+        reasonCode: state === "unsupported" ? "EXTERNAL_CONVERTER_REQUIRED" : reasonCode(reason),
+        markdownPath: `${rel}.md`,
+      }));
       options.onProgress?.(index + 1, paths.length, rel, `STUB:${reason.slice(0, 60)}`);
     }
   }
+  const coverage = buildSourceCoverage(await treeSnapshot(source, paths), coverageRecords);
+  result.byState = { ...coverage.summary.byState };
+  result.coverageNoChange = await writeSourceCoverage(target, coverage);
   await writeVersion(source, target, paths);
   return result;
 }

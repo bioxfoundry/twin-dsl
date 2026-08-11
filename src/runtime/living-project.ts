@@ -1,4 +1,4 @@
-import { access, mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { randomUUID } from "node:crypto";
 import type {
@@ -34,7 +34,7 @@ import type {
 import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
 import { scanSources } from "../ingestion/scanner.js";
 import { parseProjectDsl, validateProject } from "../dsl/project.js";
-import { renderObservationDsl, validateObservation } from "../dsl/observation.js";
+import { observationHorizon, renderObservationDsl, validateObservation } from "../dsl/observation.js";
 import { evaluateMath, renderMathDsl } from "../dsl/math.js";
 import { renderImprovementDsl } from "../dsl/improvement.js";
 import { DqlCrawler, type FetchLike } from "../research/crawler.js";
@@ -80,6 +80,7 @@ import { parseAssemblyDsl } from "../dsl/assembly.js";
 import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
 import { renderStartDocument, startDocumentPath, type StartValidationSummary } from "./start-document.js";
 import { inspectPresentationEvidence, presentationDirectoryFingerprint, renderPresentationEvidenceDsl } from "./presentation-evidence.js";
+import { loadSourceCoverage } from "./source-coverage.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -249,7 +250,7 @@ function conceptualTwin(project:LivingProjectDocument,resources:ResourceRecord[]
     schema:"subactor.twin/v1",
     id:`${project.id}-twin`,
     kind:"conceptual",
-    observedAt:new Date().toISOString(),
+    observedAt:observationHorizon(observations),
     sourceSnapshotHash:snapshot,
     components:[
       ...roles.map((role,index)=>({id:`${role}-knowledge`,type:"knowledge-domain",sourceUris:resources.filter(resource=>resource.sourceRole===role).map(resource=>resource.uri),properties:{role,index,resourceCount:resources.filter(resource=>resource.sourceRole===role).length},children:[]})),
@@ -335,7 +336,9 @@ export class LivingProjectRuntime {
     // Blueprint and physical facts are part of structural identity: a geometry or semantic model
     // change forces a new iteration even when sources and code are untouched.
     const projectConfigHash = sha256(canonicalJson({project,sceneBlueprint,liveBindings,assemblyDocument,physicalEvidence:baselinePhysicalEvidence,geometryContracts}));
-    const scanned = await scanSources(project.sources.map(source=>({path:resolve(base,source.path),role:source.role,logicalRoot:source.logicalRoot,labels:source.labels})));
+    const sourceRoots=project.sources.map(source=>resolve(base,source.path));
+    const sourceCoverage=await loadSourceCoverage(sourceRoots);
+    const scanned = await scanSources(project.sources.map((source,index)=>({path:sourceRoots[index],role:source.role,logicalRoot:source.logicalRoot,labels:source.labels})));
     if(project.webResearch) {
       const plan = parseDql(await readFile(resolve(base,project.webResearch.dqlFile),"utf8"));
       const crawler = project.webResearch.fixtureMapFile
@@ -569,6 +572,8 @@ export class LivingProjectRuntime {
       geometryBuildReceipts:geometryMaterializations.map(item=>item.receipt),
       generationAudits:[mathGeneration.audit,twinGeneration.audit,sceneGeneration.audit],
       presentationEvidence,
+      sourceCoverage:sourceCoverage.reports,
+      sourceCoverageProblems:sourceCoverage.invalid,
     });
     const publish = scenePolicyAllowed && geometryReport.ok && projectIntegrity.ok && (assemblyReport?.ok ?? true) && geometryBuildFailures.length===0;
     const failures:string[] = [];
@@ -601,8 +606,16 @@ export class LivingProjectRuntime {
     const improvement = buildImprovementPlan({project,previousIterationUri:previous?.iterationUri??null,development:developmentEvidence,researchPresent,runtimePresent,mutationGrantPresent:grantPresent,authorityWarnings,failures,evidenceUris:[...resources.map(resource=>resource.uri),intentUri],repairProcesses:[...geometryRepairProcesses,...assemblyRepairProcesses,...integrityRepairProcesses]});
 
     const candidate = join(outDir,"candidate");
+    const hasSourceCoverage = sourceCoverage.reports.length > 0 || sourceCoverage.invalid.length > 0;
     await writeJson(join(candidate,"project.json"),project);
     await writeJson(join(candidate,"resources.json"),resources);
+    if(hasSourceCoverage) {
+      await writeJson(join(candidate,"source-coverage-index.json"),{
+        schema:"bioxfoundry.source-coverage-index/v1",
+        reports:sourceCoverage.reports,
+        invalid:sourceCoverage.invalid,
+      });
+    } else await rm(join(candidate,"source-coverage-index.json"),{force:true});
     await writeJson(join(candidate,"archive-project-analysis.json"),{schema:"subactor.archive-project-index/v1",archives:scanned.archiveAnalyses});
     await writeFile(join(candidate,"archive-project-analysis.dsl"),scanned.archiveAnalyses.map(renderArchiveAnalysisDsl).join("\n"));
     await writeJson(join(candidate,"evidence-sets.json"),Object.values(evidenceSets));
@@ -640,10 +653,11 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings,notices:scanned.notices});
 
-    const artifactNames = ["project.json","resources.json","archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json",...(hasSourceCoverage?["source-coverage-index.json"]:[]),"archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
+      if(!hasSourceCoverage) await rm(join(current,"source-coverage-index.json"),{force:true});
       for(const name of artifactNames) await writeFile(join(current,name),await readFile(join(candidate,name)));
     }
 

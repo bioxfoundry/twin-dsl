@@ -26,8 +26,8 @@ classifiers = [
 dependencies = []
 
 [project.optional-dependencies]
-# Structured Markdown from PDFs with a text layer — better than a flat pdftotext dump.
-pymupdf = ["pymupdf4llm>=0.0.17; python_version>='3.10'"]
+# Layout-first DocumentAST from PDFs with a native text layer.
+pymupdf = ["pymupdf>=1.24; python_version>='3.9'"]
 # Broad format coverage: Office, HTML, spreadsheets, images.
 markitdown = ["markitdown>=0.1; python_version>='3.10'"]
 # Run Docling in-process instead of over HTTP.
@@ -39,13 +39,13 @@ lang = ["py3langid>=0.3"]
 translate = ["argostranslate>=1.9", "py3langid>=0.3"]
 # Everything optional at once.
 all = [
-  "pymupdf4llm>=0.0.17; python_version>='3.10'",
+  "pymupdf>=1.24; python_version>='3.9'",
   "markitdown>=0.1; python_version>='3.10'",
   "docling>=2.0; python_version>='3.10'",
   "argostranslate>=1.9",
   "py3langid>=0.3",
 ]
-dev = ["pytest>=7", "mypy>=1.8", "ruff>=0.5"]
+dev = ["pytest>=7", "mypy>=1.8,<2", "ruff>=0.5"]
 
 [project.urls]
 Homepage = "https://github.com/bioxfoundry/twin-dsl/tree/main/py/f2md"

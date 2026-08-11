@@ -10,12 +10,13 @@ stays stdlib-only and a missing extra degrades to "not my job" rather than an Im
 from __future__ import annotations
 
 import contextlib
-import struct
+import importlib
 import io
 import json
 import os
 import re
 import shutil
+import struct
 import subprocess
 import sys
 import tempfile
@@ -24,14 +25,12 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterator, List, Optional, Protocol, Tuple, runtime_checkable
 
 from .detect import detect_document_kind, is_docling_kind, is_text_kind
+from .document_ast import render_markdown
+from .pdf_layout import extract_pdf_ast
 from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
 
 DEFAULT_MAX_CHARS = int(os.environ.get("F2MD_MAX_CHARS", "400000"))
 DEFAULT_TIMEOUT_S = int(os.environ.get("F2MD_TIMEOUT_S", "120"))
-
-#: PyMuPDF logs one of these per page it had to recognise rather than read.
-_OCR_PAGE_MARKER = re.compile(r"OCR on page", re.IGNORECASE)
-
 
 @runtime_checkable
 class Converter(Protocol):
@@ -129,6 +128,7 @@ class TextConverter:
             raise ExternalConverterRequired(kind)
         text = raw.decode("utf-8", errors="replace")
         name = os.path.basename(path)
+        warnings: List[str]
         if kind in (".md", ".markdown"):
             markdown, warnings = text, []
         else:
@@ -289,6 +289,23 @@ class LocalToolConverter:
             warnings.append("LAYOUT_ONLY:tables and images are not preserved")
         metadata = _stat_metadata(path)
         metadata["extractedChars"] = len(text)
+        if tool == "pdftotext":
+            page_texts = text.split("\f")
+            metadata["_f2mdPages"] = [
+                {"number": index + 1, "markdown": page.strip()}
+                for index, page in enumerate(page_texts)
+                if page.strip()
+            ]
+            metadata["ocrAudit"] = {
+                "ocrRequested": False,
+                "ocrActuallyUsed": False,
+                "ocrEngine": "none",
+                "ocrVersion": "unknown",
+                "ocrLanguages": [],
+                "ocrPages": [],
+                "ocrRegions": [],
+                "ocrConfidence": None,
+            }
         return ConvertedDocument(
             f"# {os.path.basename(path)}\n\n{body}\n", metadata, [], tool, self.version,
             backend_type=self.backend_type, input_kind=kind, warnings=warnings,
@@ -296,71 +313,61 @@ class LocalToolConverter:
 
 
 class PyMuPDFConverter:
-    """PDFs with a text layer, via `pymupdf4llm`.
+    """Layout-first PDFs: native PDF geometry → DocumentAST → Markdown projection.
 
-    Produces structured Markdown (headings, lists, tables) rather than the flat text layer
-    `pdftotext` yields, so it is the better default when document structure matters. It cannot do
-    OCR, so scanned PDFs are declined and left to Docling.
-
-    Requires the optional extra: ``pip install 'f2md[pymupdf]'``.
+    This backend deliberately does not call ``pymupdf4llm``. Tables, images, drawings and text
+    spans are classified as typed artifacts before Markdown exists. It cannot do OCR, so scans are
+    declined and left to an explicit OCR backend.
     """
 
-    name = "pymupdf4llm"
+    name = "pymupdf-layout"
     backend_type = "python"
 
     def __init__(self, max_chars: int = DEFAULT_MAX_CHARS, min_chars: int = 32) -> None:
         self.max_chars = max_chars
         # Below this, the PDF almost certainly has no text layer and needs OCR instead.
         self.min_chars = min_chars
-        self.version = _package_version("pymupdf4llm")
+        self.version = _package_version("pymupdf")
 
     def convert(self, path: str) -> ConvertedDocument:
         kind = detect_document_kind(path)
         if kind != ".pdf":
             raise ExternalConverterRequired(kind)
         try:
-            import pymupdf4llm  # type: ignore[import-not-found]
-        except ImportError:
-            # Missing extra is a routing signal, not a failure: the chain moves on.
-            raise ExternalConverterRequired(kind) from None
-        # MuPDF's message store is process-global and accumulates across documents. Without a
-        # reset, messages from a previously converted PDF get attributed to this one — which in a
-        # tree run silently mislabels which files went through OCR.
-        try:
-            import pymupdf  # type: ignore[import-not-found]
-
+            pymupdf: Any = importlib.import_module("pymupdf")
             pymupdf.TOOLS.reset_mupdf_warnings()
-        except Exception:  # noqa: BLE001 - attribution is best-effort, never fatal
+        except ImportError:
+            raise ExternalConverterRequired(kind) from None
+        except Exception:  # noqa: BLE001 - resetting diagnostics is best-effort
             pass
-        try:
-            with _quiet_stdout() as chatter:
-                text = str(pymupdf4llm.to_markdown(path)).strip()
-        except Exception as error:  # noqa: BLE001 - surfaced as one conversion failure
-            raise ConversionError(f"PYMUPDF_FAILED:{error}") from error
+        with _quiet_stdout() as chatter:
+            ast = extract_pdf_ast(path, min_chars=self.min_chars)
+        body = render_markdown(ast)
+        warnings: List[str] = []
+        if self.max_chars > 0 and len(body) > self.max_chars:
+            # Truncating the renderer would make Markdown disagree with its AST. Keep all bytes and
+            # expose the capacity signal instead.
+            warnings.append(f"CANONICAL_AST_EXCEEDS_MAX_CHARS:{self.max_chars}:{len(body)}")
         noise = chatter.text.strip()
-        try:
-            import pymupdf  # type: ignore[import-not-found]
-
-            # The store holds this document's messages now; stdout only carries a summary banner.
-            noise = "\n".join(filter(None, [noise, str(pymupdf.TOOLS.mupdf_warnings() or "")])).strip()
-        except Exception:  # noqa: BLE001
-            pass
-        if len(text) < self.min_chars:
-            # A scanned page yields almost nothing here; hand it to a backend that can OCR.
-            raise ExternalConverterRequired(kind)
-        body, warnings = _clip(text, self.max_chars)
-        # PyMuPDF falls back to Tesseract per page and says so on stdout. Reporting ocr=false while
-        # the text actually came from recognition would defeat the point of the field, so the
-        # captured chatter is the evidence: only a per-page "OCR on page" line counts, not the
-        # generic "Using Tesseract for OCR processing" capability banner.
-        ocr = bool(_OCR_PAGE_MARKER.search(noise))
         if noise:
             warnings.append("BACKEND_DIAGNOSTIC:" + " / ".join(noise.splitlines())[:200])
         metadata = _stat_metadata(path)
-        metadata["extractedChars"] = len(text)
+        metadata["extractedChars"] = len(body)
+        metadata["pageCount"] = len(ast["pages"])
+        metadata["documentAst"] = ast
+        metadata["ocrAudit"] = {
+            "ocrRequested": False,
+            "ocrActuallyUsed": False,
+            "ocrEngine": "none",
+            "ocrVersion": "unknown",
+            "ocrLanguages": [],
+            "ocrPages": [],
+            "ocrRegions": [],
+            "ocrConfidence": None,
+        }
         return ConvertedDocument(
             body, metadata, [], self.name, self.version,
-            backend_type=self.backend_type, input_kind=kind, ocr=ocr, warnings=warnings,
+            backend_type=self.backend_type, input_kind=kind, ocr=False, warnings=warnings,
         )
 
 
@@ -467,11 +474,25 @@ class DoclingHttpConverter:
             raise ConversionError("DOCLING_MARKDOWN_MISSING")
         metadata = data.get("metadata") if isinstance(data.get("metadata"), dict) else _stat_metadata(path)
         assets = [str(a) for a in data.get("assets", [])] if isinstance(data.get("assets"), list) else []
+        actually_used_ocr = bool(data.get("ocr", False))
+        raw_ocr_audit = data.get("ocrAudit") if isinstance(data.get("ocrAudit"), dict) else {}
+        metadata["ocrAudit"] = {
+            "ocrRequested": bool(raw_ocr_audit.get("ocrRequested", True)),
+            "ocrActuallyUsed": bool(raw_ocr_audit.get("ocrActuallyUsed", actually_used_ocr)),
+            "ocrEngine": str(raw_ocr_audit.get("ocrEngine", "docling" if actually_used_ocr else "none")),
+            "ocrVersion": str(raw_ocr_audit.get("ocrVersion", "unknown")),
+            "ocrLanguages": list(raw_ocr_audit.get("ocrLanguages", [])),
+            "ocrPages": list(raw_ocr_audit.get("ocrPages", [])),
+            "ocrRegions": list(raw_ocr_audit.get("ocrRegions", [])),
+            "ocrConfidence": raw_ocr_audit.get("ocrConfidence"),
+        }
+        if isinstance(data.get("pages"), list):
+            metadata["_f2mdPages"] = data["pages"]
         return ConvertedDocument(
             markdown, metadata, assets, str(data.get("converter") or "docling"), self.version,
             backend_type=self.backend_type, input_kind=kind,
             # Only trust an explicit signal from the service; never guess that OCR happened.
-            ocr=bool(data.get("ocr", False)),
+            ocr=actually_used_ocr,
             warnings=[str(w) for w in data.get("warnings", [])] if isinstance(data.get("warnings"), list) else [],
         )
 

@@ -1,58 +1,58 @@
-# code2llm/evolution | 1378 func | 82f | 2026-08-09
-# generated in 0.01s
+# code2llm/evolution | 1483 func | 84f | 2026-08-11
+# generated in 0.00s
 
 NEXT[10] (ranked by impact):
   [1] !! SPLIT           src/runtime/living-project.ts
-      WHY: 847L, 1 classes, max CC=171
-      EFFORT: ~4h  IMPACT: 144837
+      WHY: 810L, 1 classes, max CC=170
+      EFFORT: ~4h  IMPACT: 137700
 
-  [2] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=171  fan=95
-      WHY: CC=171 exceeds 15
-      EFFORT: ~1h  IMPACT: 16245
+  [2] !! SPLIT           src/scene/blueprint.ts
+      WHY: 741L, 0 classes, max CC=91
+      EFFORT: ~4h  IMPACT: 67431
 
-  [3] !! SPLIT-FUNC      main  CC=103  fan=85
-      WHY: CC=103 exceeds 15
-      EFFORT: ~1h  IMPACT: 8755
+  [3] !! SPLIT-FUNC      LivingProjectRuntime.iterateWithLease  CC=170  fan=100
+      WHY: CC=170 exceeds 15
+      EFFORT: ~1h  IMPACT: 17000
 
-  [4] !! SPLIT-FUNC      startDashboard  CC=81  fan=50
-      WHY: CC=81 exceeds 15
-      EFFORT: ~1h  IMPACT: 4050
+  [4] !! SPLIT-FUNC      main  CC=104  fan=86
+      WHY: CC=104 exceeds 15
+      EFFORT: ~1h  IMPACT: 8944
 
-  [5] !! SPLIT-FUNC      diagnoseDigitalTwin  CC=67  fan=32
-      WHY: CC=67 exceeds 15
-      EFFORT: ~1h  IMPACT: 2144
+  [5] !! SPLIT-FUNC      startDashboard  CC=83  fan=53
+      WHY: CC=83 exceeds 15
+      EFFORT: ~1h  IMPACT: 4399
 
-  [6] !! SPLIT-FUNC      analyzeProjectIntegrity  CC=68  fan=31
-      WHY: CC=68 exceeds 15
-      EFFORT: ~1h  IMPACT: 2108
+  [6] !! SPLIT-FUNC      diagnoseDigitalTwin  CC=83  fan=38
+      WHY: CC=83 exceeds 15
+      EFFORT: ~1h  IMPACT: 3154
 
-  [7] !! SPLIT-FUNC      finite  CC=68  fan=30
-      WHY: CC=68 exceeds 15
-      EFFORT: ~1h  IMPACT: 2040
+  [7] !! SPLIT-FUNC      analyzeProjectIntegrity  CC=87  fan=35
+      WHY: CC=87 exceeds 15
+      EFFORT: ~1h  IMPACT: 3045
 
-  [8] !! SPLIT-FUNC      flatten  CC=68  fan=30
-      WHY: CC=68 exceeds 15
-      EFFORT: ~1h  IMPACT: 2040
+  [8] !! SPLIT-FUNC      finite  CC=87  fan=34
+      WHY: CC=87 exceeds 15
+      EFFORT: ~1h  IMPACT: 2958
 
-  [9] !! SPLIT-FUNC      server  CC=50  fan=36
+  [9] !! SPLIT-FUNC      flatten  CC=87  fan=34
+      WHY: CC=87 exceeds 15
+      EFFORT: ~1h  IMPACT: 2958
+
+  [10] !! SPLIT-FUNC      server  CC=50  fan=36
       WHY: CC=50 exceeds 15
       EFFORT: ~1h  IMPACT: 1800
-
-  [10] !! SPLIT-FUNC      validateSceneBlueprint  CC=91  fan=18
-      WHY: CC=91 exceeds 15
-      EFFORT: ~1h  IMPACT: 1638
 
 
 RISKS[3]:
   ⚠ Splitting planfile.yaml may break 0 import paths
-  ⚠ Splitting src/core/types.ts may break 0 import paths
-  ⚠ Splitting src/runtime/living-project.ts may break 145 import paths
+  ⚠ Splitting src/runtime/living-project.ts may break 158 import paths
+  ⚠ Splitting src/scene/blueprint.ts may break 37 import paths
 
 METRICS-TARGET:
-  CC̄:          5.3 → ≤3.7
-  max-CC:      171 → ≤20
+  CC̄:          5.4 → ≤3.8
+  max-CC:      170 → ≤20
   god-modules: 5 → 0
-  high-CC(≥15): 107 → ≤53
+  high-CC(≥15): 114 → ≤57
   hub-types:   0 → ≤0
 
 PATTERNS (language parser shared logic):
@@ -80,4 +80,4 @@ PATTERNS (language parser shared logic):
     - Standardized FunctionInfo/ClassInfo models
 
 HISTORY:
-  prev CC̄=5.4 → now CC̄=5.3
+  prev CC̄=5.3 → now CC̄=5.4

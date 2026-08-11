@@ -11,6 +11,7 @@ from . import __version__
 from .chain import ConverterChain, default_chain
 from .converters import DoclingHttpConverter, DoclingLocalConverter, LocalToolConverter, TextConverter
 from .detect import detect_document_kind, media_type_for
+from .artifact_store import project_ast_document
 from .tree import convert_tree, refresh_version
 from .types import ConversionError
 
@@ -31,6 +32,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser = argparse.ArgumentParser(prog="f2md", description="Convert any file to unified Markdown.")
     parser.add_argument("paths", nargs="*", metavar="FILE")
     parser.add_argument("--json", action="store_true", help="emit the full envelope instead of Markdown")
+    parser.add_argument(
+        "--materialize-to", default=None, metavar="MARKDOWN_PATH",
+        help="for one AST-backed file, materialize sidecars relative to this future Markdown path",
+    )
     parser.add_argument("--detect", action="store_true", help="only report detected kind and media type")
     parser.add_argument(
         "--backend",
@@ -98,6 +103,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     if not args.paths:
         parser.error("no input files (use --tree SRC OUT to convert a directory)")
+    if args.materialize_to and len(args.paths) != 1:
+        parser.error("--materialize-to requires exactly one input file")
 
     if args.detect:
         for path in args.paths:
@@ -109,6 +116,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     for path in args.paths:
         try:
             document = chain.convert(path)
+            if args.materialize_to:
+                document = project_ast_document(document, path, args.materialize_to)
         except ConversionError as error:
             # Failures go to stderr so `f2md *.pdf > out.md` stays usable when one file is bad.
             print(f"f2md: {path}: {error}", file=sys.stderr)

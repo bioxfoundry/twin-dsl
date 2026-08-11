@@ -14,6 +14,7 @@ data and getting it right costs nothing.
 
 from __future__ import annotations
 
+import importlib
 import json
 import os
 import re
@@ -21,8 +22,8 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from .types import ConversionError
 from .llm_patch import PATCH_ENVELOPE_SCHEMA, apply_patch_envelope, patch_messages
+from .types import ConversionError
 
 #: Chunk size for translation. Argos degrades on very long inputs and LLMs have context limits;
 #: paragraphs are recombined afterwards so Markdown structure survives.
@@ -52,7 +53,7 @@ def detect_language(text: str, minimum_chars: int = 120) -> Optional[str]:
     if len(sample) < minimum_chars:
         return None
     try:
-        import py3langid  # type: ignore[import-not-found]
+        py3langid: Any = importlib.import_module("py3langid")
     except ImportError:
         return None
     try:
@@ -92,12 +93,12 @@ class ArgosTranslator:
         if key in self._installed:
             return self._installed[key]
         try:
-            import argostranslate.package  # type: ignore[import-not-found]
-            import argostranslate.translate  # type: ignore[import-not-found]
+            importlib.import_module("argostranslate.package")
+            argos_translate: Any = importlib.import_module("argostranslate.translate")
         except ImportError as error:
             raise TranslationUnavailable("ARGOS_NOT_INSTALLED: pip install 'f2md[translate]'") from error
 
-        languages = argostranslate.translate.get_installed_languages()
+        languages = argos_translate.get_installed_languages()
         origin = next((x for x in languages if x.code == source), None)
         destination = next((x for x in languages if x.code == self.target), None)
         if not origin or not destination:
@@ -198,9 +199,10 @@ class OpenRouterTranslator:
         try:
             content = str(data["choices"][0]["message"]["content"])
             patched = apply_patch_envelope(json.loads(content), "markdown-translation", base, ["text"])
-            if not isinstance(patched.get("text"), str):
+            translated = patched.get("text")
+            if not isinstance(translated, str):
                 raise ValueError("TRANSLATION_TEXT_REQUIRED")
-            return patched["text"]
+            return translated
         except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
             raise ConversionError("OPENROUTER_RESPONSE_MALFORMED") from error
 

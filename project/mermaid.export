@@ -1,10 +1,16 @@
 flowchart TD
-%% generated in 0.02s
+%% generated in 0.01s
     subgraph deploy__docling
         deploy__docling__server__health["health"]
         deploy__docling__server__convert["convert"]
     end
     subgraph js__archive_project_analyzer
+        js__archive_project_analyzer__src__dsl__quoted["quoted"]
+        js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl("renderArchiveAnalysisDsl CC=10")
+        js__archive_project_analyzer__src__dsl__selected["selected"]
+        js__archive_project_analyzer__src__dsl__visibleCandidates["visibleCandidates"]
+        js__archive_project_analyzer__src__dsl__renderArchiveAnalysisMarkdown["renderArchiveAnalysisMarkdown"]
+        js__archive_project_analyzer__src__dsl__c["c"]
         js__archive_project_analyzer__src__analyze__TEXT_EXTENSIONS["TEXT_EXTENSIONS"]
         js__archive_project_analyzer__src__analyze__MATERIALIZABLE_GEOMETRY["MATERIALIZABLE_GEOMETRY"]
         js__archive_project_analyzer__src__analyze__UNSUPPORTED_NATIVE_CAD["UNSUPPORTED_NATIVE_CAD"]
@@ -21,7 +27,7 @@ flowchart TD
         js__archive_project_analyzer__src__analyze__rootCandidates["rootCandidates"]
         js__archive_project_analyzer__src__analyze__markers["markers"]
         js__archive_project_analyzer__src__analyze__roots["roots"]
-        js__archive_project_analyzer__src__analyze__analyzeArchiveProject{{analyzeArchiveProject CC=18}}
+        js__archive_project_analyzer__src__analyze__analyzeArchiveProject{{analyzeArchiveProject CC=19}}
         js__archive_project_analyzer__src__analyze__kind["kind"]
         js__archive_project_analyzer__src__analyze__backend["backend"]
         js__archive_project_analyzer__src__analyze__materializable["materializable"]
@@ -32,12 +38,6 @@ flowchart TD
         js__archive_project_analyzer__src__analyze__maxGeometry["maxGeometry"]
         js__archive_project_analyzer__src__analyze__safeCandidates["safeCandidates"]
         js__archive_project_analyzer__src__analyze__archiveAnalysisFingerprint["archiveAnalysisFingerprint"]
-        js__archive_project_analyzer__src__dsl__quoted["quoted"]
-        js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl("renderArchiveAnalysisDsl CC=10")
-        js__archive_project_analyzer__src__dsl__selected["selected"]
-        js__archive_project_analyzer__src__dsl__visibleCandidates["visibleCandidates"]
-        js__archive_project_analyzer__src__dsl__renderArchiveAnalysisMarkdown["renderArchiveAnalysisMarkdown"]
-        js__archive_project_analyzer__src__dsl__c["c"]
     end
     subgraph js__assembly_dsl
         js__assembly_dsl__src__analyze__kebab["kebab"]
@@ -85,12 +85,6 @@ flowchart TD
     subgraph js__f2md
         js__f2md__src__types__ConversionError__super["super"]
         js__f2md__src__types__ExternalConverterRequired__super["super"]
-        js__f2md__src__detect__detectDocumentKind("detectDocumentKind CC=8")
-        js__f2md__src__detect__base["base"]
-        js__f2md__src__detect__actual["actual"]
-        js__f2md__src__detect__at["at"]
-        js__f2md__src__detect__mediaTypeFor["mediaTypeFor"]
-        js__f2md__src__detect__isTextKind["isTextKind"]
         js__f2md__src__cli__chainFor["chainFor"]
         js__f2md__src__cli__main{{main CC=30}}
         js__f2md__src__cli__json{{json CC=15}}
@@ -103,12 +97,31 @@ flowchart TD
         js__f2md__src__cli__document["document"]
         js__f2md__src__cli__invokedDirectly["invokedDirectly"]
         js__f2md__src__cli__entry["entry"]
+        js__f2md__src__chain__ConverterChain__convert["convert"]
+        js__f2md__src__chain__ConverterChain__started["started"]
+        js__f2md__src__chain__ConverterChain__lastKind["lastKind"]
+        js__f2md__src__chain__ConverterChain__document["document"]
+        js__f2md__src__chain__ConverterChain__defaultChain["defaultChain"]
+        js__f2md__src__chain__ConverterChain__url["url"]
+        js__f2md__src__chain__ConverterChain__convertToMarkdown["convertToMarkdown"]
+        js__f2md__src__detect__detectDocumentKind("detectDocumentKind CC=8")
+        js__f2md__src__detect__base["base"]
+        js__f2md__src__detect__actual["actual"]
+        js__f2md__src__detect__at["at"]
+        js__f2md__src__detect__mediaTypeFor["mediaTypeFor"]
+        js__f2md__src__detect__isTextKind["isTextKind"]
+        js__f2md__src__detect__isDoclingKind["isDoclingKind"]
+        js__f2md__src__detect__isDocumentConversionKind["isDocumentConversionKind"]
         js__f2md__src__tree__SKIP_DIRS["SKIP_DIRS"]
         js__f2md__src__tree__yamlScalar["yamlScalar"]
         js__f2md__src__tree__frontMatter["frontMatter"]
         js__f2md__src__tree__walkFiles["walkFiles"]
         js__f2md__src__tree__entries["entries"]
         js__f2md__src__tree__path["path"]
+        js__f2md__src__tree__treeSnapshot["treeSnapshot"]
+        js__f2md__src__tree__digest["digest"]
+        js__f2md__src__tree__writeVersion["writeVersion"]
+        js__f2md__src__tree__outputPaths["outputPaths"]
         js__f2md__src__tree__convertTree{{convertTree CC=22}}
         js__f2md__src__tree__source["source"]
         js__f2md__src__tree__target["target"]
@@ -120,13 +133,6 @@ flowchart TD
         js__f2md__src__tree__document["document"]
         js__f2md__src__tree__reason["reason"]
         js__f2md__src__tree__size["size"]
-        js__f2md__src__chain__ConverterChain__convert["convert"]
-        js__f2md__src__chain__ConverterChain__started["started"]
-        js__f2md__src__chain__ConverterChain__lastKind["lastKind"]
-        js__f2md__src__chain__ConverterChain__document["document"]
-        js__f2md__src__chain__ConverterChain__defaultChain["defaultChain"]
-        js__f2md__src__chain__ConverterChain__url["url"]
-        js__f2md__src__chain__ConverterChain__convertToMarkdown["convertToMarkdown"]
         js__f2md__src__converters__execFileAsync["execFileAsync"]
         js__f2md__src__converters__DEFAULT_MAX_CHARS["DEFAULT_MAX_CHARS"]
         js__f2md__src__converters__DEFAULT_TIMEOUT_MS["DEFAULT_TIMEOUT_MS"]
@@ -137,12 +143,6 @@ flowchart TD
         js__f2md__src__converters__TextConverter__convert("convert CC=12")
         js__f2md__src__converters__TextConverter__kind["kind"]
         js__f2md__src__converters__TextConverter__raw["raw"]
-        js__f2md__src__converters__TextConverter__text["text"]
-        js__f2md__src__converters__TextConverter__fence["fence"]
-        js__f2md__src__converters__ScadSourceConverter__convert["convert"]
-        js__f2md__src__converters__ScadSourceConverter__kind["kind"]
-        js__f2md__src__converters__ScadSourceConverter__text["text"]
-        js__f2md__src__converters__LocalToolConverter__code["code"]
     end
     subgraph js__live_twin_state
         js__live_twin_state__src__syntax__lines["lines"]
@@ -196,52 +196,6 @@ flowchart TD
         js__live_twin_state__src__live_binding__record["record"]
     end
     subgraph py__f2md
-        py__f2md__src__f2md__converters__Converter__convert["convert"]
-        py__f2md__src__f2md__converters___stat_metadata["_stat_metadata"]
-        py__f2md__src__f2md__converters___clip["_clip"]
-        py__f2md__src__f2md__converters___quiet_stdout["_quiet_stdout"]
-        py__f2md__src__f2md__converters___package_version["_package_version"]
-        py__f2md__src__f2md__converters__TextConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__TextConverter__convert["convert"]
-        py__f2md__src__f2md__converters__STLMetadataConverter__convert{{convert CC=16}}
-        py__f2md__src__f2md__converters__LocalToolConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__LocalToolConverter___run["_run"]
-        py__f2md__src__f2md__converters__LocalToolConverter__convert["convert"]
-        py__f2md__src__f2md__converters__PyMuPDFConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__PyMuPDFConverter__convert("convert CC=9")
-        py__f2md__src__f2md__converters__MarkItDownConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__MarkItDownConverter__convert("convert CC=8")
-        py__f2md__src__f2md__converters__DoclingHttpConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__DoclingHttpConverter__convert("convert CC=9")
-        py__f2md__src__f2md__converters__DoclingLocalConverter____init__["__init__"]
-        py__f2md__src__f2md__converters__DoclingLocalConverter__convert["convert"]
-        py__f2md__src__f2md__cli___build_chain["_build_chain"]
-        py__f2md__src__f2md__cli__main("main CC=13")
-        py__f2md__src__f2md__detect__detect_document_kind["detect_document_kind"]
-        py__f2md__src__f2md__detect__media_type_for["media_type_for"]
-        py__f2md__src__f2md__detect__is_text_kind["is_text_kind"]
-        py__f2md__src__f2md__detect__is_prose_kind["is_prose_kind"]
-        py__f2md__src__f2md__types__ExternalConverterRequired____init__["__init__"]
-        py__f2md__src__f2md__types__ConvertedDocument__to_dict["to_dict"]
-        py__f2md__src__f2md__types__ConvertedDocument__with_routing["with_routing"]
-        py__f2md__src__f2md__chain__ConverterChain____init__["__init__"]
-        py__f2md__src__f2md__chain__ConverterChain__convert["convert"]
-        py__f2md__src__f2md__chain__default_chain["default_chain"]
-        py__f2md__src__f2md__chain__convert["convert"]
-        py__f2md__src__f2md__chain__convert_to_markdown["convert_to_markdown"]
-        py__f2md__src__f2md__tree___yaml_scalar["_yaml_scalar"]
-        py__f2md__src__f2md__tree__front_matter["front_matter"]
-        py__f2md__src__f2md__tree__TreeResult__to_dict["to_dict"]
-        py__f2md__src__f2md__tree__walk_files["walk_files"]
-        py__f2md__src__f2md__tree__convert_tree{{convert_tree CC=26}}
-        py__f2md__src__f2md__audit__Finding__as_dict["as_dict"]
-        py__f2md__src__f2md__audit__AuditReport__add["add"]
-        py__f2md__src__f2md__audit__AuditReport__as_dict["as_dict"]
-        py__f2md__src__f2md__audit___front_matter["_front_matter"]
-        py__f2md__src__f2md__audit___md_target["_md_target"]
-        py__f2md__src__f2md__audit__audit_markdown_tree{{audit_markdown_tree CC=25}}
-        py__f2md__src__f2md__audit__audit_twin_artifacts{{audit_twin_artifacts CC=23}}
-        py__f2md__src__f2md__audit__main["main"]
         py__f2md__src__f2md__translate__detect_language["detect_language"]
         py__f2md__src__f2md__translate___chunks["_chunks"]
         py__f2md__src__f2md__translate__ArgosTranslator____init__["__init__"]
@@ -254,8 +208,54 @@ flowchart TD
         py__f2md__src__f2md__translate__TranslationPolicy____init__["__init__"]
         py__f2md__src__f2md__translate__TranslationPolicy__engine_for["engine_for"]
         py__f2md__src__f2md__translate__TranslationPolicy__translate["translate"]
+        py__f2md__src__f2md__types__ExternalConverterRequired____init__["__init__"]
+        py__f2md__src__f2md__types__ConvertedDocument__to_dict["to_dict"]
+        py__f2md__src__f2md__types__ConvertedDocument__with_routing["with_routing"]
+        py__f2md__src__f2md__llm_patch__base_hash["base_hash"]
+        py__f2md__src__f2md__llm_patch___encoded["_encoded"]
+        py__f2md__src__f2md__llm_patch__patch_messages["patch_messages"]
+        py__f2md__src__f2md__llm_patch__apply_patch_envelope{{apply_patch_envelope CC=18}}
+        py__f2md__src__f2md__audit__Finding__as_dict["as_dict"]
+        py__f2md__src__f2md__audit__AuditReport__add["add"]
+        py__f2md__src__f2md__audit__AuditReport__as_dict["as_dict"]
+        py__f2md__src__f2md__audit___front_matter["_front_matter"]
+        py__f2md__src__f2md__audit___md_target["_md_target"]
+        py__f2md__src__f2md__audit__audit_markdown_tree{{audit_markdown_tree CC=25}}
+        py__f2md__src__f2md__audit__audit_twin_artifacts{{audit_twin_artifacts CC=23}}
+        py__f2md__src__f2md__audit__main["main"]
+        py__f2md__src__f2md__chain__ConverterChain____init__["__init__"]
+        py__f2md__src__f2md__chain__ConverterChain__convert["convert"]
+        py__f2md__src__f2md__chain__default_chain["default_chain"]
+        py__f2md__src__f2md__chain__convert["convert"]
+        py__f2md__src__f2md__chain__convert_to_markdown["convert_to_markdown"]
+        py__f2md__src__f2md__detect__detect_document_kind["detect_document_kind"]
+        py__f2md__src__f2md__detect__media_type_for["media_type_for"]
+        py__f2md__src__f2md__detect__is_docling_kind["is_docling_kind"]
+        py__f2md__src__f2md__detect__is_document_conversion_kind["is_document_conversion_kind"]
+        py__f2md__src__f2md__detect__is_text_kind["is_text_kind"]
+        py__f2md__src__f2md__detect__is_prose_kind["is_prose_kind"]
+        py__f2md__src__f2md__cli___build_chain["_build_chain"]
+        py__f2md__src__f2md__cli__main("main CC=14")
         py__f2md__src__f2md__intent_compile___hash["_hash"]
+        py__f2md__src__f2md__intent_compile___file_hash["_file_hash"]
+        py__f2md__src__f2md__intent_compile___file_snapshot["_file_snapshot"]
+        py__f2md__src__f2md__intent_compile___write_version["_write_version"]
+        py__f2md__src__f2md__intent_compile__refresh_output_identity("refresh_output_identity CC=11")
         py__f2md__src__f2md__intent_compile___frontmatter["_frontmatter"]
+        py__f2md__src__f2md__intent_compile__validate_intents{{validate_intents CC=16}}
+        py__f2md__src__f2md__intent_compile___source_policy["_source_policy"]
+        py__f2md__src__f2md__intent_compile___validate_pack["_validate_pack"]
+        py__f2md__src__f2md__intent_compile__compile_markdown["compile_markdown"]
+        py__f2md__src__f2md__intent_compile__compile_tree["compile_tree"]
+        py__f2md__src__f2md__intent_compile__refresh_contract("refresh_contract CC=11")
+        py__f2md__src__f2md__intent_compile__openrouter_proposal["openrouter_proposal"]
+        py__f2md__src__f2md__intent_compile__main["main"]
+        py__f2md__src__f2md__converters__Converter__convert["convert"]
+        py__f2md__src__f2md__converters___stat_metadata["_stat_metadata"]
+        py__f2md__src__f2md__converters___clip["_clip"]
+        py__f2md__src__f2md__converters___quiet_stdout["_quiet_stdout"]
+        py__f2md__src__f2md__converters___package_version["_package_version"]
+        py__f2md__src__f2md__converters__TextConverter____init__["__init__"]
     end
     subgraph scripts__cad_to_gltf
         scripts__cad_to_gltf__utc_now["utc_now"]
@@ -271,8 +271,8 @@ flowchart TD
         scripts__cad_to_gltf__write_glb["write_glb"]
         scripts__cad_to_gltf__read_mtl("read_mtl CC=14")
         scripts__cad_to_gltf__write_indexed_glb{{write_indexed_glb CC=15}}
-        scripts__cad_to_gltf__run_obj{{run_obj CC=32}}
-        scripts__cad_to_gltf__run_stl("run_stl CC=14")
+        scripts__cad_to_gltf__run_obj{{run_obj CC=33}}
+        scripts__cad_to_gltf__run_stl{{run_stl CC=16}}
         scripts__cad_to_gltf__run_step["run_step"]
         scripts__cad_to_gltf__identity_transform["identity_transform"]
         scripts__cad_to_gltf__parse_transform["parse_transform"]
@@ -283,6 +283,7 @@ flowchart TD
         scripts__cad_to_gltf__write_usda["write_usda"]
         scripts__cad_to_gltf__run_3mf("run_3mf CC=9")
         scripts__cad_to_gltf__validate_glb("validate_glb CC=10")
+        scripts__cad_to_gltf__normalize_glb_units{{normalize_glb_units CC=26}}
         scripts__cad_to_gltf__validate_usd["validate_usd"]
         scripts__cad_to_gltf__bbox_delta["bbox_delta"]
         scripts__cad_to_gltf__bbox_extent["bbox_extent"]
@@ -299,9 +300,9 @@ flowchart TD
         scripts__cad_to_gltf__validate_geometry_contract("validate_geometry_contract CC=10")
         scripts__cad_to_gltf__build_identity["build_identity"]
         scripts__cad_to_gltf__compile_scad_to_3mf{{compile_scad_to_3mf CC=15}}
-        scripts__cad_to_gltf__run_scad{{run_scad CC=50}}
-        scripts__cad_to_gltf__bulk{{bulk CC=16}}
-        scripts__cad_to_gltf__main["main"]
+        scripts__cad_to_gltf__run_scad{{run_scad CC=58}}
+        scripts__cad_to_gltf__bulk{{bulk CC=18}}
+        scripts__cad_to_gltf__main("main CC=10")
     end
     subgraph scripts__check_compose
         scripts__check_compose__text["text"]
@@ -316,6 +317,19 @@ flowchart TD
         scripts__check_proto_contracts__numbers["numbers"]
         scripts__check_proto_contracts__field["field"]
         scripts__check_proto_contracts__files["files"]
+    end
+    subgraph scripts__dashboard_port_check
+        scripts__dashboard_port_check__projectId["projectId"]
+        scripts__dashboard_port_check__match["match"]
+        scripts__dashboard_port_check__tcpOpen["tcpOpen"]
+        scripts__dashboard_port_check__socket["socket"]
+        scripts__dashboard_port_check__finish["finish"]
+        scripts__dashboard_port_check__main{{main CC=18}}
+        scripts__dashboard_port_check__port["port"]
+        scripts__dashboard_port_check__expectedProject["expectedProject"]
+        scripts__dashboard_port_check__response["response"]
+        scripts__dashboard_port_check__state["state"]
+        scripts__dashboard_port_check__actualTwin["actualTwin"]
     end
     subgraph scripts__demo_autonomy
         scripts__demo_autonomy__created["created"]
@@ -365,31 +379,18 @@ flowchart TD
         scripts__f2md_conformance__divergent["divergent"]
     end
     subgraph scripts__scad_to_markdown
-        scripts__scad_to_markdown__main("main CC=12")
+        scripts__scad_to_markdown__main("main CC=13")
+    end
+    subgraph scripts__sync_vendored_runtime
+        scripts__sync_vendored_runtime__sourceRoot["sourceRoot"]
+        scripts__sync_vendored_runtime__projectRoot["projectRoot"]
+        scripts__sync_vendored_runtime__sourcePackage["sourcePackage"]
+        scripts__sync_vendored_runtime__vendorParent["vendorParent"]
+        scripts__sync_vendored_runtime__vendor["vendor"]
+        scripts__sync_vendored_runtime__existing["existing"]
+        scripts__sync_vendored_runtime__staging["staging"]
     end
     subgraph src__adapters
-        src__adapters__clickhouse__InMemorySearchProjection__upsert["upsert"]
-        src__adapters__clickhouse__InMemorySearchProjection__search["search"]
-        src__adapters__clickhouse__InMemorySearchProjection__all["all"]
-        src__adapters__clickhouse__InMemorySearchProjection__sqlString["sqlString"]
-        src__adapters__clickhouse__InMemorySearchProjection__clickHouseDateTime64["clickHouseDateTime64"]
-        src__adapters__clickhouse__InMemorySearchProjection__at["at"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__query["query"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__upsert["upsert"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__search["search"]
-        src__adapters__clickhouse__ClickHouseHttpProjection__all["all"]
-        src__adapters__document_converter__DeterministicMarkdownConverter["DeterministicMarkdownConverter"]
-        src__adapters__document_converter__LocalToolDocumentConverter["LocalToolDocumentConverter"]
-        src__adapters__document_converter__DoclingHttpAdapter["DoclingHttpAdapter"]
-        src__adapters__document_converter__CompositeDocumentConverter__convert["convert"]
-        src__adapters__openscad__existing["existing"]
-        src__adapters__openscad__workerScript["workerScript"]
-        src__adapters__openscad__moduleDir["moduleDir"]
-        src__adapters__openscad__OpenScadGeometryBackend__script["script"]
-        src__adapters__openscad__OpenScadGeometryBackend__limit["limit"]
-        src__adapters__openscad__OpenScadGeometryBackend__child["child"]
-        src__adapters__openscad__OpenScadGeometryBackend__timeout["timeout"]
-        src__adapters__openscad__OpenScadGeometryBackend__clearTimeout["clearTimeout"]
         src__adapters__twin_probes__object["object"]
         src__adapters__twin_probes__validateAutonomCycle{{validateAutonomCycle CC=17}}
         src__adapters__twin_probes__data("data CC=9")
@@ -410,6 +411,28 @@ flowchart TD
         src__adapters__twin_probes__TwinProbesAdapter__run("run CC=11")
         src__adapters__twin_probes__TwinProbesAdapter__out["out"]
         src__adapters__twin_probes__TwinProbesAdapter__writeSummary["writeSummary"]
+        src__adapters__clickhouse__InMemorySearchProjection__upsert["upsert"]
+        src__adapters__clickhouse__InMemorySearchProjection__search["search"]
+        src__adapters__clickhouse__InMemorySearchProjection__all["all"]
+        src__adapters__clickhouse__InMemorySearchProjection__sqlString["sqlString"]
+        src__adapters__clickhouse__InMemorySearchProjection__clickHouseDateTime64["clickHouseDateTime64"]
+        src__adapters__clickhouse__InMemorySearchProjection__at["at"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__query["query"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__upsert["upsert"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__search["search"]
+        src__adapters__clickhouse__ClickHouseHttpProjection__all["all"]
+        src__adapters__openscad__existing["existing"]
+        src__adapters__openscad__workerScript["workerScript"]
+        src__adapters__openscad__moduleDir["moduleDir"]
+        src__adapters__openscad__OpenScadGeometryBackend__script["script"]
+        src__adapters__openscad__OpenScadGeometryBackend__limit["limit"]
+        src__adapters__openscad__OpenScadGeometryBackend__child["child"]
+        src__adapters__openscad__OpenScadGeometryBackend__timeout["timeout"]
+        src__adapters__openscad__OpenScadGeometryBackend__clearTimeout["clearTimeout"]
+        src__adapters__document_converter__DeterministicMarkdownConverter["DeterministicMarkdownConverter"]
+        src__adapters__document_converter__LocalToolDocumentConverter["LocalToolDocumentConverter"]
+        src__adapters__document_converter__DoclingHttpAdapter["DoclingHttpAdapter"]
+        src__adapters__document_converter__CompositeDocumentConverter__convert["convert"]
         src__adapters__todo2code__run["run"]
         src__adapters__todo2code__processHandle["processHandle"]
         src__adapters__todo2code__optionalJson["optionalJson"]
@@ -440,7 +463,7 @@ flowchart TD
         src__cli__main__localRoot["localRoot"]
         src__cli__main__multiarch["multiarch"]
         src__cli__main__localLibrary["localLibrary"]
-        src__cli__main__main{{main CC=103}}
+        src__cli__main__main{{main CC=104}}
         src__cli__main__t2c["t2c"]
         src__cli__main__report["report"]
         src__cli__main__runtime("runtime CC=10")
@@ -481,17 +504,12 @@ flowchart TD
         src__core__canonical__norm["norm"]
         src__core__canonical__canonicalJson["canonicalJson"]
         src__core__canonical__sha256["sha256"]
+        src__core__canonical__payload["payload"]
         src__core__canonical__contentUri["contentUri"]
     end
     subgraph src__dsl
         src__dsl__intent__validateT2cIntent["validateT2cIntent"]
         src__dsl__intent__intentUri["intentUri"]
-        src__dsl__project__bool["bool"]
-        src__dsl__project__parseProjectDsl{{parseProjectDsl CC=51}}
-        src__dsl__project__xs["xs"]
-        src__dsl__project__renderProjectDsl{{renderProjectDsl CC=17}}
-        src__dsl__project__validateProject{{validateProject CC=59}}
-        src__dsl__project__dev["dev"]
         src__dsl__parser_util__lines["lines"]
         src__dsl__parser_util__unquote["unquote"]
         src__dsl__parser_util__x["x"]
@@ -509,12 +527,6 @@ flowchart TD
         src__dsl__improvement__document["document"]
         src__dsl__improvement__ids{{ids CC=16}}
         src__dsl__improvement__action["action"]
-        src__dsl__resource__resourceFromText["resourceFromText"]
-        src__dsl__resource__resourceFromBinary["resourceFromBinary"]
-        src__dsl__resource__payload["payload"]
-        src__dsl__resource__hash["hash"]
-        src__dsl__resource__size["size"]
-        src__dsl__resource__resourceFromBinaryDigest["resourceFromBinaryDigest"]
         src__dsl__query__parseQueryDsl("parseQueryDsl CC=13")
         src__dsl__query__xs("xs CC=11")
         src__dsl__query__id("id CC=11")
@@ -544,21 +556,20 @@ flowchart TD
         src__dsl__tree__xs["xs"]
         src__dsl__tree__header["header"]
         src__dsl__tree__indent["indent"]
+        src__dsl__tree__match["match"]
+        src__dsl__tree__renderTreeDsl["renderTreeDsl"]
+        src__dsl__tree__walk["walk"]
+        src__dsl__observation__parseValue("parseValue CC=10")
+        src__dsl__observation__v["v"]
+        src__dsl__observation__csv["csv"]
+        src__dsl__observation__parseObservationDsl{{parseObservationDsl CC=28}}
+        src__dsl__observation__xs["xs"]
+        src__dsl__observation__i["i"]
+        src__dsl__observation__renderObservationDsl["renderObservationDsl"]
+        src__dsl__observation__validateObservation{{validateObservation CC=31}}
+        src__dsl__observation__seen{{seen CC=21}}
     end
     subgraph src__geometry
-        src__geometry__physical_evidence_adapter__extent["extent"]
-        src__geometry__physical_evidence_adapter__bbox["bbox"]
-        src__geometry__physical_evidence_adapter__geometryReceiptResource["geometryReceiptResource"]
-        src__geometry__physical_evidence_adapter__artifact["artifact"]
-        src__geometry__physical_evidence_adapter__info["info"]
-        src__geometry__physical_evidence_adapter__geometryReceiptEvidence("geometryReceiptEvidence CC=8")
-        src__geometry__physical_evidence_adapter__web["web"]
-        src__geometry__physical_evidence_adapter__canonical["canonical"]
-        src__geometry__physical_evidence_adapter__usd["usd"]
-        src__geometry__physical_evidence_adapter__mergeGeometryEvidence{{mergeGeometryEvidence CC=20}}
-        src__geometry__physical_evidence_adapter__records("records CC=11")
-        src__geometry__physical_evidence_adapter__rank("rank CC=11")
-        src__geometry__physical_evidence_adapter__current["current"]
         src__geometry__geometry_dsl__renderGeometryDsl["renderGeometryDsl"]
         src__geometry__geometry_dsl__reference["reference"]
         src__geometry__geometry_dsl__renderGeometryReceiptDsl("renderGeometryReceiptDsl CC=12")
@@ -606,27 +617,21 @@ flowchart TD
         src__geometry__geometry_service__GeometryService__receipt["receipt"]
         src__geometry__geometry_service__GeometryService__evidence["evidence"]
         src__geometry__geometry_service__GeometryService__resource["resource"]
+        src__geometry__geometry_service__GeometryService__materializeFiles["materializeFiles"]
+        src__geometry__dependency_resolver__execute["execute"]
+        src__geometry__dependency_resolver__exists["exists"]
+        src__geometry__dependency_resolver__files["files"]
+        src__geometry__dependency_resolver__path["path"]
+        src__geometry__dependency_resolver__geometryDependencyHash["geometryDependencyHash"]
+        src__geometry__dependency_resolver__info["info"]
+        src__geometry__dependency_resolver__entries["entries"]
+        src__geometry__dependency_resolver__hash["hash"]
+        src__geometry__dependency_resolver__name["name"]
+        src__geometry__dependency_resolver__length["length"]
+        src__geometry__dependency_resolver__inside["inside"]
+        src__geometry__dependency_resolver__rel["rel"]
     end
     subgraph src__ingestion
-        src__ingestion__archive__execFileAsync["execFileAsync"]
-        src__ingestion__archive__limit["limit"]
-        src__ingestion__archive__n["n"]
-        src__ingestion__archive__safeArchivePath["safeArchivePath"]
-        src__ingestion__archive__segments["segments"]
-        src__ingestion__archive__sha256File["sha256File"]
-        src__ingestion__archive__hash["hash"]
-        src__ingestion__archive__inventoryZip["inventoryZip"]
-        src__ingestion__archive__maxInventory["maxInventory"]
-        src__ingestion__archive__name["name"]
-        src__ingestion__archive__listZip["listZip"]
-        src__ingestion__archive__maxFiles["maxFiles"]
-        src__ingestion__archive__names["names"]
-        src__ingestion__archive__readZipEntry["readZipEntry"]
-        src__ingestion__archive__readZip["readZip"]
-        src__ingestion__archive__maxEntry["maxEntry"]
-        src__ingestion__archive__maxTotal["maxTotal"]
-        src__ingestion__archive__total["total"]
-        src__ingestion__archive__content["content"]
         src__ingestion__archive_project__ANALYSIS_CACHE["ANALYSIS_CACHE"]
         src__ingestion__archive_project__envLimit["envLimit"]
         src__ingestion__archive_project__value["value"]
@@ -652,6 +657,25 @@ flowchart TD
         src__ingestion__archive_project__content["content"]
         src__ingestion__archive_project__destination["destination"]
         src__ingestion__archive_project__writeArchiveAnalysis["writeArchiveAnalysis"]
+        src__ingestion__archive__execFileAsync["execFileAsync"]
+        src__ingestion__archive__limit["limit"]
+        src__ingestion__archive__n["n"]
+        src__ingestion__archive__safeArchivePath["safeArchivePath"]
+        src__ingestion__archive__segments["segments"]
+        src__ingestion__archive__sha256File["sha256File"]
+        src__ingestion__archive__hash["hash"]
+        src__ingestion__archive__inventoryZip["inventoryZip"]
+        src__ingestion__archive__maxInventory["maxInventory"]
+        src__ingestion__archive__name["name"]
+        src__ingestion__archive__listZip["listZip"]
+        src__ingestion__archive__maxFiles["maxFiles"]
+        src__ingestion__archive__names["names"]
+        src__ingestion__archive__readZipEntry["readZipEntry"]
+        src__ingestion__archive__readZip["readZip"]
+        src__ingestion__archive__maxEntry["maxEntry"]
+        src__ingestion__archive__maxTotal["maxTotal"]
+        src__ingestion__archive__total["total"]
+        src__ingestion__archive__content["content"]
         src__ingestion__scanner__TEXT_EXT["TEXT_EXT"]
         src__ingestion__scanner__walk("walk CC=9")
         src__ingestion__scanner__p["p"]
@@ -663,11 +687,11 @@ flowchart TD
         src__ingestion__scanner__existing["existing"]
         src__ingestion__scanner__pushBinary["pushBinary"]
         src__ingestion__scanner__r["r"]
-        src__ingestion__scanner__scanSources{{scanSources CC=23}}
-        src__ingestion__scanner__texts{{texts CC=23}}
-        src__ingestion__scanner__converter{{converter CC=23}}
-        src__ingestion__scanner__absolute{{absolute CC=21}}
-        src__ingestion__scanner__s{{s CC=21}}
+        src__ingestion__scanner__scanSources{{scanSources CC=29}}
+        src__ingestion__scanner__texts{{texts CC=29}}
+        src__ingestion__scanner__converter{{converter CC=29}}
+        src__ingestion__scanner__absolute{{absolute CC=27}}
+        src__ingestion__scanner__s{{s CC=27}}
     end
     subgraph src__llm
         src__llm__openrouter__envInt["envInt"]
@@ -744,6 +768,7 @@ flowchart TD
         src__project__wizard__vendorRuntime["vendorRuntime"]
         src__project__wizard__here["here"]
         src__project__wizard__root["root"]
+        src__project__wizard__runtimePackage["runtimePackage"]
         src__project__wizard__vendor["vendor"]
         src__project__wizard__source["source"]
         src__project__wizard__createLivingProject("createLivingProject CC=9")
@@ -752,6 +777,7 @@ flowchart TD
         src__project__wizard__profile["profile"]
         src__project__wizard__port["port"]
         src__project__wizard__managerIntent["managerIntent"]
+        src__project__wizard__runtimeVersion["runtimeVersion"]
         src__project__wizard__addProjectSource["addProjectSource"]
         src__project__wizard__absoluteConfig["absoluteConfig"]
         src__project__wizard__base["base"]
@@ -762,9 +788,12 @@ flowchart TD
         src__project__wizard__relativePath["relativePath"]
         src__project__wizard__addProjectWebsite["addProjectWebsite"]
         src__project__wizard__parsed["parsed"]
-        src__project__wizard__verifyLivingProject{{verifyLivingProject CC=16}}
+        src__project__wizard__syncProjectMirror["syncProjectMirror"]
         src__project__wizard__absolute["absolute"]
         src__project__wizard__path["path"]
+        src__project__wizard__verifyLivingProject{{verifyLivingProject CC=20}}
+        src__project__wizard__jsonMirrorPath["jsonMirrorPath"]
+        src__project__wizard__mirror["mirror"]
         src__project__wizard__ok["ok"]
         src__project__wizard__bindingPath["bindingPath"]
         src__project__wizard__bindings["bindings"]
@@ -801,52 +830,6 @@ flowchart TD
         src__research__researcher__math["math"]
     end
     subgraph src__runtime
-        src__runtime__mutation_pipeline__object["object"]
-        src__runtime__mutation_pipeline__planHashOf["planHashOf"]
-        src__runtime__mutation_pipeline__data["data"]
-        src__runtime__mutation_pipeline__loadPlan["loadPlan"]
-        src__runtime__mutation_pipeline__resolveGrant["resolveGrant"]
-        src__runtime__mutation_pipeline__proposeCodeMutation{{proposeCodeMutation CC=15}}
-        src__runtime__mutation_pipeline__startedAt["startedAt"]
-        src__runtime__mutation_pipeline__proposalId["proposalId"]
-        src__runtime__mutation_pipeline__outDir["outDir"]
-        src__runtime__mutation_pipeline__plan["plan"]
-        src__runtime__mutation_pipeline__planHash["planHash"]
-        src__runtime__mutation_pipeline__grantResult["grantResult"]
-        src__runtime__mutation_pipeline__adapter["adapter"]
-        src__runtime__mutation_pipeline__patchOut["patchOut"]
-        src__runtime__mutation_pipeline__planFile["planFile"]
-        src__runtime__mutation_pipeline__completedAt["completedAt"]
-        src__runtime__mutation_pipeline__message["message"]
-        src__runtime__mutation_pipeline__applyCodeMutation("applyCodeMutation CC=13")
-        src__runtime__mutation_pipeline__jtiDir["jtiDir"]
-        src__runtime__mutation_pipeline__consumed["consumed"]
-        src__runtime__mutation_pipeline__workspace["workspace"]
-        src__runtime__mutation_pipeline__applyId["applyId"]
-        src__runtime__mutation_pipeline__receiptPath["receiptPath"]
-        src__runtime__biofoundry__jsonFile["jsonFile"]
-        src__runtime__biofoundry__snapshot["snapshot"]
-        src__runtime__biofoundry__diff["diff"]
-        src__runtime__biofoundry__resourceByPath["resourceByPath"]
-        src__runtime__biofoundry__buildTree["buildTree"]
-        src__runtime__biofoundry__buildMath["buildMath"]
-        src__runtime__biofoundry__buildTwin["buildTwin"]
-        src__runtime__biofoundry__buildScene["buildScene"]
-        src__runtime__biofoundry__readPrevious["readPrevious"]
-        src__runtime__biofoundry__writeJson["writeJson"]
-        src__runtime__biofoundry__BiofoundryRuntime__build{{build CC=20}}
-        src__runtime__biofoundry__BiofoundryRuntime__absoluteConfig["absoluteConfig"]
-        src__runtime__biofoundry__BiofoundryRuntime__resources["resources"]
-        src__runtime__biofoundry__BiofoundryRuntime__previousResources["previousResources"]
-        src__runtime__biofoundry__BiofoundryRuntime__changes["changes"]
-        src__runtime__biofoundry__BiofoundryRuntime__policyPath["policyPath"]
-        src__runtime__biofoundry__BiofoundryRuntime__policy["policy"]
-        src__runtime__biofoundry__BiofoundryRuntime__policyResource["policyResource"]
-        src__runtime__biofoundry__BiofoundryRuntime__mathGen["mathGen"]
-        src__runtime__biofoundry__BiofoundryRuntime__twinGen["twinGen"]
-        src__runtime__biofoundry__BiofoundryRuntime__sceneGen["sceneGen"]
-        src__runtime__biofoundry__BiofoundryRuntime__allowed["allowed"]
-        src__runtime__biofoundry__BiofoundryRuntime__candidate["candidate"]
         src__runtime__biofoundry_concept__haystack["haystack"]
         src__runtime__biofoundry_concept__matchZoneResources["matchZoneResources"]
         src__runtime__biofoundry_concept__text["text"]
@@ -861,6 +844,52 @@ flowchart TD
         src__runtime__biofoundry_concept__biofoundryConceptScene("biofoundryConceptScene CC=13")
         src__runtime__biofoundry_concept__twinUri("twinUri CC=9")
         src__runtime__biofoundry_concept__zoneIds("zoneIds CC=9")
+        src__runtime__biofoundry_concept__zoneById("zoneById CC=9")
+        src__runtime__biofoundry_concept__zone["zone"]
+        src__runtime__biofoundry_concept__position["position"]
+        src__runtime__biofoundry_concept__size["size"]
+        src__runtime__biofoundry_concept__evidenceIndex["evidenceIndex"]
+        src__runtime__biofoundry_concept__biofoundryReadinessBindings["biofoundryReadinessBindings"]
+        src__runtime__biofoundry_concept__uris["uris"]
+        src__runtime__biofoundry_concept__hasTelemetry["hasTelemetry"]
+        src__runtime__event_store__InMemoryEventStore__append["append"]
+        src__runtime__event_store__InMemoryEventStore__xs["xs"]
+        src__runtime__event_store__InMemoryEventStore__read["read"]
+        src__runtime__event_store__InMemoryEventStore__all["all"]
+        src__runtime__service_check__timed["timed"]
+        src__runtime__service_check__started["started"]
+        src__runtime__service_check__checkExternalServices{{checkExternalServices CC=15}}
+        src__runtime__service_check__clickhouseUrl["clickhouseUrl"]
+        src__runtime__service_check__doclingUrl["doclingUrl"]
+        src__runtime__service_check__timeoutMs["timeoutMs"]
+        src__runtime__service_check__result["result"]
+        src__runtime__service_check__parsed["parsed"]
+        src__runtime__service_check__response["response"]
+        src__runtime__service_check__text["text"]
+        src__runtime__query_runtime__QueryRuntime__execute("execute CC=10")
+        src__runtime__query_runtime__QueryRuntime__executionId["executionId"]
+        src__runtime__query_runtime__QueryRuntime__term["term"]
+        src__runtime__query_runtime__QueryRuntime__evidence["evidence"]
+        src__runtime__autonomy__object["object"]
+        src__runtime__autonomy__array["array"]
+        src__runtime__autonomy__diagnosticSeverity["diagnosticSeverity"]
+        src__runtime__autonomy__item["item"]
+        src__runtime__autonomy__manifestStatus["manifestStatus"]
+        src__runtime__autonomy__status["status"]
+        src__runtime__autonomy__summarizeDevelopment{{summarizeDevelopment CC=20}}
+        src__runtime__autonomy__graphObject["graphObject"]
+        src__runtime__autonomy__records["records"]
+        src__runtime__autonomy__relations["relations"]
+        src__runtime__autonomy__diagnostics["diagnostics"]
+        src__runtime__autonomy__blocking["blocking"]
+        src__runtime__autonomy__declaredFingerprint["declaredFingerprint"]
+        src__runtime__autonomy__graphFingerprint["graphFingerprint"]
+        src__runtime__autonomy__developmentAnalysisFingerprint{{developmentAnalysisFingerprint CC=28}}
+        src__runtime__autonomy__graph["graph"]
+        src__runtime__autonomy__diagnosticsObject["diagnosticsObject"]
+        src__runtime__autonomy__manifest("manifest CC=11")
+        src__runtime__autonomy__configuration("configuration CC=11")
+        src__runtime__autonomy__stages("stages CC=11")
     end
     subgraph src__scene
         src__scene__physical_evidence__EVIDENCE_KINDS["EVIDENCE_KINDS"]
@@ -932,7 +961,8 @@ flowchart TD
         src__serve__dashboard__readEventLog["readEventLog"]
         src__serve__dashboard__lines["lines"]
         src__serve__dashboard__events["events"]
-        src__serve__dashboard__readDslArtifacts("readDslArtifacts CC=9")
+        src__serve__dashboard__readDslArtifacts("readDslArtifacts CC=14")
+        src__serve__dashboard__latest["latest"]
         src__serve__dashboard__content["content"]
         src__serve__dashboard__mergeEvidence("mergeEvidence CC=14")
         src__serve__dashboard__byComponent["byComponent"]
@@ -943,7 +973,7 @@ flowchart TD
         src__serve__dashboard__sendJson["sendJson"]
         src__serve__dashboard__readBody["readBody"]
         src__serve__dashboard__size["size"]
-        src__serve__dashboard__startDashboard{{startDashboard CC=81}}
+        src__serve__dashboard__startDashboard{{startDashboard CC=83}}
         src__serve__dashboard__publicDir["publicDir"]
         src__serve__dashboard__current["current"]
         src__serve__dashboard__runtime["runtime"]
@@ -955,7 +985,6 @@ flowchart TD
         src__serve__dashboard__evaluatedAt["evaluatedAt"]
         src__serve__dashboard__evaluatedTwinState["evaluatedTwinState"]
         src__serve__dashboard__evaluatedCandidateTwinState["evaluatedCandidateTwinState"]
-        src__serve__dashboard__latest["latest"]
         src__serve__dashboard__latestRejected["latestRejected"]
         src__serve__dashboard__latestCandidate("latestCandidate CC=10")
         src__serve__dashboard__server{{server CC=50}}
@@ -979,39 +1008,18 @@ flowchart TD
         src__serve__dashboard__dsl["dsl"]
         src__serve__dashboard__next["next"]
         src__serve__dashboard__host["host"]
+        src__serve__dashboard__listening["listening"]
+        src__serve__dashboard__failed["failed"]
+        src__serve__dashboard__detail["detail"]
         src__serve__dashboard__address["address"]
         src__serve__dashboard__port["port"]
     end
-    js__f2md__src__detect__mediaTypeFor --> js__f2md__src__detect__detectDocumentKind
     js__f2md__src__cli__main --> js__f2md__src__cli__chainFor
-    js__f2md__src__tree__frontMatter --> js__f2md__src__tree__entries
-    js__f2md__src__tree__frontMatter --> js__f2md__src__tree__yamlScalar
-    js__f2md__src__tree__convertTree --> js__f2md__src__tree__walkFiles
-    js__f2md__src__tree__paths --> js__f2md__src__tree__frontMatter
     js__f2md__src__chain__ConverterChain__convert --> js__f2md__src__chain__ConverterChain__defaultChain
     js__f2md__src__chain__ConverterChain__started --> js__f2md__src__chain__ConverterChain__convert
     js__f2md__src__chain__ConverterChain__lastKind --> js__f2md__src__chain__ConverterChain__convert
     js__f2md__src__chain__ConverterChain__convertToMarkdown --> js__f2md__src__chain__ConverterChain__convert
-    js__f2md__src__converters__TextConverter__convert --> js__f2md__src__converters__execFileAsync
-    js__f2md__src__converters__TextConverter__convert --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__TextConverter__convert --> js__f2md__src__converters__clip
-    js__f2md__src__converters__TextConverter__kind --> js__f2md__src__converters__execFileAsync
-    js__f2md__src__converters__TextConverter__raw --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__TextConverter__text --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__TextConverter__fence --> js__f2md__src__converters__clip
-    js__f2md__src__converters__ScadSourceConverter__convert --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__LocalToolConverter__convert --> js__f2md__src__converters__clip
-    js__f2md__src__converters__LocalToolConverter__convert --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__DoclingHttpConverter__convert --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__TurndownConverter__convert --> js__f2md__src__converters__MammothConverter__htmlToDocument
-    js__f2md__src__converters__MammothConverter__convert --> js__f2md__src__converters__MammothConverter__convertToHtml
-    js__f2md__src__converters__MammothConverter__convert --> js__f2md__src__converters__MammothConverter__htmlToDocument
-    js__f2md__src__converters__MammothConverter__kind --> js__f2md__src__converters__MammothConverter__convertToHtml
-    js__f2md__src__converters__MammothConverter__mammoth --> js__f2md__src__converters__MammothConverter__convertToHtml
-    js__f2md__src__converters__MammothConverter__htmlToDocument --> js__f2md__src__converters__MammothConverter__Turndown
-    js__f2md__src__converters__MammothConverter__htmlToDocument --> js__f2md__src__converters__clip
-    js__f2md__src__converters__MammothConverter__htmlToDocument --> js__f2md__src__converters__statMetadata
-    js__f2md__src__converters__MammothConverter__clipped --> js__f2md__src__converters__statMetadata
+    js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl --> js__archive_project_analyzer__src__dsl__quoted
     js__live_twin_state__src__projector__projectTwinState --> js__live_twin_state__src__projector__componentIds
     js__live_twin_state__src__projector__projectTwinState --> js__live_twin_state__src__projector__mappedState
     js__live_twin_state__src__projector__observation --> js__live_twin_state__src__projector__mappedState
@@ -1062,40 +1070,12 @@ flowchart TD
     js__assembly_dsl__src__dsl__header --> js__assembly_dsl__src__dsl__match
     js__assembly_dsl__src__dsl__header --> js__assembly_dsl__src__dsl__bool
     js__assembly_dsl__src__dsl__renderAssemblyDsl --> js__assembly_dsl__src__dsl__validateAssembly
-    src__serve__dashboard__sendJson --> src__serve__dashboard__send
-    src__serve__dashboard__startDashboard --> src__serve__dashboard__assetRoot
-    src__serve__dashboard__startDashboard --> src__serve__dashboard__readJson
-    src__serve__dashboard__state --> src__serve__dashboard__readJson
-    src__serve__dashboard__server --> src__serve__dashboard__send
-    src__serve__dashboard__server --> src__serve__dashboard__sendJson
-    src__serve__dashboard__server --> src__serve__dashboard__state
-    src__serve__dashboard__server --> src__serve__dashboard__readEventLog
-    src__serve__dashboard__server --> src__serve__dashboard__readDslArtifacts
-    src__serve__dashboard__resource --> src__serve__dashboard__sendJson
-    src__serve__dashboard__started --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__receipt --> src__serve__dashboard__sendJson
-    src__serve__dashboard__incoming --> src__serve__dashboard__sendJson
-    src__serve__dashboard__preview --> src__serve__dashboard__sendJson
-    src__serve__dashboard__projectDir --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__evidencePath --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__previewResult --> src__serve__dashboard__ingestedResourceUris
-    src__serve__dashboard__report --> src__serve__dashboard__sendJson
-    src__serve__dashboard__accepted --> src__serve__dashboard__sendJson
-    src__serve__dashboard__stored --> src__serve__dashboard__mergeEvidence
-    src__serve__dashboard__evidence --> src__serve__dashboard__mergeEvidence
-    src__serve__dashboard__next --> src__serve__dashboard__sendJson
-    src__serve__dashboard__host --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__address --> src__serve__dashboard__dashboardLog
-    src__serve__dashboard__port --> src__serve__dashboard__dashboardLog
     src__core__json_schema__matchesType --> src__core__json_schema__typeOf
     src__core__json_schema__checkJsonSchema --> src__core__json_schema__matchesType
     src__core__json_schema__checkJsonSchema --> src__core__json_schema__typeOf
     src__core__json_schema__types --> src__core__json_schema__matchesType
     src__core__json_schema__types --> src__core__json_schema__typeOf
     src__core__json_schema__matchesJsonSchema --> src__core__json_schema__checkJsonSchema
-    src__core__canonical__canonicalJson --> src__core__canonical__norm
-    src__core__canonical__sha256 --> src__core__canonical__canonicalJson
-    src__core__canonical__contentUri --> src__core__canonical__sha256
     src__research__crawler__p --> src__research__crawler__privateIp
     src__research__crawler__assertPublic --> src__research__crawler__privateIp
     src__research__crawler__locations --> src__research__crawler__decode
@@ -1109,33 +1089,6 @@ flowchart TD
     src__research__crawler__DqlCrawler__crawl --> src__research__crawler__locations
     src__research__crawler__DqlCrawler__crawl --> src__research__crawler__isSitemapIndex
     src__research__crawler__DqlCrawler__robots --> src__research__crawler__robotsDisallow
-    src__research__researcher__runResearcherDemo --> src__research__researcher__fixtureFetch
-    src__runtime__mutation_pipeline__planHashOf --> src__runtime__mutation_pipeline__object
-    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__loadPlan
-    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__planHashOf
-    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__resolveGrant
-    src__runtime__mutation_pipeline__plan --> src__runtime__mutation_pipeline__resolveGrant
-    src__runtime__mutation_pipeline__planHash --> src__runtime__mutation_pipeline__resolveGrant
-    src__runtime__mutation_pipeline__grantResult --> src__runtime__mutation_pipeline__resolveGrant
-    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__loadPlan
-    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__planHashOf
-    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__resolveGrant
-    src__runtime__biofoundry__BiofoundryRuntime__build --> src__runtime__biofoundry__snapshot
-    src__runtime__biofoundry__BiofoundryRuntime__changes --> src__runtime__biofoundry__diff
-    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildTree
-    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildMath
-    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildTwin
-    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildScene
-    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildTree
-    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildMath
-    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildTwin
-    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildScene
-    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildTree
-    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildMath
-    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildTwin
-    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildScene
-    src__runtime__biofoundry__BiofoundryRuntime__allowed --> src__runtime__biofoundry__writeJson
-    src__runtime__biofoundry__BiofoundryRuntime__candidate --> src__runtime__biofoundry__writeJson
     src__runtime__biofoundry_concept__matchZoneResources --> src__runtime__biofoundry_concept__haystack
     src__runtime__biofoundry_concept__zoneSourceUris --> src__runtime__biofoundry_concept__matchZoneResources
     src__runtime__biofoundry_concept__zoneSourceUris --> src__runtime__biofoundry_concept__fallbackResearchUris
@@ -1152,6 +1105,38 @@ flowchart TD
     src__runtime__service_check__timeoutMs --> src__runtime__service_check__timed
     src__runtime__service_check__result --> src__runtime__service_check__timed
     src__runtime__service_check__result --> src__runtime__service_check__text
+    src__runtime__autonomy__diagnosticSeverity --> src__runtime__autonomy__object
+    src__runtime__autonomy__manifestStatus --> src__runtime__autonomy__object
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__object
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__array
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__diagnosticSeverity
+    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__manifestStatus
+    src__runtime__autonomy__graphObject --> src__runtime__autonomy__array
+    src__runtime__autonomy__diagnostics --> src__runtime__autonomy__array
+    src__runtime__autonomy__developmentAnalysisFingerprint --> src__runtime__autonomy__object
+    src__runtime__autonomy__developmentAnalysisFingerprint --> src__runtime__autonomy__array
+    src__runtime__autonomy__graph --> src__runtime__autonomy__array
+    src__runtime__autonomy__diagnosticsObject --> src__runtime__autonomy__array
+    src__runtime__autonomy__manifest --> src__runtime__autonomy__object
+    src__runtime__autonomy__configuration --> src__runtime__autonomy__object
+    src__runtime__autonomy__stages --> src__runtime__autonomy__object
+    src__runtime__autonomy__stableStages --> src__runtime__autonomy__object
+    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__add
+    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__add
+    src__runtime__autonomy__ids --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__ids --> src__runtime__autonomy__add
+    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__flattenComponents
+    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__add
+    src__runtime__autonomy__components --> src__runtime__autonomy__add
+    src__runtime__autonomy__allowedAssets --> src__runtime__autonomy__add
+    src__runtime__autonomy__expectedTwinUri --> src__runtime__autonomy__add
+    src__runtime__autonomy__paths --> src__runtime__autonomy__add
+    src__runtime__autonomy__buildImprovementPlan --> src__runtime__autonomy__add
+    src__runtime__autonomy__routedFailures --> src__runtime__autonomy__add
+    src__runtime__autonomy__acquireProjectLease --> src__runtime__autonomy__acquire
+    src__runtime__autonomy__leaseDirectory --> src__runtime__autonomy__acquire
     src__runtime__living_watcher__LivingProjectWatcher__maxRetryMs --> src__runtime__living_watcher__LivingProjectWatcher__tick
     src__runtime__living_watcher__LivingProjectWatcher__schedule --> src__runtime__living_watcher__LivingProjectWatcher__stop
     src__runtime__living_watcher__LivingProjectWatcher__tick --> src__runtime__living_watcher__LivingProjectWatcher__schedule
@@ -1163,33 +1148,6 @@ flowchart TD
     src__runtime__realtime_watcher__RealtimeTwinWatcher__start --> src__runtime__realtime_watcher__RealtimeTwinWatcher__runOnce
     src__runtime__realtime_watcher__RealtimeTwinWatcher__start --> src__runtime__realtime_watcher__RealtimeTwinWatcher__tick
     src__runtime__realtime_watcher__RealtimeTwinWatcher__tick --> src__runtime__realtime_watcher__RealtimeTwinWatcher__runOnce
-    src__runtime__project_integrity__finite --> src__runtime__project_integrity__repair
-    src__runtime__project_integrity__finite --> src__runtime__project_integrity__flatten
-    src__runtime__project_integrity__finite --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__finite --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__flatten --> src__runtime__project_integrity__repair
-    src__runtime__project_integrity__flatten --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__flatten --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__flatten --> src__runtime__project_integrity__finite
-    src__runtime__project_integrity__analyzeProjectIntegrity --> src__runtime__project_integrity__repair
-    src__runtime__project_integrity__analyzeProjectIntegrity --> src__runtime__project_integrity__flatten
-    src__runtime__project_integrity__analyzeProjectIntegrity --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__analyzeProjectIntegrity --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__add --> src__runtime__project_integrity__repair
-    src__runtime__project_integrity__parameter --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__duplicatePaths --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__duplicatePaths --> src__runtime__project_integrity__finite
-    src__runtime__project_integrity__unknown --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__unknown --> src__runtime__project_integrity__finite
-    src__runtime__project_integrity__expectedTwin --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__expectedTwin --> src__runtime__project_integrity__finite
-    src__runtime__project_integrity__norm --> src__runtime__project_integrity__parameter
-    src__runtime__project_integrity__unsupported --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__physicalIds --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__placeholders --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__unreferencedEvidence --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__degraded --> src__runtime__project_integrity__add
-    src__runtime__project_integrity__renderProjectIntegrityDsl --> src__runtime__project_integrity__quote
     src__runtime__mutation_grant__b64urlJson --> src__runtime__mutation_grant__b64url
     src__runtime__mutation_grant__signingPayload --> src__runtime__mutation_grant__canonicalGrantClaims
     src__runtime__mutation_grant__iatMs --> src__runtime__mutation_grant__canonicalGrantClaims
@@ -1199,6 +1157,64 @@ flowchart TD
     src__runtime__mutation_grant__path --> src__runtime__mutation_grant__verifyMutationGrantDocument
     src__runtime__isolated_worktree__isGitToplevel --> src__runtime__isolated_worktree__run
     src__runtime__isolated_worktree__add --> src__runtime__isolated_worktree__run
+    src__llm__openrouter__loadDotEnv --> src__llm__openrouter__match
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__loadDotEnv
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__envInt
+    src__llm__openrouter__openRouterConfigFromEnv --> src__llm__openrouter__envBool
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__OpenRouterStructuredClient__configured
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__OpenRouterStructuredClient__request
+    src__llm__openrouter__OpenRouterStructuredClient__generate --> src__llm__openrouter__sleep
+    src__llm__openrouter__OpenRouterStructuredClient__started --> src__llm__openrouter__OpenRouterStructuredClient__request
+    src__llm__openrouter__OpenRouterStructuredClient__started --> src__llm__openrouter__sleep
+    src__llm__openrouter__OpenRouterStructuredClient__message --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__request --> src__llm__openrouter__OpenRouterStructuredClient__text
+    src__llm__openrouter__OpenRouterStructuredClient__request --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__controller --> src__llm__openrouter__OpenRouterStructuredClient__text
+    src__llm__openrouter__OpenRouterStructuredClient__controller --> src__llm__openrouter__contentText
+    src__llm__openrouter__OpenRouterStructuredClient__envelope --> src__llm__openrouter__contentText
+    src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__trimmed --> src__llm__dsl_schemas__rawDsl
+    src__llm__dsl_schemas__fenced --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__fenced --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__fenced --> src__llm__dsl_schemas__rawDsl
+    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__textDsl --> src__llm__dsl_schemas__rawDsl
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateResourcePlan --> src__llm__dsl_schemas__strings
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__component --> src__llm__dsl_schemas__strings
+    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateTwinEnvelope --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateSceneEnvelope --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__validateIntentEnvelope --> src__llm__dsl_schemas__obj
+    src__llm__dsl_schemas__validateIntentEnvelope --> src__llm__dsl_schemas__exact
+    src__llm__dsl_schemas__generationContract --> src__llm__dsl_schemas__textDsl
+    src__llm__nl_dsl_compiler__NlDslCompiler__compile --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
+    src__llm__nl_dsl_compiler__NlDslCompiler__allowedRoots --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
+    src__llm__nl_dsl_compiler__NlDslCompiler__fallback --> src__llm__nl_dsl_compiler__NlDslCompiler__deterministic
+    src__llm__patch_dsl__validatePatchEnvelope --> src__llm__patch_dsl__object
+    src__llm__patch_dsl__validatePatchEnvelope --> src__llm__patch_dsl__keys
+    src__llm__patch_dsl__parsePatchDsl --> src__llm__patch_dsl__jsonString
+    src__llm__patch_dsl__set --> src__llm__patch_dsl__jsonString
+    src__llm__patch_dsl__remove --> src__llm__patch_dsl__jsonString
+    src__llm__patch_dsl__parts --> src__llm__patch_dsl__parentAt
+    src__llm__patch_dsl__applyPatchDsl --> src__llm__patch_dsl__parsePatchDsl
+    src__llm__patch_dsl__applyPatchDsl --> src__llm__patch_dsl__allowed
+    src__llm__patch_dsl__applyPatchDsl --> src__llm__patch_dsl__pointer
+    src__llm__patch_dsl__applyPatchDsl --> src__llm__patch_dsl__parentAt
+    src__llm__patch_dsl__expected --> src__llm__patch_dsl__allowed
+    src__llm__patch_dsl__expected --> src__llm__patch_dsl__pointer
+    src__llm__patch_dsl__expected --> src__llm__patch_dsl__parentAt
+    src__llm__patch_dsl__result --> src__llm__patch_dsl__allowed
+    src__llm__patch_dsl__result --> src__llm__patch_dsl__pointer
+    src__llm__patch_dsl__result --> src__llm__patch_dsl__parentAt
+    src__llm__patch_dsl__renderPatchPolicy --> src__llm__patch_dsl__line
+    src__llm__patch_dsl__renderPatchContext --> src__llm__patch_dsl__line
     src__scene__physical_evidence__geometryEvidenceRank --> src__scene__physical_evidence__normalizeGeometryEvidence
     src__scene__physical_evidence__validatePhysicalEvidence --> src__scene__physical_evidence__rejectUnknownKeys
     src__scene__physical_evidence__validatePhysicalEvidence --> src__scene__physical_evidence__isVec3
@@ -1271,24 +1287,6 @@ flowchart TD
     src__scene__openusd__fallbackRoot --> src__scene__openusd__q
     src__scene__openusd__first --> src__scene__openusd__emitNode
     src__scene__openusd__first --> src__scene__openusd__q
-    src__scene__geometry_validation__bounds --> src__scene__geometry_validation__orientation
-    src__scene__geometry_validation__geometryRequirementsFromTwin --> src__scene__geometry_validation__flatten
-    src__scene__geometry_validation__result --> src__scene__geometry_validation__flatten
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__missing
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__distance
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__angleDeg
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__orientation
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__bounds
-    src__scene__geometry_validation__validateGeometry --> src__scene__geometry_validation__boundsDistance
-    src__scene__geometry_validation__bindings --> src__scene__geometry_validation__missing
-    src__scene__geometry_validation__bindings --> src__scene__geometry_validation__distance
-    src__scene__geometry_validation__bindings --> src__scene__geometry_validation__angleDeg
-    src__scene__geometry_validation__bindings --> src__scene__geometry_validation__orientation
-    src__scene__geometry_validation__binding --> src__scene__geometry_validation__missing
-    src__scene__geometry_validation__subject --> src__scene__geometry_validation__missing
-    src__scene__geometry_validation__object --> src__scene__geometry_validation__missing
-    src__scene__geometry_validation__a --> src__scene__geometry_validation__boundsDistance
-    src__scene__geometry_validation__requiredChecks --> src__scene__geometry_validation__required
     src__scene__blueprint__validateSceneBlueprint --> src__scene__blueprint__rejectUnknownKeys
     src__scene__blueprint__validateSceneBlueprint --> src__scene__blueprint__values
     src__scene__blueprint__ids --> src__scene__blueprint__rejectUnknownKeys
@@ -1309,21 +1307,22 @@ flowchart TD
     src__scene__blueprint__latestByMetric --> src__scene__blueprint__unique
     src__scene__blueprint__latestByMetric --> src__scene__blueprint__defaultSpatialRequirements
     src__scene__blueprint__biofoundryLiveBlueprintV02 --> src__scene__blueprint__validateSceneBlueprint
+    src__adapters__twin_probes__validateAutonomCycle --> src__adapters__twin_probes__object
+    src__adapters__twin_probes__data --> src__adapters__twin_probes__object
+    src__adapters__twin_probes__observedAt --> src__adapters__twin_probes__object
+    src__adapters__twin_probes__TwinProbesAdapter__loadCycle --> src__adapters__twin_probes__validateAutonomCycle
+    src__adapters__twin_probes__TwinProbesAdapter__loadCycle --> src__adapters__twin_probes__summarizeProbeCycle
+    src__adapters__twin_probes__TwinProbesAdapter__cycle --> src__adapters__twin_probes__summarizeProbeCycle
+    src__adapters__twin_probes__TwinProbesAdapter__run --> src__adapters__twin_probes__TwinProbesAdapter__available
+    src__adapters__twin_probes__TwinProbesAdapter__run --> src__adapters__twin_probes__TwinProbesAdapter__loadCycle
     src__adapters__clickhouse__ClickHouseHttpProjection__upsert --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__upsert --> src__adapters__clickhouse__InMemorySearchProjection__clickHouseDateTime64
     src__adapters__clickhouse__ClickHouseHttpProjection__search --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__search --> src__adapters__clickhouse__InMemorySearchProjection__sqlString
     src__adapters__clickhouse__ClickHouseHttpProjection__all --> src__adapters__clickhouse__ClickHouseHttpProjection__query
     src__adapters__clickhouse__ClickHouseHttpProjection__all --> src__adapters__clickhouse__InMemorySearchProjection__sqlString
-    src__adapters__document_converter__DeterministicMarkdownConverter --> src__adapters__document_converter__CompositeDocumentConverter__convert
-    src__adapters__document_converter__LocalToolDocumentConverter --> src__adapters__document_converter__CompositeDocumentConverter__convert
-    src__adapters__document_converter__DoclingHttpAdapter --> src__adapters__document_converter__CompositeDocumentConverter__convert
     src__adapters__openscad__workerScript --> src__adapters__openscad__existing
     src__adapters__openscad__OpenScadGeometryBackend__timeout --> src__adapters__openscad__OpenScadGeometryBackend__clearTimeout
-    src__geometry__physical_evidence_adapter__geometryReceiptEvidence --> src__geometry__physical_evidence_adapter__extent
-    src__geometry__physical_evidence_adapter__web --> src__geometry__physical_evidence_adapter__extent
-    src__geometry__physical_evidence_adapter__canonical --> src__geometry__physical_evidence_adapter__extent
-    src__geometry__physical_evidence_adapter__usd --> src__geometry__physical_evidence_adapter__extent
     src__geometry__build_contract__resourceUri --> src__geometry__build_contract__match
     src__geometry__build_contract__validateGeometryBuild --> src__geometry__build_contract__object
     src__geometry__build_contract__validateGeometryBuild --> src__geometry__build_contract__exact
@@ -1396,6 +1395,16 @@ flowchart TD
     src__geometry__dependency_resolver__revision --> src__geometry__dependency_resolver__execute
     src__geometry__dependency_resolver__source --> src__geometry__dependency_resolver__inside
     src__geometry__dependency_resolver__source --> src__geometry__dependency_resolver__exists
+    src__ingestion__archive_project__analyzeZipFile --> src__ingestion__archive_project__envLimit
+    src__ingestion__archive_project__absolute --> src__ingestion__archive_project__findZipFiles
+    src__ingestion__archive_project__info --> src__ingestion__archive_project__findZipFiles
+    src__ingestion__archive_project__materializeArchiveGeometry --> src__ingestion__archive_project__envLimit
+    src__ingestion__archive_project__materializeArchiveGeometry --> src__ingestion__archive_project__digest
+    src__ingestion__archive_project__maxEntries --> src__ingestion__archive_project__digest
+    src__ingestion__archive_project__maxEntryBytes --> src__ingestion__archive_project__digest
+    src__ingestion__archive_project__maxTotalBytes --> src__ingestion__archive_project__digest
+    src__ingestion__archive_project__archiveRoot --> src__ingestion__archive_project__digest
+    src__ingestion__archive_project__total --> src__ingestion__archive_project__digest
     src__ingestion__archive__inventoryZip --> src__ingestion__archive__limit
     src__ingestion__archive__inventoryZip --> src__ingestion__archive__execFileAsync
     src__ingestion__archive__inventoryZip --> src__ingestion__archive__safeArchivePath
@@ -1415,7 +1424,6 @@ flowchart TD
     src__ingestion__archive__maxEntry --> src__ingestion__archive__readZipEntry
     src__ingestion__archive__maxTotal --> src__ingestion__archive__readZipEntry
     src__ingestion__archive__total --> src__ingestion__archive__readZipEntry
-    src__dsl__project__renderProjectDsl --> src__dsl__project__validateProject
     src__dsl__parser_util__list --> src__dsl__parser_util__unquote
     src__dsl__improvement__parseImprovementDsl --> src__dsl__improvement__match
     src__dsl__improvement__parseImprovementDsl --> src__dsl__improvement__bool
@@ -1446,6 +1454,10 @@ flowchart TD
     src__dsl__twin__validateTwin --> src__dsl__twin__visit
     src__dsl__tree__parseTreeDsl --> src__dsl__tree__match
     src__dsl__tree__renderTreeDsl --> src__dsl__tree__walk
+    src__dsl__observation__parseObservationDsl --> src__dsl__observation__parseValue
+    src__dsl__observation__parseObservationDsl --> src__dsl__observation__csv
+    src__dsl__observation__parseObservationDsl --> src__dsl__observation__validateObservation
+    src__dsl__observation__renderObservationDsl --> src__dsl__observation__validateObservation
     src__dsl__dql__parseDql --> src__dsl__dql__positiveInt
     scripts__check_compose__secretLine --> scripts__check_compose__credentialCount
     scripts__check_compose__value --> scripts__check_compose__credentialCount
@@ -1458,57 +1470,28 @@ flowchart TD
     scripts__check_proto_contracts__files --> scripts__check_proto_contracts__checkMessageFields
     scripts__demo_physical_intake__evidenceOf --> scripts__demo_physical_intake__sizeOf
     scripts__demo_physical_intake__sizeOf --> scripts__demo_physical_intake__evidenceOf
-    py__f2md__src__f2md__converters__TextConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__TextConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__TextConverter__convert --> py__f2md__src__f2md__detect__is_text_kind
-    py__f2md__src__f2md__converters__TextConverter__convert --> py__f2md__src__f2md__converters___clip
-    py__f2md__src__f2md__converters__STLMetadataConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__STLMetadataConverter__convert --> src__dsl__parser_util__list
-    py__f2md__src__f2md__converters__STLMetadataConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__LocalToolConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__LocalToolConverter__convert --> py__f2md__src__f2md__converters___clip
-    py__f2md__src__f2md__converters__LocalToolConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__PyMuPDFConverter____init__ --> py__f2md__src__f2md__converters___package_version
-    py__f2md__src__f2md__converters__PyMuPDFConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__PyMuPDFConverter__convert --> py__f2md__src__f2md__converters___clip
-    py__f2md__src__f2md__converters__PyMuPDFConverter__convert --> js__assembly_dsl__src__dsl__bool
-    py__f2md__src__f2md__converters__PyMuPDFConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__MarkItDownConverter____init__ --> py__f2md__src__f2md__converters___package_version
-    py__f2md__src__f2md__converters__MarkItDownConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__MarkItDownConverter__convert --> py__f2md__src__f2md__converters___clip
-    py__f2md__src__f2md__converters__MarkItDownConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__MarkItDownConverter__convert --> py__f2md__src__f2md__converters___quiet_stdout
-    py__f2md__src__f2md__converters__DoclingHttpConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__DoclingHttpConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__DoclingLocalConverter____init__ --> py__f2md__src__f2md__converters___package_version
-    py__f2md__src__f2md__converters__DoclingLocalConverter__convert --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__converters__DoclingLocalConverter__convert --> py__f2md__src__f2md__converters___stat_metadata
-    py__f2md__src__f2md__converters__DoclingLocalConverter__convert --> py__f2md__src__f2md__converters___quiet_stdout
-    py__f2md__src__f2md__cli___build_chain --> py__f2md__src__f2md__chain__default_chain
-    py__f2md__src__f2md__cli__main --> py__f2md__src__f2md__cli___build_chain
-    py__f2md__src__f2md__detect__media_type_for --> py__f2md__src__f2md__detect__detect_document_kind
-    py__f2md__src__f2md__detect__is_prose_kind --> js__assembly_dsl__src__dsl__bool
+    py__f2md__src__f2md__translate__ArgosTranslator___pair --> src__runtime__mutation_grant__next
+    py__f2md__src__f2md__translate__OpenRouterTranslator__available --> js__assembly_dsl__src__dsl__bool
+    py__f2md__src__f2md__translate__OpenRouterTranslator___call --> py__f2md__src__f2md__llm_patch__apply_patch_envelope
+    py__f2md__src__f2md__translate__OpenRouterTranslator___call --> py__f2md__src__f2md__llm_patch__patch_messages
+    py__f2md__src__f2md__translate__OpenRouterTranslator__translate --> py__f2md__src__f2md__translate___chunks
     py__f2md__src__f2md__types__ExternalConverterRequired____init__ --> js__f2md__src__types__ConversionError__super
     py__f2md__src__f2md__types__ConvertedDocument__to_dict --> src__dsl__parser_util__list
-    py__f2md__src__f2md__chain__ConverterChain____init__ --> src__dsl__parser_util__list
-    py__f2md__src__f2md__chain__ConverterChain__convert --> src__serve__dashboard__type
-    py__f2md__src__f2md__chain__convert --> py__f2md__src__f2md__chain__default_chain
-    py__f2md__src__f2md__chain__convert_to_markdown --> py__f2md__src__f2md__chain__convert
-    py__f2md__src__f2md__tree__front_matter --> py__f2md__src__f2md__tree___yaml_scalar
-    py__f2md__src__f2md__tree__TreeResult__to_dict --> js__archive_project_analyzer__src__analyze__sorted
-    py__f2md__src__f2md__tree__walk_files --> js__archive_project_analyzer__src__analyze__sorted
-    py__f2md__src__f2md__tree__convert_tree --> src__dsl__parser_util__list
-    py__f2md__src__f2md__tree__convert_tree --> py__f2md__src__f2md__chain__default_chain
-    py__f2md__src__f2md__tree__convert_tree --> py__f2md__src__f2md__tree__walk_files
-    py__f2md__src__f2md__tree__convert_tree --> py__f2md__src__f2md__detect__detect_document_kind
+    py__f2md__src__f2md__llm_patch__patch_messages --> py__f2md__src__f2md__llm_patch___encoded
+    py__f2md__src__f2md__llm_patch__apply_patch_envelope --> src__llm__patch_dsl__set
     py__f2md__src__f2md__audit__audit_markdown_tree --> js__archive_project_analyzer__src__analyze__sorted
     py__f2md__src__f2md__audit__audit_markdown_tree --> py__f2md__src__f2md__detect__detect_document_kind
     py__f2md__src__f2md__audit__audit_markdown_tree --> js__assembly_dsl__src__dsl__bool
     py__f2md__src__f2md__audit__audit_markdown_tree --> py__f2md__src__f2md__audit___front_matter
-    py__f2md__src__f2md__audit__audit_twin_artifacts --> src__serve__dashboard__next
+    py__f2md__src__f2md__audit__audit_twin_artifacts --> src__runtime__mutation_grant__next
     py__f2md__src__f2md__audit__audit_twin_artifacts --> src__dsl__parser_util__list
     py__f2md__src__f2md__audit__main --> py__f2md__src__f2md__audit__audit_markdown_tree
     py__f2md__src__f2md__audit__main --> py__f2md__src__f2md__audit__audit_twin_artifacts
+    src__core__canonical__canonicalJson --> src__core__canonical__norm
+    src__core__canonical__sha256 --> src__core__canonical__canonicalJson
+    src__core__canonical__payload --> src__core__canonical__sha256
+    src__core__canonical__contentUri --> src__core__canonical__sha256
+    js__f2md__src__detect__mediaTypeFor --> js__f2md__src__detect__detectDocumentKind
     js__archive_project_analyzer__src__analyze__urnCode --> js__archive_project_analyzer__src__analyze__slug
     js__archive_project_analyzer__src__analyze__repair --> js__archive_project_analyzer__src__analyze__slug
     js__archive_project_analyzer__src__analyze__ext --> js__archive_project_analyzer__src__analyze__score
@@ -1534,7 +1517,13 @@ flowchart TD
     js__archive_project_analyzer__src__analyze__maxText --> js__archive_project_analyzer__src__analyze__repair
     js__archive_project_analyzer__src__analyze__maxGeometry --> js__archive_project_analyzer__src__analyze__urnCode
     js__archive_project_analyzer__src__analyze__maxGeometry --> js__archive_project_analyzer__src__analyze__repair
-    js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl --> js__archive_project_analyzer__src__dsl__quoted
+    js__f2md__src__tree__frontMatter --> js__f2md__src__tree__entries
+    js__f2md__src__tree__frontMatter --> js__f2md__src__tree__yamlScalar
+    js__f2md__src__tree__treeSnapshot --> js__f2md__src__tree__digest
+    js__f2md__src__tree__writeVersion --> js__f2md__src__tree__walkFiles
+    js__f2md__src__tree__writeVersion --> js__f2md__src__tree__treeSnapshot
+    js__f2md__src__tree__convertTree --> js__f2md__src__tree__walkFiles
+    js__f2md__src__tree__paths --> js__f2md__src__tree__frontMatter
     src__cli__main__openScadStatus --> src__cli__main__runFile
     src__cli__main__moduleDir --> src__cli__main__runFile
     src__cli__main__candidates --> src__cli__main__runFile
@@ -1549,41 +1538,84 @@ flowchart TD
     src__cli__main__grantPath --> src__cli__main__json
     src__cli__main__server --> src__cli__main__llmMode
     src__cli__main__analysis --> src__cli__main__save
-    src__runtime__autonomy__diagnosticSeverity --> src__runtime__autonomy__object
-    src__runtime__autonomy__manifestStatus --> src__runtime__autonomy__object
-    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__object
-    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__array
-    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__diagnosticSeverity
-    src__runtime__autonomy__summarizeDevelopment --> src__runtime__autonomy__manifestStatus
-    src__runtime__autonomy__graphObject --> src__runtime__autonomy__array
-    src__runtime__autonomy__diagnostics --> src__runtime__autonomy__array
-    src__runtime__autonomy__developmentAnalysisFingerprint --> src__runtime__autonomy__object
-    src__runtime__autonomy__developmentAnalysisFingerprint --> src__runtime__autonomy__array
-    src__runtime__autonomy__graph --> src__runtime__autonomy__array
-    src__runtime__autonomy__diagnosticsObject --> src__runtime__autonomy__array
-    src__runtime__autonomy__manifest --> src__runtime__autonomy__object
-    src__runtime__autonomy__configuration --> src__runtime__autonomy__object
-    src__runtime__autonomy__stages --> src__runtime__autonomy__object
-    src__runtime__autonomy__stableStages --> src__runtime__autonomy__object
-    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__flattenComponents
-    src__runtime__autonomy__validateTwinGrounding --> src__runtime__autonomy__add
-    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__flattenComponents
-    src__runtime__autonomy__allowedUris --> src__runtime__autonomy__add
-    src__runtime__autonomy__ids --> src__runtime__autonomy__flattenComponents
-    src__runtime__autonomy__ids --> src__runtime__autonomy__add
-    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__flattenComponents
-    src__runtime__autonomy__validateSceneGrounding --> src__runtime__autonomy__add
-    src__runtime__autonomy__components --> src__runtime__autonomy__add
-    src__runtime__autonomy__allowedAssets --> src__runtime__autonomy__add
-    src__runtime__autonomy__expectedTwinUri --> src__runtime__autonomy__add
-    src__runtime__autonomy__paths --> src__runtime__autonomy__add
-    src__runtime__autonomy__buildImprovementPlan --> src__runtime__autonomy__add
-    src__runtime__autonomy__routedFailures --> src__runtime__autonomy__add
-    src__runtime__autonomy__acquireProjectLease --> src__runtime__autonomy__acquire
-    src__runtime__autonomy__leaseDirectory --> src__runtime__autonomy__acquire
-    src__runtime__living_project__sourceSnapshot --> src__runtime__living_project__map
+    src__adapters__document_converter__DeterministicMarkdownConverter --> src__adapters__document_converter__CompositeDocumentConverter__convert
+    src__adapters__document_converter__LocalToolDocumentConverter --> src__adapters__document_converter__CompositeDocumentConverter__convert
+    src__adapters__document_converter__DoclingHttpAdapter --> src__adapters__document_converter__CompositeDocumentConverter__convert
+    src__runtime__biofoundry__BiofoundryRuntime__build --> src__runtime__biofoundry__snapshot
+    src__runtime__biofoundry__BiofoundryRuntime__changes --> src__runtime__biofoundry__diff
+    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildTree
+    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildMath
+    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildTwin
+    src__runtime__biofoundry__BiofoundryRuntime__policyPath --> src__runtime__biofoundry__buildScene
+    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildTree
+    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildMath
+    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildTwin
+    src__runtime__biofoundry__BiofoundryRuntime__policy --> src__runtime__biofoundry__buildScene
+    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildTree
+    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildMath
+    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildTwin
+    src__runtime__biofoundry__BiofoundryRuntime__policyResource --> src__runtime__biofoundry__buildScene
+    src__runtime__biofoundry__BiofoundryRuntime__allowed --> src__runtime__biofoundry__writeJson
+    src__runtime__biofoundry__BiofoundryRuntime__candidate --> src__runtime__biofoundry__writeJson
+    src__runtime__presentation_evidence__validatePresentationEvidence --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__validatePresentationEvidence --> src__runtime__presentation_evidence__exact
+    src__runtime__presentation_evidence__validatePresentationEvidence --> src__runtime__presentation_evidence__safeRelativePath
+    src__runtime__presentation_evidence__validatePresentationEvidence --> src__runtime__presentation_evidence__vec3
+    src__runtime__presentation_evidence__document --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__document --> src__runtime__presentation_evidence__exact
+    src__runtime__presentation_evidence__document --> src__runtime__presentation_evidence__safeRelativePath
+    src__runtime__presentation_evidence__document --> src__runtime__presentation_evidence__vec3
+    src__runtime__presentation_evidence__renderer --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__renderer --> src__runtime__presentation_evidence__exact
+    src__runtime__presentation_evidence__renderer --> src__runtime__presentation_evidence__safeRelativePath
+    src__runtime__presentation_evidence__renderer --> src__runtime__presentation_evidence__vec3
+    src__runtime__presentation_evidence__paths --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__paths --> src__runtime__presentation_evidence__exact
+    src__runtime__presentation_evidence__paths --> src__runtime__presentation_evidence__safeRelativePath
+    src__runtime__presentation_evidence__paths --> src__runtime__presentation_evidence__vec3
+    src__runtime__presentation_evidence__capture --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__camera --> src__runtime__presentation_evidence__record
+    src__runtime__presentation_evidence__presentationDirectoryFingerprint --> src__runtime__presentation_evidence__capturesIn
+    src__runtime__presentation_evidence__inspectPresentationEvidence --> src__runtime__presentation_evidence__capturesIn
+    src__runtime__presentation_evidence__inspectPresentationEvidence --> src__runtime__presentation_evidence__finish
+    src__runtime__presentation_evidence__inspectPresentationEvidence --> src__runtime__presentation_evidence__validatePresentationEvidence
+    src__runtime__presentation_evidence__renderPresentationEvidenceDsl --> src__runtime__presentation_evidence__quote
+    src__research__researcher__runResearcherDemo --> src__research__researcher__fixtureFetch
+    src__serve__dashboard__sendJson --> src__serve__dashboard__send
+    src__serve__dashboard__startDashboard --> src__serve__dashboard__assetRoot
+    src__serve__dashboard__startDashboard --> src__serve__dashboard__readJson
+    src__serve__dashboard__state --> src__serve__dashboard__readJson
+    src__serve__dashboard__server --> src__serve__dashboard__send
+    src__serve__dashboard__server --> src__serve__dashboard__sendJson
+    src__serve__dashboard__server --> src__serve__dashboard__state
+    src__serve__dashboard__server --> src__serve__dashboard__readEventLog
+    src__serve__dashboard__server --> src__serve__dashboard__readDslArtifacts
+    src__serve__dashboard__resource --> src__serve__dashboard__sendJson
+    src__serve__dashboard__started --> src__serve__dashboard__dashboardLog
+    src__serve__dashboard__receipt --> src__serve__dashboard__sendJson
+    src__serve__dashboard__incoming --> src__serve__dashboard__sendJson
+    src__serve__dashboard__preview --> src__serve__dashboard__sendJson
+    src__serve__dashboard__projectDir --> src__serve__dashboard__ingestedResourceUris
+    src__serve__dashboard__evidencePath --> src__serve__dashboard__ingestedResourceUris
+    src__serve__dashboard__previewResult --> src__serve__dashboard__ingestedResourceUris
+    src__serve__dashboard__report --> src__serve__dashboard__sendJson
+    src__serve__dashboard__accepted --> src__serve__dashboard__sendJson
+    src__serve__dashboard__stored --> src__serve__dashboard__mergeEvidence
+    src__serve__dashboard__evidence --> src__serve__dashboard__mergeEvidence
+    src__serve__dashboard__next --> src__serve__dashboard__sendJson
+    src__serve__dashboard__address --> src__serve__dashboard__dashboardLog
+    src__serve__dashboard__port --> src__serve__dashboard__dashboardLog
+    src__runtime__mutation_pipeline__planHashOf --> src__runtime__mutation_pipeline__object
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__loadPlan
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__planHashOf
+    src__runtime__mutation_pipeline__proposeCodeMutation --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__startedAt --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__plan --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__planHash --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__grantResult --> src__runtime__mutation_pipeline__resolveGrant
+    src__runtime__mutation_pipeline__applyCodeMutation --> src__runtime__mutation_pipeline__loadPlan
 
     classDef highCC fill:#ff6b6b,stroke:#c92a2a,color:#fff
     classDef medCC fill:#ffd43b,stroke:#f08c00,color:#000
-    class js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__f2md__src__tree__convertTree,js__f2md__src__tree__paths,js__f2md__src__converters__DoclingHttpConverter__convert,js__live_twin_state__src__live_binding__parseLiveBindingDsl,js__live_twin_state__src__live_binding__input,js__live_twin_state__src__live_binding__header,js__live_twin_state__src__live_binding__validateLiveBinding,js__live_twin_state__src__live_binding__document,js__live_twin_state__src__live_binding__ids,js__assembly_dsl__src__analyze__analyzeAssemblies,js__assembly_dsl__src__analyze__assemblies,js__assembly_dsl__src__analyze__rootExists,js__assembly_dsl__src__analyze__parts,js__assembly_dsl__src__dsl__parseAssemblyDsl,js__assembly_dsl__src__dsl__input,js__assembly_dsl__src__dsl__header,js__assembly_dsl__src__dsl__validateAssembly,js__assembly_dsl__src__dsl__document,js__assembly_dsl__src__dsl__assemblyIds,js__assembly_dsl__src__dsl__partIds,js__assembly_dsl__src__dsl__componentIds,src__serve__dashboard__startDashboard,src__serve__dashboard__state,src__serve__dashboard__server,src__core__json_schema__checkJsonSchema,src__research__crawler__privateIp highCC
-    class js__f2md__src__detect__detectDocumentKind,js__f2md__src__converters__TextConverter__convert,js__live_twin_state__src__projector__mappedState,js__live_twin_state__src__projector__direct,js__live_twin_state__src__projector__projectTwinState,js__live_twin_state__src__projector__renderTwinStateDsl,js__assembly_dsl__src__dsl__part,src__serve__dashboard__readDslArtifacts,src__serve__dashboard__mergeEvidence,src__serve__dashboard__latestCandidate,src__research__crawler__robotsDisallow,src__research__researcher__runResearcherDemo,src__runtime__mutation_pipeline__applyCodeMutation,src__runtime__biofoundry_concept__biofoundryConceptTree,src__runtime__biofoundry_concept__biofoundryConceptScene,src__runtime__biofoundry_concept__twinUri,src__runtime__biofoundry_concept__zoneIds,src__runtime__biofoundry_concept__zoneById,src__runtime__query_runtime__QueryRuntime__execute,src__runtime__living_watcher__LivingProjectWatcher__tick,src__runtime__realtime_watcher__RealtimeTwinWatcher__start,src__runtime__realtime_watcher__RealtimeTwinWatcher__tick,src__runtime__project_integrity__duplicatePaths,src__runtime__project_integrity__unknown,src__runtime__project_integrity__expectedTwin,src__runtime__project_integrity__unreferencedEvidence,src__runtime__project_integrity__renderProjectIntegrityDsl,src__runtime__mutation_grant__resolveMutationGrantSecrets,src__runtime__mutation_grant__verifyMutationGrantToken,src__runtime__mutation_grant__verifyMutationGrantDocument medCC
+    class js__f2md__src__cli__main,js__f2md__src__cli__json,js__f2md__src__cli__detect,js__f2md__src__cli__quiet,js__live_twin_state__src__live_binding__parseLiveBindingDsl,js__live_twin_state__src__live_binding__input,js__live_twin_state__src__live_binding__header,js__live_twin_state__src__live_binding__validateLiveBinding,js__live_twin_state__src__live_binding__document,js__live_twin_state__src__live_binding__ids,js__assembly_dsl__src__analyze__analyzeAssemblies,js__assembly_dsl__src__analyze__assemblies,js__assembly_dsl__src__analyze__rootExists,js__assembly_dsl__src__analyze__parts,js__assembly_dsl__src__dsl__parseAssemblyDsl,js__assembly_dsl__src__dsl__input,js__assembly_dsl__src__dsl__header,js__assembly_dsl__src__dsl__validateAssembly,js__assembly_dsl__src__dsl__document,js__assembly_dsl__src__dsl__assemblyIds,js__assembly_dsl__src__dsl__partIds,js__assembly_dsl__src__dsl__componentIds,src__core__json_schema__checkJsonSchema,src__research__crawler__privateIp,src__research__crawler__DqlCrawler__crawl,src__runtime__service_check__checkExternalServices,src__runtime__autonomy__summarizeDevelopment,src__runtime__autonomy__developmentAnalysisFingerprint,src__runtime__autonomy__validateSceneGrounding,src__runtime__autonomy__buildImprovementPlan highCC
+    class js__archive_project_analyzer__src__dsl__renderArchiveAnalysisDsl,js__live_twin_state__src__projector__mappedState,js__live_twin_state__src__projector__direct,js__live_twin_state__src__projector__projectTwinState,js__live_twin_state__src__projector__renderTwinStateDsl,js__assembly_dsl__src__dsl__part,src__research__crawler__robotsDisallow,src__runtime__biofoundry_concept__biofoundryConceptTree,src__runtime__biofoundry_concept__biofoundryConceptScene,src__runtime__biofoundry_concept__twinUri,src__runtime__biofoundry_concept__zoneIds,src__runtime__biofoundry_concept__zoneById,src__runtime__query_runtime__QueryRuntime__execute,src__runtime__autonomy__manifest,src__runtime__autonomy__configuration,src__runtime__autonomy__stages,src__runtime__autonomy__stableStages,src__runtime__autonomy__stage,src__runtime__autonomy__stableManifest,src__runtime__autonomy__validateTwinGrounding,src__runtime__autonomy__components,src__runtime__autonomy__allowedAssets,src__runtime__autonomy__expectedTwinUri,src__runtime__autonomy__paths,src__runtime__autonomy__acquireProjectLease,src__runtime__autonomy__leaseDirectory,src__runtime__autonomy__acquire,src__runtime__living_watcher__LivingProjectWatcher__tick,src__runtime__realtime_watcher__RealtimeTwinWatcher__start,src__runtime__realtime_watcher__RealtimeTwinWatcher__tick medCC

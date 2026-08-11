@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { parseProjectDsl, renderProjectDsl } from "../src/dsl/project.js";
-import { parseObservationDsl, renderObservationDsl } from "../src/dsl/observation.js";
+import { observationHorizon, parseObservationDsl, renderObservationDsl } from "../src/dsl/observation.js";
 
 test('projectDSL and observationDSL round-trip deterministically',async()=>{
   const projectEnvelope=JSON.parse(await readFile('examples/nl-to-dsl/project.fixture.json','utf8')) as {dsl:string};const project=parseProjectDsl(projectEnvelope.dsl);const roundTrip=parseProjectDsl(renderProjectDsl(project));assert.equal(roundTrip.id,project.id);assert.equal(roundTrip.policy.environment,'production');
@@ -31,4 +31,24 @@ test('observationDSL round-trips empty optional source and label collections',()
   assert.doesNotMatch(rendered,/^SOURCES$/m);
   assert.doesNotMatch(rendered,/^LABELS$/m);
   assert.deepEqual(parseObservationDsl(rendered),parsed);
+});
+
+test('observation horizon is evidence-derived and deterministic',()=>{
+  const source=`OBSERVATIONS horizon SNAPSHOT ${'a'.repeat(64)}
+OBSERVATION early
+AT "2026-01-01T08:00:00+01:00"
+SUBJECT "subactor://sensor/early"
+METRIC "temperatureC"
+VALUE 20
+SEVERITY info
+END
+OBSERVATION late
+AT "2026-01-02T10:30:00Z"
+SUBJECT "subactor://sensor/late"
+METRIC "temperatureC"
+VALUE 21
+SEVERITY info
+END`;
+  assert.equal(observationHorizon(parseObservationDsl(source)),'2026-01-02T10:30:00.000Z');
+  assert.equal(observationHorizon({schema:'subactor.observation/v1',id:'empty',sourceSnapshotHash:'b'.repeat(64),observations:[]}),'1970-01-01T00:00:00.000Z');
 });

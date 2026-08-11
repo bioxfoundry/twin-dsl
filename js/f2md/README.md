@@ -28,6 +28,12 @@ Tree conversion writes a deterministic `VERSION` manifest beside the Markdown mi
 the Node f2md version and SHA-256 snapshots of the input tree and generated Markdown only; it has
 no timestamp, absolute path or secret, so the same conversion has the same version everywhere.
 
+It also writes the versioned `source-coverage.json` and `source-coverage.dsl` file contract. Every
+discovered input receives exactly one terminal state (`converted`, `binary-provenance`,
+`excluded-by-policy`, `unsupported`, `quarantined` or `failed`), including files omitted by
+`--only`. The JSON/DSL bytes are stable across unchanged runs; `TreeResult.coverageNoChange`
+reports whether the exact snapshot already existed.
+
 ## Why another converter
 
 Most tools answer "what does this file say". Ingestion pipelines also need to answer **"where did
@@ -134,6 +140,17 @@ real failure.
 
 The same contract ships as [`f2md`](https://pypi.org/project/f2md/) on PyPI, producing an identical
 envelope so both sides of a pipeline agree on provenance.
+
+For PDF, Office and image inputs, the default Node chain first invokes `python3 -m f2md.cli` as the
+canonical `f2md-quality-v1` engine. This is an optional file-contract bridge, not an npm runtime
+dependency: if Python or the module is absent, the converter declines and the existing
+Mammoth/pdftotext/Pandoc/Docling fallbacks continue. Set `F2MD_PYTHON` to another interpreter path,
+or to `disabled` to skip the bridge explicitly. Canonical Python results retain their
+`documentAst`, `conversionQuality`, block structure and OCR audit inside `metadata`. In Node tree
+mode the output path is passed back to Python so the Python-owned ArtifactStore (original figure
+crops, table/code sidecars, manifest, ArtifactDSL, ArtifactQualityDSL and treeDSL) is materialized
+without reimplementing PDF heuristics in TypeScript. TypeScript only validates the envelope and
+persists the returned file contract.
 
 ## Requirements
 

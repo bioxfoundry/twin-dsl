@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { analyzeProjectIntegrity, renderProjectIntegrityDsl } from "../src/runtime/project-integrity.js";
 import type { ProjectIntegrityInput } from "../src/runtime/project-integrity.js";
+import { buildSourceCoverage } from "../js/f2md/src/source-coverage.js";
 
 function validInput():ProjectIntegrityInput {
   const resource=(id:string,role:"manager"|"project")=>({schema:"subactor.resource/v1" as const,id,uri:`urn:resource:${id}`,logicalUri:`repo://${id}`,mediaType:"text/markdown",sha256:id.padEnd(64,"0"),size:1,sourcePath:`/${id}.md`,sourceRole:role,derived:false,derivedFrom:[],createdAt:"2026-01-01T00:00:00Z"});
@@ -101,4 +102,37 @@ test("unbound presentation files are incomplete evidence, not a passing current 
   assert.equal(finding?.severity,"warning");
   assert.deepEqual(finding?.subjects,["MANIFEST_MISSING"]);
   assert.equal(finding?.repairProcess,"subactor://process/repair/project-integrity/capture-active-revision");
+});
+
+test("project integrity consumes source coverage terminal states without reconstructing them",()=>{
+  const sourceHash="a".repeat(64);
+  const covered={
+    path:"report.pdf",inputKind:".pdf",mediaType:"application/pdf",sourceSha256:sourceHash,
+    resourceUri:`urn:subactor:resource:sha256:${sourceHash}`,markdownPath:"report.pdf.md",
+    intentUris:[],treeRefs:["."],converter:"pymupdf-layout",converterVersion:"1.28.2",
+    state:"converted" as const,reasonCode:"CONVERTED",twinRevisionStatus:"not-evaluated" as const,
+  };
+  const input=validInput();
+  input.sourceCoverage=[buildSourceCoverage("b".repeat(64),[covered])];
+  const unevaluated=analyzeProjectIntegrity(input);
+  assert.equal(unevaluated.ok,true);
+  assert.equal(unevaluated.complete,false);
+  assert.ok(unevaluated.findings.some(finding=>finding.code==="SOURCE_TWIN_USAGE_UNEVALUATED"));
+  assert.equal(unevaluated.dependencies.find(item=>item.id==="source-coverage-to-twin")?.complete,false);
+
+  input.sourceCoverage=[buildSourceCoverage("b".repeat(64),[{
+    ...covered,twinRevisionStatus:"included" as const,
+  }])];
+  const included=analyzeProjectIntegrity(input);
+  assert.equal(included.ok,true);
+  assert.equal(included.complete,true);
+  assert.equal(included.dependencies.find(item=>item.id==="source-coverage-to-twin")?.complete,true);
+
+  input.sourceCoverage=[buildSourceCoverage("b".repeat(64),[{
+    ...covered,state:"failed" as const,reasonCode:"BACKEND_FAILED",converter:"none",
+    converterVersion:"unknown",twinRevisionStatus:"not-evaluated" as const,
+  }])];
+  const failed=analyzeProjectIntegrity(input);
+  assert.equal(failed.ok,false);
+  assert.ok(failed.findings.some(finding=>finding.code==="SOURCE_CONVERSION_FAILED"&&finding.severity==="error"));
 });

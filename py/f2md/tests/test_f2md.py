@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import os
 import subprocess
 import sys
@@ -32,8 +33,25 @@ from f2md import (
     media_type_for,
 )
 from f2md.cli import main
+from f2md.audit import audit_markdown_tree
+from f2md.artifact_store import materialize_artifact_store
 from f2md.intent_compile import compile_tree, refresh_contract, refresh_output_identity
+from f2md.quality import PageMarkdown, normalize_document
 from f2md.tree import convert_tree
+from f2md.document_ast import (
+    artifact_quality,
+    markdown_quality_from_ast,
+    render_markdown,
+    render_table_artifact,
+)
+from f2md.diagram_graph import (
+    build_ascii_diagram_graph,
+    diagram_graph_metrics,
+    render_diagram_dsl,
+    render_diagram_mermaid,
+    render_diagram_svg,
+)
+from f2md.pdf_layout import extract_pdf_ast
 
 
 F2MD_ROOT = Path(__file__).resolve().parents[1]
@@ -273,6 +291,594 @@ def test_intent_compile_hashes_source_bytes_without_normalizing_crlf(tmp_path) -
     assert pack["records"][0]["source"]["revisionHash"] == expected
 
 
+def test_pdf_quality_v1_repairs_layout_and_preserves_uncertainty(tmp_path) -> None:
+    source = tmp_path / "study.pdf"
+    source.write_bytes(b"%PDF fixture")
+    fixture = json.loads(
+        (REPOSITORY_ROOT / "fixtures/pdf-quality/lithuanian-study.pages.json").read_text(encoding="utf-8")
+    )
+    pages = [PageMarkdown(page["number"], page["markdown"]) for page in fixture["pages"]]
+
+    artifacts = normalize_document("\f".join(page.markdown for page in pages), str(source), pages=pages)
+
+    assert "Atvirojo kodo biofoundry" not in artifacts.markdown
+    assert "Integruota studija" not in artifacts.markdown
+    assert "\n8\n" not in artifacts.markdown and "\n9\n" not in artifacts.markdown
+    assert "<!-- source-page:2 -->" in artifacts.markdown
+    assert "Gamyba" in artifacts.markdown
+    assert "```bash\nsudo apt update\n```" in artifacts.markdown
+    assert "<mark>" not in artifacts.markdown and "<br>" not in artifacts.markdown
+    diagrams = [block for block in artifacts.structure["blocks"] if block["type"] == "diagram"]
+    assert diagrams and diagrams[0]["semantic"] is False
+    assert artifacts.quality["status"] == fixture["invariants"]["qualityStatus"]
+    assert artifacts.quality["repairs"]["pageHeadersFootersRemoved"] == fixture["invariants"]["pageHeadersFootersRemoved"]
+    assert artifacts.quality["repairs"]["pageNumbersRemoved"] == fixture["invariants"]["pageNumbersRemoved"]
+    assert artifacts.quality["suspectTokens"] == ["ėNra"]
+
+
+def test_pdf_quality_v1_stitches_tables_across_pages(tmp_path) -> None:
+    source = tmp_path / "table.pdf"
+    source.write_bytes(b"%PDF fixture")
+    pages = [
+        PageMarkdown(1, "# BOM\n\n| Part | Qty |\n|---|---|\n| A | 1 |"),
+        PageMarkdown(2, "| Part | Qty |\n|---|---|\n| B | 2 |\n\nDone."),
+    ]
+
+    artifacts = normalize_document("\f".join(page.markdown for page in pages), str(source), pages=pages)
+
+    assert artifacts.markdown.count("| Part | Qty |") == 1
+    assert "| A | 1 |\n| B | 2 |" in artifacts.markdown
+    assert artifacts.quality["repairs"]["tablesStitched"] == 1
+    assert artifacts.quality["repairs"]["repeatedTableHeadersRemoved"] == 1
+
+
+def test_pdf_quality_v1_normalizes_toc_table_to_navigation_list(tmp_path) -> None:
+    source = tmp_path / "toc.pdf"
+    source.write_bytes(b"%PDF fixture")
+    markdown = """###### Turinys
+
+| Skyrius | Puslapis |
+|---|---|
+| 1 Įvadas ........ | 3 |
+| 1.1 Tikslai ...... | 4 |
+| 2 Metodai ........ | 8 |
+
+# 1 Įvadas
+
+Tekstas.
+"""
+
+    artifacts = normalize_document(markdown, str(source))
+
+    assert "| Skyrius |" not in artifacts.markdown
+    assert "- [1 Įvadas](#1-įvadas) <!-- target-page:3 -->" in artifacts.markdown
+    assert "  - [1.1 Tikslai](#11-tikslai) <!-- target-page:4 -->" in artifacts.markdown
+    assert artifacts.quality["repairs"]["tocBlocksNormalized"] == 1
+    assert artifacts.quality["repairs"]["tocEntriesNormalized"] == 3
+    assert next(
+        check for check in artifacts.quality["checks"] if check["id"] == "TOC_STRUCTURE"
+    )["status"] == "pass"
+
+
+def test_pdf_quality_v1_classifies_ascii_art_before_markdown_tables(tmp_path) -> None:
+    source = tmp_path / "ascii.pdf"
+    source.write_bytes(b"%PDF fixture")
+    markdown = """# Architecture
+
+| Rasp | berry |
+|---|---|
+| SiLA 2 Se | rver |
+| [R1]||[R2] |
+
+| Part | Qty |
+|---|---|
+| sensor | 2 |
+"""
+
+    artifacts = normalize_document(markdown, str(source))
+
+    diagrams = [block for block in artifacts.structure["blocks"] if block["type"] == "diagram"]
+    tables = [block for block in artifacts.structure["blocks"] if block["type"] == "table"]
+    assert len(diagrams) == 1
+    assert diagrams[0]["semantic"] is False
+    assert diagrams[0]["reason"] == "ascii-art"
+    assert "| [R1]||[R2] |" in diagrams[0]["normalizedText"]
+    assert len(tables) == 1
+    assert "sensor" in tables[0]["normalizedText"]
+    assert artifacts.quality["repairs"]["asciiDiagramsClassified"] == 1
+
+
+def test_complex_table_projection_uses_html_spans_instead_of_pipe_markdown() -> None:
+    artifact = {
+        "id": "artifact-table-000000000000",
+        "content": {
+            "rows": 2,
+            "columns": 2,
+            "headerRows": 1,
+            "grid": [["Component", ""], ["sensor", "2"]],
+            "cells": [
+                {
+                    "row": 0,
+                    "column": 0,
+                    "text": "Component & quantity",
+                    "rowSpan": 1,
+                    "colSpan": 2,
+                },
+                {"row": 1, "column": 0, "text": "sensor", "rowSpan": 1, "colSpan": 1},
+                {"row": 1, "column": 1, "text": "2", "rowSpan": 1, "colSpan": 1},
+            ],
+        },
+    }
+
+    markdown = render_table_artifact(artifact)
+
+    assert markdown.startswith("<table>\n")
+    assert '<th colspan="2">Component &amp; quantity</th>' in markdown
+    assert "|---|" not in markdown
+
+
+def test_layout_first_pdf_materializes_ast_artifact_store_and_markdown_projection(tmp_path) -> None:
+    pymupdf = pytest.importorskip("pymupdf")
+    source, output = tmp_path / "source", tmp_path / "markdown"
+    source.mkdir()
+    pdf_path = source / "lab.pdf"
+    pdf = pymupdf.open()
+    page = pdf.new_page(width=595, height=842)
+    page.insert_text((72, 72), "Lab architecture", fontsize=18)
+    for x, value in zip((72, 300, 420), ("Part", "Qty", "Cost")):
+        page.insert_text((x, 140), value, fontsize=10)
+    for y, values in ((165, ("sensor", "2", "10")), (190, ("pump", "1", "20"))):
+        for x, value in zip((72, 300, 420), values):
+            page.insert_text((x, y), value, fontsize=10)
+    page.insert_textbox(
+        pymupdf.Rect(72, 250, 450, 320),
+        "from sila2.client import SilaClient\nclient = SilaClient('127.0.0.1', 50051)",
+        fontname="cour", fontsize=9,
+    )
+    page.insert_textbox(
+        pymupdf.Rect(72, 350, 450, 450),
+        "+----------------+\n| Raspberry Pi   |\n+-------+--------+\n        |\n      [R1]",
+        fontname="cour", fontsize=9,
+    )
+    pixmap = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 100, 60), False)
+    pixmap.clear_with(0x306090)
+    page.insert_image(pymupdf.Rect(90, 500, 390, 680), stream=pixmap.tobytes("png"))
+    pdf.save(pdf_path)
+    pdf.close()
+
+    result = convert_tree(str(source), str(output), chain=ConverterChain([PyMuPDFConverter()]))
+    markdown_path = output / "lab.pdf.md"
+    ast_path = output / "lab.pdf.ast.json"
+    manifest_path = output / "lab.pdf.artifacts" / "manifest.json"
+    ast = json.loads(ast_path.read_text(encoding="utf-8"))
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    markdown = markdown_path.read_text(encoding="utf-8")
+    types = {artifact["type"] for artifact in ast["artifacts"]}
+
+    assert result.by_converter == {"pymupdf-layout": 1}
+    assert ast["schema"] == "f2md.document-ast/v1"
+    assert ast["extractor"]["mode"] == "layout-first"
+    assert {"table", "code", "diagram", "figure"}.issubset(types)
+    assert {"PART_OF", "DESCRIBES", "DEPICTS", "IMPLEMENTS"}.issubset(
+        {relation["predicate"] for relation in ast["relations"]}
+    )
+    assert manifest["schema"] == "f2md.artifact-manifest/v1"
+    assert {entry["id"] for entry in manifest["artifacts"]} == {
+        artifact["id"] for artifact in ast["artifacts"]
+    }
+    for entry in manifest["artifacts"]:
+        for uri_field, hash_field in (
+            ("contentUri", "contentFileSha256"),
+            ("previewUri", "previewSha256"),
+            ("originalUri", "originalSha256"),
+        ):
+            uri, expected_hash = entry[uri_field], entry[hash_field]
+            assert (uri is None) == (expected_hash is None)
+            if isinstance(uri, str):
+                assert hashlib.sha256((output / uri).read_bytes()).hexdigest() == expected_hash
+        for derivative in entry["additionalFiles"]:
+            assert hashlib.sha256((output / derivative["uri"]).read_bytes()).hexdigest() == derivative["sha256"]
+    assert any(
+        derivative["role"] == "table-csv"
+        for entry in manifest["artifacts"] for derivative in entry["additionalFiles"]
+    )
+    diagram = next(artifact for artifact in ast["artifacts"] if artifact["type"] == "diagram")
+    diagram_entry = next(entry for entry in manifest["artifacts"] if entry["id"] == diagram["id"])
+    graph = diagram["content"]["graph"]
+    assert graph["schema"] == "f2md.diagram-graph/v1"
+    assert graph["validation"]["valid"] is True
+    assert graph["validation"]["sourceHashMatches"] is True
+    assert json.loads((output / diagram_entry["contentUri"]).read_text(encoding="utf-8")) == graph
+    assert {node["label"] for node in graph["nodes"]} == {"Raspberry Pi", "R1"}
+    assert str(diagram_entry["previewUri"]).endswith("diagram.svg")
+    assert str(diagram_entry["originalUri"]).endswith("original.png")
+    assert {item["role"] for item in diagram_entry["additionalFiles"]} == {
+        "diagram-source-text", "diagram-mermaid", "diagram-dsl",
+    }
+    assert "```python" in markdown and "```text" in markdown
+    assert "| Part | Qty | Cost |" in markdown
+    assert str(diagram_entry["previewUri"]) in markdown
+    assert str(diagram_entry["originalUri"]) in markdown
+    assert "<summary>Source diagram crop</summary>" in markdown
+    assert "<!-- artifact:urn:subactor:artifact:sha256:" in markdown
+    assert "sourceModel: \"f2md.document-ast/v1\"" in markdown
+    assert (output / "lab.pdf.artifacts" / "artifacts.dsl").is_file()
+    assert (output / "lab.pdf.artifacts" / "artifact-quality.dsl").is_file()
+    assert (output / "lab.pdf.artifacts" / "artifact-tree.dsl").is_file()
+    version = (output / "VERSION").read_text(encoding="utf-8")
+    assert "OUTPUT_FILES=1\n" in version
+    assert "ASSET_FILES=0\n" not in version
+    assert audit_markdown_tree(source, output).errors == 0
+
+    projected = next(entry for entry in manifest["artifacts"] if isinstance(entry["contentUri"], str))
+    projected_path = output / projected["contentUri"]
+    projected_bytes = projected_path.read_bytes()
+    projected_path.write_bytes(projected_bytes + b"tampered")
+    tampered_projection = audit_markdown_tree(source, output)
+    assert any(
+        finding.code == "DOCUMENT_AST_CONTRACT_INVALID"
+        and "ARTIFACT_FILE_HASH_MISMATCH" in finding.message
+        for finding in tampered_projection.findings
+    )
+    projected_path.write_bytes(projected_bytes)
+
+    derivative = next(
+        derivative
+        for entry in manifest["artifacts"] for derivative in entry["additionalFiles"]
+    )
+    derivative_path = output / derivative["uri"]
+    derivative_bytes = derivative_path.read_bytes()
+    derivative_path.write_bytes(derivative_bytes + b"tampered")
+    tampered_derivative = audit_markdown_tree(source, output)
+    assert any(
+        finding.code == "DOCUMENT_AST_CONTRACT_INVALID"
+        and "ARTIFACT_ADDITIONAL_FILE_HASH_MISMATCH" in finding.message
+        for finding in tampered_derivative.findings
+    )
+    derivative_path.write_bytes(derivative_bytes)
+
+    manifest["artifacts"][0]["contentSha256"] = "0" * 64
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    tampered = audit_markdown_tree(source, output)
+    assert any(finding.code == "DOCUMENT_AST_CONTRACT_INVALID" for finding in tampered.findings)
+
+
+def test_ascii_graph_is_source_bound_and_has_deterministic_mermaid_svg_and_dsl() -> None:
+    source = """[ChemOS AI Planner]
+|
+v
+[OpenTwins]
+|
+v
+[Physical devices]
+"""
+    graph = build_ascii_diagram_graph(source)
+
+    assert graph is not None
+    assert graph["generation"] == "deterministic-ascii-v1"
+    assert [node["label"] for node in graph["nodes"]] == [
+        "ChemOS AI Planner", "OpenTwins", "Physical devices",
+    ]
+    assert len(graph["edges"]) == 2
+    assert diagram_graph_metrics(graph, source)["valid"] is True
+    assert render_diagram_mermaid(graph, source).startswith("flowchart TD\n")
+    assert "marker-end=\"url(#arrow)\"" in render_diagram_svg(graph, source)
+    assert render_diagram_dsl(
+        "urn:subactor:artifact:sha256:" + "a" * 64, graph, source
+    ).endswith(
+        "END_DIAGRAM_GRAPH\n"
+    )
+
+    tampered = json.loads(json.dumps(graph))
+    tampered["nodes"][0]["label"] = "Invented component"
+    assert diagram_graph_metrics(tampered, source)["valid"] is False
+    stale = json.loads(json.dumps(graph))
+    stale["sourceTextSha256"] = "0" * 64
+    assert diagram_graph_metrics(stale, source)["sourceHashMatches"] is False
+    with pytest.raises(ValueError, match="DIAGRAM_GRAPH_INVALID"):
+        render_diagram_mermaid(stale, source)
+
+
+def test_real_biofoundry_pdf_preserves_typed_artifact_invariants(tmp_path) -> None:
+    pytest.importorskip("pymupdf")
+    fixture = json.loads(
+        (REPOSITORY_ROOT / "fixtures/pdf-quality/atvirojo-artifact-invariants.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    configured = os.environ.get("F2MD_QUALITY_PDF")
+    source = Path(configured) if configured else (
+        REPOSITORY_ROOT.parent
+        / "projects/nanobionic-laboratory/imports/customer/A.-SPECIFIKACIJA-76173b04"
+        / fixture["sourceBasename"]
+    )
+    if not source.is_file():
+        pytest.skip("real biofoundry PDF corpus is not available")
+    expected = fixture["invariants"]
+    assert hashlib.sha256(source.read_bytes()).hexdigest() == fixture["sourceSha256"]
+
+    ast = extract_pdf_ast(str(source))
+    markdown = render_markdown(ast)
+    quality = markdown_quality_from_ast(ast, markdown, artifact_quality(ast))
+    artifacts = ast["artifacts"]
+    tables = [artifact for artifact in artifacts if artifact["type"] == "table"]
+    diagrams = [artifact for artifact in artifacts if artifact["type"] == "diagram"]
+    code = [artifact for artifact in artifacts if artifact["type"] == "code"]
+
+    assert ast["schema"] == expected["sourceModel"]
+    assert ast["ocr"]["actuallyUsed"] is False
+    assert quality["status"] == expected["qualityStatus"]
+    assert len(quality["suspectTokens"]) >= expected["minimumSuspectTokens"]
+    assert len(tables) >= expected["minimumTables"]
+    assert len(code) >= expected["minimumCodeArtifacts"]
+    assert sum(artifact["subtype"] == "ascii-diagram" for artifact in diagrams) >= expected["minimumAsciiDiagrams"]
+    assert sum(artifact["subtype"] == "table-of-contents" for artifact in artifacts) >= expected["minimumTocArtifacts"]
+    assert set(expected["requiredCodeLanguages"]).issubset(
+        {artifact["content"]["language"] for artifact in code}
+    )
+    assert set(expected["requiredRelationPredicates"]).issubset(
+        {relation["predicate"] for relation in ast["relations"]}
+    )
+    for pages in expected["crossPageTables"]:
+        assert any(artifact["pages"] == pages for artifact in tables)
+
+    biospec = next(
+        artifact for artifact in diagrams
+        if expected["biospecDiagramPage"] in artifact["pages"]
+        and all(token in artifact["content"]["text"] for token in expected["biospecDiagramTokens"])
+    )
+    assert biospec["subtype"] == "ascii-diagram"
+    assert biospec["content"]["graph"]["validation"]["valid"] is True
+    assert {"R1", "R2", "R3", "R4"}.issubset({
+        node["label"] for node in biospec["content"]["graph"]["nodes"]
+    })
+    assert not any("[R1]" in json.dumps(table["content"], ensure_ascii=False) for table in tables)
+    open_twins = next(
+        artifact
+        for artifact in diagrams
+        if expected["openTwinsDiagramPage"] in artifact["pages"]
+        and all(token in artifact["content"]["text"] for token in expected["openTwinsDiagramTokens"])
+    )
+    assert open_twins["content"]["graph"]["validation"]["valid"] is True
+    assert {"ChemOS 2.0 (AI Planner + UI)", "OpenTwins Core"}.issubset({
+        node["label"] for node in open_twins["content"]["graph"]["nodes"]
+    })
+    focused_ast = {**ast, "artifacts": [open_twins], "relations": []}
+    ast_path = tmp_path / "opentwins.ast.json"
+    markdown_path = tmp_path / "opentwins.md"
+    ast_path.write_text(json.dumps(focused_ast), encoding="utf-8")
+    manifest = materialize_artifact_store(
+        focused_ast, str(source), str(markdown_path), str(ast_path),
+    )
+    entry = manifest["artifacts"][0]
+    assert str(entry["contentUri"]).endswith("graph.json")
+    assert str(entry["previewUri"]).endswith("diagram.svg")
+    assert str(entry["originalUri"]).endswith("original.png")
+    assert {item["role"] for item in entry["additionalFiles"]} == {
+        "diagram-source-text", "diagram-mermaid", "diagram-dsl",
+    }
+    projected_markdown = render_markdown(focused_ast, manifest)
+    assert str(entry["previewUri"]) in projected_markdown
+    assert str(entry["originalUri"]) in projected_markdown
+    assert any(
+        expected["biospecBomPage"] in table["pages"]
+        and all(token in json.dumps(table["content"]["grid"], ensure_ascii=False)
+                for token in expected["biospecBomTokens"])
+        for table in tables
+    )
+    assert all(value not in markdown for value in expected["forbiddenVisibleFurniture"])
+
+
+class _CoverageConverter:
+    name = "coverage-fixture"
+    backend_type = "stdlib"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        kind = Path(path).suffix
+        if kind == ".bin":
+            raise ExternalConverterRequired(kind)
+        if kind == ".broken":
+            raise ConversionError("FIXTURE_BACKEND_FAILED:deliberate")
+        converter = "stl-metadata" if kind == ".stl" else self.name
+        return ConvertedDocument(
+            f"# {Path(path).name}\n",
+            {"size": Path(path).stat().st_size, "mtime": ""},
+            [],
+            converter,
+            "1",
+            backend_type=self.backend_type,
+            input_kind=kind,
+        )
+
+
+def test_source_coverage_accounts_for_every_terminal_state_and_is_idempotent(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "markdown"
+    source.mkdir()
+    (source / "note.md").write_text("# One\n", encoding="utf-8")
+    (source / "mesh.stl").write_bytes(b"binary provenance")
+    (source / "opaque.bin").write_bytes(b"unsupported")
+    (source / "backend.broken").write_bytes(b"failure")
+    chain = ConverterChain([_CoverageConverter()])
+
+    first = convert_tree(str(source), str(output), chain=chain)
+    report_path = output / "source-coverage.json"
+    dsl_path = output / "source-coverage.dsl"
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+    first_json = report_path.read_bytes()
+    first_dsl = dsl_path.read_bytes()
+
+    assert first.coverage_no_change is False
+    assert report["schema"] == "bioxfoundry.source-coverage/v1"
+    assert report["summary"]["discovered"] == report["summary"]["terminal"] == 4
+    assert report["summary"]["byState"] == {
+        "converted": 1,
+        "binary-provenance": 1,
+        "excluded-by-policy": 0,
+        "unsupported": 1,
+        "quarantined": 0,
+        "failed": 1,
+    }
+    assert [record["path"] for record in report["records"]] == [
+        "backend.broken", "mesh.stl", "note.md", "opaque.bin",
+    ]
+    assert all(record["twinRevisionStatus"] == "not-evaluated" for record in report["records"])
+    assert "RESULT COMPLETE" in first_dsl.decode("utf-8")
+
+    second = convert_tree(str(source), str(output), chain=chain)
+    assert second.coverage_no_change is True
+    assert report_path.read_bytes() == first_json
+    assert dsl_path.read_bytes() == first_dsl
+
+    before = {record["path"]: record for record in report["records"]}
+    (source / "note.md").write_text("# Two\n", encoding="utf-8")
+    third = convert_tree(str(source), str(output), chain=chain)
+    changed = json.loads(report_path.read_text(encoding="utf-8"))
+    after = {record["path"]: record for record in changed["records"]}
+    assert third.coverage_no_change is False
+    assert before["note.md"]["sourceSha256"] != after["note.md"]["sourceSha256"]
+    assert before["note.md"]["resourceUri"] != after["note.md"]["resourceUri"]
+    assert before["mesh.stl"] == after["mesh.stl"]
+    assert before["opaque.bin"] == after["opaque.bin"]
+    assert before["backend.broken"] == after["backend.broken"]
+
+    filtered_output = tmp_path / "filtered"
+    filtered = convert_tree(str(source), str(filtered_output), chain=chain, only=[".md"])
+    filtered_report = json.loads((filtered_output / "source-coverage.json").read_text(encoding="utf-8"))
+    assert filtered.skipped == 3
+    assert filtered_report["summary"]["discovered"] == filtered_report["summary"]["terminal"] == 4
+    assert filtered_report["summary"]["byState"]["excluded-by-policy"] == 3
+    assert all(
+        record["reasonCode"] == "KIND_NOT_SELECTED"
+        for record in filtered_report["records"] if record["state"] == "excluded-by-policy"
+    )
+
+
+class _PdfQualityFixture:
+    name = "pdf-quality-fixture"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        pages = [
+            {"number": 1, "markdown": "# Evidence\n\nVerified statement."},
+            {
+                "number": 2,
+                "markdown": "<!-- Start of picture text -->low confidence OCR<!-- End of picture text -->",
+            },
+        ]
+        return ConvertedDocument(
+            "\f".join(page["markdown"] for page in pages),
+            {"size": os.path.getsize(path), "mtime": "", "_f2mdPages": pages},
+            [],
+            self.name,
+            "1",
+            input_kind=".pdf",
+        )
+
+
+def test_tree_emits_quality_structure_and_intent_uses_only_semantic_blocks(tmp_path) -> None:
+    source, markdown_root, intent_root = tmp_path / "source", tmp_path / "markdown", tmp_path / "intent"
+    source.mkdir()
+    (source / "study.pdf").write_bytes(b"%PDF fixture")
+
+    result = convert_tree(str(source), str(markdown_root), chain=ConverterChain([_PdfQualityFixture()]))
+    markdown_path = markdown_root / "study.pdf.md"
+    structure_path = markdown_root / "study.pdf.structure.json"
+    quality_path = markdown_root / "study.pdf.quality.mdqldsl"
+
+    assert result.by_quality == {"degraded": 1}
+    assert structure_path.is_file() and quality_path.is_file()
+    assert 'qualityStatus: "degraded"' in markdown_path.read_text(encoding="utf-8")
+    assert "STATUS DEGRADED" in quality_path.read_text(encoding="utf-8")
+    structure = json.loads(structure_path.read_text(encoding="utf-8"))
+    assert structure["schema"] == "bioxfoundry.document-structure/v1"
+    audit = audit_markdown_tree(source, markdown_root)
+    assert audit.errors == 0
+    assert any(finding.code == "MARKDOWN_QUALITY_DEGRADED" for finding in audit.findings)
+
+    blocked = compile_tree(markdown_root, intent_root, only_english=False)
+    assert blocked["eligibleFiles"] == 0
+    assert blocked["exclusions"][0]["reason"] == "conversion-quality-policy"
+
+    admitted = compile_tree(markdown_root, intent_root, only_english=False, allow_degraded=True)
+    pack = json.loads((intent_root / "study.pdf.md.intent.json").read_text(encoding="utf-8"))
+    assert admitted["files"] == 1
+    assert "Verified statement" in pack["records"][0]["text"]
+    assert all("low confidence OCR" not in record["text"] for record in pack["records"])
+    assert pack["records"][0]["source"]["blockId"].startswith("block-")
+
+
+def test_tree_materializes_pdf_figure_with_bbox_hash_and_ocr_region(tmp_path) -> None:
+    pymupdf = pytest.importorskip("pymupdf")
+    source, markdown_root = tmp_path / "source", tmp_path / "markdown"
+    source.mkdir()
+    pdf_path = source / "diagram.pdf"
+    pdf = pymupdf.open()
+    page = pdf.new_page(width=595, height=842)
+    page.insert_text((72, 72), "Architecture", fontsize=18)
+    pixmap = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 180, 90), False)
+    pixmap.clear_with(0x70A0D0)
+    page.insert_image(pymupdf.Rect(90, 180, 450, 360), stream=pixmap.tobytes("png"))
+    pdf.save(pdf_path)
+    pdf.close()
+
+    class PictureFixture:
+        name = "pymupdf4llm"
+
+        def convert(self, path: str) -> ConvertedDocument:
+            picture = (
+                "# Architecture\n\n<!-- Start of picture text -->"
+                "controller <br> sensor<!-- End of picture text -->"
+            )
+            return ConvertedDocument(
+                picture,
+                {
+                    "_f2mdPages": [{"number": 1, "markdown": picture, "width": 595, "height": 842}],
+                    "ocrAudit": {
+                        "ocrRequested": False,
+                        "ocrActuallyUsed": False,
+                        "ocrEngine": "none",
+                        "ocrVersion": "unknown",
+                        "ocrLanguages": [],
+                        "ocrPages": [],
+                        "ocrRegions": [],
+                        "ocrConfidence": None,
+                    },
+                },
+                converter=self.name,
+                version="fixture",
+                input_kind=".pdf",
+            )
+
+    result = convert_tree(str(source), str(markdown_root), chain=ConverterChain([PictureFixture()]))
+
+    assets = list((markdown_root / "diagram.pdf.assets").glob("page-1-figure-1-*.png"))
+    assert result.by_quality == {"pass": 1}
+    assert len(assets) == 1
+    markdown = (markdown_root / "diagram.pdf.md").read_text(encoding="utf-8")
+    assert f"](diagram.pdf.assets/{assets[0].name})" in markdown
+    assert 'ocrActuallyUsed: true' in markdown
+    structure = json.loads(
+        (markdown_root / "diagram.pdf.structure.json").read_text(encoding="utf-8")
+    )
+    figure = next(block for block in structure["blocks"] if block["type"] == "figure")
+    diagram = next(block for block in structure["blocks"] if block["type"] == "diagram")
+    heading = next(block for block in structure["blocks"] if block["type"] == "heading")
+    assert figure["bbox"] == diagram["bbox"] == [90.0, 180.0, 450.0, 360.0]
+    assert heading["bbox"] is not None
+    assert structure["layoutAudit"]["status"] == "pass"
+    assert structure["layoutAudit"]["coverage"] == 1.0
+    assert figure["assetSha256"] == hashlib.sha256(assets[0].read_bytes()).hexdigest()
+    assert structure["ocr"]["ocrPages"] == [1]
+    assert structure["ocr"]["ocrRegions"][0]["bbox"] == figure["bbox"]
+    assert "ASSET_FILES=1" in (markdown_root / "VERSION").read_text(encoding="utf-8")
+    audit = audit_markdown_tree(source, markdown_root)
+    assert audit.errors == 0
+    assert audit.metrics["assetFiles"] == 1
+
+    assets[0].write_bytes(b"tampered")
+    tampered = audit_markdown_tree(source, markdown_root)
+    assert any(finding.code == "DOCUMENT_ASSET_HASH_MISMATCH" for finding in tampered.findings)
+
+
 def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
     source, output = tmp_path / "source", tmp_path / "dsl"
     source.mkdir()
@@ -350,6 +956,23 @@ class _Works:
         return ConvertedDocument("# ok", {}, [], "works", "1")
 
 
+class _DegradedPdf:
+    name = "degraded-pdf"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        return ConvertedDocument(
+            "<!-- Start of picture text -->uncertain diagram<!-- End of picture text -->",
+            {}, [], self.name, "1", input_kind=".pdf",
+        )
+
+
+class _CanonicalPdf:
+    name = "canonical-pdf"
+
+    def convert(self, path: str) -> ConvertedDocument:
+        return ConvertedDocument("# Evidence\n\nCanonical body.\n", {}, [], self.name, "1", input_kind=".pdf")
+
+
 def test_chain_skips_inapplicable_backends(tmp_path) -> None:
     src = tmp_path / "a.md"
     src.write_text("x", encoding="utf-8")
@@ -368,6 +991,19 @@ def test_chain_prefers_a_later_success_over_an_earlier_failure(tmp_path) -> None
     src = tmp_path / "a.md"
     src.write_text("x", encoding="utf-8")
     assert ConverterChain([_Breaks(), _Works()]).convert(str(src)).converter == "works"
+
+
+def test_document_chain_arbitrates_quality_instead_of_first_success(tmp_path) -> None:
+    src = tmp_path / "study.pdf"
+    src.write_bytes(b"%PDF fixture")
+
+    document = ConverterChain([_DegradedPdf(), _CanonicalPdf()]).convert(str(src))
+
+    assert document.converter == "canonical-pdf"
+    arbitration = document.metadata["qualityArbitration"]
+    assert arbitration["strategy"] == "highest-quality-score-v1"
+    assert [candidate["status"] for candidate in arbitration["candidates"]] == ["degraded", "pass"]
+    assert document.fallback_depth == 1
 
 
 def test_empty_chain_is_rejected() -> None:
@@ -460,7 +1096,7 @@ def test_cli_json_stays_parseable_when_a_backend_prints(tmp_path) -> None:
     capture `f2md file --json | jq` fails on the noise. Run through a real subprocess: that is the
     contract users depend on, and pytest's own capture would mask the leak.
     """
-    pytest.importorskip("pymupdf4llm")
+    pytest.importorskip("pymupdf")
     pdf = tmp_path / "doc.pdf"
     pdf.write_bytes(_MINIMAL_PDF)
     done = subprocess.run(
@@ -469,7 +1105,7 @@ def test_cli_json_stays_parseable_when_a_backend_prints(tmp_path) -> None:
     )
     assert done.returncode == 0, done.stderr.decode()
     payload = json.loads(done.stdout.decode())  # must parse with no leading noise
-    assert payload["converter"] == "pymupdf4llm", payload["converter"]
+    assert payload["converter"] == "pymupdf-layout", payload["converter"]
     assert payload["backendType"] == "python"
     assert payload["fallbackDepth"] >= 1, "text backend must decline a PDF first"
 
@@ -504,26 +1140,35 @@ def _build_minimal_pdf() -> bytes:
 _MINIMAL_PDF = _build_minimal_pdf()
 
 
-def test_pymupdf_messages_do_not_leak_between_files(tmp_path) -> None:
-    """MuPDF's message store is process-global and accumulates across documents.
+def test_cli_materialize_to_exposes_output_aware_ast_contract(tmp_path, capsys) -> None:
+    pytest.importorskip("pymupdf")
+    source = tmp_path / "source.pdf"
+    target = tmp_path / "mirror" / "source.pdf.md"
+    source.write_bytes(_MINIMAL_PDF)
 
-    Without a reset per conversion, a PDF that needed OCR poisons the provenance of every file
-    converted after it in the same process — the exact failure mode a tree run hits.
-    """
-    pymupdf = pytest.importorskip("pymupdf")
-    pytest.importorskip("pymupdf4llm")
+    assert main([str(source), "--json", "--materialize-to", str(target)]) == 0
+    payload = json.loads(capsys.readouterr().out)
+
+    assert payload["metadata"]["documentAst"]["schema"] == "f2md.document-ast/v1"
+    assert payload["metadata"]["documentAstArtifact"] == "source.pdf.ast.json"
+    assert (tmp_path / "mirror" / "source.pdf.ast.json").is_file()
+    assert (tmp_path / "mirror" / "source.pdf.artifacts" / "manifest.json").is_file()
+    assert (tmp_path / "mirror" / "source.pdf.artifacts" / "artifact-tree.dsl").is_file()
+
+
+def test_pymupdf_layout_provenance_is_deterministic_between_files(tmp_path) -> None:
+    """Native layout conversion cannot inherit OCR state from an earlier document."""
+    pytest.importorskip("pymupdf")
     converter = PyMuPDFConverter()
 
     src = tmp_path / "clean.pdf"
     src.write_bytes(_MINIMAL_PDF)
 
-    # Seed the global store with a message that belongs to no file we are about to convert.
-    pymupdf.TOOLS.reset_mupdf_warnings()
     first = converter.convert(str(src))
     second = converter.convert(str(src))
-    # Identical input must give identical provenance, whatever ran before it.
     assert first.ocr == second.ocr
     assert first.warnings == second.warnings, "provenance must not depend on conversion order"
+    assert first.metadata["documentAst"] == second.metadata["documentAst"]
 
 
 def test_tree_marks_confidential_documents_in_the_filename(tmp_path) -> None:

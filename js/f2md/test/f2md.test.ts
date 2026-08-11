@@ -12,6 +12,7 @@ import {
   ExternalConverterRequired,
   LocalToolConverter,
   MammothConverter,
+  PythonCanonicalConverter,
   TextConverter,
   TurndownConverter,
   convert,
@@ -283,6 +284,48 @@ test("DOCX goes through mammoth then turndown", async (t) => {
   await assert.rejects(() => new MammothConverter().convert(path), /MAMMOTH_FAILED|ConversionError/);
 });
 
+test("Node delegates document conversion to the canonical Python envelope", async (t) => {
+  const dir = await workspace(t);
+  const packageDir = join(dir, "python", "f2md");
+  await mkdir(packageDir, { recursive: true });
+  await writeFile(join(packageDir, "__init__.py"), "");
+  await writeFile(
+    join(packageDir, "cli.py"),
+    "import json,pathlib,sys\n"
+      + "quality={\"schema\":\"bioxfoundry.markdown-quality/v1\",\"status\":\"pass\",\"score\":100,\"sourceSha256\":\"0\"*64,\"metrics\":{},\"checks\":[]}\n"
+      + "structure={\"schema\":\"bioxfoundry.document-structure/v1\",\"blocks\":[]}\n"
+      + "ast={\"schema\":\"f2md.document-ast/v1\",\"artifacts\":[]}\n"
+      + "if '--materialize-to' in sys.argv:\n"
+      + " out=pathlib.Path(sys.argv[sys.argv.index('--materialize-to')+1]); store=pathlib.Path(str(out)[:-3]+'.artifacts'); store.mkdir(parents=True); (store/'table-preview.md').write_text('| A |\\n|---|\\n')\n"
+      + "metadata={\"conversionQuality\":quality,\"structure\":structure,\"documentAst\":ast,\"ocrAudit\":{\"ocrRequested\":False,\"ocrActuallyUsed\":False,\"ocrEngine\":\"none\"}}\n"
+      + "print(json.dumps({\"markdown\":\"# canonical\\n\",\"metadata\":metadata,\"assets\":[],\"converter\":\"python-canonical\",\"version\":\"1\",\"backendType\":\"python\",\"inputKind\":\".pdf\",\"ocr\":False,\"fallbackDepth\":0,\"durationMs\":0,\"warnings\":[]}))\n",
+  );
+  const source = join(dir, "source");
+  const output = join(dir, "output");
+  await mkdir(source);
+  const path = join(source, "study.pdf");
+  await writeFile(path, Buffer.from("%PDF fixture"));
+
+  const converter = new PythonCanonicalConverter("python3", 5_000, join(dir, "python"));
+  const document = await converter.convert(path);
+
+  assert.equal(document.converter, "python-canonical");
+  assert.equal(document.backendType, "python");
+  assert.equal((document.metadata.conversionQuality as { status: string }).status, "pass");
+
+  const tree = await convertTree(source, output, { chain: new ConverterChain([converter]) });
+  assert.deepEqual(tree.byQuality, { pass: 1 });
+  assert.match(await readFile(join(output, "study.pdf.md"), "utf8"), /qualityStatus: "pass"/);
+  assert.equal(JSON.parse(await readFile(join(output, "study.pdf.structure.json"), "utf8")).schema,
+    "bioxfoundry.document-structure/v1");
+  assert.match(await readFile(join(output, "study.pdf.quality.mdqldsl"), "utf8"), /STATUS PASS/);
+  assert.equal(JSON.parse(await readFile(join(output, "study.pdf.ast.json"), "utf8")).schema,
+    "f2md.document-ast/v1");
+  const version = await readFile(join(output, "VERSION"), "utf8");
+  assert.match(version, /OUTPUT_FILES=1\n/);
+  assert.match(version, /ASSET_FILES=1\n/);
+});
+
 /* ------------------------------------------------------------------- tree mode */
 test("tree mode mirrors structure and keeps the original extension", async (t) => {
   const dir = await workspace(t);
@@ -313,6 +356,59 @@ test("tree mode mirrors structure and keeps the original extension", async (t) =
   assert.match(version, /ARTIFACT=markdown-mirror/);
   assert.match(version, /SOURCE_SNAPSHOT_SHA256=[a-f0-9]{64}/);
   assert.match(version, /OUTPUT_SNAPSHOT_SHA256=[a-f0-9]{64}/);
+
+  const coverage = JSON.parse(await readFile(join(out, "source-coverage.json"), "utf8")) as {
+    schema: string;
+    summary: { discovered: number; terminal: number; byState: Record<string, number> };
+  };
+  assert.equal(coverage.schema, "bioxfoundry.source-coverage/v1");
+  assert.equal(coverage.summary.discovered, 3);
+  assert.equal(coverage.summary.terminal, 3);
+  assert.equal(coverage.summary.byState.converted, 2);
+  assert.equal(coverage.summary.byState.unsupported, 1);
+  assert.match(await readFile(join(out, "source-coverage.dsl"), "utf8"), /RESULT COMPLETE/);
+});
+
+test("source coverage is byte-stable and a filtered source is explicitly excluded", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src");
+  const out = join(dir, "out");
+  await mkdir(src, { recursive: true });
+  await writeFile(join(src, "note.md"), "# One\n");
+  await writeFile(join(src, "model.glb"), Buffer.from([0x67, 0x6c, 0x54, 0x46]));
+
+  const first = await convertTree(src, out);
+  const jsonPath = join(out, "source-coverage.json");
+  const dslPath = join(out, "source-coverage.dsl");
+  const firstJson = await readFile(jsonPath);
+  const firstDsl = await readFile(dslPath);
+  const before = JSON.parse(firstJson.toString("utf8")) as { records: Array<Record<string, string>> };
+  assert.equal(first.coverageNoChange, false);
+
+  const second = await convertTree(src, out);
+  assert.equal(second.coverageNoChange, true);
+  assert.deepEqual(await readFile(jsonPath), firstJson);
+  assert.deepEqual(await readFile(dslPath), firstDsl);
+
+  await writeFile(join(src, "note.md"), "# Two\n");
+  const third = await convertTree(src, out);
+  const after = JSON.parse(await readFile(jsonPath, "utf8")) as { records: Array<Record<string, string>> };
+  const beforeByPath = new Map(before.records.map((record) => [record.path, record]));
+  const afterByPath = new Map(after.records.map((record) => [record.path, record]));
+  assert.equal(third.coverageNoChange, false);
+  assert.notEqual(beforeByPath.get("note.md")?.sourceSha256, afterByPath.get("note.md")?.sourceSha256);
+  assert.deepEqual(beforeByPath.get("model.glb"), afterByPath.get("model.glb"));
+
+  const filteredOut = join(dir, "filtered");
+  const filtered = await convertTree(src, filteredOut, { only: [".md"] });
+  const filteredCoverage = JSON.parse(await readFile(join(filteredOut, "source-coverage.json"), "utf8")) as {
+    summary: { discovered: number; terminal: number; byState: Record<string, number> };
+    records: Array<Record<string, unknown>>;
+  };
+  assert.equal(filtered.skipped, 1);
+  assert.equal(filteredCoverage.summary.discovered, filteredCoverage.summary.terminal);
+  assert.equal(filteredCoverage.summary.byState["excluded-by-policy"], 1);
+  assert.equal(filteredCoverage.records.find((record) => record.path === "model.glb")?.reasonCode, "KIND_NOT_SELECTED");
 });
 
 test("tree mode refuses to write inside its own source", async (t) => {

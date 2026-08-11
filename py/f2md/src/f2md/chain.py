@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import time
+from dataclasses import replace
 from typing import List, Optional, Sequence
 
 from .converters import (
@@ -16,6 +17,8 @@ from .converters import (
     STLMetadataConverter,
     TextConverter,
 )
+from .detect import is_document_conversion_kind
+from .quality import finalize_document
 from .types import ConversionError, ConvertedDocument, ExternalConverterRequired
 
 
@@ -42,6 +45,7 @@ class ConverterChain:
         started = time.monotonic()
         first_real_failure: Optional[ConversionError] = None
         declined: List[str] = []
+        candidates: List[ConvertedDocument] = []
         kind = os.path.splitext(path)[1]
         for depth, converter in enumerate(self.converters):
             try:
@@ -56,10 +60,56 @@ class ConverterChain:
                 declined.append(getattr(converter, "name", type(converter).__name__))
                 continue
             elapsed = int((time.monotonic() - started) * 1000)
-            return document.with_routing(fallback_depth=depth, duration_ms=elapsed)
+            routed = document.with_routing(fallback_depth=depth, duration_ms=elapsed)
+            candidate = finalize_document(routed, path)
+            quality = candidate.metadata.get("conversionQuality", {})
+            status = quality.get("status", "failed") if isinstance(quality, dict) else "failed"
+            if not is_document_conversion_kind(candidate.input_kind) or status == "pass":
+                if candidates:
+                    candidates.append(candidate)
+                    return self._select_candidate(candidates, started)
+                return candidate
+            # A technically successful document conversion may still be unusable canonical
+            # Markdown. Keep it as evidence, continue to the next backend, then choose the best
+            # deterministic quality score if none reaches PASS.
+            candidates.append(candidate)
+        if candidates:
+            return self._select_candidate(candidates, started)
         if first_real_failure is not None:
             raise first_real_failure
         raise ExternalConverterRequired(kind)
+
+    @staticmethod
+    def _select_candidate(candidates: Sequence[ConvertedDocument], started: float) -> ConvertedDocument:
+        def score(document: ConvertedDocument) -> int:
+            quality = document.metadata.get("conversionQuality", {})
+            return int(quality.get("score", 0)) if isinstance(quality, dict) else 0
+
+        selected = max(candidates, key=score)
+        arbitration = [
+            {
+                "converter": candidate.converter,
+                "fallbackDepth": candidate.fallback_depth,
+                "status": candidate.metadata.get("conversionQuality", {}).get("status", "failed"),
+                "score": score(candidate),
+            }
+            for candidate in candidates
+        ]
+        metadata = dict(selected.metadata)
+        metadata["qualityArbitration"] = {
+            "strategy": "highest-quality-score-v1",
+            "selected": selected.converter,
+            "candidates": arbitration,
+        }
+        warning = "QUALITY_ARBITRATION:" + selected.converter + ":" + ",".join(
+            f"{item['converter']}={item['score']}" for item in arbitration
+        )
+        return replace(
+            selected,
+            metadata=metadata,
+            duration_ms=int((time.monotonic() - started) * 1000),
+            warnings=[*selected.warnings, warning],
+        )
 
 
 def default_chain(docling_url: Optional[str] = None) -> ConverterChain:

@@ -14,13 +14,22 @@
 export const VERSION = "0.2.1";
 
 export { BACKEND_TYPES, ConversionError, ExternalConverterRequired } from "./types.js";
-export type { BackendType, ConvertedDocument, Converter } from "./types.js";
+export type {
+  BackendType,
+  ConvertedDocument,
+  Converter,
+  DocumentArtifact,
+  DocumentArtifactRelation,
+  DocumentArtifactType,
+  DocumentAst,
+} from "./types.js";
 export {
   DEFAULT_MAX_CHARS,
   DEFAULT_TIMEOUT_MS,
   DoclingHttpConverter,
   LocalToolConverter,
   MammothConverter,
+  PythonCanonicalConverter,
   ScadSourceConverter,
   TextConverter,
   TurndownConverter,
@@ -28,6 +37,18 @@ export {
 export { ConverterChain, convert, convertToMarkdown, defaultChain } from "./chain.js";
 export { SKIP_DIRS, convertTree, frontMatter, walkFiles } from "./tree.js";
 export type { TreeOptions, TreeResult } from "./tree.js";
+export {
+  SOURCE_COVERAGE_SCHEMA,
+  SOURCE_STATES,
+  buildSourceCoverage,
+  renderSourceCoverageDsl,
+} from "./source-coverage.js";
+export type {
+  SourceCoverageDocument,
+  SourceCoverageRecord,
+  SourceCoverageState,
+  TwinRevisionCoverageStatus,
+} from "./source-coverage.js";
 export {
   BINARY_EXTENSIONS,
   DOCLING_EXTENSIONS,

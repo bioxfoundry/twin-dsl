@@ -1,5 +1,8 @@
 # Plan kolejnych testów i iteracji
 
+> Ten dokument zachowuje szczegółowy stan bazowy z 2026-08-08. Aktualny plan wykonawczy po
+> wydaniu 0.5.34 znajduje się w [`NEXT_DEVELOPMENT_PLAN.md`](NEXT_DEVELOPMENT_PLAN.md).
+
 ## Stan bazowy — 2026-08-08
 
 | Obszar | Wynik |

@@ -30,19 +30,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-2f8c4185
-    name: Fix ast-missing-return-type issues
-    description: Resolve 2 ast-missing-return-type issues in deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - deploy/docling/server.py
-    rule_id: ast-missing-return-type
-    count: 2
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-a28c2f25
     name: Fix ruff-sorted-imports issues
     description: Resolve 1 ruff-sorted-imports issues in deploy/docling/server.py
@@ -52,19 +39,6 @@ sprints:
     files:
     - deploy/docling/server.py
     rule_id: ruff-sorted-imports
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-8e3ef0e3
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - deploy/docling/server.py
-    rule_id: smart-return-type
     count: 1
     model_hints:
       planning: balanced
@@ -95,19 +69,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-bd7400cb
-    name: Fix ast-missing-return-type issues
-    description: Resolve 2 ast-missing-return-type issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: ast-missing-return-type
-    count: 2
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-5c4314df
     name: Fix ruff-sorted-imports issues
     description: Resolve 1 ruff-sorted-imports issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
@@ -117,19 +78,6 @@ sprints:
     files:
     - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
     rule_id: ruff-sorted-imports
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-0f970abe
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: smart-return-type
     count: 1
     model_hints:
       planning: balanced
@@ -160,19 +108,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-db4bd1e8
-    name: Fix ast-missing-return-type issues
-    description: Resolve 2 ast-missing-return-type issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: ast-missing-return-type
-    count: 2
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-6efe5406
     name: Fix ruff-sorted-imports issues
     description: Resolve 1 ruff-sorted-imports issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
@@ -182,19 +117,6 @@ sprints:
     files:
     - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
     rule_id: ruff-sorted-imports
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-6e41a4fe
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .physical-intake-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: smart-return-type
     count: 1
     model_hints:
       planning: balanced
@@ -290,19 +212,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-a44ba391
-    name: Fix ast-missing-return-type issues
-    description: Resolve 2 ast-missing-return-type issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: ast-missing-return-type
-    count: 2
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-cadce839
     name: Fix ruff-sorted-imports issues
     description: Resolve 1 ruff-sorted-imports issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
@@ -312,19 +221,6 @@ sprints:
     files:
     - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
     rule_id: ruff-sorted-imports
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-e07494f4
-    name: Fix smart-return-type issues
-    description: Resolve 1 smart-return-type issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
-    rule_id: smart-return-type
     count: 1
     model_hints:
       planning: balanced
@@ -1161,19 +1057,6 @@ sprints:
     model_hints:
       planning: balanced
       implementation: balanced
-  - id: ticket-79ad8fc3
-    name: Fix ruff-unused-imports issues
-    description: Resolve 1 ruff-unused-imports issues in py/f2md/src/f2md/intent_compile.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - py/f2md/src/f2md/intent_compile.py
-    rule_id: ruff-unused-imports
-    count: 1
-    model_hints:
-      planning: balanced
-      implementation: balanced
   - id: ticket-5e8089a8
     name: Fix ruff-print-statements issues
     description: Resolve 1 ruff-print-statements issues in py/f2md/src/f2md/intent_compile.py
@@ -1197,19 +1080,6 @@ sprints:
     - py/f2md/src/f2md/intent_compile.py
     rule_id: string-concat-fstring
     count: 12
-    model_hints:
-      planning: balanced
-      implementation: balanced
-  - id: ticket-b424ca7a
-    name: Fix unused-imports issues
-    description: Resolve 2 unused-imports issues in py/f2md/src/f2md/intent_compile.py
-    task_type: prefactor
-    priority: medium
-    estimate: 1d
-    files:
-    - py/f2md/src/f2md/intent_compile.py
-    rule_id: unused-imports
-    count: 2
     model_hints:
       planning: balanced
       implementation: balanced
@@ -1314,6 +1184,136 @@ sprints:
     - scripts/scad-to-markdown.py
     rule_id: ast-string-concat
     count: 5
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-ef69f2c9
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-3f480aa6
+    name: Fix magic-numbers issues
+    description: Resolve 1 magic-numbers issues in .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .living-project-demo/project/vendor/runtime/deploy/docling/server.py
+    rule_id: magic-numbers
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b3ee3d80
+    name: Fix ast-unused-imports issues
+    description: Resolve 1 ast-unused-imports issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ast-unused-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-fa53b3f8
+    name: Fix ast-sorted-imports issues
+    description: Resolve 1 ast-sorted-imports issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ast-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-25c858ae
+    name: Fix ast-string-concat issues
+    description: Resolve 10 ast-string-concat issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: high
+    estimate: 2d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ast-string-concat
+    count: 10
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-e21c02b8
+    name: Fix ast-print-statements issues
+    description: Resolve 3 ast-print-statements issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ast-print-statements
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-b0de48b3
+    name: Fix ruff-print-statements issues
+    description: Resolve 3 ruff-print-statements issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ruff-print-statements
+    count: 3
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-cdecb56e
+    name: Fix ruff-sorted-imports issues
+    description: Resolve 1 ruff-sorted-imports issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: ruff-sorted-imports
+    count: 1
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-92889f14
+    name: Fix string-concat-fstring issues
+    description: Resolve 31 string-concat-fstring issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: high
+    estimate: 3d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: string-concat-fstring
+    count: 31
+    model_hints:
+      planning: balanced
+      implementation: balanced
+  - id: ticket-14b31a93
+    name: Fix pylint-string-concat issues
+    description: Resolve 0 pylint-string-concat issues in .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    task_type: prefactor
+    priority: medium
+    estimate: 1d
+    files:
+    - .autonomy-demo/project/vendor/runtime/scripts/cad-to-gltf.py
+    rule_id: pylint-string-concat
+    count: 0
     model_hints:
       planning: balanced
       implementation: balanced

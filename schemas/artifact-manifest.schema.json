@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bioxfoundry.dev/schemas/artifact-manifest.schema.json",
+  "title": "Immutable document artifact store manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "sourceSha256", "documentAst", "artifacts"],
+  "properties": {
+    "schema": { "const": "f2md.artifact-manifest/v1" },
+    "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "documentAst": { "type": "string", "pattern": "^[^/].*\\.ast\\.json$" },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "urn", "type", "pages", "bbox", "contentSha256", "contentUri", "contentFileSha256", "previewUri", "previewSha256", "originalUri", "originalSha256", "additionalFiles", "quality"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^artifact-[a-z][a-z0-9-]*-[a-f0-9]{12}$" },
+          "urn": { "type": "string", "pattern": "^urn:subactor:artifact:sha256:[a-f0-9]{64}$" },
+          "type": { "enum": ["paragraph", "heading", "list", "table", "figure", "diagram", "code", "equation", "chart", "caption"] },
+          "pages": { "type": "array", "items": { "type": "integer", "minimum": 1 } },
+          "bbox": {
+            "oneOf": [
+              { "type": "null" },
+              { "type": "array", "items": { "type": "number" }, "minItems": 4, "maxItems": 4 }
+            ]
+          },
+          "contentSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "contentUri": { "type": ["string", "null"] },
+          "contentFileSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+          "previewUri": { "type": ["string", "null"] },
+          "previewSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+          "originalUri": { "type": ["string", "null"] },
+          "originalSha256": { "type": ["string", "null"], "pattern": "^[a-f0-9]{64}$" },
+          "additionalFiles": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["role", "uri", "sha256", "mediaType"],
+              "properties": {
+                "role": { "type": "string", "minLength": 1 },
+                "uri": { "type": "string", "minLength": 1 },
+                "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+                "mediaType": { "type": "string", "minLength": 1 }
+              }
+            }
+          },
+          "quality": { "enum": ["validated", "reconstructed", "degraded", "raw"] }
+        }
+      }
+    }
+  }
+}

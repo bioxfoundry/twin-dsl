@@ -14,13 +14,18 @@ from __future__ import annotations
 import os
 import re
 import hashlib
+import json
 from dataclasses import dataclass, field
-from typing import Any, Dict, Iterator, List, Optional, Sequence
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple
 
 from .chain import ConverterChain, default_chain
+from .assets import materialize_pdf_assets
+from .artifact_store import project_ast_document
 from .detect import detect_document_kind, is_prose_kind, media_type_for
+from .source_coverage import SOURCE_STATES, build_source_coverage, source_record, write_source_coverage
 from .translate import TranslationPolicy, TranslationUnavailable, detect_language
-from .types import ConversionError
+from .types import ConversionError, ExternalConverterRequired
+from .quality import normalize_document, render_quality_dsl
 
 #: Marker inserted before ``.md`` for documents matching a confidentiality pattern.
 SECRET_SUFFIX = ".secret"
@@ -37,7 +42,7 @@ def _tree_snapshot(root: str, paths: Sequence[str]) -> str:
     a conversion must have the same version on every machine for the same input.
     """
     digest = hashlib.sha256()
-    for path in sorted(paths):
+    for path in sorted(paths, key=lambda candidate: os.path.relpath(candidate, root).encode("utf-8")):
         relative = os.path.relpath(path, root).replace(os.sep, "/")
         digest.update(relative.encode("utf-8"))
         digest.update(b"\0")
@@ -48,13 +53,34 @@ def _tree_snapshot(root: str, paths: Sequence[str]) -> str:
     return digest.hexdigest()
 
 
+def _in_generated_artifact_store(root: str, path: str) -> bool:
+    return any(
+        part.endswith((".assets", ".artifacts"))
+        for part in os.path.relpath(path, root).split(os.sep)[:-1]
+    )
+
+
 def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
     """Write the generated mirror's deterministic conversion identity."""
     from . import __version__
 
     # A mirror can share its directory with runtime receipts or reports.  Only Markdown
     # payloads are conversion output, so unrelated operational files cannot alter this version.
-    output_paths = [path for path in walk_files(root) if path.endswith(".md")]
+    generated_paths = list(walk_files(root))
+
+    # Markdown previews inside the ArtifactStore are sidecars, not mirror documents. Keep them in
+    # the output snapshot once via ``asset_paths`` without inflating OUTPUT_FILES or double-hashing.
+    markdown_paths = [
+        path for path in generated_paths
+        if path.endswith(".md") and not _in_generated_artifact_store(root, path)
+    ]
+    structure_paths = [path for path in generated_paths if path.endswith(".structure.json")]
+    quality_paths = [path for path in generated_paths if path.endswith(".quality.mdqldsl")]
+    ast_paths = [path for path in generated_paths if path.endswith(".ast.json")]
+    asset_paths = [
+        path for path in generated_paths if _in_generated_artifact_store(root, path)
+    ]
+    output_paths = markdown_paths + structure_paths + quality_paths + ast_paths + asset_paths
     lines = [
         "FORMAT=bioxfoundry.conversion-version/v1",
         "ARTIFACT=markdown-mirror",
@@ -62,7 +88,12 @@ def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
         f"CONVERTER_VERSION={__version__}",
         f"SOURCE_FILES={len(source_paths)}",
         f"SOURCE_SNAPSHOT_SHA256={_tree_snapshot(source, source_paths)}",
-        f"OUTPUT_FILES={len(output_paths)}",
+        f"OUTPUT_FILES={len(markdown_paths)}",
+        f"STRUCTURE_FILES={len(structure_paths)}",
+        f"QUALITY_FILES={len(quality_paths)}",
+        f"AST_FILES={len(ast_paths)}",
+        f"ASSET_FILES={len(asset_paths)}",
+        f"OUTPUT_ARTIFACTS={len(output_paths)}",
         f"OUTPUT_SNAPSHOT_SHA256={_tree_snapshot(root, output_paths)}",
         "",
     ]
@@ -73,8 +104,12 @@ def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
 def refresh_version(source: str, root: str) -> Dict[str, int]:
     """Refresh the mirror identity without reconverting its already-reviewed Markdown files."""
     source_paths = list(walk_files(os.path.abspath(source)))
-    output_paths = [path for path in walk_files(os.path.abspath(root)) if path.endswith(".md")]
-    _write_version(os.path.abspath(source), os.path.abspath(root), source_paths)
+    absolute_root = os.path.abspath(root)
+    output_paths = [
+        path for path in walk_files(absolute_root)
+        if path.endswith(".md") and not _in_generated_artifact_store(absolute_root, path)
+    ]
+    _write_version(os.path.abspath(source), absolute_root, source_paths)
     return {"sourceFiles": len(source_paths), "outputFiles": len(output_paths)}
 
 
@@ -112,7 +147,12 @@ class TreeResult:
     translated: int = 0
     by_language: Dict[str, int] = field(default_factory=dict)
     by_converter: Dict[str, int] = field(default_factory=dict)
+    by_quality: Dict[str, int] = field(default_factory=dict)
+    by_state: Dict[str, int] = field(default_factory=lambda: {state: 0 for state in SOURCE_STATES})
     failures: List[Dict[str, str]] = field(default_factory=list)
+    coverage_no_change: bool = False
+    source_coverage_json: str = "source-coverage.json"
+    source_coverage_dsl: str = "source-coverage.dsl"
 
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -123,8 +163,34 @@ class TreeResult:
             "translated": self.translated,
             "byLanguage": dict(sorted(self.by_language.items(), key=lambda kv: -kv[1])),
             "byConverter": dict(sorted(self.by_converter.items(), key=lambda kv: -kv[1])),
+            "byQuality": dict(sorted(self.by_quality.items(), key=lambda kv: -kv[1])),
+            "byState": dict(self.by_state),
             "failures": self.failures,
+            "coverageNoChange": self.coverage_no_change,
+            "sourceCoverageJson": self.source_coverage_json,
+            "sourceCoverageDsl": self.source_coverage_dsl,
         }
+
+
+def _reason_code(reason: str, fallback: str = "CONVERSION_FAILED") -> str:
+    token = reason.split(":", 1)[0].upper()
+    normalized = re.sub(r"[^A-Z0-9]+", "_", token).strip("_")
+    return normalized or fallback
+
+
+def _artifact_paths(markdown_path: str) -> Tuple[str, str]:
+    stem = markdown_path[:-3] if markdown_path.endswith(".md") else markdown_path
+    return stem + ".structure.json", stem + ".quality.mdqldsl"
+
+
+def _write_artifacts(markdown_path: str, structure: Dict[str, Any], quality: Dict[str, Any]) -> Tuple[str, str]:
+    structure_path, quality_path = _artifact_paths(markdown_path)
+    with open(structure_path, "w", encoding="utf-8") as handle:
+        json.dump(structure, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    with open(quality_path, "w", encoding="utf-8") as handle:
+        handle.write(render_quality_dsl(quality))
+    return structure_path, quality_path
 
 
 def walk_files(root: str) -> Iterator[str]:
@@ -173,11 +239,21 @@ def convert_tree(
     chain = chain or default_chain(docling_url)
     result = TreeResult()
     paths = list(walk_files(src))
+    coverage_records: List[Dict[str, Any]] = []
     for index, path in enumerate(paths, 1):
         relative = os.path.relpath(path, src)
+        coverage_path = relative.replace(os.sep, "/")
         kind = detect_document_kind(path)
         if only and kind not in only:
             result.skipped += 1
+            coverage_records.append(source_record(
+                root=src,
+                path=path,
+                input_kind=kind,
+                media_type=media_type_for(path),
+                state="excluded-by-policy",
+                reason_code="KIND_NOT_SELECTED",
+            ))
             continue
         os.makedirs(os.path.dirname(os.path.join(out, relative)), exist_ok=True)
 
@@ -201,14 +277,39 @@ def convert_tree(
                 f"- reason: `{reason}`\n"
                 f"- size: {os.path.getsize(path)} bytes\n"
             )
-            fields = {**base_fields, "converter": "none", "converted": False, "error": reason}
+            artifacts = normalize_document(
+                body, path, normalize=False, backend_warnings=[f"CONVERSION_FAILED:{reason}"],
+            )
+            artifacts.quality["status"] = "failed"
+            artifacts.quality["score"] = 0
+            artifacts.quality["checks"].append({
+                "id": "CONVERSION", "status": "fail", "actual": reason, "expected": "converted",
+            })
+            fields = {
+                **base_fields, "converter": "none", "converted": False, "error": reason,
+                "qualityStatus": "failed", "qualityScore": 0,
+            }
             # A stub has no text to match against, so it is never classified as confidential.
             target = os.path.join(out, relative + ".md")
+            structure_path, quality_path = _write_artifacts(target, artifacts.structure, artifacts.quality)
+            fields["structureArtifact"] = os.path.basename(structure_path)
+            fields["qualityArtifact"] = os.path.basename(quality_path)
             with open(target, "w", encoding="utf-8") as handle:
                 handle.write(front_matter(fields) + body)
             result.stubbed += 1
+            result.by_quality["failed"] = result.by_quality.get("failed", 0) + 1
             result.by_converter["none"] = result.by_converter.get("none", 0) + 1
             result.failures.append({"source": relative, "error": reason[:200]})
+            state = "unsupported" if isinstance(error, ExternalConverterRequired) else "failed"
+            coverage_records.append(source_record(
+                root=src,
+                path=path,
+                input_kind=kind,
+                media_type=media_type_for(path),
+                state=state,
+                reason_code="EXTERNAL_CONVERTER_REQUIRED" if state == "unsupported" else _reason_code(reason),
+                markdown_path=coverage_path + ".md",
+            ))
             if on_progress:
                 on_progress(index, len(paths), relative, f"STUB:{reason[:60]}")
             continue
@@ -224,6 +325,11 @@ def convert_tree(
         foreign = bool(policy and language and language != policy.target)
         suffix = f".{language}" if foreign else ""
         target = os.path.join(out, relative + marker + suffix + ".md")
+        document = project_ast_document(document, path, target)
+        if "documentAst" not in document.metadata:
+            # Compatibility path for non-layout backends. It may repair a picture transcription,
+            # but it never masquerades as the canonical AST-first engine.
+            document = materialize_pdf_assets(document, path, target)
         fields = {
             **base_fields,
             "confidential": secret,
@@ -232,6 +338,14 @@ def convert_tree(
             "converterVersion": document.version,
             "backendType": document.backend_type,
             "ocr": document.ocr,
+            "ocrRequested": bool(document.metadata.get("ocrAudit", {}).get("ocrRequested", False)),
+            "ocrActuallyUsed": bool(document.metadata.get("ocrAudit", {}).get("ocrActuallyUsed", document.ocr)),
+            "ocrEngine": document.metadata.get("ocrAudit", {}).get("ocrEngine", "unknown"),
+            "ocrVersion": document.metadata.get("ocrAudit", {}).get("ocrVersion", "unknown"),
+            "ocrLanguages": document.metadata.get("ocrAudit", {}).get("ocrLanguages", []),
+            "ocrPages": document.metadata.get("ocrAudit", {}).get("ocrPages", []),
+            "ocrRegionCount": len(document.metadata.get("ocrAudit", {}).get("ocrRegions", [])),
+            "ocrConfidence": document.metadata.get("ocrAudit", {}).get("ocrConfidence") or "unknown",
             "fallbackDepth": document.fallback_depth,
             "durationMs": document.duration_ms,
             "size": document.metadata.get("size", 0),
@@ -240,11 +354,46 @@ def convert_tree(
             "converted": True,
             "warnings": list(document.warnings),
         }
+        structure = document.metadata.get("structure", {})
+        quality = document.metadata.get("conversionQuality", {})
+        quality_status = str(quality.get("status", "failed"))
+        quality_score = int(quality.get("score", 0))
+        structure_path, quality_path = _artifact_paths(target)
+        fields.update({
+            "qualityStatus": quality_status,
+            "qualityScore": quality_score,
+            "structureArtifact": os.path.basename(structure_path),
+            "qualityArtifact": os.path.basename(quality_path),
+        })
+        if isinstance(document.metadata.get("documentAstArtifact"), str):
+            fields.update({
+                "sourceModel": "f2md.document-ast/v1",
+                "documentAstArtifact": document.metadata["documentAstArtifact"],
+                "artifactManifest": document.metadata["artifactManifestArtifact"],
+                "artifactDsl": document.metadata["artifactDslArtifact"],
+                "artifactQualityArtifact": document.metadata["artifactQualityArtifact"],
+                "artifactTreeDsl": document.metadata["artifactTreeDslArtifact"],
+            })
         with open(target, "w", encoding="utf-8") as handle:
             handle.write(front_matter(fields) + document.markdown.rstrip() + "\n")
+        _write_artifacts(target, structure, quality)
         result.converted += 1
+        result.by_quality[quality_status] = result.by_quality.get(quality_status, 0) + 1
         if secret:
             result.confidential += 1
+        result.by_converter[document.converter] = result.by_converter.get(document.converter, 0) + 1
+        state = "binary-provenance" if document.converter == "stl-metadata" else "converted"
+        coverage_records.append(source_record(
+            root=src,
+            path=path,
+            input_kind=kind,
+            media_type=media_type_for(path),
+            state=state,
+            reason_code="BINARY_PROVENANCE" if state == "binary-provenance" else "CONVERTED",
+            markdown_path=os.path.relpath(target, out).replace(os.sep, "/"),
+            converter=document.converter,
+            converter_version=document.version,
+        ))
 
         if foreign and policy and language:
             translated_path = os.path.join(out, relative + marker + ".md")
@@ -268,11 +417,31 @@ def convert_tree(
                 "translationModel": translation.model,
                 "translationOf": os.path.basename(target),
             }
+            # Translation is a derived Markdown document, not a faithful layout projection of the
+            # source PDF.  It receives its own semantic structure below and must not inherit the
+            # original DocumentAST/ArtifactStore provenance by association.
+            for ast_field in (
+                "sourceModel", "documentAstArtifact", "artifactManifest", "artifactDsl",
+                "artifactQualityArtifact", "artifactTreeDsl",
+            ):
+                translated_fields.pop(ast_field, None)
+            translated_artifacts = normalize_document(translation.text, path, normalize=False)
+            translated_structure_path, translated_quality_path = _write_artifacts(
+                translated_path, translated_artifacts.structure, translated_artifacts.quality,
+            )
+            translated_fields.update({
+                "qualityStatus": translated_artifacts.quality["status"],
+                "qualityScore": translated_artifacts.quality["score"],
+                "structureArtifact": os.path.basename(translated_structure_path),
+                "qualityArtifact": os.path.basename(translated_quality_path),
+            })
             with open(translated_path, "w", encoding="utf-8") as handle:
-                handle.write(front_matter(translated_fields) + translation.text.rstrip() + "\n")
+                handle.write(front_matter(translated_fields) + translated_artifacts.markdown.rstrip() + "\n")
             result.translated += 1
-        result.by_converter[document.converter] = result.by_converter.get(document.converter, 0) + 1
         if on_progress:
             on_progress(index, len(paths), relative, document.converter)
+    coverage = build_source_coverage(_tree_snapshot(src, paths), coverage_records)
+    result.by_state = dict(coverage["summary"]["byState"])
+    result.coverage_no_change = write_source_coverage(out, coverage)
     _write_version(src, out, paths)
     return result

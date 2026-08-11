@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bioxfoundry.dev/schemas/artifact-quality.schema.json",
+  "title": "ArtifactQualityDSL JSON contract",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "sourceSha256", "status", "counts", "artifacts"],
+  "properties": {
+    "schema": { "const": "f2md.artifact-quality/v1" },
+    "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "status": { "enum": ["pass", "degraded", "failed"] },
+    "counts": { "type": "object", "additionalProperties": { "type": "integer", "minimum": 0 } },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "type", "status", "checks"],
+        "properties": {
+          "id": { "type": "string" },
+          "type": { "enum": ["paragraph", "heading", "list", "table", "figure", "diagram", "code", "equation", "chart", "caption"] },
+          "status": { "enum": ["pass", "degraded", "failed"] },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "status", "actual", "expected"],
+              "properties": {
+                "id": { "type": "string" },
+                "status": { "enum": ["pass", "warn", "fail"] },
+                "actual": {},
+                "expected": {}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

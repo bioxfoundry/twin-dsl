@@ -1,0 +1,26 @@
+{
+  "schema": "bioxfoundry.pdf-artifact-invariants/v1",
+  "sourceBasename": "Atvirojo kodo biofoundry studija.pdf",
+  "sourceSha256": "a55a8365cda4e94c212eda9241f02eb96e1aa1a48a19df3b4dab49f384a68e97",
+  "invariants": {
+    "sourceModel": "f2md.document-ast/v1",
+    "minimumTables": 12,
+    "minimumCodeArtifacts": 12,
+    "minimumAsciiDiagrams": 3,
+    "minimumTocArtifacts": 3,
+    "qualityStatus": "degraded",
+    "minimumSuspectTokens": 4,
+    "requiredCodeLanguages": ["bash", "python", "systemd", "xml"],
+    "requiredRelationPredicates": ["PART_OF", "DESCRIBES", "DEPICTS", "IMPLEMENTS"],
+    "crossPageTables": [[14, 15], [16, 17]],
+    "biospecDiagramPage": 14,
+    "biospecDiagramTokens": ["Raspberry Pi", "SiLA 2 Server", "[R1]", "[R4]"],
+    "openTwinsDiagramPage": 26,
+    "openTwinsDiagramTokens": ["ChemOS 2.0", "OpenTwins Core"],
+    "biospecBomPage": 14,
+    "biospecBomTokens": ["Komponentas", "Stikliniai", "Iš viso"],
+    "forbiddenVisibleFurniture": [
+      "Atvirojo kodo biofoundry atvirajai medicinai\nIntegruota studija"
+    ]
+  }
+}

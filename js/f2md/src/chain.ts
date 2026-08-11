@@ -1,7 +1,7 @@
 /** The fallback chain: cheapest backend that can do the job wins. */
 import { stat } from "node:fs/promises";
 import { extname } from "node:path";
-import { DoclingHttpConverter, LocalToolConverter, MammothConverter, ScadSourceConverter, TextConverter, TurndownConverter } from "./converters.js";
+import { DoclingHttpConverter, LocalToolConverter, MammothConverter, PythonCanonicalConverter, ScadSourceConverter, TextConverter, TurndownConverter } from "./converters.js";
 import { ConversionError, type ConvertedDocument, type Converter, ExternalConverterRequired } from "./types.js";
 
 /**
@@ -19,7 +19,7 @@ export class ConverterChain {
     this.converters = [...converters];
   }
 
-  async convert(path: string): Promise<ConvertedDocument> {
+  async convert(path: string, outputPath?: string): Promise<ConvertedDocument> {
     try {
       if (!(await stat(path)).isFile()) throw new ConversionError(`FILE_NOT_FOUND:${path}`);
     } catch (error) {
@@ -31,7 +31,7 @@ export class ConverterChain {
     let lastKind = extname(path).toLowerCase();
     for (let depth = 0; depth < this.converters.length; depth++) {
       try {
-        const document = await this.converters[depth].convert(path);
+        const document = await this.converters[depth].convert(path, outputPath);
         // Stamp facts a backend cannot know about itself: how deep the chain went, and how long.
         return { ...document, fallbackDepth: depth, durationMs: Date.now() - started };
       } catch (error) {
@@ -52,7 +52,7 @@ export class ConverterChain {
 }
 
 /**
- * Turndown/Mammoth (Node) -> text -> pdftotext/pandoc -> Docling over HTTP.
+ * Turndown -> canonical Python f2md -> Mammoth/text -> pdftotext/pandoc -> Docling over HTTP.
  *
  * Docling joins only when a URL is configured, so the default chain never waits on a service that
  * was never meant to be running.
@@ -63,6 +63,9 @@ export function defaultChain(doclingUrl?: string): ConverterChain {
     // be fenced as a code block instead of becoming real Markdown. When the optional peer
     // dependency is absent Turndown declines and TextConverter still produces something usable.
     new TurndownConverter(),
+    // Python owns PDF/Office canonicalization and quality sidecars. Absence is a routing signal,
+    // so an npm-only installation retains the existing deterministic fallbacks.
+    new PythonCanonicalConverter(),
     new MammothConverter(),
     new ScadSourceConverter(),
     new TextConverter(),

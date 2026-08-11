@@ -1,11 +1,12 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { addProjectSource, addProjectWebsite, createLivingProject, syncProjectMirror, verifyLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
 import { parseProjectDsl, renderProjectDsl } from "../src/dsl/project.js";
+import { sha256 } from "../src/core/canonical.js";
 
 async function exists(path:string):Promise<boolean>{try{await stat(path);return true;}catch{return false;}}
 
@@ -98,6 +99,27 @@ test("project wizard creates isolated Docker/CI project and full living iteratio
     assert.match(start,/Presentation problem: CAPTURES_MISSING/);
     assert.equal(JSON.parse(await readFile(join(out,"latest.json"),"utf8")).noChange,false,"a no-change evaluation must not mislabel the last persisted receipt");
     assert.doesNotMatch(start,new RegExp(temp.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")),"START must remain portable outside the generation environment");
+    const presentationDir=join(out,"current/presentation");
+    await mkdir(presentationDir,{recursive:true});
+    const capture=Buffer.from("deterministic dashboard capture");
+    await writeFile(join(presentationDir,"overview.png"),capture);
+    await writeFile(join(presentationDir,"manifest.json"),JSON.stringify({
+      schema:"subactor.presentation-evidence/v1",
+      twinUri:first.twinUri,
+      sceneUri:first.sceneUri,
+      capturedAt:"2026-08-10T00:00:00Z",
+      renderer:{name:"dashboard-webgl",version:"test"},
+      captures:[{path:"overview.png",sha256:sha256(capture),bytes:capture.length,mediaType:"image/png",camera:{mode:"static",eye:[8,6,5],target:[0,0,0],up:[0,0,1],verticalFovDeg:45,trajectorySha256:null}}],
+    },null,2)+"\n");
+    const presentationUpdated=await runtime.iterate(created.configPath,out,"deterministic");
+    assert.equal(presentationUpdated.noChange,false,"new presentation evidence must refresh deterministic reports");
+    assert.equal(presentationUpdated.twinUri,first.twinUri,"presentation evidence must not mutate Twin content identity");
+    assert.equal(presentationUpdated.sceneUri,first.sceneUri,"presentation evidence must not mutate Scene content identity");
+    const presentationEvidence=JSON.parse(await readFile(join(out,"current/presentation-evidence.json"),"utf8"));
+    assert.equal(presentationEvidence.status,"current");
+    const presentationIntegrity=JSON.parse(await readFile(join(out,"current/project-integrity.json"),"utf8"));
+    assert.equal(presentationIntegrity.findings.some((finding:{code:string})=>finding.code.startsWith("PRESENTATION_EVIDENCE_")),false);
+
     const third=await runtime.iterate(created.configPath,out,"deterministic");
     assert.equal(third.noChange,true);
 

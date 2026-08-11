@@ -1,5 +1,38 @@
 # Changelog
 
+## [Unreleased] - 2026-08-11
+
+### Added
+- Add deterministic `bioxfoundry.source-coverage/v1` JSON/DSL emission to both f2md
+  implementations, with explicit terminal states, byte-stable cross-language output and a
+  fail-closed `ProjectIntegrity` consumer.
+- Reconstruct source-bound ASCII diagram graphs deterministically, validate node, edge and source
+  transcription-hash provenance, fail closed in renderers, and retain schema-valid graph JSON,
+  DiagramDSL, Mermaid, SVG and the original PDF crop together.
+- Add deterministic `f2md-quality-v1`: page/block structure sidecars, MarkdownQualityDSL,
+  explicit OCR audit, canonical PDF normalization, quality-aware backend arbitration and a
+  pass-only semantic-block gate before intentDSL compilation.
+- Materialize PDF figures as content-addressed assets with page/bbox/OCR-region provenance, bind
+  native text blocks to PDF layout, audit asset hashes, and normalize table-like TOCs to lists.
+- Make `f2md.document-ast/v1` the PDF SSOT: classify tables, figures, ASCII diagrams and code before
+  rendering Markdown; persist an immutable ArtifactStore, ArtifactDSL, ArtifactQualityDSL and a
+  deterministic treeDSL relation projection; stitch borderless tables across page boundaries.
+- Add a SHA-pinned real-corpus regression contract proving BIO-SPEC ASCII is not a table, the
+  microscopy and aggregate BOMs cross page boundaries, OpenTwins remains a diagram and SiLA code
+  retains its language.
+
+### Fixed
+- Fix magic-numbers issues (ticket-ef69f2c9)
+- Fix magic-numbers issues (ticket-3f480aa6)
+- Fix ast-unused-imports issues (ticket-b3ee3d80)
+- Fix ast-sorted-imports issues (ticket-fa53b3f8)
+- Fix ast-string-concat issues (ticket-25c858ae)
+- Fix ast-print-statements issues (ticket-e21c02b8)
+- Fix ruff-print-statements issues (ticket-b0de48b3)
+- Fix ruff-sorted-imports issues (ticket-cdecb56e)
+- Fix string-concat-fstring issues (ticket-92889f14)
+- Fix pylint-string-concat issues (ticket-14b31a93)
+
 ## [0.5.21] - 2026-08-09
 
 ### Fixed

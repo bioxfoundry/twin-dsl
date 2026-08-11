@@ -1,19 +1,19 @@
-# twin-dsl | 198f 18177L | yaml:5,yml:1,json:61,shell:2,typescript:85,xml:2,txt:3,python:14,javascript:9,proto:12,toml:1 | 2026-08-09
-# generated in 0.04s
+# twin-dsl | 209f 19376L | yaml:5,yml:1,json:62,shell:2,typescript:93,xml:2,txt:3,javascript:11,proto:12,python:14,toml:1 | 2026-08-11
+# generated in 0.02s
 # producer: code2llm | artifact: map.toon.yaml | schema: 1
-# stats: 1470 func | 0 cls | 198 mod | CC̄=5.3 | critical:113 | cycles:0
-# alerts[5]: CC LivingProjectRuntime.iterateWithLease=171; CC main=103; fan-out LivingProjectRuntime.iterateWithLease=95; CC validateSceneBlueprint=91; fan-out main=85
-# hotspots[5]: LivingProjectRuntime.iterateWithLease fan=95; main fan=85; run_scad fan=58; startDashboard fan=50; read_3mf fan=39
-# evolution: CC̄ 5.4→5.3 (improved -0.1)
+# stats: 1594 func | 0 cls | 209 mod | CC̄=5.4 | critical:123 | cycles:0
+# alerts[5]: CC LivingProjectRuntime.iterateWithLease=170; CC main=104; fan-out LivingProjectRuntime.iterateWithLease=100; CC validateSceneBlueprint=91; CC analyzeProjectIntegrity=87
+# hotspots[5]: LivingProjectRuntime.iterateWithLease fan=100; main fan=86; run_scad fan=66; startDashboard fan=53; main fan=41
+# evolution: CC̄ 5.3→5.4 (regressed +0.1)
 # Keys: M=modules, D=details, i=imports, e=exports, c=classes, f=functions, m=methods
-M[198]:
-  Makefile,82
+M[209]:
+  Makefile,122
   PACKAGE_MANIFEST.json,30
   buf.yaml,7
   deploy/docling/Dockerfile,42
   deploy/docling/requirements.txt,13
-  deploy/docling/server.py,12
-  deploy/runtime/Dockerfile,12
+  deploy/docling/server.py,30
+  deploy/runtime/Dockerfile,13
   docker-compose.yml,75
   examples/autonomy/code-change-plan.example.json,12
   examples/autonomy/signed-mutation-grant.example.json,17
@@ -39,10 +39,10 @@ M[198]:
   examples/t2c.intent.fixture.json,4
   fixtures/f2md/evidence.json,1
   fixtures/f2md/sample.ts,1
-  goal.yaml,545
+  goal.yaml,527
   js/archive-project-analyzer/package.json,30
   js/archive-project-analyzer/src/index.ts,3
-  js/archive-project-analyzer/src/analyze.ts,169
+  js/archive-project-analyzer/src/analyze.ts,171
   js/archive-project-analyzer/src/dsl.ts,58
   js/archive-project-analyzer/src/types.ts,73
   js/assembly-dsl/package.json,33
@@ -51,12 +51,12 @@ M[198]:
   js/assembly-dsl/src/dsl.ts,98
   js/assembly-dsl/src/types.ts,94
   js/f2md/package.json,72
-  js/f2md/src/index.ts,38
+  js/f2md/src/index.ts,42
   js/f2md/src/chain.ts,84
   js/f2md/src/cli.ts,114
-  js/f2md/src/converters.ts,309
-  js/f2md/src/detect.ts,93
-  js/f2md/src/tree.ts,140
+  js/f2md/src/converters.ts,312
+  js/f2md/src/detect.ts,109
+  js/f2md/src/tree.ts,172
   js/f2md/src/types.ts,62
   js/f2md/tsconfig.json,15
   js/f2md/tsconfig.test.json,9
@@ -86,16 +86,16 @@ M[198]:
   proto/subactor/scene/v1/scene.proto,8
   proto/subactor/twin/v1/twin.proto,6
   py/f2md/pyproject.toml,75
-  py/f2md/src/f2md/__init__.py,71
+  py/f2md/src/f2md/__init__.py,81
   py/f2md/src/f2md/audit.py,196
-  py/f2md/src/f2md/chain.py,99
-  py/f2md/src/f2md/cli.py,119
-  py/f2md/src/f2md/converters.py,466
-  py/f2md/src/f2md/detect.py,100
-  py/f2md/src/f2md/intent_compile.py,170
+  py/f2md/src/f2md/chain.py,101
+  py/f2md/src/f2md/cli.py,127
+  py/f2md/src/f2md/converters.py,506
+  py/f2md/src/f2md/detect.py,118
+  py/f2md/src/f2md/intent_compile.py,321
   py/f2md/src/f2md/llm_patch.py,87
   py/f2md/src/f2md/translate.py,244
-  py/f2md/src/f2md/tree.py,227
+  py/f2md/src/f2md/tree.py,278
   py/f2md/src/f2md/types.py,78
   schemas/assembly-report.schema.json,6
   schemas/assembly.schema.json,12
@@ -110,9 +110,10 @@ M[198]:
   schemas/living-failure.schema.json,56
   schemas/living-iteration.schema.json,127
   schemas/math.schema.json,11
-  schemas/mutation-proposal-receipt.schema.json,77
+  schemas/mutation-proposal-receipt.schema.json,80
   schemas/observation.schema.json,13
   schemas/physical-evidence.schema.json,64
+  schemas/presentation-evidence.schema.json,52
   schemas/project-integrity.schema.json,89
   schemas/project.schema.json,187
   schemas/query-result.schema.json,14
@@ -126,9 +127,10 @@ M[198]:
   schemas/twin-build-receipt.schema.json,66
   schemas/twin-state.schema.json,26
   schemas/twin.schema.json,12
-  scripts/cad-to-gltf.py,1042
+  scripts/cad-to-gltf.py,1137
   scripts/check-compose.mjs,33
   scripts/check-proto-contracts.mjs,19
+  scripts/dashboard-port-check.mjs,57
   scripts/demo-autonomy.mjs,23
   scripts/demo-living-project.mjs,4
   scripts/demo-mutation.mjs,87
@@ -136,17 +138,24 @@ M[198]:
   scripts/demo-realtime-biofoundry.mjs,2
   scripts/f2md-conformance.mjs,99
   scripts/run-nl-dsl-examples.mjs,5
-  scripts/scad-to-markdown.py,29
+  scripts/scad-to-markdown.py,33
+  scripts/sync-vendored-runtime.mjs,42
   src/adapters/clickhouse.ts,32
-  src/adapters/document-converter.ts,70
+  src/adapters/document-converter.ts,74
   src/adapters/openscad.ts,67
-  src/adapters/todo2code.ts,141
+  src/adapters/todo2code.ts,167
   src/adapters/twin-probes.ts,152
-  src/cli/main.ts,204
-  src/core/canonical.ts,10
+  src/cli/main.ts,208
+  src/core/canonical.ts,13
   src/core/generation.ts,16
   src/core/json-schema.ts,124
-  src/core/types.ts,857
+  src/core/types.ts,6
+  src/core/types/contracts.ts,93
+  src/core/types/documents.ts,63
+  src/core/types/geometry.ts,139
+  src/core/types/physical.ts,101
+  src/core/types/project-runtime.ts,342
+  src/core/types/runtime-state.ts,137
   src/core/uri.ts,8
   src/dsl/assembly.ts,2
   src/dsl/dql.ts,41
@@ -156,9 +165,9 @@ M[198]:
   src/dsl/math.ts,53
   src/dsl/observation.ts,50
   src/dsl/parser-util.ts,16
-  src/dsl/project.ts,60
+  src/dsl/project.ts,61
   src/dsl/query.ts,61
-  src/dsl/resource.ts,63
+  src/dsl/resource.ts,62
   src/dsl/scene.ts,3
   src/dsl/tree.ts,41
   src/dsl/twin.ts,4
@@ -167,39 +176,41 @@ M[198]:
   src/geometry/dependency-resolver.ts,83
   src/geometry/geometry-dsl.ts,59
   src/geometry/geometry-service.ts,43
-  src/geometry/physical-evidence-adapter.ts,94
+  src/geometry/physical-evidence-adapter.ts,136
   src/ingestion/archive.ts,79
   src/ingestion/archive-project.ts,157
-  src/ingestion/scanner.ts,254
+  src/ingestion/scanner.ts,273
   src/llm/dsl-schemas.ts,59
   src/llm/nl-dsl-compiler.ts,51
   src/llm/openrouter.ts,108
   src/llm/patch-dsl.ts,171
-  src/project/wizard.ts,377
+  src/project/wizard.ts,396
   src/research/crawler.ts,47
   src/research/researcher.ts,23
   src/runtime/assembly.ts,2
   src/runtime/autonomy.ts,312
   src/runtime/biofoundry.ts,73
   src/runtime/biofoundry-concept.ts,435
-  src/runtime/digital-twin-diagnostics.ts,88
+  src/runtime/digital-twin-diagnostics.ts,101
   src/runtime/event-store.ts,13
   src/runtime/isolated-worktree.ts,116
-  src/runtime/living-project.ts,847
+  src/runtime/living-project.ts,810
   src/runtime/living-watcher.ts,57
   src/runtime/mutation-grant.ts,348
-  src/runtime/mutation-pipeline.ts,308
+  src/runtime/mutation-pipeline.ts,399
   src/runtime/pipeline.ts,2
-  src/runtime/project-integrity.ts,149
+  src/runtime/presentation-evidence.ts,153
+  src/runtime/project-integrity.ts,178
   src/runtime/query-runtime.ts,17
   src/runtime/realtime-watcher.ts,13
   src/runtime/service-check.ts,43
+  src/runtime/start-document.ts,150
   src/runtime/twin-state.ts,2
   src/scene/blueprint.ts,741
-  src/scene/geometry-validation.ts,188
+  src/scene/geometry-validation.ts,197
   src/scene/openusd.ts,150
   src/scene/physical-evidence.ts,264
-  src/serve/dashboard.ts,459
+  src/serve/dashboard.ts,478
   tree.sh,1
   tsconfig.json,22
   verification/dist-smoke.txt,146
@@ -207,11 +218,14 @@ M[198]:
   verification/yaml-smoke.txt,3
 D:
   src/runtime/living-project.ts:
-    i: ../../js/archive-project-analyzer/src/index.js,../adapters/todo2code.js,../core/canonical.js,../core/generation.js,../dsl/assembly.js,../dsl/dql.js,../dsl/improvement.js,../dsl/intent.js,../dsl/live-binding.js,../dsl/math.js,../dsl/observation.js,../dsl/project.js,../dsl/scene.js,../dsl/twin.js,../geometry/geometry-dsl.js,../geometry/geometry-service.js,../geometry/physical-evidence-adapter.js,../ingestion/scanner.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../research/crawler.js,../scene/blueprint.js,../scene/geometry-validation.js,../scene/geometry-validation.js,../scene/openusd.js,../scene/physical-evidence.js,./assembly.js,./project-integrity.js,./twin-state.js,node:crypto,node:fs/promises,node:path
-    e: LivingProjectRuntime,readJson,readOptional,writeJson,sourceSnapshot,evidenceSet,membersHash,queryHash,renderEvidenceSets,indexIntentDsl,raw,pack,records,resourceDiff,oldMap,newMap,groupTree,byRole,role,parseObservationValue,observationsFromResources,index,rawText,fenced,text,row,observedAt,receivedAt,subjectUri,units,unit,reasoning,roles,researchUris,managerUris,runtimeUris,researchPresent,developmentPresent,developmentAccepted,runtimePresent,readiness,conceptualTwin,conceptualScene,twinUri,fixtureFetcher,map,relative,fallbackAudit,shouldShortCircuitSceneGeneration
-    LivingProjectRuntime: load(-1),text(-1),iterate(-1),absolute(-1),project(-1),lease(-1),iterateWithLease(-1),startedAt(-1),traceId(-1),base(-1),dashboardPort(-1),sceneBlueprint(-1),baselinePhysicalEvidence(-1),geometryContractPaths(-1),geometryContracts(-1),projectConfigHash(-1),scanned(-1),plan(-1),crawler(-1),web(-1),resources(-1),geometryFingerprint(-1),researchResourceUris(-1),runtimeResourceUris(-1),intentDsl(-1),researchHash(-1),previousResources(-1),diff(-1),previous(-1),developmentRoot(-1),developmentOut(-1),intentUri(-1),developmentEvidence(-1),developmentFingerprint(-1),observation(-1),observationHash(-1),stableKey(-1),forced(-1),previousStableState(-1),runtimeRoot(-1),streamVersion(-1),diagnosticScope(-1),diagnosticRoot(-1),readOptional(-1),readOptional(-1),iterationsLastHour(-1),rateLimitAvailable(-1),grantPresent(-1),tree(-1),authoritativeMath(-1),deterministicTwin(-1),deterministicScene(-1),llmResourceLimit(-1),llmResources(-1),semanticMath(-1),mathGeneration(-1),math(-1),twinGeneration(-1),twin(-1),deterministicSceneForTwin(-1),deterministicSceneGeneration(-1),scene(-1),geometryBuildFailures(-1),binding(-1),mergedPhysicalEvidence(-1),physicalEvidence(-1),grounded(-1),allowed(-1),scenePolicyAllowed(-1),geometryReport(-1),geometryRequirementsFromTwin(-1),publish(-1),researchPresent(-1),runtimePresent(-1),geometryRepairProcesses(-1),assemblyRepairProcesses(-1),improvement(-1),candidate(-1),current(-1),developmentEvidenceUri(-1),treeUri(-1),mathUri(-1),observationUri(-1),twinStateUri(-1),assemblyReportUri(-1),twinUri(-1),sceneUri(-1),improvementUri(-1),iterationId(-1),idempotencyKey(-1),iterationUri(-1),feedbackPath(-1),feedbackUri(-1),startPath(-1),runtimeRoot(-1),latestArtifactRoot(-1),streamVersion(-1),recordFailure(-1),message(-1),errorCode(-1)
+    i: ../../js/archive-project-analyzer/src/index.js,../adapters/todo2code.js,../core/canonical.js,../core/generation.js,../dsl/assembly.js,../dsl/dql.js,../dsl/improvement.js,../dsl/intent.js,../dsl/live-binding.js,../dsl/math.js,../dsl/observation.js,../dsl/project.js,../dsl/scene.js,../dsl/twin.js,../geometry/geometry-dsl.js,../geometry/geometry-service.js,../geometry/physical-evidence-adapter.js,../ingestion/scanner.js,../llm/nl-dsl-compiler.js,../llm/openrouter.js,../research/crawler.js,../scene/blueprint.js,../scene/geometry-validation.js,../scene/geometry-validation.js,../scene/openusd.js,../scene/physical-evidence.js,./assembly.js,./presentation-evidence.js,./project-integrity.js,./start-document.js,./twin-state.js,node:crypto,node:fs/promises,node:path
+    e: LivingProjectRuntime,startDocumentCli,vendored,readJson,readOptional,fileExists,writeJson,sourceSnapshot,evidenceSet,membersHash,queryHash,renderEvidenceSets,indexIntentDsl,raw,pack,records,resourceDiff,oldMap,newMap,groupTree,byRole,role,parseObservationValue,observationsFromResources,index,rawText,fenced,text,row,observedAt,receivedAt,subjectUri,units,unit,reasoning,roles,researchUris,managerUris,runtimeUris,researchPresent,developmentPresent,developmentAccepted,runtimePresent,readiness,conceptualTwin,conceptualScene,twinUri,fixtureFetcher,map,relative,fallbackAudit,shouldShortCircuitSceneGeneration
+    LivingProjectRuntime: load(-1),text(-1),iterate(-1),absolute(-1),project(-1),lease(-1),iterateWithLease(-1),startedAt(-1),traceId(-1),base(-1),dashboardPort(-1),sceneBlueprint(-1),baselinePhysicalEvidence(-1),geometryContractPaths(-1),geometryContracts(-1),projectConfigHash(-1),scanned(-1),plan(-1),crawler(-1),web(-1),resources(-1),geometryFingerprint(-1),researchResourceUris(-1),runtimeResourceUris(-1),intentDsl(-1),researchHash(-1),previousResources(-1),diff(-1),previous(-1),developmentRoot(-1),developmentOut(-1),intentUri(-1),developmentEvidence(-1),developmentFingerprint(-1),observation(-1),observationHash(-1),presentationFingerprint(-1),stableKey(-1),forced(-1),previousStableState(-1),runtimeRoot(-1),dashboardCli(-1),streamVersion(-1),diagnosticScope(-1),diagnosticRoot(-1),readOptional(-1),readOptional(-1),fileExists(-1),readOptional(-1),readOptional(-1),readOptional(-1),readOptional(-1),readOptional(-1),readOptional(-1),readOptional(-1),buildFailures(-1),presentationEvidence(-1),iterationsLastHour(-1),rateLimitAvailable(-1),grantPresent(-1),tree(-1),authoritativeMath(-1),deterministicTwin(-1),deterministicScene(-1),llmResourceLimit(-1),llmResources(-1),semanticMath(-1),mathGeneration(-1),math(-1),twinGeneration(-1),twin(-1),deterministicSceneForTwin(-1),deterministicSceneGeneration(-1),scene(-1),geometryBuildFailures(-1),binding(-1),aggregateEvidence(-1),mergedPhysicalEvidence(-1),physicalEvidence(-1),grounded(-1),allowed(-1),scenePolicyAllowed(-1),geometryReport(-1),geometryRequirementsFromTwin(-1),presentationEvidence(-1),publish(-1),researchPresent(-1),runtimePresent(-1),geometryRepairProcesses(-1),assemblyRepairProcesses(-1),specializedRepairUris(-1),integrityRepairProcesses(-1),improvement(-1),candidate(-1),current(-1),developmentEvidenceUri(-1),treeUri(-1),mathUri(-1),observationUri(-1),twinStateUri(-1),assemblyReportUri(-1),twinUri(-1),sceneUri(-1),improvementUri(-1),iterationId(-1),idempotencyKey(-1),iterationUri(-1),feedbackPath(-1),feedbackUri(-1),startPath(-1),runtimeRoot(-1),latestArtifactRoot(-1),dashboardCli(-1),streamVersion(-1),readOptional(-1),readOptional(-1),fileExists(-1),readOptional(-1),activePresentationEvidence(-1),start(-1),recordFailure(-1),message(-1),errorCode(-1)
+    startDocumentCli()
+    vendored()
     readJson()
     readOptional()
+    fileExists()
     writeJson()
     sourceSnapshot()
     evidenceSet()
@@ -340,9 +354,53 @@ D:
     twinUri()
     biofoundryLiveBlueprintV02()
     biofoundryLiveBlueprintDetailed()
+  src/runtime/project-integrity.ts:
+    i: ../scene/physical-evidence.js,./presentation-evidence.js
+    e: ProjectIntegrityInput,repair,finite,flatten,analyzeProjectIntegrity,add,repairProcess,components,componentIds,research,manager,parameter,duplicatePaths,unknown,expectedTwin,norm,unsupported,physicalIds,byComponent,placeholders,unreferencedEvidence,missing,missingByKind,detail,status,code,message,code,artifactUris,degraded,layers,sourcedComponents,boundComponents,assumptions,errors,evidencedLayers,validatedDependencies,complete,processMap,renderProjectIntegrityDsl,quote
+    ProjectIntegrityInput:
+    repair()
+    finite()
+    flatten()
+    analyzeProjectIntegrity()
+    add()
+    repairProcess()
+    components()
+    componentIds()
+    research()
+    manager()
+    parameter()
+    duplicatePaths()
+    unknown()
+    expectedTwin()
+    norm()
+    unsupported()
+    physicalIds()
+    byComponent()
+    placeholders()
+    unreferencedEvidence()
+    missing()
+    missingByKind()
+    detail()
+    status()
+    code()
+    message()
+    code()
+    artifactUris()
+    degraded()
+    layers()
+    sourcedComponents()
+    boundComponents()
+    assumptions()
+    errors()
+    evidencedLayers()
+    validatedDependencies()
+    complete()
+    processMap()
+    renderProjectIntegrityDsl()
+    quote()
   src/serve/dashboard.ts:
     i: ../core/canonical.js,../core/types.js,../runtime/living-project.js,../runtime/twin-state.js,../scene/openusd.js,../scene/physical-evidence.js,node:fs/promises,node:http,node:path,node:url
-    e: DashboardOptions,DashboardState,assetRoot,here,path,readJson,readEventLog,lines,events,readDslArtifacts,content,mergeEvidence,byComponent,byConstraint,ingestedResourceUris,resources,send,sendJson,readBody,size,startDashboard,publicDir,current,runtime,readOnly,dashboardLogPath,busy,dashboardLog,state,evaluatedAt,evaluatedTwinState,evaluatedCandidateTwinState,latest,latestRejected,latestCandidate,server,url,wanted,resources,resource,bytes,lower,type,started,receipt,incoming,preview,projectDir,evidencePath,previewResult,report,accepted,stored,evidence,dsl,receipt,next,host,address,port
+    e: DashboardOptions,DashboardState,assetRoot,here,path,readJson,readEventLog,lines,events,readDslArtifacts,latest,content,mergeEvidence,byComponent,byConstraint,ingestedResourceUris,resources,send,sendJson,readBody,size,startDashboard,publicDir,current,runtime,readOnly,dashboardLogPath,busy,dashboardLog,state,evaluatedAt,evaluatedTwinState,evaluatedCandidateTwinState,latest,latestRejected,latestCandidate,server,url,wanted,resources,resource,bytes,lower,type,started,receipt,incoming,preview,projectDir,evidencePath,previewResult,report,accepted,stored,evidence,dsl,receipt,next,host,listening,failed,detail,address,port
     DashboardOptions:
     DashboardState:
     assetRoot()
@@ -353,6 +411,7 @@ D:
     lines()
     events()
     readDslArtifacts()
+    latest()
     content()
     mergeEvidence()
     byComponent()
@@ -401,8 +460,47 @@ D:
     receipt()
     next()
     host()
+    listening()
+    failed()
+    detail()
     address()
     port()
+  src/runtime/digital-twin-diagnostics.ts:
+    i: ../core/canonical.js,../llm/openrouter.js,../scene/physical-evidence.js,node:fs/promises,node:path
+    e: DigitalTwinDiagnostic,DigitalTwinDiagnosticsReport,CAD,files,walk,path,json,diagnostic,repairUri,diagnoseDigitalTwin,sourceFiles,add,cad,byName,sourceCounts,name,converted,scene,twin,evidence,bindings,assetBindings,sourceText,twinComponents,byComponent,physicalPrimitiveBindings,placeholders,evidencedProxies,audit,cfg,codeGroups,errors,writeDiagnostics
+    DigitalTwinDiagnostic:
+    DigitalTwinDiagnosticsReport:
+    CAD()
+    files()
+    walk()
+    path()
+    json()
+    diagnostic()
+    repairUri()
+    diagnoseDigitalTwin()
+    sourceFiles()
+    add()
+    cad()
+    byName()
+    sourceCounts()
+    name()
+    converted()
+    scene()
+    twin()
+    evidence()
+    bindings()
+    assetBindings()
+    sourceText()
+    twinComponents()
+    byComponent()
+    physicalPrimitiveBindings()
+    placeholders()
+    evidencedProxies()
+    audit()
+    cfg()
+    codeGroups()
+    errors()
+    writeDiagnostics()
   src/geometry/build-contract.ts:
     i: ../core/types.js
     e: UNITS,object,exact,allowed,unknown,hash,resourceUri,match,positive,relativeMount,scalar,validateGeometryBuild,d,source,sourceHash,engine,target,coordinateSystem,dependencyPaths,dependency,dependencyHash,fetch,parameters,values,options,timeout,maxTriangles,outputs,validations,reference,referenceHash,validateGeometryBuildReceipt,d,validation
@@ -440,74 +538,6 @@ D:
     validateGeometryBuildReceipt()
     d()
     validation()
-  src/runtime/project-integrity.ts:
-    e: ProjectIntegrityInput,repair,finite,flatten,analyzeProjectIntegrity,add,repairProcess,components,componentIds,research,manager,parameter,duplicatePaths,unknown,expectedTwin,norm,unsupported,physicalIds,placeholders,unreferencedEvidence,code,artifactUris,degraded,layers,sourcedComponents,boundComponents,assumptions,errors,evidencedLayers,validatedDependencies,complete,processMap,renderProjectIntegrityDsl,quote
-    ProjectIntegrityInput:
-    repair()
-    finite()
-    flatten()
-    analyzeProjectIntegrity()
-    add()
-    repairProcess()
-    components()
-    componentIds()
-    research()
-    manager()
-    parameter()
-    duplicatePaths()
-    unknown()
-    expectedTwin()
-    norm()
-    unsupported()
-    physicalIds()
-    placeholders()
-    unreferencedEvidence()
-    code()
-    artifactUris()
-    degraded()
-    layers()
-    sourcedComponents()
-    boundComponents()
-    assumptions()
-    errors()
-    evidencedLayers()
-    validatedDependencies()
-    complete()
-    processMap()
-    renderProjectIntegrityDsl()
-    quote()
-  src/runtime/digital-twin-diagnostics.ts:
-    i: ../core/canonical.js,../llm/openrouter.js,node:fs/promises,node:path
-    e: DigitalTwinDiagnostic,DigitalTwinDiagnosticsReport,CAD,files,walk,path,json,diagnostic,repairUri,diagnoseDigitalTwin,sourceFiles,add,cad,byName,sourceCounts,name,converted,scene,twin,evidence,bindings,assetBindings,sourceText,placeholders,audit,cfg,codeGroups,errors,writeDiagnostics
-    DigitalTwinDiagnostic:
-    DigitalTwinDiagnosticsReport:
-    CAD()
-    files()
-    walk()
-    path()
-    json()
-    diagnostic()
-    repairUri()
-    diagnoseDigitalTwin()
-    sourceFiles()
-    add()
-    cad()
-    byName()
-    sourceCounts()
-    name()
-    converted()
-    scene()
-    twin()
-    evidence()
-    bindings()
-    assetBindings()
-    sourceText()
-    placeholders()
-    audit()
-    cfg()
-    codeGroups()
-    errors()
-    writeDiagnostics()
   src/scene/physical-evidence.ts:
     i: ../core/canonical.js,../core/types.js,../dsl/scene.js,../dsl/twin.js,./geometry-validation.js
     e: EVIDENCE_KINDS,RECORD_KINDS,DOCUMENT_KEYS,RECORD_KEYS,CONSTRAINT_KEYS,CONSTRAINT_RELATIONS,rejectUnknownKeys,unknown,normalizeGeometryEvidence,text,geometryEvidenceRank,isVec3,isQuaternion,isNonNegative,validatePhysicalEvidence,d,cs,seen,r,constraintIds,c,labelWithoutPlaceholderClaim,fieldsOf,applyPhysicalEvidence,allowedAssets,componentById,boundIds,accepted,component,current,fields,updateComponent,record,children,previousTwinUri,nextTwinUri,record,twinUri,geometryValidation
@@ -550,6 +580,15 @@ D:
     record()
     twinUri()
     geometryValidation()
+  src/dsl/project.ts:
+    i: ../core/types.js,./parser-util.js
+    e: bool,parseProjectDsl,xs,renderProjectDsl,validateProject,dev
+    bool()
+    parseProjectDsl()
+    xs()
+    renderProjectDsl()
+    validateProject()
+    dev()
   src/core/json-schema.ts:
     e: SchemaViolation,IGNORED,SUPPORTED,typeOf,matchesType,checkJsonSchema,s,types,seen,record,properties,matched,matchesJsonSchema
     SchemaViolation:
@@ -565,15 +604,53 @@ D:
     properties()
     matched()
     matchesJsonSchema()
-  src/dsl/project.ts:
-    i: ../core/types.js,./parser-util.js
-    e: bool,parseProjectDsl,xs,renderProjectDsl,validateProject,dev
-    bool()
-    parseProjectDsl()
-    xs()
-    renderProjectDsl()
-    validateProject()
-    dev()
+  scripts/cad-to-gltf.py:
+    e: utc_now,sha256_bytes,sha256_file,tree_hash,canonical_json,content_uri,safe_relative,resolve_declared,bounds,triangle_normal,write_glb,read_mtl,write_indexed_glb,run_obj,run_stl,run_step,identity_transform,parse_transform,transform_point,compose_transform,read_3mf,geometry_hash,write_usda,run_3mf,validate_glb,normalize_glb_units,validate_usd,bbox_delta,bbox_extent,extent_delta,openscad_binary,openscad_runtime_environment,openscad_version,scad_literal,parse_dependency_file,dependency_closure,artifact,error_urn,repair_uri,validate_geometry_contract,build_identity,compile_scad_to_3mf,run_scad,bulk,main
+    utc_now()
+    sha256_bytes(value)
+    sha256_file(path)
+    tree_hash(path)
+    canonical_json(value)
+    content_uri(kind;digest)
+    safe_relative(value;label)
+    resolve_declared(base;value)
+    bounds(values)
+    triangle_normal(a;b;c)
+    write_glb(positions;normals;target)
+    read_mtl(path)
+    write_indexed_glb(positions;normals;groups;material_source;target;name)
+    run_obj(source;target;scale_to_m)
+    run_stl(source;target;scale_to_m)
+    run_step(source;target)
+    identity_transform()
+    parse_transform(raw)
+    transform_point(point;transform)
+    compose_transform(first;second)
+    read_3mf(source)
+    geometry_hash(unit;vertices;triangles)
+    write_usda(vertices_m;triangles;target)
+    run_3mf(source;target;usda_target)
+    validate_glb(path)
+    normalize_glb_units(source;target;source_unit)
+    validate_usd(path)
+    bbox_delta(first;second)
+    bbox_extent(box)
+    extent_delta(first;second)
+    openscad_binary()
+    openscad_runtime_environment(binary;extra)
+    openscad_version(binary)
+    scad_literal(value)
+    parse_dependency_file(path;work;source_name)
+    dependency_closure(actual;expected;source_name)
+    artifact(path;media_type)
+    error_urn(code)
+    repair_uri(code)
+    validate_geometry_contract(contract)
+    build_identity(contract;version)
+    compile_scad_to_3mf(binary;source;dependencies;contract;artifact_root;canonical)
+    run_scad(contract_path;output_root;receipt_path)
+    bulk(args)
+    main()
   js/live-twin-state/src/live-binding.ts:
     i: ./syntax.js,./types.js
     e: durationMs,match,scale,renderDuration,scalarKey,parseLiveBindingDsl,input,header,space,key,raw,target,freshForMs,expireAfterMs,mapped,range,renderLiveBindingDsl,validateLiveBinding,document,ids,binding,record
@@ -599,52 +676,6 @@ D:
     ids()
     binding()
     record()
-  scripts/cad-to-gltf.py:
-    e: utc_now,sha256_bytes,sha256_file,tree_hash,canonical_json,content_uri,safe_relative,resolve_declared,bounds,triangle_normal,write_glb,read_mtl,write_indexed_glb,run_obj,run_stl,run_step,identity_transform,parse_transform,transform_point,compose_transform,read_3mf,geometry_hash,write_usda,run_3mf,validate_glb,validate_usd,bbox_delta,bbox_extent,extent_delta,openscad_binary,openscad_runtime_environment,openscad_version,scad_literal,parse_dependency_file,dependency_closure,artifact,error_urn,repair_uri,validate_geometry_contract,build_identity,compile_scad_to_3mf,run_scad,bulk,main
-    utc_now()
-    sha256_bytes(value)
-    sha256_file(path)
-    tree_hash(path)
-    canonical_json(value)
-    content_uri(kind;digest)
-    safe_relative(value;label)
-    resolve_declared(base;value)
-    bounds(values)
-    triangle_normal(a;b;c)
-    write_glb(positions;normals;target)
-    read_mtl(path)
-    write_indexed_glb(positions;normals;groups;material_source;target;name)
-    run_obj(source;target)
-    run_stl(source;target)
-    run_step(source;target)
-    identity_transform()
-    parse_transform(raw)
-    transform_point(point;transform)
-    compose_transform(first;second)
-    read_3mf(source)
-    geometry_hash(unit;vertices;triangles)
-    write_usda(vertices_m;triangles;target)
-    run_3mf(source;target;usda_target)
-    validate_glb(path)
-    validate_usd(path)
-    bbox_delta(first;second)
-    bbox_extent(box)
-    extent_delta(first;second)
-    openscad_binary()
-    openscad_runtime_environment(binary;extra)
-    openscad_version(binary)
-    scad_literal(value)
-    parse_dependency_file(path;work;source_name)
-    dependency_closure(actual;expected;source_name)
-    artifact(path;media_type)
-    error_urn(code)
-    repair_uri(code)
-    validate_geometry_contract(contract)
-    build_identity(contract;version)
-    compile_scad_to_3mf(binary;source;dependencies;contract;artifact_root;canonical)
-    run_scad(contract_path;output_root;receipt_path)
-    bulk(args)
-    main()
   src/scene/openusd.ts:
     i: ../core/types.js,../dsl/twin.js
     e: SceneNode,ident,attrName,q,vec,quat,primitive,colorFor,buildTree,roots,segments,level,next,assignNames,used,base,name,emitAttribute,attr,emitGeometry,p,emitNode,component,label,sourceUris,usdAssetPath,emitted,renderOpenUsd,components,roots,fallbackRoot,first,sceneDiff
@@ -682,7 +713,7 @@ D:
     first()
     sceneDiff()
   src/scene/geometry-validation.ts:
-    e: DEFAULT_POSITION_TOLERANCE_M,DEFAULT_SIZE_TOLERANCE_M,DEFAULT_ANGLE_TOLERANCE_DEG,orientation,distance,angleDeg,dot,bounds,p,s,half,worldHalf,boundsDistance,missing,flatten,geometryRequirementsFromTwin,result,spatialClass,declared,validateGeometry,bindings,binding,limit,actual,limit,actual,limit,actual,subject,object,a,margin,actual,limit,actual,actual,failures,eligible,acceptedRecords,required,requiredCheckPasses,spatial,check,requiredChecks,complete,renderGeometryValidationDsl
+    e: DEFAULT_POSITION_TOLERANCE_M,DEFAULT_SIZE_TOLERANCE_M,DEFAULT_ANGLE_TOLERANCE_DEG,orientation,distance,angleDeg,dot,bounds,p,s,half,worldHalf,boundsDistance,missing,flatten,geometryRequirementsFromTwin,result,spatialClass,declared,validateGeometry,bindings,binding,limit,actual,limit,actual,limit,actual,subject,object,a,margin,actual,limit,actual,actual,failures,eligible,acceptedRecords,required,requirementResults,satisfied,spatial,requiredCheckPasses,requiredChecks,complete,renderGeometryValidationDsl
     DEFAULT_POSITION_TOLERANCE_M()
     DEFAULT_SIZE_TOLERANCE_M()
     DEFAULT_ANGLE_TOLERANCE_DEG()
@@ -723,9 +754,10 @@ D:
     eligible()
     acceptedRecords()
     required()
-    requiredCheckPasses()
+    requirementResults()
+    satisfied()
     spatial()
-    check()
+    requiredCheckPasses()
     requiredChecks()
     complete()
     renderGeometryValidationDsl()
@@ -748,6 +780,101 @@ D:
     partIds()
     componentIds()
     part()
+  src/runtime/presentation-evidence.ts:
+    i: ../core/canonical.js,../core/types.js,node:fs/promises,node:path
+    e: PresentationCamera,PresentationCapture,PresentationEvidenceManifest,PresentationEvidenceSummary,vec3,exact,record,safeRelativePath,normalized,validatePresentationEvidence,document,renderer,paths,captures,capture,camera,capturesIn,bytes,presentationDirectoryFingerprint,captures,inspectPresentationEvidence,expectedTwinUri,expectedSceneUri,actualCaptures,finish,actualByPath,declaredPaths,actual,renderPresentationEvidenceDsl,quote
+    PresentationCamera:
+    PresentationCapture:
+    PresentationEvidenceManifest:
+    PresentationEvidenceSummary:
+    vec3()
+    exact()
+    record()
+    safeRelativePath()
+    normalized()
+    validatePresentationEvidence()
+    document()
+    renderer()
+    paths()
+    captures()
+    capture()
+    camera()
+    capturesIn()
+    bytes()
+    presentationDirectoryFingerprint()
+    captures()
+    inspectPresentationEvidence()
+    expectedTwinUri()
+    expectedSceneUri()
+    actualCaptures()
+    finish()
+    actualByPath()
+    declaredPaths()
+    actual()
+    renderPresentationEvidenceDsl()
+    quote()
+  src/runtime/start-document.ts:
+    i: ./presentation-evidence.js,node:path
+    e: StartValidationSummary,StartDocumentInput,startDocumentPath,candidate,renderStartDocument,pathFor,completedStatus,activeStatus,evaluationStatus,validationText,geometryChecks,geometryBuildStatus
+    StartValidationSummary:
+    StartDocumentInput:
+    startDocumentPath()
+    candidate()
+    renderStartDocument()
+    pathFor()
+    completedStatus()
+    activeStatus()
+    evaluationStatus()
+    validationText()
+    geometryChecks()
+    geometryBuildStatus()
+  src/runtime/mutation-pipeline.ts:
+    i: ../adapters/todo2code.js,../core/canonical.js,./autonomy.js,./isolated-worktree.js,node:crypto,node:fs/promises,node:path
+    e: MutationProposeInput,MutationApplyInput,object,persistAnalysisEvidence,graphPath,diagnosticsPath,planHashOf,data,loadPlan,resolveGrant,proposeCodeMutation,startedAt,proposalId,outDir,plan,planHash,grantResult,adapter,patchOut,planFile,completedAt,message,applyCodeMutation,startedAt,plan,planHash,grantResult,adapter,outDir,beforeAnalysis,jtiDir,consumed,workspace,applyId,receiptPath,reanalysisOut,evidenceDir,before,after,planPath,accepted,completedAt,message,completedAt
+    MutationProposeInput:
+    MutationApplyInput:
+    object()
+    persistAnalysisEvidence()
+    graphPath()
+    diagnosticsPath()
+    planHashOf()
+    data()
+    loadPlan()
+    resolveGrant()
+    proposeCodeMutation()
+    startedAt()
+    proposalId()
+    outDir()
+    plan()
+    planHash()
+    grantResult()
+    adapter()
+    patchOut()
+    planFile()
+    completedAt()
+    message()
+    applyCodeMutation()
+    startedAt()
+    plan()
+    planHash()
+    grantResult()
+    adapter()
+    outDir()
+    beforeAnalysis()
+    jtiDir()
+    consumed()
+    workspace()
+    applyId()
+    receiptPath()
+    reanalysisOut()
+    evidenceDir()
+    before()
+    after()
+    planPath()
+    accepted()
+    completedAt()
+    message()
+    completedAt()
   src/dsl/observation.ts:
     i: ../core/types.js,./parser-util.js
     e: parseValue,v,csv,parseObservationDsl,xs,i,renderObservationDsl,validateObservation,seen
@@ -817,6 +944,51 @@ D:
     document()
     ids()
     action()
+  src/ingestion/scanner.ts:
+    i: ../../js/archive-project-analyzer/src/index.js,../core/types.js,../dsl/resource.js,./archive-project.js,./archive.js,node:fs/promises,node:path
+    e: ScanSource,ScanResult,TEXT_EXT,walk,p,textFromBuffer,ext,mediaTypeFor,archiveFindingSummaries,grouped,existing,pushBinary,r,scanSources,texts,converter,absolute,s,files,rel,ext,labels,analysis,container,analysisMarkdown,analysisResource,content,text,r,detail,st,converted,r,message,conversionNotApplicable,binaryLabels,fileInfo,digest,r,raw,text,r
+    ScanSource:
+    ScanResult:
+    TEXT_EXT()
+    walk()
+    p()
+    textFromBuffer()
+    ext()
+    mediaTypeFor()
+    archiveFindingSummaries()
+    grouped()
+    existing()
+    pushBinary()
+    r()
+    scanSources()
+    texts()
+    converter()
+    absolute()
+    s()
+    files()
+    rel()
+    ext()
+    labels()
+    analysis()
+    container()
+    analysisMarkdown()
+    analysisResource()
+    content()
+    text()
+    r()
+    detail()
+    st()
+    converted()
+    r()
+    message()
+    conversionNotApplicable()
+    binaryLabels()
+    fileInfo()
+    digest()
+    r()
+    raw()
+    text()
+    r()
   src/runtime/autonomy.ts:
     i: ../core/canonical.js,../dsl/improvement.js,node:crypto,node:fs/promises,node:path
     e: DevelopmentAnalysisInput,ProjectLease,object,array,diagnosticSeverity,item,manifestStatus,item,status,summarizeDevelopment,graphObject,records,relations,diagnostics,blocking,status,declaredFingerprint,graphFingerprint,developmentAnalysisFingerprint,graphObject,graph,diagnosticsObject,diagnostics,manifest,configuration,stages,stableStages,stage,stableManifest,AUTHORITY_BINDINGS,AUTHORITY_EXPRESSIONS,mergeAuthorityMath,proposalBindings,semanticMathProjection,flattenComponents,validateTwinGrounding,allowedUris,ids,validateSceneGrounding,components,allowedAssets,expectedTwinUri,paths,present,buildImprovementPlan,add,routedFailures,mutationGrantPresent,verified,recentIterationCount,directory,threshold,count,receipt,acquireProjectLease,leaseDirectory,acquire,code,stale,ageExpired,owner,ownerDead,leaseId,appendJsonLine,handle
@@ -886,8 +1058,11 @@ D:
     appendJsonLine()
     handle()
   py/f2md/src/f2md/tree.py:
-    e: TreeResult,_yaml_scalar,front_matter,walk_files,convert_tree
+    e: TreeResult,_tree_snapshot,_write_version,refresh_version,_yaml_scalar,front_matter,walk_files,convert_tree
     TreeResult: to_dict(0)
+    _tree_snapshot(root;paths)
+    _write_version(source;root;source_paths)
+    refresh_version(source;root)
     _yaml_scalar(value)
     front_matter(fields)
     walk_files(root)
@@ -923,51 +1098,16 @@ D:
     audit_markdown_tree(source;output;secret_pattern)
     audit_twin_artifacts(root;report)
     main(argv)
-  src/ingestion/scanner.ts:
-    i: ../../js/archive-project-analyzer/src/index.js,../adapters/document-converter.js,../core/types.js,../dsl/resource.js,./archive-project.js,./archive.js,node:fs/promises,node:path
-    e: ScanSource,ScanResult,TEXT_EXT,walk,p,textFromBuffer,ext,mediaTypeFor,archiveFindingSummaries,grouped,existing,pushBinary,r,scanSources,texts,converter,absolute,s,files,rel,ext,labels,analysis,container,analysisMarkdown,analysisResource,content,text,r,st,converted,r,message,fileInfo,digest,r,raw,text,r
-    ScanSource:
-    ScanResult:
-    TEXT_EXT()
-    walk()
-    p()
-    textFromBuffer()
-    ext()
-    mediaTypeFor()
-    archiveFindingSummaries()
-    grouped()
-    existing()
-    pushBinary()
-    r()
-    scanSources()
-    texts()
-    converter()
-    absolute()
-    s()
-    files()
-    rel()
-    ext()
-    labels()
-    analysis()
-    container()
-    analysisMarkdown()
-    analysisResource()
-    content()
-    text()
-    r()
-    st()
-    converted()
-    r()
-    message()
-    fileInfo()
-    digest()
-    r()
-    raw()
-    text()
-    r()
+  src/dsl/dql.ts:
+    i: ../core/types.js,./parser-util.js
+    e: positiveInt,parseDql,xs,renderDql
+    positiveInt()
+    parseDql()
+    xs()
+    renderDql()
   js/f2md/src/tree.ts:
-    i: ./chain.js,./detect.js,./types.js,node:fs/promises,node:path
-    e: TreeResult,TreeOptions,SKIP_DIRS,yamlScalar,frontMatter,walkFiles,entries,path,convertTree,source,target,chain,paths,path,rel,kind,outPath,document,reason,size
+    i: ./chain.js,./detect.js,./index.js,./types.js,node:crypto,node:fs/promises,node:path
+    e: TreeResult,TreeOptions,SKIP_DIRS,yamlScalar,frontMatter,walkFiles,entries,path,treeSnapshot,digest,writeVersion,outputPaths,convertTree,source,target,chain,paths,path,rel,kind,outPath,document,reason,size
     TreeResult:
     TreeOptions:
     SKIP_DIRS()
@@ -976,6 +1116,10 @@ D:
     walkFiles()
     entries()
     path()
+    treeSnapshot()
+    digest()
+    writeVersion()
+    outputPaths()
     convertTree()
     source()
     target()
@@ -988,19 +1132,12 @@ D:
     document()
     reason()
     size()
-  src/dsl/dql.ts:
-    i: ../core/types.js,./parser-util.js
-    e: positiveInt,parseDql,xs,renderDql
-    positiveInt()
-    parseDql()
-    xs()
-    renderDql()
   src/adapters/todo2code.ts:
     i: ../core/types.js,../dsl/intent.js,node:child_process,node:fs/promises,node:os,node:path
     e: Todo2CodePipelineOptions,Todo2CodeAnalysis,Todo2CodeAdapter,run,processHandle,optionalJson,pointerCandidates,paths,firstJson,value
     Todo2CodePipelineOptions:
     Todo2CodeAnalysis:
-    Todo2CodeAdapter: available(-1),loadFixture(-1),extract(-1),readLatestAnalysis(-1),latest(-1),manifest(-1),manifestObject(-1),graph(-1),diagnostics(-1),readLatestGraph(-1),extractNl(-1),directory(-1),input(-1),out(-1),raw(-1),proposeSourcePatch(-1),cwd(-1),applySourcePatch(-1),cwd(-1)
+    Todo2CodeAdapter: available(-1),loadFixture(-1),extract(-1),readLatestAnalysis(-1),latest(-1),manifest(-1),manifestObject(-1),graph(-1),diagnostics(-1),readLatestGraph(-1),extractNl(-1),directory(-1),input(-1),out(-1),raw(-1),proposeSourcePatch(-1),cwd(-1),applySourcePatch(-1),cwd(-1),cwd(-1)
     run()
     processHandle()
     optionalJson()
@@ -1029,7 +1166,9 @@ D:
     writeJson()
   src/geometry/physical-evidence-adapter.ts:
     i: ../core/types.js,node:fs/promises,node:path
-    e: extent,bbox,geometryReceiptResource,artifact,info,geometryReceiptEvidence,web,canonical,usd,mergeGeometryEvidence,records,rank,current
+    e: worldHalfExtent,half,extent,bbox,geometryReceiptResource,artifact,info,geometryReceiptEvidence,web,canonical,usd,assemblyAggregateEvidence,byComponent,parts,half,mergeGeometryEvidence,records,rank,current
+    worldHalfExtent()
+    half()
     extent()
     bbox()
     geometryReceiptResource()
@@ -1039,10 +1178,88 @@ D:
     web()
     canonical()
     usd()
+    assemblyAggregateEvidence()
+    byComponent()
+    parts()
+    half()
     mergeGeometryEvidence()
     records()
     rank()
     current()
+  src/project/wizard.ts:
+    i: ../core/canonical.js,../core/types.js,../dsl/assembly.js,../dsl/live-binding.js,../dsl/project.js,../scene/blueprint.js,node:fs/promises,node:path,node:url
+    e: CreateProjectOptions,slug,normalized,basePort,exists,text,compose,ciWorkflow,releaseWorkflow,readme,vendorRuntime,here,root,runtimePackage,vendor,source,createLivingProject,id,projectDir,profile,port,managerIntent,runtimeVersion,addProjectSource,absoluteConfig,base,document,sourcePath,projectPath,relativeCandidate,relativePath,addProjectWebsite,absoluteConfig,base,document,parsed,syncProjectMirror,absolute,document,path,verifyLivingProject,absolute,base,document,jsonMirrorPath,mirror,ok,path,ok,bindingPath,bindings,assemblyPath,assemblies,ok,t2cAvailable,fixtureAvailable,providerOk
+    CreateProjectOptions:
+    slug()
+    normalized()
+    basePort()
+    exists()
+    text()
+    compose()
+    ciWorkflow()
+    releaseWorkflow()
+    readme()
+    vendorRuntime()
+    here()
+    root()
+    runtimePackage()
+    vendor()
+    source()
+    createLivingProject()
+    id()
+    projectDir()
+    profile()
+    port()
+    managerIntent()
+    runtimeVersion()
+    addProjectSource()
+    absoluteConfig()
+    base()
+    document()
+    sourcePath()
+    projectPath()
+    relativeCandidate()
+    relativePath()
+    addProjectWebsite()
+    absoluteConfig()
+    base()
+    document()
+    parsed()
+    syncProjectMirror()
+    absolute()
+    document()
+    path()
+    verifyLivingProject()
+    absolute()
+    base()
+    document()
+    jsonMirrorPath()
+    mirror()
+    ok()
+    path()
+    ok()
+    bindingPath()
+    bindings()
+    assemblyPath()
+    assemblies()
+    ok()
+    t2cAvailable()
+    fixtureAvailable()
+    providerOk()
+  src/llm/openrouter.ts:
+    i: ../core/types.js,./patch-dsl.js,node:fs,node:path
+    e: OpenRouterConfig,StructuredOutput,OpenRouterStructuredClient,envInt,envBool,loadDotEnv,match,value,openRouterConfigFromEnv,sleep,contentText
+    OpenRouterConfig:
+    StructuredOutput:
+    OpenRouterStructuredClient: configured(-1),generate(-1),started(-1),repairInstruction(-1),message(-1),request(-1),controller(-1),responseFormat(-1),response(-1),text(-1),envelope(-1),message(-1),value(-1),provider(-1),deterministicAudit(-1)
+    envInt()
+    envBool()
+    loadDotEnv()
+    match()
+    value()
+    openRouterConfigFromEnv()
+    sleep()
+    contentText()
   js/archive-project-analyzer/src/analyze.ts:
     i: ./types.js,node:crypto,node:path
     e: TEXT_EXTENSIONS,MATERIALIZABLE_GEOMETRY,UNSUPPORTED_NATIVE_CAD,MANIFEST_NAMES,slug,urnCode,repair,kindFor,lower,base,ext,score,lower,base,useFor,rootCandidates,markers,base,roots,analyzeArchiveProject,kind,ext,backend,materializable,sorted,textCandidates,geometryCandidates,maxText,maxGeometry,safeCandidates,archiveAnalysisFingerprint
@@ -1077,20 +1294,6 @@ D:
     maxGeometry()
     safeCandidates()
     archiveAnalysisFingerprint()
-  src/llm/openrouter.ts:
-    i: ../core/types.js,./patch-dsl.js,node:fs,node:path
-    e: OpenRouterConfig,StructuredOutput,OpenRouterStructuredClient,envInt,envBool,loadDotEnv,match,value,openRouterConfigFromEnv,sleep,contentText
-    OpenRouterConfig:
-    StructuredOutput:
-    OpenRouterStructuredClient: configured(-1),generate(-1),started(-1),repairInstruction(-1),message(-1),request(-1),controller(-1),responseFormat(-1),response(-1),text(-1),envelope(-1),message(-1),value(-1),provider(-1),deterministicAudit(-1)
-    envInt()
-    envBool()
-    loadDotEnv()
-    match()
-    value()
-    openRouterConfigFromEnv()
-    sleep()
-    contentText()
   src/dsl/math.ts:
     i: ../core/types.js,./parser-util.js
     e: rational,value,r,expr,x,parseMathDsl,xs,m,truth,numeric,evaluateMath,env,ev,e,renderMathDsl,val,ex
@@ -1121,6 +1324,20 @@ D:
     _encoded(name;value)
     patch_messages(target;request;base;allowed_fields;target_schema)
     apply_patch_envelope(value;target;base;allowed_fields)
+  scripts/dashboard-port-check.mjs:
+    i: node:fs/promises,node:net,node:path
+    e: projectId,match,tcpOpen,socket,finish,main,port,expectedProject,response,state,actualTwin
+    projectId()
+    match()
+    tcpOpen()
+    socket()
+    finish()
+    main()
+    port()
+    expectedProject()
+    response()
+    state()
+    actualTwin()
   js/f2md/src/converters.ts:
     i: ./detect.js,./types.js,node:child_process,node:fs/promises,node:path,node:util
     e: TextConverter,ScadSourceConverter,LocalToolConverter,DoclingHttpConverter,TurndownConverter,MammothConverter,execFileAsync,DEFAULT_MAX_CHARS,DEFAULT_TIMEOUT_MS,statMetadata,info,clip,optionalModule
@@ -1195,13 +1412,30 @@ D:
     cycleUri()
     run()
     child()
+  py/f2md/src/f2md/intent_compile.py:
+    e: _hash,_file_hash,_file_snapshot,_write_version,refresh_output_identity,_frontmatter,validate_intents,_source_policy,_validate_pack,compile_markdown,compile_tree,refresh_contract,openrouter_proposal,main
+    _hash(value)
+    _file_hash(path)
+    _file_snapshot(root;paths)
+    _write_version(source;output;source_paths;summary)
+    refresh_output_identity(output)
+    _frontmatter(text)
+    validate_intents(records)
+    _source_policy(root;only_english)
+    _validate_pack(pack;source_path;pack_path)
+    compile_markdown(path;root)
+    compile_tree(source;output;only_english)
+    refresh_contract(source;output)
+    openrouter_proposal(markdown;model;target_uri)
+    main(argv)
   py/f2md/src/f2md/converters.py:
-    e: Converter,_Captured,TextConverter,STLMetadataConverter,LocalToolConverter,PyMuPDFConverter,MarkItDownConverter,DoclingHttpConverter,DoclingLocalConverter,_stat_metadata,_clip,_quiet_stdout,_package_version
+    e: Converter,_Captured,TextConverter,ScadSourceConverter,STLMetadataConverter,LocalToolConverter,PyMuPDFConverter,MarkItDownConverter,DoclingHttpConverter,DoclingLocalConverter,_stat_metadata,_clip,_quiet_stdout,_package_version
     Converter(Protocol): convert(1)
     _Captured:  # Holds whatever a backend printed, once the capture block has...
     TextConverter: __init__(1),convert(1)  # Text and source files, using only the standard library.
 
 Mar...
+    ScadSourceConverter: convert(1)  # Preserve OpenSCAD source and expose its parametric intent de...
     STLMetadataConverter: convert(1)  # Extract deterministic, text-friendly geometry metadata from ...
     LocalToolConverter: __init__(2),_run(2),convert(1)  # `pdftotext` (poppler) and `pandoc`, so PDFs and Office files...
     PyMuPDFConverter: __init__(2),convert(1)  # PDFs with a text layer, via `pymupdf4llm`.
@@ -1214,99 +1448,6 @@ Produces structu...
     _clip(text;max_chars)
     _quiet_stdout()
     _package_version(module_name;fallback)
-  src/project/wizard.ts:
-    i: ../core/canonical.js,../core/types.js,../dsl/assembly.js,../dsl/live-binding.js,../dsl/project.js,../scene/blueprint.js,node:fs/promises,node:path,node:url
-    e: CreateProjectOptions,slug,normalized,basePort,exists,text,compose,ciWorkflow,releaseWorkflow,readme,vendorRuntime,here,root,vendor,source,createLivingProject,id,projectDir,profile,port,managerIntent,addProjectSource,absoluteConfig,base,document,sourcePath,projectPath,relativeCandidate,relativePath,addProjectWebsite,absoluteConfig,base,document,parsed,verifyLivingProject,absolute,base,document,path,ok,bindingPath,bindings,assemblyPath,assemblies,ok,t2cAvailable,fixtureAvailable,providerOk
-    CreateProjectOptions:
-    slug()
-    normalized()
-    basePort()
-    exists()
-    text()
-    compose()
-    ciWorkflow()
-    releaseWorkflow()
-    readme()
-    vendorRuntime()
-    here()
-    root()
-    vendor()
-    source()
-    createLivingProject()
-    id()
-    projectDir()
-    profile()
-    port()
-    managerIntent()
-    addProjectSource()
-    absoluteConfig()
-    base()
-    document()
-    sourcePath()
-    projectPath()
-    relativeCandidate()
-    relativePath()
-    addProjectWebsite()
-    absoluteConfig()
-    base()
-    document()
-    parsed()
-    verifyLivingProject()
-    absolute()
-    base()
-    document()
-    path()
-    ok()
-    bindingPath()
-    bindings()
-    assemblyPath()
-    assemblies()
-    ok()
-    t2cAvailable()
-    fixtureAvailable()
-    providerOk()
-  py/f2md/src/f2md/intent_compile.py:
-    e: _hash,_frontmatter,validate_intents,compile_markdown,compile_tree,openrouter_proposal,main
-    _hash(value)
-    _frontmatter(text)
-    validate_intents(records)
-    compile_markdown(path;root)
-    compile_tree(source;output;only_english)
-    openrouter_proposal(markdown;model;target_uri)
-    main(argv)
-  src/runtime/mutation-pipeline.ts:
-    i: ../adapters/todo2code.js,../core/canonical.js,./autonomy.js,./isolated-worktree.js,node:crypto,node:fs/promises,node:path
-    e: MutationProposeInput,MutationApplyInput,object,planHashOf,data,loadPlan,resolveGrant,proposeCodeMutation,startedAt,proposalId,outDir,plan,planHash,grantResult,adapter,patchOut,planFile,completedAt,message,applyCodeMutation,plan,planHash,grantResult,jtiDir,consumed,adapter,workspace,applyId,receiptPath,completedAt
-    MutationProposeInput:
-    MutationApplyInput:
-    object()
-    planHashOf()
-    data()
-    loadPlan()
-    resolveGrant()
-    proposeCodeMutation()
-    startedAt()
-    proposalId()
-    outDir()
-    plan()
-    planHash()
-    grantResult()
-    adapter()
-    patchOut()
-    planFile()
-    completedAt()
-    message()
-    applyCodeMutation()
-    plan()
-    planHash()
-    grantResult()
-    jtiDir()
-    consumed()
-    adapter()
-    workspace()
-    applyId()
-    receiptPath()
-    completedAt()
   src/runtime/service-check.ts:
     i: ../adapters/clickhouse.js
     e: ExternalServiceCheck,timed,started,checkExternalServices,clickhouseUrl,doclingUrl,timeoutMs,result,parsed,result,response,text
@@ -1374,6 +1515,10 @@ Produces structu...
 ``hybrid`` (the default)...
     detect_language(text;minimum_chars)
     _chunks(text;size)
+  py/f2md/src/f2md/cli.py:
+    e: _build_chain,main
+    _build_chain(args)
+    main(argv)
   js/live-twin-state/src/projector.ts:
     i: ./canonical.js,./live-binding.js,./types.js
     e: componentIds,ids,visit,mappedState,direct,range,projectTwinState,bindings,projectedAt,projectionTime,ids,properties,resolved,observation,ageMs,semanticState,target,evaluateTwinStateFreshness,evaluationTime,resolved,components,ageMs,renderTwinStateDsl
@@ -1428,18 +1573,6 @@ Produces structu...
     biofoundryReadinessBindings()
     uris()
     hasTelemetry()
-  src/dsl/query.ts:
-    i: ../core/canonical.js,../core/types.js,../core/uri.js,./parser-util.js
-    e: parseQueryDsl,xs,id,match,renderQueryDsl
-    parseQueryDsl()
-    xs()
-    id()
-    match()
-    renderQueryDsl()
-  py/f2md/src/f2md/cli.py:
-    e: _build_chain,main
-    _build_chain(args)
-    main(argv)
   src/ingestion/archive-project.ts:
     i: ./archive.js,node:crypto,node:fs/promises,node:path
     e: ArchiveMaterializationEntry,ArchiveMaterializationReceipt,ANALYSIS_CACHE,envLimit,value,analyzeZipFile,absolute,info,textLimit,geometryLimit,cached,digest,analysis,findZipFiles,absolute,info,child,materializeArchiveGeometry,maxEntries,maxEntryBytes,maxTotalBytes,root,archiveRoot,total,candidate,repairProcess,content,digest,destination,writeArchiveAnalysis,root
@@ -1474,15 +1607,23 @@ Produces structu...
     destination()
     writeArchiveAnalysis()
     root()
+  src/dsl/query.ts:
+    i: ../core/canonical.js,../core/types.js,../core/uri.js,./parser-util.js
+    e: parseQueryDsl,xs,id,match,renderQueryDsl
+    parseQueryDsl()
+    xs()
+    id()
+    match()
+    renderQueryDsl()
+  scripts/scad-to-markdown.py:
+    e: main
+    main()
   src/geometry/geometry-dsl.ts:
     i: ../core/types.js
     e: renderGeometryDsl,reference,renderGeometryReceiptDsl
     renderGeometryDsl()
     reference()
     renderGeometryReceiptDsl()
-  scripts/scad-to-markdown.py:
-    e: main
-    main()
   src/runtime/mutation-grant.ts:
     i: ../core/canonical.js,../core/types.js,node:crypto,node:fs/promises,node:path
     e: IssueMutationGrantInput,DEFAULT_TTL_SECONDS,MAX_TTL_SECONDS,CLOCK_SKEW_SECONDS,b64url,b64urlJson,parseB64urlJson,resolveMutationGrantSecrets,primary,next,canonicalGrantClaims,signingPayload,signHs256,safeEqualBuf,issueMutationGrant,env,now,secrets,ttl,risk,iatMs,expMs,claims,sig,verifyMutationGrantToken,env,now,secrets,raw,parts,header,claims,expMs,verifyMutationGrantDocument,data,verified,consumeMutationGrantJti,path,expMs,handle,loadAndVerifyMutationGrant,path,data,writeMutationGrant
@@ -1530,14 +1671,6 @@ Produces structu...
     path()
     data()
     writeMutationGrant()
-  src/runtime/query-runtime.ts:
-    i: ../adapters/clickhouse.js,../core/canonical.js,../core/types.js,./event-store.js,node:crypto
-    e: QueryRuntime
-    QueryRuntime: execute(-1),executionId(-1),term(-1),evidence(-1)
-  src/runtime/realtime-watcher.ts:
-    i: ../core/types.js,./biofoundry.js
-    e: RealtimeTwinWatcher
-    RealtimeTwinWatcher: runOnce(-1),start(-1),tick(-1),stop(-1)
   js/archive-project-analyzer/src/dsl.ts:
     i: ./types.js
     e: quoted,renderArchiveAnalysisDsl,selected,visibleCandidates,renderArchiveAnalysisMarkdown,c
@@ -1547,6 +1680,21 @@ Produces structu...
     visibleCandidates()
     renderArchiveAnalysisMarkdown()
     c()
+  src/runtime/query-runtime.ts:
+    i: ../adapters/clickhouse.js,../core/canonical.js,../core/types.js,./event-store.js,node:crypto
+    e: QueryRuntime
+    QueryRuntime: execute(-1),executionId(-1),term(-1),evidence(-1)
+  src/runtime/realtime-watcher.ts:
+    i: ../core/types.js,./biofoundry.js
+    e: RealtimeTwinWatcher
+    RealtimeTwinWatcher: runOnce(-1),start(-1),tick(-1),stop(-1)
+  scripts/check-compose.mjs:
+    i: node:fs/promises
+    e: text,secretLine,value,credentialCount
+    text()
+    secretLine()
+    value()
+    credentialCount()
   src/research/researcher.ts:
     i: ../adapters/clickhouse.js,../core/canonical.js,../dsl/dql.js,../dsl/math.js,../dsl/query.js,../dsl/tree.js,../ingestion/scanner.js,../runtime/event-store.js,../runtime/query-runtime.js,./crawler.js,node:fs/promises,node:path
     e: fixtureFetch,runResearcherDemo,local,snapshot,source,math
@@ -1556,22 +1704,6 @@ Produces structu...
     snapshot()
     source()
     math()
-  scripts/check-compose.mjs:
-    i: node:fs/promises
-    e: text,secretLine,value,credentialCount
-    text()
-    secretLine()
-    value()
-    credentialCount()
-  js/f2md/src/detect.ts:
-    i: node:path
-    e: detectDocumentKind,base,actual,at,mediaTypeFor,isTextKind
-    detectDocumentKind()
-    base()
-    actual()
-    at()
-    mediaTypeFor()
-    isTextKind()
   src/runtime/living-watcher.ts:
     i: ../core/types.js,./living-project.js
     e: LivingProjectWatcher
@@ -1586,6 +1718,17 @@ Produces structu...
     match()
     renderTreeDsl()
     walk()
+  js/f2md/src/detect.ts:
+    i: node:path
+    e: detectDocumentKind,base,actual,at,mediaTypeFor,isTextKind,isDoclingKind,isDocumentConversionKind
+    detectDocumentKind()
+    base()
+    actual()
+    at()
+    mediaTypeFor()
+    isTextKind()
+    isDoclingKind()
+    isDocumentConversionKind()
   src/dsl/twin.ts:
     i: ../core/types.js
     e: visit,validateTwin,flattenTwin
@@ -1642,13 +1785,6 @@ Produces structu...
     canonicalJson()
     sha256()
     contentUri()
-  src/core/canonical.ts:
-    i: node:crypto
-    e: norm,canonicalJson,sha256,contentUri
-    norm()
-    canonicalJson()
-    sha256()
-    contentUri()
   src/runtime/pipeline.ts:
     i: node:fs/promises
     e: runDemo
@@ -1677,12 +1813,36 @@ Produces structu...
     e: validateT2cIntent,intentUri
     validateT2cIntent()
     intentUri()
+  src/core/canonical.ts:
+    i: node:crypto
+    e: norm,canonicalJson,sha256,payload,contentUri
+    norm()
+    canonicalJson()
+    sha256()
+    payload()
+    contentUri()
+  scripts/sync-vendored-runtime.mjs:
+    i: node:fs/promises,node:path,node:url
+    e: sourceRoot,projectRoot,sourcePackage,vendorParent,vendor,existing,staging
+    sourceRoot()
+    projectRoot()
+    sourcePackage()
+    vendorParent()
+    vendor()
+    existing()
+    staging()
   py/f2md/src/f2md/detect.py:
-    e: detect_document_kind,media_type_for,is_text_kind,is_prose_kind
+    e: detect_document_kind,media_type_for,is_docling_kind,is_document_conversion_kind,is_text_kind,is_prose_kind
     detect_document_kind(path)
     media_type_for(path)
+    is_docling_kind(kind)
+    is_document_conversion_kind(kind)
     is_text_kind(kind)
     is_prose_kind(kind)
+  deploy/docling/server.py:
+    e: health,convert
+    health()
+    convert(file)
   js/live-twin-state/src/syntax.ts:
     e: lines,unquote,normalized
     lines()
@@ -1697,12 +1857,6 @@ Produces structu...
     i: ../core/types.js,node:crypto
     e: InMemoryEventStore
     InMemoryEventStore: append(-1),xs(-1),read(-1),all(-1)
-  src/adapters/document-converter.ts:
-    e: CompositeDocumentConverter,DeterministicMarkdownConverter,LocalToolDocumentConverter,DoclingHttpAdapter
-    CompositeDocumentConverter: convert(-1)
-    DeterministicMarkdownConverter()
-    LocalToolDocumentConverter()
-    DoclingHttpAdapter()
   src/adapters/openscad.ts:
     i: ../core/types.js,../geometry/build-contract.js,node:child_process,node:fs/promises,node:path,node:url
     e: OpenScadGeometryBackend,existing,workerScript,moduleDir
@@ -1719,15 +1873,6 @@ Produces structu...
     x()
     kv()
     i()
-  src/dsl/resource.ts:
-    i: ../core/canonical.js,../core/types.js
-    e: resourceFromText,resourceFromBinary,payload,hash,size,resourceFromBinaryDigest
-    resourceFromText()
-    resourceFromBinary()
-    payload()
-    hash()
-    size()
-    resourceFromBinaryDigest()
   scripts/demo-mutation.mjs:
     i: ../dist/src/adapters/twin-probes.js,../dist/src/runtime/mutation-grant.js,../dist/src/runtime/mutation-pipeline.js,node:fs/promises,node:path
     e: issued,verified,proposed,cycle,probeSummary
@@ -1750,6 +1895,21 @@ Produces structu...
     semantic()
     merged()
     failure()
+  src/adapters/document-converter.ts:
+    e: CompositeDocumentConverter,DeterministicMarkdownConverter,LocalToolDocumentConverter,DoclingHttpAdapter
+    CompositeDocumentConverter: convert(-1)
+    DeterministicMarkdownConverter()
+    LocalToolDocumentConverter()
+    DoclingHttpAdapter()
+  src/dsl/resource.ts:
+    i: ../core/canonical.js,../core/types.js
+    e: resourceFromText,resourceFromBinary,payload,hash,size,resourceFromBinaryDigest
+    resourceFromText()
+    resourceFromBinary()
+    payload()
+    hash()
+    size()
+    resourceFromBinaryDigest()
   src/adapters/clickhouse.ts:
     i: ../core/types.js
     e: IndexedChunk,SearchProjection,InMemorySearchProjection,ClickHouseHttpProjection
@@ -1770,10 +1930,6 @@ Produces structu...
     e: GeometryMaterialization,GeometryService
     GeometryMaterialization:
     GeometryService: materializeFile(-1),absoluteContract(-1),contract(-1),receiptPath(-1),receipt(-1),evidence(-1),resource(-1),materializeFiles(-1)
-  deploy/docling/server.py:
-    e: health,convert
-    health()
-    convert(file)
   scripts/f2md-conformance.mjs:
     i: node:child_process,node:fs/promises,node:path,node:url,node:util
     e: execFileAsync,root,fixtures,convertWithNode,convertWithPython,path,keys,divergent
@@ -1816,7 +1972,6 @@ Produces structu...
     ExternalConverterRequired(ConversionError): __init__(1)  # The file needs a backend that is not available or not applic...
     ConvertedDocument: to_dict(0),with_routing(2)  # Markdown plus the provenance needed to trust it...
   planfile.yaml:
-  Makefile:
   docker-compose.yml:
   PACKAGE_MANIFEST.json:
   tsconfig.json:
@@ -1827,7 +1982,6 @@ Produces structu...
   project.sh:
   schemas/living-iteration.schema.json:
   schemas/assembly-report.schema.json:
-  schemas/physical-evidence.schema.json:
   schemas/geometry-build.schema.json:
   schemas/dsl-generation-result.schema.json:
   schemas/resource.schema.json:
@@ -1841,7 +1995,6 @@ Produces structu...
   schemas/geometry-build-receipt.schema.json:
   schemas/living-failure.schema.json:
   schemas/scene.schema.json:
-  schemas/mutation-proposal-receipt.schema.json:
   schemas/query-result.schema.json:
   schemas/development-evidence.schema.json:
   schemas/query.schema.json:
@@ -1856,8 +2009,6 @@ Produces structu...
   schemas/project.schema.json:
   js/f2md/tsconfig.json:
   js/f2md/tsconfig.test.json:
-  js/f2md/package.json:
-  js/f2md/src/index.ts:
   js/archive-project-analyzer/package.json:
   js/archive-project-analyzer/src/types.ts:
     e: ArchiveInventoryEntry,ArchiveCandidate,ArchiveFinding,ArchiveProjectAnalysis,AnalyzeArchiveInput
@@ -1918,71 +2069,6 @@ Produces structu...
   examples/nl-to-dsl/improvement.fixture.json:
   examples/nl-to-dsl/project.fixture.json:
   examples/nl-to-dsl/dql.fixture.json:
-  src/core/types.ts:
-    e: SourceAnchor,ResourceRecord,ResourcePlan,IntentRecord,QueryFilter,QueryContract,DqlCrawlPlan,TreeNode,TreeDocument,Rational,MathBinding,MathDocument,TwinComponent,TwinDocument,SceneBinding,SceneDocument,PhysicalEvidenceRecord,SpatialConstraint,PhysicalEvidenceDocument,PhysicalEvidenceReport,GeometryValidationCheck,GeometryValidationReport,SpatialRequirements,GeometryBuildContract,GeometryArtifactReceipt,GeometryBuildReceipt,ProjectIntegrityFinding,ProjectDependencyCheck,ProjectIntegrityReport,ObservationRecord,ObservationDocument,LiveBindingRange,LiveBinding,LiveBindingDocument,TwinStateProperty,TwinStateComponent,TwinStateDocument,AssemblyPartSpec,AssemblySpec,AssemblyDocument,AssemblyPartStatus,AssemblyFinding,AssemblyReport,DevelopmentEvidenceSummary,ImprovementAction,ImprovementPlan,LivingSourceSpec,LivingProjectDocument,SceneBlueprintComponent,SceneBlueprintBinding,SceneBlueprint,EvidenceReference,QueryResultEnvelope,GenerationAudit,DslGenerationResult,DomainEvent,ResourceDiff,TwinBuildReceipt,LivingIterationReceipt,LivingFailureReceipt,SignedMutationGrant,MutationProposalReceipt
-    SourceAnchor:
-    ResourceRecord:
-    ResourcePlan:
-    IntentRecord:
-    QueryFilter:
-    QueryContract:
-    DqlCrawlPlan:
-    TreeNode:
-    TreeDocument:
-    Rational:
-    MathBinding:
-    MathDocument:
-    TwinComponent:
-    TwinDocument:
-    SceneBinding:
-    SceneDocument:
-    PhysicalEvidenceRecord:
-    SpatialConstraint:
-    PhysicalEvidenceDocument:
-    PhysicalEvidenceReport:
-    GeometryValidationCheck:
-    GeometryValidationReport:
-    SpatialRequirements:
-    GeometryBuildContract:
-    GeometryArtifactReceipt:
-    GeometryBuildReceipt:
-    ProjectIntegrityFinding:
-    ProjectDependencyCheck:
-    ProjectIntegrityReport:
-    ObservationRecord:
-    ObservationDocument:
-    LiveBindingRange:
-    LiveBinding:
-    LiveBindingDocument:
-    TwinStateProperty:
-    TwinStateComponent:
-    TwinStateDocument:
-    AssemblyPartSpec:
-    AssemblySpec:
-    AssemblyDocument:
-    AssemblyPartStatus:
-    AssemblyFinding:
-    AssemblyReport:
-    DevelopmentEvidenceSummary:
-    ImprovementAction:
-    ImprovementPlan:
-    LivingSourceSpec:
-    LivingProjectDocument:
-    SceneBlueprintComponent:
-    SceneBlueprintBinding:
-    SceneBlueprint:
-    EvidenceReference:
-    QueryResultEnvelope:
-    GenerationAudit:
-    DslGenerationResult:
-    DomainEvent:
-    ResourceDiff:
-    TwinBuildReceipt:
-    LivingIterationReceipt:
-    LivingFailureReceipt:
-    SignedMutationGrant:
-    MutationProposalReceipt:
-  src/core/generation.ts:
   src/runtime/assembly.ts:
   src/runtime/twin-state.ts:
   src/dsl/assembly.ts:
@@ -1990,7 +2076,6 @@ Produces structu...
   verification/yaml-smoke.txt:
   verification/final-results.json:
   verification/dist-smoke.txt:
-  deploy/runtime/Dockerfile:
   deploy/docling/requirements.txt:
   deploy/docling/Dockerfile:
   scripts/demo-living-project.mjs:
@@ -2011,8 +2096,95 @@ Produces structu...
   proto/subactor/dsl/v1/dsl.proto:
   fixtures/f2md/evidence.json:
   fixtures/f2md/sample.ts:
-  py/f2md/pyproject.toml:
-  physical-intake/templates/physical-evidence.template.json:
+  Makefile:
   goal.yaml:
   package.json:
+  schemas/physical-evidence.schema.json:
+  schemas/presentation-evidence.schema.json:
+  schemas/mutation-proposal-receipt.schema.json:
+  js/f2md/package.json:
+  js/f2md/src/index.ts:
+  src/core/types/geometry.ts:
+    i: ./physical.js
+    e: GeometryBuildContract,GeometryArtifactReceipt,GeometryBuildReceipt
+    GeometryBuildContract:
+    GeometryArtifactReceipt:
+    GeometryBuildReceipt:
+  src/core/generation.ts:
+  src/core/types.ts:
+  src/core/types/contracts.ts:
+    e: SourceAnchor,ResourceRecord,ResourcePlan,IntentRecord,QueryFilter,QueryContract,DqlCrawlPlan
+    SourceAnchor:
+    ResourceRecord:
+    ResourcePlan:
+    IntentRecord:
+    QueryFilter:
+    QueryContract:
+    DqlCrawlPlan:
+  src/core/types/documents.ts:
+    i: ./contracts.js
+    e: TreeNode,TreeDocument,Rational,MathBinding,MathDocument,TwinComponent,TwinDocument,SceneBinding,SceneDocument
+    TreeNode:
+    TreeDocument:
+    Rational:
+    MathBinding:
+    MathDocument:
+    TwinComponent:
+    TwinDocument:
+    SceneBinding:
+    SceneDocument:
+  src/core/types/physical.ts:
+    e: PhysicalEvidenceRecord,SpatialConstraint,PhysicalEvidenceDocument,PhysicalEvidenceReport,GeometryValidationCheck,GeometryValidationReport,SpatialRequirements
+    PhysicalEvidenceRecord:
+    SpatialConstraint:
+    PhysicalEvidenceDocument:
+    PhysicalEvidenceReport:
+    GeometryValidationCheck:
+    GeometryValidationReport:
+    SpatialRequirements:
+  src/core/types/project-runtime.ts:
+    i: ./contracts.js,./documents.js,./geometry.js,./physical.js,./runtime-state.js
+    e: ProjectIntegrityFinding,ProjectDependencyCheck,ProjectIntegrityReport,ImprovementAction,ImprovementPlan,LivingSourceSpec,LivingProjectDocument,SceneBlueprintComponent,SceneBlueprintBinding,SceneBlueprint,EvidenceReference,QueryResultEnvelope,GenerationAudit,DslGenerationResult,DomainEvent,ResourceDiff,TwinBuildReceipt,LivingIterationReceipt,LivingFailureReceipt,SignedMutationGrant,MutationProposalReceipt
+    ProjectIntegrityFinding:
+    ProjectDependencyCheck:
+    ProjectIntegrityReport:
+    ImprovementAction:
+    ImprovementPlan:
+    LivingSourceSpec:
+    LivingProjectDocument:
+    SceneBlueprintComponent:
+    SceneBlueprintBinding:
+    SceneBlueprint:
+    EvidenceReference:
+    QueryResultEnvelope:
+    GenerationAudit:
+    DslGenerationResult:
+    DomainEvent:
+    ResourceDiff:
+    TwinBuildReceipt:
+    LivingIterationReceipt:
+    LivingFailureReceipt:
+    SignedMutationGrant:
+    MutationProposalReceipt:
+  deploy/runtime/Dockerfile:
+  src/core/types/runtime-state.ts:
+    i: ./documents.js
+    e: ObservationRecord,ObservationDocument,LiveBindingRange,LiveBinding,LiveBindingDocument,TwinStateProperty,TwinStateComponent,TwinStateDocument,AssemblyPartSpec,AssemblySpec,AssemblyDocument,AssemblyPartStatus,AssemblyFinding,AssemblyReport,DevelopmentEvidenceSummary
+    ObservationRecord:
+    ObservationDocument:
+    LiveBindingRange:
+    LiveBinding:
+    LiveBindingDocument:
+    TwinStateProperty:
+    TwinStateComponent:
+    TwinStateDocument:
+    AssemblyPartSpec:
+    AssemblySpec:
+    AssemblyDocument:
+    AssemblyPartStatus:
+    AssemblyFinding:
+    AssemblyReport:
+    DevelopmentEvidenceSummary:
+  py/f2md/pyproject.toml:
+  physical-intake/templates/physical-evidence.template.json:
   py/f2md/src/f2md/__init__.py:

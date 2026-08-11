@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bioxfoundry.dev/schemas/source-coverage.schema.json",
+  "title": "Deterministic terminal-state coverage for an f2md source tree",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "sourceSnapshotSha256", "coverageSha256", "summary", "records"],
+  "properties": {
+    "schema": { "const": "bioxfoundry.source-coverage/v1" },
+    "sourceSnapshotSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "coverageSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["discovered", "terminal", "byState"],
+      "properties": {
+        "discovered": { "type": "integer", "minimum": 0 },
+        "terminal": { "type": "integer", "minimum": 0 },
+        "byState": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["converted", "binary-provenance", "excluded-by-policy", "unsupported", "quarantined", "failed"],
+          "properties": {
+            "converted": { "type": "integer", "minimum": 0 },
+            "binary-provenance": { "type": "integer", "minimum": 0 },
+            "excluded-by-policy": { "type": "integer", "minimum": 0 },
+            "unsupported": { "type": "integer", "minimum": 0 },
+            "quarantined": { "type": "integer", "minimum": 0 },
+            "failed": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "inputKind", "mediaType", "sourceSha256", "resourceUri", "markdownPath", "intentUris", "treeRefs", "converter", "converterVersion", "state", "reasonCode", "twinRevisionStatus"],
+        "properties": {
+          "path": { "type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*(?:^|/)[.][.](?:/|$)).+$" },
+          "inputKind": { "type": "string" },
+          "mediaType": { "type": "string", "minLength": 1 },
+          "sourceSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "resourceUri": { "type": ["string", "null"], "pattern": "^urn:subactor:resource:sha256:[a-f0-9]{64}$" },
+          "markdownPath": { "type": ["string", "null"] },
+          "intentUris": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "treeRefs": { "type": "array", "items": { "type": "string", "minLength": 1 } },
+          "converter": { "type": "string", "minLength": 1 },
+          "converterVersion": { "type": "string", "minLength": 1 },
+          "state": { "enum": ["converted", "binary-provenance", "excluded-by-policy", "unsupported", "quarantined", "failed"] },
+          "reasonCode": { "type": "string", "pattern": "^[A-Z][A-Z0-9_]*$" },
+          "twinRevisionStatus": { "enum": ["not-evaluated", "included", "excluded"] }
+        }
+      }
+    }
+  }
+}

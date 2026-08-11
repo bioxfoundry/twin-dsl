@@ -69,7 +69,7 @@ def apply_patch_envelope(value: Any, target: str, base: Dict[str, Any], allowed_
         raise ValueError("PATCH_DSL_BOUNDARY_INVALID")
     if len(lines) < 5 or len(lines) > 132 or lines[1] != f"TARGET {json.dumps(target)}" or lines[2] != f"BASE_SHA256 {json.dumps(base_hash(base))}":
         raise ValueError("PATCH_DSL_BINDING_INVALID")
-    result = json.loads(json.dumps(base))
+    result: Dict[str, Any] = json.loads(json.dumps(base))
     for line in lines[3:-1]:
         match = re.fullmatch(r'(SET|REMOVE) ("(?:[^"\\]|\\.)*")(?: ([\s\S]+))?', line)
         if not match or (match.group(1) == "SET") != (match.group(3) is not None):

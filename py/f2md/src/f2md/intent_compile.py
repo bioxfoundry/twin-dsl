@@ -16,6 +16,7 @@ import urllib.request
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional
 from .llm_patch import PATCH_ENVELOPE_SCHEMA, apply_patch_envelope, patch_messages
+from .quality import semantic_blocks
 
 
 def _hash(value: str) -> str:
@@ -120,6 +121,36 @@ def _frontmatter(text: str) -> Dict[str, str]:
     return result
 
 
+def _markdown_body(text: str) -> str:
+    """Remove generated front matter without changing canonical body bytes."""
+    if not text.startswith("---\n"):
+        return text
+    end = text.find("\n---\n", 4)
+    if end < 0:
+        return text
+    body = text[end + len("\n---\n"):]
+    return body[1:] if body.startswith("\n") else body
+
+
+def _structure_path(markdown_path: Path) -> Path:
+    value = str(markdown_path)
+    stem = value[:-3] if value.endswith(".md") else value
+    return Path(stem + ".structure.json")
+
+
+def _read_structure(markdown_path: Path) -> Optional[Dict[str, Any]]:
+    path = _structure_path(markdown_path)
+    if not path.is_file():
+        return None
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise ValueError(f"DOCUMENT_STRUCTURE_INVALID:{path}") from error
+    if not isinstance(value, dict) or value.get("schema") != "bioxfoundry.document-structure/v1":
+        raise ValueError(f"DOCUMENT_STRUCTURE_SCHEMA_INVALID:{path}")
+    return value
+
+
 def validate_intents(records: Any) -> List[Dict[str, Any]]:
     if not isinstance(records, list) or not records:
         raise ValueError("T2C_INTENT_ARRAY_REQUIRED")
@@ -141,16 +172,25 @@ def validate_intents(records: Any) -> List[Dict[str, Any]]:
     return records
 
 
-def _source_policy(root: Path, only_english: bool = True) -> tuple[List[Path], List[Dict[str, str]]]:
+def _source_policy(
+    root: Path,
+    only_english: bool = True,
+    allow_degraded: bool = False,
+) -> tuple[List[Path], List[Dict[str, str]]]:
     included: List[Path] = []
     excluded: List[Dict[str, str]] = []
     for path in sorted(root.rglob("*.md")):
         if ".git" in path.parts or ".living-runtime" in path.parts:
             continue
-        language = _frontmatter(path.read_text(encoding="utf-8", errors="replace")).get("language", "")
+        frontmatter = _frontmatter(path.read_text(encoding="utf-8", errors="replace"))
+        language = frontmatter.get("language", "")
+        quality_status = frontmatter.get("qualityStatus", "").casefold()
         if only_english and language not in ("", "en", "unknown"):
             excluded.append({"path": path.relative_to(root).as_posix(), "language": language,
                              "reason": "language-policy"})
+        elif quality_status == "failed" or (quality_status == "degraded" and not allow_degraded):
+            excluded.append({"path": path.relative_to(root).as_posix(), "qualityStatus": quality_status,
+                             "reason": "conversion-quality-policy"})
         else:
             included.append(path)
     return included, excluded
@@ -169,7 +209,7 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
     base = Path(root).resolve()
     text = source.read_text(encoding="utf-8")
     fm = _frontmatter(text)
-    body = text.split("\n---\n", 1)[-1]
+    body = _markdown_body(text)
     relative = source.relative_to(base).as_posix()
     source_uri = f"subactor://markdown/{relative}"
     source_digest = _file_hash(source)
@@ -180,6 +220,66 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
         "converter": fm.get("converter", "unknown"),
         "converterVersion": fm.get("converterVersion", "unknown"),
     }
+    structure = _read_structure(source)
+    if structure is not None:
+        canonical_hash = str(structure.get("canonicalMarkdownSha256", ""))
+        if canonical_hash and canonical_hash != _hash(body):
+            raise ValueError(f"DOCUMENT_STRUCTURE_MARKDOWN_MISMATCH:{source}")
+        blocks = list(semantic_blocks(structure))
+        structured_records: List[Dict[str, Any]] = []
+        groups: List[tuple[Optional[Dict[str, Any]], List[Dict[str, Any]]]] = []
+        active_heading: Optional[Dict[str, Any]] = None
+        active_content: List[Dict[str, Any]] = []
+        for block in blocks:
+            if block.get("type") == "heading":
+                if active_heading is not None or active_content:
+                    groups.append((active_heading, active_content))
+                active_heading, active_content = block, []
+            else:
+                active_content.append(block)
+        if active_heading is not None or active_content:
+            groups.append((active_heading, active_content))
+        for index, (heading, content) in enumerate(groups):
+            anchor = heading or (content[0] if content else None)
+            if anchor is None:
+                continue
+            title = str(heading.get("normalizedText", "")).strip() if heading else "Evidence"
+            prose = " ".join(str(block.get("normalizedText", "")).strip() for block in content)
+            prose = re.sub(r"\s+", " ", prose).strip()
+            prose = re.sub(r"[`*_]", "", prose)[:1200]
+            text_value = f"{title}: {prose}" if prose else title
+            block_id = str(anchor.get("id", f"block-{index}"))
+            evidence_blocks = ([heading] if heading is not None else []) + content
+            record_source = {
+                **source_anchor,
+                "fragment": f"{relative}#{block_id}",
+                "blockId": block_id,
+                "page": anchor.get("page"),
+                "bbox": anchor.get("bbox"),
+                "artifactId": anchor.get("artifactId"),
+                "artifactUrn": anchor.get("artifactUrn"),
+                "evidenceArtifactIds": [
+                    block.get("artifactId") for block in evidence_blocks
+                    if isinstance(block.get("artifactId"), str)
+                ],
+                "evidenceArtifactUrns": [
+                    block.get("artifactUrn") for block in evidence_blocks
+                    if isinstance(block.get("artifactUrn"), str)
+                ],
+            }
+            structured_records.append({
+                "schema": "t2c.intent/v1",
+                "id": _hash(relative + ":" + block_id)[:16],
+                "type": "request" if index == 0 else "claim",
+                "text": text_value,
+                "actor": "source:markdown",
+                "targetUris": [source_uri],
+                "source": record_source,
+            })
+        if not structured_records:
+            raise ValueError(f"NO_SEMANTIC_BLOCKS:{source}")
+        return validate_intents(structured_records)
+
     headings = list(re.finditer(r"(?m)^(#{1,6})\s+(.+?)\s*$", body))
     records: List[Dict[str, Any]] = []
     if headings:
@@ -206,18 +306,23 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
     return validate_intents(records)
 
 
-def compile_tree(source: str | Path, output: str | Path, only_english: bool = True) -> Dict[str, Any]:
+def compile_tree(
+    source: str | Path,
+    output: str | Path,
+    only_english: bool = True,
+    allow_degraded: bool = False,
+) -> Dict[str, Any]:
     root, out = Path(source).resolve(), Path(output).resolve()
     out.mkdir(parents=True, exist_ok=True)
     expected_targets: set[Path] = set()
-    source_paths, exclusions = _source_policy(root, only_english)
+    source_paths, exclusions = _source_policy(root, only_english, allow_degraded)
     summary: Dict[str, Any] = {"schema": "subactor.intent-compile-report/v1", "source": str(root),
                                "output": str(out), "languagePolicy": "english-or-unknown" if only_english else "all",
+                               "qualityPolicy": "allow-degraded" if allow_degraded else "pass-only",
                                "discoveredMarkdown": len(source_paths) + len(exclusions),
                                "eligibleFiles": len(source_paths), "excludedFiles": len(exclusions),
                                "exclusions": exclusions, "files": 0, "records": 0, "failures": []}
     for path in source_paths:
-        text = path.read_text(encoding="utf-8", errors="replace")
         try:
             records = compile_markdown(path, root)
             rel = path.relative_to(root)
@@ -247,7 +352,8 @@ def refresh_contract(source: str | Path, output: str | Path) -> Dict[str, Any]:
     report_path = out / "compile-report.json"
     summary: Dict[str, Any] = json.loads(report_path.read_text(encoding="utf-8"))
     only_english = summary.get("languagePolicy", "english-or-unknown") != "all"
-    eligible, exclusions = _source_policy(root, only_english)
+    allow_degraded = summary.get("qualityPolicy", "pass-only") == "allow-degraded"
+    eligible, exclusions = _source_policy(root, only_english, allow_degraded)
     packs = sorted(path for path in out.rglob("*.intent.json") if path.is_file())
     sources: List[Path] = []
     records = 0
@@ -270,6 +376,7 @@ def refresh_contract(source: str | Path, output: str | Path) -> Dict[str, Any]:
         unexpected = sorted(str(path) for path in actual_sources - expected_sources)
         raise ValueError(f"INTENT_SOURCE_COVERAGE_MISMATCH:missing={missing}:unexpected={unexpected}")
     summary["languagePolicy"] = "english-or-unknown" if only_english else "all"
+    summary["qualityPolicy"] = "allow-degraded" if allow_degraded else "pass-only"
     summary["discoveredMarkdown"] = len(eligible) + len(exclusions)
     summary["eligibleFiles"] = len(eligible)
     summary["excludedFiles"] = len(exclusions)
@@ -289,7 +396,7 @@ def openrouter_proposal(markdown: str, model: Optional[str] = None, target_uri: 
     chosen = model or os.environ.get("OPENROUTER_MODEL", "")
     if not chosen:
         raise RuntimeError("OPENROUTER_MODEL_MISSING")
-    base = {"records": []}
+    base: Dict[str, Any] = {"records": []}
     record_schema = {"type": "object", "properties": {"schema": {"const": "t2c.intent/v1"}, "id": {"type": "string"}, "type": {"enum": ["request", "plan", "decision", "message", "report", "result", "claim"]}, "text": {"type": "string"}, "actor": {"type": "string"}, "targetUris": {"type": "array", "items": {"type": "string"}, "minItems": 1}}, "required": ["schema", "id", "type", "text", "actor", "targetUris"], "additionalProperties": False}
     target_schema = {"type": "object", "properties": {"records": {"type": "array", "items": record_schema, "minItems": 1}}, "required": ["records"], "additionalProperties": False}
     task = {"task": "Compile evidence into t2c.intent/v1 proposals. Do not publish, mutate, or invent source URIs.", "targetUri": target_uri, "markdown": markdown[:100000]}
@@ -308,11 +415,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     parser.add_argument("source")
     parser.add_argument("output")
     parser.add_argument("--all-languages", action="store_true")
+    parser.add_argument(
+        "--allow-degraded", action="store_true",
+        help="compile DEGRADED conversion candidates (FAILED remains excluded by source policy)",
+    )
     parser.add_argument("--refresh-contract", action="store_true",
                         help="recount existing intent packs and refresh report/VERSION only")
     args = parser.parse_args(argv)
     summary = (refresh_contract(args.source, args.output) if args.refresh_contract
-               else compile_tree(args.source, args.output, only_english=not args.all_languages))
+               else compile_tree(
+                   args.source, args.output,
+                   only_english=not args.all_languages,
+                   allow_degraded=args.allow_degraded,
+               ))
     print(json.dumps(summary, ensure_ascii=False, indent=2))
     return 0 if not summary["failures"] else 2
 

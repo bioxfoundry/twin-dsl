@@ -15,6 +15,8 @@ import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
 import { validateGeometryBuild } from "../src/geometry/build-contract.js";
 import { validateLiveBinding } from "../src/dsl/live-binding.js";
 import { validateAssembly } from "../src/dsl/assembly.js";
+import { validateSourceCoverage } from "../src/runtime/source-coverage.js";
+import { buildSourceCoverage } from "../js/f2md/src/source-coverage.js";
 
 const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
 async function schema(name: string): Promise<unknown> {
@@ -193,6 +195,171 @@ test("the shipped intake template validates against its own schema", async () =>
   const template = JSON.parse(await readFile(join(schemasDir, "..", "physical-intake/templates/physical-evidence.template.json"), "utf8"));
   assert.deepEqual(checkJsonSchema(await schema("physical-evidence.schema.json"), template), []);
   assert.ok(validatePhysicalEvidence(template));
+});
+
+test("f2md typed-artifact schemas accept the canonical file contract and reject drift", async () => {
+  const sourceHash = "a".repeat(64);
+  const contentHash = "b".repeat(64);
+  const artifactHash = "c".repeat(64);
+  const artifact = {
+    id: `artifact-heading-${artifactHash.slice(0, 12)}`,
+    urn: `urn:subactor:artifact:sha256:${artifactHash}`,
+    type: "heading",
+    subtype: null,
+    pages: [1],
+    bbox: [10, 20, 100, 40],
+    semantic: true,
+    confidence: 1,
+    quality: "validated",
+    content: { level: 1, text: "Report" },
+    relations: [],
+  };
+  const ast = {
+    schema: "f2md.document-ast/v1",
+    source: "/evidence/report.pdf",
+    sourceSha256: sourceHash,
+    extractor: { name: "pymupdf-layout", version: "1.26.3", mode: "layout-first" },
+    pages: [{ number: 1, width: 595, height: 842 }],
+    artifacts: [artifact],
+    relations: [],
+    ocr: {
+      requested: false, actuallyUsed: false, engine: "none", version: "unknown",
+      languages: [], pages: [], regions: [], confidence: null,
+    },
+  };
+  const manifest = {
+    schema: "f2md.artifact-manifest/v1",
+    sourceSha256: sourceHash,
+    documentAst: "report.pdf.ast.json",
+    artifacts: [{
+      id: artifact.id, urn: artifact.urn, type: artifact.type, pages: [1], bbox: artifact.bbox,
+      contentSha256: contentHash, contentUri: null, contentFileSha256: null,
+      previewUri: null, previewSha256: null, originalUri: null, originalSha256: null,
+      additionalFiles: [], quality: "validated",
+    }],
+  };
+  const structure = {
+    schema: "bioxfoundry.document-structure/v1",
+    source: ast.source,
+    sourceSha256: sourceHash,
+    rawMarkdownSha256: contentHash,
+    canonicalMarkdownSha256: contentHash,
+    pages: ast.pages,
+    blocks: [{
+      id: `block-${artifactHash.slice(0, 16)}`, type: "heading", page: 1,
+      bbox: artifact.bbox, semantic: true, confidence: 1, normalizedText: "Report",
+    }],
+    ocr: {
+      ocrRequested: false, ocrActuallyUsed: false, ocrEngine: "none", ocrVersion: "unknown",
+      ocrLanguages: [], ocrPages: [], ocrRegions: [], ocrConfidence: null,
+    },
+  };
+  const markdownQuality = {
+    schema: "bioxfoundry.markdown-quality/v1", status: "pass", score: 100,
+    sourceSha256: sourceHash, canonicalMarkdownSha256: contentHash,
+    metrics: { artifacts: 1 }, repairs: {}, suspectTokens: [],
+    checks: [{ id: "SOURCE_MODEL", status: "pass", actual: "f2md.document-ast/v1", expected: "f2md.document-ast/v1" }],
+  };
+  const artifactQuality = {
+    schema: "f2md.artifact-quality/v1", sourceSha256: sourceHash, status: "pass",
+    counts: { heading: 1, pass: 1 },
+    artifacts: [{ id: artifact.id, type: "heading", status: "pass", checks: [] }],
+  };
+  const corpus: [string, unknown][] = [
+    ["document-ast.schema.json", ast],
+    ["artifact-manifest.schema.json", manifest],
+    ["document-structure.schema.json", structure],
+    ["markdown-quality.schema.json", markdownQuality],
+    ["artifact-quality.schema.json", artifactQuality],
+  ];
+  for (const [schemaFile, document] of corpus) {
+    assert.deepEqual(checkJsonSchema(await schema(schemaFile), document), [], schemaFile);
+  }
+
+  const missingFileHash = structuredClone(manifest);
+  delete (missingFileHash.artifacts[0] as Partial<typeof manifest.artifacts[0]>).contentFileSha256;
+  assert.notDeepEqual(checkJsonSchema(await schema("artifact-manifest.schema.json"), missingFileHash), []);
+  const invalidDerivative = {
+    ...manifest,
+    artifacts: [{ ...manifest.artifacts[0], additionalFiles: [{
+      role: "table-csv", uri: "report.pdf.artifacts/table.csv", sha256: "not-a-hash", mediaType: "text/csv",
+    }] }],
+  };
+  assert.notDeepEqual(checkJsonSchema(await schema("artifact-manifest.schema.json"), invalidDerivative), []);
+  assert.notDeepEqual(checkJsonSchema(
+    await schema("document-ast.schema.json"), { ...ast, schema: "f2md.document-ast/v2" },
+  ), []);
+});
+
+test("diagram graph schema accepts source-bound deterministic graphs and rejects shape drift", async () => {
+  const first = "node-chemos-aaaaaaaaaa";
+  const second = "node-opentwins-bbbbbbbbbb";
+  const graph = {
+    schema: "f2md.diagram-graph/v1",
+    generation: "deterministic-ascii-v1",
+    sourceTextSha256: "a".repeat(64),
+    nodes: [
+      { id: first, label: "ChemOS", sourceLines: [1] },
+      { id: second, label: "OpenTwins", sourceLines: [3] },
+    ],
+    edges: [{
+      id: "edge-cccccccccc", from: first, to: second, directed: true,
+      confidence: 0.92, sourceLines: [2],
+    }],
+    validation: {
+      valid: true, nodes: 2, edges: 1, nodeLabelsInSource: 2,
+      labelCoverage: 1, danglingEdges: 0, meanEdgeConfidence: 0.92,
+      sourceHashMatches: true,
+    },
+  };
+  assert.deepEqual(checkJsonSchema(await schema("diagram-graph.schema.json"), graph), []);
+  assert.notDeepEqual(checkJsonSchema(
+    await schema("diagram-graph.schema.json"), { ...graph, generation: "llm-unbound" },
+  ), []);
+  assert.notDeepEqual(checkJsonSchema(
+    await schema("diagram-graph.schema.json"), { ...graph, nodes: [{ ...graph.nodes[0], invented: true }] },
+  ), []);
+});
+
+test("source coverage schema accepts the emitted contract and runtime verifies cross-field integrity", async () => {
+  const sourceHash = "a".repeat(64);
+  const coverage = buildSourceCoverage("b".repeat(64), [{
+    path: "documents/report.pdf",
+    inputKind: ".pdf",
+    mediaType: "application/pdf",
+    sourceSha256: sourceHash,
+    resourceUri: `urn:subactor:resource:sha256:${sourceHash}`,
+    markdownPath: "documents/report.pdf.md",
+    intentUris: [],
+    treeRefs: ["documents"],
+    converter: "pymupdf-layout",
+    converterVersion: "1.28.2",
+    state: "converted",
+    reasonCode: "CONVERTED",
+    twinRevisionStatus: "not-evaluated",
+  }]);
+  assert.deepEqual(checkJsonSchema(await schema("source-coverage.schema.json"), coverage), []);
+  assert.deepEqual(validateSourceCoverage(coverage), coverage);
+
+  const traversal = structuredClone(coverage);
+  traversal.records[0].path = "../report.pdf";
+  assert.notDeepEqual(checkJsonSchema(await schema("source-coverage.schema.json"), traversal), []);
+  assert.equal(accepts(validateSourceCoverage, traversal), false);
+
+  const missingState = structuredClone(coverage) as unknown as { summary: { byState: Record<string, number> } };
+  delete missingState.summary.byState.quarantined;
+  assert.notDeepEqual(checkJsonSchema(await schema("source-coverage.schema.json"), missingState), []);
+  assert.equal(accepts(validateSourceCoverage, missingState), false);
+
+  const tamperedCount = structuredClone(coverage);
+  tamperedCount.summary.terminal = 2;
+  assert.equal(matchesJsonSchema(await schema("source-coverage.schema.json"), tamperedCount), true);
+  assert.equal(accepts(validateSourceCoverage, tamperedCount), false, "runtime must enforce sums schemas cannot express");
+
+  const tamperedHash = structuredClone(coverage);
+  tamperedHash.coverageSha256 = "c".repeat(64);
+  assert.equal(matchesJsonSchema(await schema("source-coverage.schema.json"), tamperedHash), true);
+  assert.equal(accepts(validateSourceCoverage, tamperedHash), false, "runtime must verify the canonical report hash");
 });
 
 test("every shipped schema uses only the supported vocabulary", async () => {
