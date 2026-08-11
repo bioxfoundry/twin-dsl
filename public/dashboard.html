@@ -45,6 +45,12 @@
   .ok{color:#3ddc97}.warn{color:#e0b341}.bad{color:#ff6b6b}
   #notice{max-width:46ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   #notice.ok{color:#3ddc97}#notice.bad{color:#ff6b6b}
+  #error-card{border-color:#7f353d;background:#261c22}
+  #error-code{display:block;color:#ff8b8b;white-space:normal;overflow-wrap:anywhere;font-size:12px;margin-bottom:6px}
+  #error-title{font-weight:650;margin-bottom:7px}
+  #error-causes{margin:6px 0 8px;padding-left:20px;color:var(--muted);font-size:12px}
+  #error-resolution{white-space:pre-wrap;font-size:12px}
+  #error-documentation{display:inline-block;margin-top:8px;color:#8bb8ff;font-size:12px}
   .stat{display:flex;gap:14px;flex-wrap:wrap}
   .stat div{flex:1;min-width:88px}
   .stat b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -71,6 +77,16 @@
     <div id="hud">drag to orbit · wheel to zoom · click a part to inspect</div>
   </div>
   <aside>
+    <div class="card" id="error-card" hidden>
+      <h2>Last error</h2>
+      <code id="error-code" class="mono">–</code>
+      <div id="error-title">Loading error reference…</div>
+      <div id="error-meaning" class="mono"></div>
+      <ul id="error-causes"></ul>
+      <div><span class="ok">Resolution</span></div>
+      <div id="error-resolution"></div>
+      <a id="error-documentation" target="_blank" rel="noopener">Open error/&lt;code&gt;.md</a>
+    </div>
     <div class="card">
       <h2>Factory</h2>
       <div class="stat">
@@ -345,12 +361,12 @@ document.getElementById('btn-record').onclick=()=>{
     console.error('[digital-twin] recording:error',e.error||e);
     notify(`recording failed: ${(e.error&&e.error.message)||'media encoder error'}`,'bad');
   };
-  recorder.onstop=()=>{
+  recorder.onstop=async()=>{
     if(recordingTimer){clearInterval(recordingTimer);recordingTimer=null;}
     const blob=new Blob(recordedChunks,{type:'video/webm'}), url=URL.createObjectURL(blob), a=document.createElement('a');
     if(!blob.size){
       console.error('[digital-twin] recording:error',{error:'EMPTY_VIDEO_BLOB'});
-      notify('recording failed: browser produced an empty video','bad');
+      await showErrorReference({error:'EMPTY_VIDEO_BLOB'},'recording');
       URL.revokeObjectURL(url);
       return;
     }
@@ -614,10 +630,44 @@ function paintRevisionState(state){
 let noticeTimer=null;
 function notify(text,kind){
   const el=$('notice');
-  el.textContent=text; el.className='sub '+(kind||'');
+  el.textContent=text; el.title=text; el.className='sub '+(kind||'');
   clearTimeout(noticeTimer);
-  noticeTimer=setTimeout(()=>{el.textContent='';el.className='sub';},8000);
+  noticeTimer=setTimeout(()=>{el.textContent='';el.title='';el.className='sub';},8000);
 }
+
+function payloadErrorCode(payload){
+  const raw=typeof payload==='string'?payload:(payload&&((payload.code||payload.error)))||'';
+  const candidate=String(raw).split(':',1)[0];
+  return /^(?:[A-Z][A-Z0-9_-]{2,}|[a-z][a-z0-9_-]{2,})$/.test(candidate)?candidate:'DASHBOARD_REQUEST_FAILED';
+}
+async function showErrorReference(payload,operation){
+  const code=payloadErrorCode(payload),card=$('error-card');
+  const detail=typeof payload==='string'?payload:String((payload&&payload.detail)||code);
+  card.hidden=false;
+  $('error-code').textContent=code;
+  $('error-title').textContent='Loading error reference…';
+  $('error-meaning').textContent=detail===code?'':detail;
+  $('error-causes').replaceChildren();
+  $('error-resolution').textContent='';
+  const documentation=(payload&&payload.documentation)||`/error/${encodeURIComponent(code)}.md`;
+  const link=$('error-documentation');link.href=documentation;link.textContent=`Open error/${code}.md`;
+  notify(`${operation} failed: ${code}`,'bad');
+  try{
+    const referenceUrl=(payload&&payload.errorReference)||`/api/errors/${encodeURIComponent(code)}`;
+    const response=await fetch(referenceUrl),reference=await response.json();
+    if(!response.ok||reference.error)throw new Error(reference.error||'ERROR_REFERENCE_NOT_FOUND');
+    $('error-title').textContent=reference.title;
+    $('error-meaning').textContent=reference.meaning;
+    for(const cause of reference.causes||[]){const item=document.createElement('li');item.textContent=cause;$('error-causes').append(item);}
+    $('error-resolution').textContent=reference.resolution;
+    link.href=reference.documentation||documentation;
+  }catch(referenceError){
+    $('error-title').textContent='Error reference unavailable';
+    $('error-resolution').textContent=detail;
+    console.error('[digital-twin] error-reference:error',referenceError);
+  }
+}
+function clearErrorReference(){$('error-card').hidden=true;}
 
 /* Syntax rendering is deliberately local: runtime DSL/log content is escaped
    before token spans are added, so observations cannot inject dashboard HTML. */
@@ -658,13 +708,19 @@ $('btn-iterate').onclick=async()=>{
   try{
     const response=await fetch('/api/iterate',{method:'POST'});
     const out=await response.json().catch(()=>({error:'INVALID_SERVER_RESPONSE'}));
-    if(!response.ok||out.error||out.ok===false) throw new Error([out.error||'ITERATION_BLOCKED_VALIDATION_OR_POLICY',...(out.failures||[])].join(': '));
+    if(!response.ok||out.error||out.ok===false){
+      const failure={...out,error:out.error||'ITERATION_BLOCKED_VALIDATION_OR_POLICY',detail:[out.detail||'',...(out.failures||[])].filter(Boolean).join(': ')};
+      console.error('[digital-twin] iteration:error',failure);
+      await showErrorReference(failure,'iteration');
+      return;
+    }
     console.info('[digital-twin] iteration:complete',{durationMs:Date.now()-started,...out});
+    clearErrorReference();
     notify(`iteration ${out.noChange?'no change':'completed'} · ${Date.now()-started} ms`,'ok');
     await refresh();
   }catch(error){
     console.error('[digital-twin] iteration:error',error);
-    notify(`iteration failed: ${error.message||error}`,'bad');
+    await showErrorReference({error:'DASHBOARD_REQUEST_FAILED',detail:error.message||String(error)},'iteration');
   }finally{b.disabled=false;b.textContent='Run iteration';}
 };
 $('btn-intake').onclick=async()=>{
@@ -689,12 +745,15 @@ $('btn-intake').onclick=async()=>{
       // A modal dialog blocks the event loop, which stalls the polling refresh and any
       // automation driving the page. Report inline instead.
       const rejected=(out.report&&out.report.rejected)||[];
-      notify(`${out.error}${rejected.length?': '+rejected.map(r=>`${r.componentId} (${r.reason})`).join(', '):''}`,'bad');
+      await showErrorReference({...out,detail:rejected.length?rejected.map(r=>`${r.componentId} (${r.reason})`).join(', '):out.detail},'intake');
       return;
     }
     // Intake is durable — evidence file + a new iteration — so a plain refresh shows the new revision.
-    notify(`applied ${(out.report&&out.report.applied||[]).length} record(s); baseline holds ${out.baseline?out.baseline.records:'?'}`,'ok');
+    clearErrorReference();notify(`applied ${(out.report&&out.report.applied||[]).length} record(s); baseline holds ${out.baseline?out.baseline.records:'?'}`,'ok');
     await refresh();
+  } catch(error) {
+    console.error('[digital-twin] intake:error',error);
+    await showErrorReference({error:'DASHBOARD_REQUEST_FAILED',detail:error.message||String(error)},'intake');
   } finally {b.disabled=false;b.textContent='Apply floor-plan evidence';}
 };
 addEventListener('resize',render);

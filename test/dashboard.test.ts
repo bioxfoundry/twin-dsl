@@ -111,7 +111,30 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /MediaRecorder\.isTypeSupported/);
   assert.match(dashboardHtml, /EMPTY_VIDEO_BLOB/);
   assert.match(dashboardHtml, /recorder\.start\(1000\)/);
+  assert.match(dashboardHtml, /id="error-card"/);
+  assert.match(dashboardHtml, /showErrorReference/);
+  assert.match(dashboardHtml, /Open error\/\$\{code\}\.md/);
   assert.ok(dashboardHtml.includes("active ${activeRevision.slice(-12)}"));
+
+  const errorReferenceResponse = await fetch(`${server.url}api/errors/SCENE_BLUEPRINT_COMPONENT_INVALID`);
+  const errorReference = await errorReferenceResponse.json() as {
+    schema: string; code: string; meaning: string; causes: string[]; resolution: string; documentation: string;
+  };
+  assert.equal(errorReferenceResponse.status, 200);
+  assert.equal(errorReference.schema, "bioxfoundry.error-reference/v1");
+  assert.equal(errorReference.code, "SCENE_BLUEPRINT_COMPONENT_INVALID");
+  assert.match(errorReference.meaning, /scene blueprint component/i);
+  assert.ok(errorReference.causes.some((cause) => cause.includes("spatialClass")));
+  assert.match(errorReference.resolution, /spatialClass/);
+  assert.equal(errorReference.documentation, "/error/SCENE_BLUEPRINT_COMPONENT_INVALID.md");
+  const errorMarkdown = await (await fetch(`${server.url}error/SCENE_BLUEPRINT_COMPONENT_INVALID.md`)).text();
+  assert.match(errorMarkdown, /^---[\s\S]+# SCENE_BLUEPRINT_COMPONENT_INVALID/);
+  assert.match(errorMarkdown, /## Resolution/);
+  const missingReferenceResponse = await fetch(`${server.url}api/errors/DOES_NOT_EXIST`);
+  const missingReference = await missingReferenceResponse.json() as { error: string; documentation: string };
+  assert.equal(missingReferenceResponse.status, 404);
+  assert.equal(missingReference.error, "ERROR_REFERENCE_NOT_FOUND");
+  assert.equal(missingReference.documentation, "/error/ERROR_REFERENCE_NOT_FOUND.md");
 
   const eventLog = (await (await fetch(`${server.url}api/events`)).json()) as {
     schema: string; ok: boolean; count: number; events: unknown[];
@@ -168,6 +191,30 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.deepEqual(flatten(after.twin.components).map((c) => c.id), before, "intake must not change component identity");
   const bound = after.scene.bindings.find((b) => b.componentId === target);
   assert.deepEqual(bound?.size, [12.4, 14.2, 3.2]);
+});
+
+test("dashboard iteration failure returns a stable code and error reference links", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "dt-dashboard-error-reference-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const created = await createLivingProject({
+    name: "Invalid Blueprint Factory",
+    outDir: join(root, "project"),
+    profile: "biofoundry",
+  });
+  const blueprintPath = join(created.projectDir, "baseline/scene-blueprint.json");
+  const blueprint = JSON.parse(await readFile(blueprintPath, "utf8")) as { components: Array<Record<string, unknown>> };
+  delete blueprint.components[0].spatialClass;
+  await writeFile(blueprintPath, JSON.stringify(blueprint, null, 2) + "\n");
+
+  const server = await startDashboard({ configPath: created.configPath, outDir: join(root, "runtime"), port: 0 });
+  t.after(() => server.close());
+  const response = await fetch(`${server.url}api/iterate`, { method: "POST" });
+  const body = await response.json() as { error: string; detail: string; documentation: string; errorReference: string };
+  assert.equal(response.status, 500);
+  assert.equal(body.error, "SCENE_BLUEPRINT_COMPONENT_INVALID");
+  assert.equal(body.detail, "SCENE_BLUEPRINT_COMPONENT_INVALID");
+  assert.equal(body.documentation, "/error/SCENE_BLUEPRINT_COMPONENT_INVALID.md");
+  assert.equal(body.errorReference, "/api/errors/SCENE_BLUEPRINT_COMPONENT_INVALID");
 });
 
 test("dashboard keeps rejected candidate diagnostics separate from the active scene", async (t) => {

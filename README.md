@@ -639,6 +639,11 @@ w katalogu; `npm run errors:docs` odtwarza projekcje Markdown. Nowe kody mają s
 dwukropku, więc nie tworzą osobnych kodów. Opublikowane wcześniej kody `mutation_grant_*`
 pozostają w dotychczasowej postaci i również podlegają kontroli katalogu.
 
+Dashboard rozpoznaje kod z odpowiedzi serwera i pokazuje kartę z jego znaczeniem, możliwymi
+przyczynami oraz rozwiązaniem. Ten sam kontrakt jest dostępny jako JSON pod
+`/api/errors/<KOD>` i jako Markdown pod `/error/<KOD>.md`; odpowiedzi błędów zawierają oba
+odnośniki. Katalog oraz strony są kopiowane również do vendored runtime i obrazu kontenera.
+
 ### CAD/SCAD → executable geometry
 
 `scripts/cad-to-gltf.py` konwertuje binary/ASCII STL, 3MF oraz OBJ+MTL do walidowalnego GLB.
@@ -699,14 +704,20 @@ gdy jej aktywny Twin należy do żądanego projektu. Inny projekt lub inna usłu
 daje `DASHBOARD_PORT_CONFLICT` z identyfikatorami `expected` i `actual`; wybierz wtedy inny
 `PORT` albo uruchom dashboard właściwego projektu z jego katalogu workspace.
 
+Uruchomienie `make dashboard` bez własnego `DASHBOARD_PROJECT` używa generowanego
+`.factory-demo`. Przed startem bezpieczny migrator odświeża tylko kanoniczny blueprint
+`biofoundry-live-*`, jeżeli stary wariant nie spełnia aktualnego kontraktu komponentu. Nie
+nadpisuje projektów niestandardowych; te wymagają jawnej migracji w ich własnym workflow.
+
 Kolor koduje **stopień dowodu geometrycznego**, nie typ komponentu, więc widać, jak fabryka
 twardnieje w miarę napływu danych: szary `placeholder`, bursztynowy `document`, niebieski
 `measured`, zielony `cad`, fioletowy `ifc`, miętowy `verified`. Obok sceny raportowane są
 niezmienniki tożsamości (`componentIdsStable`, `scenePathsStable`).
 
-Endpointy: `/api/state`, `/api/dsl`, `/api/scene.usda` (eksport OpenUSD), `POST /api/iterate`,
-`POST /api/intake`. Zablokowana iteracja zwraca HTTP 422 z dokładną listą failures; browser i
-server console pokazują ten sam kod URN zamiast ogólnego „iteration failed”.
+Endpointy: `/api/state`, `/api/dsl`, `/api/scene.usda` (eksport OpenUSD),
+`/api/errors/<KOD>`, `/error/<KOD>.md`, `POST /api/iterate`, `POST /api/intake`. Zablokowana
+iteracja zwraca HTTP 422 z dokładną listą failures; browser i server console pokazują ten sam
+stabilny kod zamiast ogólnego „iteration failed”.
 
 > Usługa **nie ma uwierzytelniania ani ochrony CSRF**, a `/api/iterate` i `/api/intake` modyfikują
 > projekt na dysku. Słucha tylko na `127.0.0.1` — to narzędzie do lokalnej inspekcji, nie wystawiaj

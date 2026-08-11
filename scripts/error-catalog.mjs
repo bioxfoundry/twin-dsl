@@ -8,7 +8,7 @@ const catalogPath = join(root, "error", "catalog.json");
 const outputDir = join(root, "error");
 const bootstrap = process.argv.includes("--bootstrap");
 const write = bootstrap || process.argv.includes("--write");
-const SOURCE_EXTENSIONS = new Set([".ts", ".js", ".mjs", ".cjs"]);
+const SOURCE_EXTENSIONS = new Set([".ts", ".js", ".mjs", ".cjs", ".html"]);
 const CODE = /^(?:[A-Z][A-Z0-9_-]{2,}|[a-z][a-z0-9_-]{2,})$/;
 const CODE_CARRIER_FILES = new Set([
   "src/geometry/build-contract.ts",
@@ -29,7 +29,7 @@ async function exists(path) {
 }
 
 async function sourceFiles() {
-  const roots = [join(root, "src"), join(root, "scripts")];
+  const roots = [join(root, "src"), join(root, "scripts"), join(root, "public")];
   const packages = join(root, "js");
   try {
     for (const entry of await readdir(packages, { withFileTypes: true })) {
@@ -74,7 +74,9 @@ async function scanErrors() {
     const patterns = [
       { surface: "exception", expression: /new Error\s*\(\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
       { surface: "response", expression: /(?:error|errorCode)\s*:\s*[`"']([A-Za-z][A-Za-z0-9_-]{2,})/g },
+      { surface: "response", expression: /\bsendError\s*\(\s*[^,]+,\s*[^,]+,\s*[`"']([A-Za-z][A-Za-z0-9_-]{2,})/g },
       { surface: "diagnostic", expression: /(?:code)\s*:\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
+      { surface: "diagnostic", expression: /const\s+[A-Z][A-Z0-9_]*ERROR[A-Z0-9_]*\s*=\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
       { surface: "operator", expression: /echo\s+["'][^"']*?([A-Z][A-Z0-9_]{2,}):/g },
     ];
     for (const { surface, expression } of patterns) {

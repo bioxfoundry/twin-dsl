@@ -24,11 +24,11 @@ A write endpoint was called on an inspection replica intentionally started in re
 
 ## Impact
 
-The request returns HTTP 403; no iteration, intake or artifact mutation is performed.
+The request returns HTTP 403, no iteration or intake is performed and accepted state is preserved.
 
 ## Resolution
 
-Keep the replica read-only and send the write through the elected iteration controller or project container. Do not disable the boundary merely to suppress the error.
+Keep the inspection replica read-only. Send the mutation through the elected controller or the project container that owns the writable runtime.
 
 ## Emitted by
 

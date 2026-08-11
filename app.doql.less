@@ -102,28 +102,29 @@ workflow[name="nl-dsl"] {
 workflow[name="dashboard"] {
   trigger: manual;
   step-1: run cmd=npm run build;
-  step-2: run cmd=url="http://127.0.0.1:$(PORT)/"; \;
-  step-3: run cmd=probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \;
-  step-4: run cmd=echo "hint: use the existing workspace dashboard with 'make -C .. dashboard', or choose another demo port with 'make dashboard PORT=7332'"; exit 2; }; \;
-  step-5: run cmd=echo "$$probe"; \;
-  step-6: run cmd=case "$$probe" in DASHBOARD_PORT_REUSE:*) \;
-  step-7: run cmd=if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \;
-  step-8: run cmd=elif command -v open >/dev/null 2>&1; then open "$$url"; \;
-  step-9: run cmd=elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \;
-  step-10: run cmd=else echo "dashboard already running: $$url"; fi; exit 0;; \;
-  step-11: run cmd=esac; \;
-  step-12: run cmd=node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \;
-  step-13: run cmd=trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \;
-  step-14: run cmd=ready=0; for attempt in $$(seq 1 50); do \;
-  step-15: run cmd=node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$${url}api/state" && { ready=1; break; }; \;
-  step-16: run cmd=kill -0 $$server_pid 2>/dev/null || exit 1; sleep 0.2; \;
-  step-17: run cmd=done; \;
-  step-18: run cmd=[ $$ready -eq 1 ] || { echo "DASHBOARD_READINESS_TIMEOUT:$$url"; exit 1; }; \;
-  step-19: run cmd=if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \;
-  step-20: run cmd=elif command -v open >/dev/null 2>&1; then open "$$url"; \;
-  step-21: run cmd=elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \;
-  step-22: run cmd=else echo "dashboard ready: $$url (open this URL in a browser)"; fi; \;
-  step-23: run cmd=wait $$server_pid;
+  step-2: run cmd=if [ "$(DASHBOARD_PROJECT)" = ".factory-demo/project/project.projectdsl" ]; then node scripts/ensure-factory-demo.mjs; fi;
+  step-3: run cmd=url="http://127.0.0.1:$(PORT)/"; \;
+  step-4: run cmd=probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \;
+  step-5: run cmd=echo "hint: use the existing workspace dashboard with 'make -C .. dashboard', or choose another demo port with 'make dashboard PORT=7332'"; exit 2; }; \;
+  step-6: run cmd=echo "$$probe"; \;
+  step-7: run cmd=case "$$probe" in DASHBOARD_PORT_REUSE:*) \;
+  step-8: run cmd=if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \;
+  step-9: run cmd=elif command -v open >/dev/null 2>&1; then open "$$url"; \;
+  step-10: run cmd=elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \;
+  step-11: run cmd=else echo "dashboard already running: $$url"; fi; exit 0;; \;
+  step-12: run cmd=esac; \;
+  step-13: run cmd=node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \;
+  step-14: run cmd=trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \;
+  step-15: run cmd=ready=0; for attempt in $$(seq 1 50); do \;
+  step-16: run cmd=node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$${url}api/state" && { ready=1; break; }; \;
+  step-17: run cmd=kill -0 $$server_pid 2>/dev/null || exit 1; sleep 0.2; \;
+  step-18: run cmd=done; \;
+  step-19: run cmd=[ $$ready -eq 1 ] || { echo "DASHBOARD_READINESS_TIMEOUT:$$url"; exit 1; }; \;
+  step-20: run cmd=if command -v xdg-open >/dev/null 2>&1; then xdg-open "$$url" >/dev/null 2>&1 & \;
+  step-21: run cmd=elif command -v open >/dev/null 2>&1; then open "$$url"; \;
+  step-22: run cmd=elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \;
+  step-23: run cmd=else echo "dashboard ready: $$url (open this URL in a browser)"; fi; \;
+  step-24: run cmd=wait $$server_pid;
 }
 
 workflow[name="clean"] {

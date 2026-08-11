@@ -812,6 +812,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "DASHBOARD_INTERNAL_ERROR",
+      "title": "Dashboard internal error",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The dashboard caught an unexpected failure whose thrown value did not expose a stable, catalogued error code.",
+      "causes": [
+        "a programmer error or an unhandled operating-system or third-party failure occurred",
+        "the originating subsystem threw free-form text instead of a stable error code"
+      ],
+      "impact": "The request returns HTTP 500 and the operation is not accepted; previously accepted runtime state is preserved.",
+      "resolution": "Inspect the response detail and dashboard server log, fix the originating failure and give it a specific catalogued code where possible, then retry the request."
+    },
+    {
       "code": "DASHBOARD_PORT_CONFLICT",
       "title": "Dashboard port conflict",
       "subsystem": "dashboard",
@@ -885,8 +900,24 @@
         "POST /api/iterate or POST /api/intake was sent to a DT_DASHBOARD_READ_ONLY=1 process",
         "the inspection replica was mistaken for the elected single writer"
       ],
-      "impact": "The request returns HTTP 403; no iteration, intake or artifact mutation is performed.",
-      "resolution": "Keep the replica read-only and send the write through the elected iteration controller or project container. Do not disable the boundary merely to suppress the error."
+      "impact": "The request returns HTTP 403, no iteration or intake is performed and accepted state is preserved.",
+      "resolution": "Keep the inspection replica read-only. Send the mutation through the elected controller or the project container that owns the writable runtime."
+    },
+    {
+      "code": "DASHBOARD_REQUEST_FAILED",
+      "title": "Dashboard request failed",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The browser could not complete or decode a dashboard API request.",
+      "causes": [
+        "the dashboard server stopped or became unreachable",
+        "the network request was interrupted",
+        "the endpoint returned a response that is not valid JSON"
+      ],
+      "impact": "The requested browser action is not reported as successful; the last rendered accepted state remains visible.",
+      "resolution": "Open /api/state, inspect the dashboard server log and browser network response, restart or reload the dashboard if needed, then retry."
     },
     {
       "code": "DETERMINISTIC_VALUE_REQUIRED",
@@ -1174,6 +1205,22 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "EMPTY_VIDEO_BLOB",
+      "title": "Empty video blob",
+      "subsystem": "empty",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The browser's MediaRecorder stopped without producing any video bytes from the dashboard canvas.",
+      "causes": [
+        "the selected WebM encoder is unavailable or failed",
+        "a headless or software-rendered browser did not deliver frames before recording stopped",
+        "recording was stopped before the first encoded timeslice"
+      ],
+      "impact": "No empty file is downloaded; the Twin and dashboard state are unaffected.",
+      "resolution": "Record for at least a few seconds in a browser with WebM/MediaRecorder support, ensure hardware or software WebGL is active, and retry after reloading the page."
+    },
+    {
       "code": "ERROR_CATALOG_CODE_DUPLICATE",
       "title": "Error catalog code duplicate",
       "subsystem": "error",
@@ -1279,6 +1326,66 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "ERROR_REFERENCE_ASSETS_NOT_FOUND",
+      "title": "Error reference assets not found",
+      "subsystem": "error",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The dashboard cannot locate the generated error catalog and Markdown pages in its installed runtime layout.",
+      "causes": [
+        "error/catalog.json or the error pages were omitted from the source, dist or vendored runtime",
+        "a container image was built without copying the error directory"
+      ],
+      "impact": "Dashboard startup is refused because failures could not provide their required local documentation.",
+      "resolution": "Restore error/catalog.json and its generated pages, run npm run errors:docs and npm run errors:check, then rebuild or resync the vendored runtime/container."
+    },
+    {
+      "code": "ERROR_REFERENCE_CATALOG_INVALID",
+      "title": "Error reference catalog invalid",
+      "subsystem": "error",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "error/catalog.json exists but is malformed or does not implement bioxfoundry.error-catalog/v1.",
+      "causes": [
+        "the catalog contains invalid JSON",
+        "schema, entries or an entry's required fields have been edited incorrectly"
+      ],
+      "impact": "Dashboard startup is refused rather than serving incomplete or misleading error guidance.",
+      "resolution": "Correct error/catalog.json, regenerate pages with npm run errors:docs and run npm run errors:check before restarting the dashboard."
+    },
+    {
+      "code": "ERROR_REFERENCE_CODE_INVALID",
+      "title": "Error reference code invalid",
+      "subsystem": "error",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "An error-reference URL contains a code outside the allowed stable-code grammar.",
+      "causes": [
+        "the URL contains lowercase text, separators, traversal syntax or other unsafe characters",
+        "a caller placed variable detail in the code segment instead of after a colon"
+      ],
+      "impact": "The reference request returns HTTP 400 and no filesystem path is resolved from the supplied value.",
+      "resolution": "Use the exact stable UPPER_SNAKE_CASE code emitted by the operation, without its colon-delimited detail, in /api/errors/<CODE> or /error/<CODE>.md."
+    },
+    {
+      "code": "ERROR_REFERENCE_NOT_FOUND",
+      "title": "Error reference not found",
+      "subsystem": "error",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The requested stable code is syntactically valid but has no entry in the installed error catalog.",
+      "causes": [
+        "the code was mistyped or belongs to a different runtime version",
+        "a new emitted code was not bootstrapped, documented and packaged"
+      ],
+      "impact": "The reference request returns HTTP 404; the originating operation and its stable code remain unchanged.",
+      "resolution": "Correct the requested code, or add its source and catalog entry, run npm run errors:bootstrap followed by npm run errors:docs and npm run errors:check, then rebuild the runtime."
+    },
+    {
       "code": "EXAMPLE_CONNECTOR_FAILURE",
       "title": "Example connector failure",
       "subsystem": "example",
@@ -1307,6 +1414,96 @@
       ],
       "impact": "The affected operation does not complete and must not be reported as successful.",
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "FACTORY_DEMO_BLUEPRINT_IDENTITY_INVALID",
+      "title": "Factory demo blueprint identity invalid",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The safe factory-demo migrator found an invalid blueprint whose id does not identify the canonical generated biofoundry demo.",
+      "causes": [
+        "a custom project or blueprint was placed under .factory-demo/project",
+        "the canonical biofoundry-live-* identity was changed or removed"
+      ],
+      "impact": "Automatic replacement is refused so that custom project data is never overwritten.",
+      "resolution": "Do not force-migrate the custom blueprint. Run the dashboard with CONFIG pointing to that real project and migrate it explicitly, or move the custom files aside and recreate the generated .factory-demo."
+    },
+    {
+      "code": "FACTORY_DEMO_BLUEPRINT_REQUIRED",
+      "title": "Factory demo blueprint required",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The generated factory-demo project DSL does not name a scene blueprint file.",
+      "causes": [
+        "project.projectdsl is stale, truncated or edited by hand",
+        "the SCENE blueprint declaration was removed"
+      ],
+      "impact": "The demo cannot be validated or safely migrated and dashboard startup stops.",
+      "resolution": "Move the broken generated .factory-demo aside or restore its SCENE blueprint declaration, then rerun make dashboard so the canonical demo can be created or validated."
+    },
+    {
+      "code": "FACTORY_DEMO_BLUEPRINT_UNREADABLE",
+      "title": "Factory demo blueprint unreadable",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The scene blueprint named by the generated factory demo cannot be read as JSON.",
+      "causes": [
+        "the blueprint file is missing or inaccessible",
+        "the file is truncated or contains invalid JSON"
+      ],
+      "impact": "The demo migrator and dashboard startup stop without overwriting the unreadable file.",
+      "resolution": "Inspect the path and parser detail, restore valid JSON or move the broken generated .factory-demo aside, then rerun make dashboard."
+    },
+    {
+      "code": "FACTORY_DEMO_ENVIRONMENT_IDENTITY_INVALID",
+      "title": "Factory demo environment identity invalid",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The safe demo migrator found the historical mixed-unit shape in an environment document that does not match the canonical generated demo identity.",
+      "causes": [
+        "environment/current.json belongs to a different project or has a changed subjectUri",
+        "the expected numeric temperatureC or boolean availability fields were replaced"
+      ],
+      "impact": "Automatic unit migration is refused and the environment document is left byte-for-byte unchanged.",
+      "resolution": "Do not force the demo migrator over custom observations. Migrate the real project's metrics explicitly to a per-metric units map, or restore the canonical demo environment and rerun make dashboard."
+    },
+    {
+      "code": "FACTORY_DEMO_ENVIRONMENT_UNREADABLE",
+      "title": "Factory demo environment unreadable",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The generated factory demo's environment/current.json cannot be read as a JSON object.",
+      "causes": [
+        "the environment file is missing or inaccessible",
+        "the file is truncated, contains invalid JSON or has a non-object root"
+      ],
+      "impact": "The demo migration and dashboard startup stop without overwriting the observation source.",
+      "resolution": "Inspect the path and parser detail, restore a valid observation object or move the broken generated .factory-demo aside, then rerun make dashboard."
+    },
+    {
+      "code": "FACTORY_DEMO_TARGET_INVALID",
+      "title": "Factory demo target invalid",
+      "subsystem": "factory",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The factory-demo bootstrap script was asked to operate outside the repository's generated .factory-demo/project directory.",
+      "causes": [
+        "a custom path was supplied to scripts/ensure-factory-demo.mjs",
+        "the script was invoked as a general project migrator"
+      ],
+      "impact": "The script exits before reading or writing the requested directory.",
+      "resolution": "Run the script without a custom target for the generated demo. Migrate real projects with their explicit project workflow instead of the demo bootstrap."
     },
     {
       "code": "GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID",
@@ -2374,6 +2571,97 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "GLB_ACCESSOR_OUT_OF_BOUNDS",
+      "title": "Glb accessor out of bounds",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "A GLB POSITION or NORMAL accessor points outside its declared binary buffer view.",
+      "causes": [
+        "byteOffset, byteStride or count exceeds the BIN chunk",
+        "the GLB is truncated or its accessor metadata is corrupt"
+      ],
+      "impact": "The dashboard rejects that mesh and uses its safe fallback geometry instead of reading invalid memory ranges.",
+      "resolution": "Validate the GLB with a glTF validator and regenerate it from the source CAD/mesh; confirm accessor offsets, strides and counts fit the BIN chunk."
+    },
+    {
+      "code": "GLB_ACCESSOR_UNSUPPORTED",
+      "title": "Glb accessor unsupported",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "A GLB POSITION or NORMAL accessor uses a representation outside the dashboard's deterministic lightweight loader contract.",
+      "causes": [
+        "the accessor is not a non-empty FLOAT VEC3",
+        "the accessor or referenced bufferView is missing"
+      ],
+      "impact": "The unsupported mesh is not rendered and the component falls back to deterministic primitive geometry.",
+      "resolution": "Re-export or convert the mesh so POSITION and optional NORMAL are FLOAT VEC3 accessors with valid bufferViews, then re-ingest the asset."
+    },
+    {
+      "code": "GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS",
+      "title": "Glb index accessor out of bounds",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "A GLB primitive's index accessor points outside its declared binary buffer view.",
+      "causes": [
+        "index byteOffset, byteStride or count exceeds the BIN chunk",
+        "the file is truncated or its index metadata is corrupt"
+      ],
+      "impact": "The dashboard rejects that mesh rather than drawing indices from an invalid range.",
+      "resolution": "Validate and regenerate the GLB, ensuring every index accessor's offset, stride, component size and count fit its bufferView and BIN chunk."
+    },
+    {
+      "code": "GLB_INDEX_ACCESSOR_UNSUPPORTED",
+      "title": "Glb index accessor unsupported",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "A GLB primitive uses an index accessor type unsupported by the dashboard renderer.",
+      "causes": [
+        "the accessor is not a non-empty SCALAR",
+        "indices use a component type other than unsigned byte, unsigned short or unsigned int",
+        "the accessor or bufferView is missing"
+      ],
+      "impact": "The mesh is rejected and the dashboard retains safe fallback geometry for the component.",
+      "resolution": "Re-export the mesh with SCALAR indices encoded as UNSIGNED_BYTE, UNSIGNED_SHORT or, where supported, UNSIGNED_INT."
+    },
+    {
+      "code": "GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED",
+      "title": "Glb multi accessor mesh unsupported",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "One GLB mesh contains primitives that do not share the same POSITION and NORMAL accessor tables.",
+      "causes": [
+        "the exporter wrote independent vertex tables for material or group primitives",
+        "the asset requires a full scene-graph loader outside the dashboard's lightweight contract"
+      ],
+      "impact": "The dashboard refuses to combine incompatible vertex tables and shows fallback geometry instead of a distorted mesh.",
+      "resolution": "Run the project's deterministic mesh converter or re-export the GLB with shared POSITION/NORMAL accessors across primitives; otherwise split it into separately bound assets."
+    },
+    {
+      "code": "GLB_UINT_INDEX_EXTENSION_UNAVAILABLE",
+      "title": "Glb uint index extension unavailable",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The GLB uses 32-bit indices but the active WebGL context does not expose OES_element_index_uint.",
+      "causes": [
+        "the browser, GPU driver or software renderer lacks the extension",
+        "the mesh contains enough vertices that its exporter selected unsigned-int indices"
+      ],
+      "impact": "The mesh is not rendered in that browser and the component uses its safe fallback geometry.",
+      "resolution": "Enable a WebGL implementation with OES_element_index_uint, or re-export/split the mesh so each primitive uses 16-bit indices."
+    },
+    {
       "code": "IMPROVEMENT_ACTION_INVALID",
       "title": "Improvement action invalid",
       "subsystem": "improvement",
@@ -2597,6 +2885,22 @@
       ],
       "impact": "The affected operation does not complete and must not be reported as successful.",
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_SERVER_RESPONSE",
+      "title": "Invalid server response",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The dashboard received an iteration response that could not be decoded as the required JSON envelope.",
+      "causes": [
+        "a proxy or server returned HTML, empty content or truncated JSON",
+        "the dashboard process stopped while handling the request",
+        "client and server versions expose incompatible response formats"
+      ],
+      "impact": "The browser does not claim that the iteration succeeded; the last accepted state remains displayed.",
+      "resolution": "Inspect the /api/iterate response and dashboard server log, confirm /api/state returns JSON, restart matching client/server versions if needed and retry."
     },
     {
       "code": "INVALID_T2C_INTENT",
@@ -5163,7 +5467,7 @@
         "a stale blueprint generated before the current schema contract is being reused"
       ],
       "impact": "Scene validation and twin iteration stop before an invalid component can enter scene.json or the dashboard.",
-      "resolution": "Regenerate or migrate the scene blueprint. Ensure every component has non-empty id and type, a supported spatialClass and a sourceRoles array containing only supported roles, then validate again."
+      "resolution": "For the generated factory demo rerun make dashboard; it now migrates a stale canonical blueprint automatically (or run npm run build && node scripts/ensure-factory-demo.mjs). For a real project, regenerate or explicitly migrate its blueprint so every component has non-empty id and type, a supported spatialClass and a sourceRoles array containing only supported roles, then validate again."
     },
     {
       "code": "SCENE_BLUEPRINT_COMPONENT_UNGROUNDED",

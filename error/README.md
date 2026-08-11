@@ -60,11 +60,13 @@ deterministic projections enriched with source locations discovered by
 | [COMPOSE_TOKEN_MISSING](./COMPOSE_TOKEN_MISSING.md) | compose | configuration | false |
 | [DASHBOARD_ARGUMENTS_REQUIRED](./DASHBOARD_ARGUMENTS_REQUIRED.md) | dashboard | configuration | false |
 | [DASHBOARD_ASSETS_NOT_FOUND](./DASHBOARD_ASSETS_NOT_FOUND.md) | dashboard | configuration | false |
+| [DASHBOARD_INTERNAL_ERROR](./DASHBOARD_INTERNAL_ERROR.md) | dashboard | state | false |
 | [DASHBOARD_PORT_CONFLICT](./DASHBOARD_PORT_CONFLICT.md) | dashboard | state | false |
 | [DASHBOARD_PORT_INVALID](./DASHBOARD_PORT_INVALID.md) | dashboard | configuration | false |
 | [DASHBOARD_PROJECT_ID_MISSING](./DASHBOARD_PROJECT_ID_MISSING.md) | dashboard | configuration | false |
 | [DASHBOARD_READ_ONLY](./DASHBOARD_READ_ONLY.md) | dashboard | policy | false |
 | [DASHBOARD_READINESS_TIMEOUT](./DASHBOARD_READINESS_TIMEOUT.md) | dashboard | availability | true |
+| [DASHBOARD_REQUEST_FAILED](./DASHBOARD_REQUEST_FAILED.md) | dashboard | availability | true |
 | [DETERMINISTIC_VALUE_REQUIRED](./DETERMINISTIC_VALUE_REQUIRED.md) | deterministic | configuration | false |
 | [DOCLING_CONVERSION_HTTP](./DOCLING_CONVERSION_HTTP.md) | docling | availability | true |
 | [DOCLING_HEALTH_HTTP](./DOCLING_HEALTH_HTTP.md) | docling | availability | true |
@@ -84,6 +86,7 @@ deterministic projections enriched with source locations discovered by
 | [DT_DASHBOARD_PORT_INVALID](./DT_DASHBOARD_PORT_INVALID.md) | dt | configuration | false |
 | [DUPLICATE_SCENE_PATH](./DUPLICATE_SCENE_PATH.md) | duplicate | state | false |
 | [DUPLICATE_TWIN_COMPONENT](./DUPLICATE_TWIN_COMPONENT.md) | duplicate | state | false |
+| [EMPTY_VIDEO_BLOB](./EMPTY_VIDEO_BLOB.md) | empty | availability | true |
 | [ERROR_CATALOG_CODE_DUPLICATE](./ERROR_CATALOG_CODE_DUPLICATE.md) | error | integrity | false |
 | [ERROR_CATALOG_CODE_INVALID](./ERROR_CATALOG_CODE_INVALID.md) | error | configuration | false |
 | [ERROR_CATALOG_COVERAGE](./ERROR_CATALOG_COVERAGE.md) | error | state | false |
@@ -91,8 +94,18 @@ deterministic projections enriched with source locations discovered by
 | [ERROR_CATALOG_INVALID](./ERROR_CATALOG_INVALID.md) | error | configuration | false |
 | [ERROR_DOCS_DRIFT](./ERROR_DOCS_DRIFT.md) | error | state | false |
 | [ERROR_LITERAL_UNSTANDARDIZED](./ERROR_LITERAL_UNSTANDARDIZED.md) | error | state | false |
+| [ERROR_REFERENCE_ASSETS_NOT_FOUND](./ERROR_REFERENCE_ASSETS_NOT_FOUND.md) | error | configuration | false |
+| [ERROR_REFERENCE_CATALOG_INVALID](./ERROR_REFERENCE_CATALOG_INVALID.md) | error | configuration | false |
+| [ERROR_REFERENCE_CODE_INVALID](./ERROR_REFERENCE_CODE_INVALID.md) | error | configuration | false |
+| [ERROR_REFERENCE_NOT_FOUND](./ERROR_REFERENCE_NOT_FOUND.md) | error | configuration | false |
 | [EXAMPLE_CONNECTOR_FAILURE](./EXAMPLE_CONNECTOR_FAILURE.md) | example | state | false |
 | [EXPECTED_KEY_VALUE](./EXPECTED_KEY_VALUE.md) | expected | state | false |
+| [FACTORY_DEMO_BLUEPRINT_IDENTITY_INVALID](./FACTORY_DEMO_BLUEPRINT_IDENTITY_INVALID.md) | factory | configuration | false |
+| [FACTORY_DEMO_BLUEPRINT_REQUIRED](./FACTORY_DEMO_BLUEPRINT_REQUIRED.md) | factory | configuration | false |
+| [FACTORY_DEMO_BLUEPRINT_UNREADABLE](./FACTORY_DEMO_BLUEPRINT_UNREADABLE.md) | factory | configuration | false |
+| [FACTORY_DEMO_ENVIRONMENT_IDENTITY_INVALID](./FACTORY_DEMO_ENVIRONMENT_IDENTITY_INVALID.md) | factory | configuration | false |
+| [FACTORY_DEMO_ENVIRONMENT_UNREADABLE](./FACTORY_DEMO_ENVIRONMENT_UNREADABLE.md) | factory | configuration | false |
+| [FACTORY_DEMO_TARGET_INVALID](./FACTORY_DEMO_TARGET_INVALID.md) | factory | configuration | false |
 | [GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID](./GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID.md) | geometry build | configuration | false |
 | [GEOMETRY_BUILD_COORDINATE_SYSTEM_REQUIRED](./GEOMETRY_BUILD_COORDINATE_SYSTEM_REQUIRED.md) | geometry build | configuration | false |
 | [GEOMETRY_BUILD_COORDINATE_SYSTEM_UNKNOWN_KEY](./GEOMETRY_BUILD_COORDINATE_SYSTEM_UNKNOWN_KEY.md) | geometry build | configuration | false |
@@ -164,6 +177,12 @@ deterministic projections enriched with source locations discovered by
 | [GEOMETRY_VALIDATION_FAILED](./GEOMETRY_VALIDATION_FAILED.md) | geometry | state | false |
 | [GEOMETRY_WORKER_RECEIPT_MISSING](./GEOMETRY_WORKER_RECEIPT_MISSING.md) | geometry | configuration | false |
 | [GEOMETRY_WORKER_SCRIPT_MISSING](./GEOMETRY_WORKER_SCRIPT_MISSING.md) | geometry | configuration | false |
+| [GLB_ACCESSOR_OUT_OF_BOUNDS](./GLB_ACCESSOR_OUT_OF_BOUNDS.md) | glb | integrity | false |
+| [GLB_ACCESSOR_UNSUPPORTED](./GLB_ACCESSOR_UNSUPPORTED.md) | glb | configuration | false |
+| [GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS](./GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS.md) | glb | integrity | false |
+| [GLB_INDEX_ACCESSOR_UNSUPPORTED](./GLB_INDEX_ACCESSOR_UNSUPPORTED.md) | glb | configuration | false |
+| [GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED](./GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED.md) | glb | configuration | false |
+| [GLB_UINT_INDEX_EXTENSION_UNAVAILABLE](./GLB_UINT_INDEX_EXTENSION_UNAVAILABLE.md) | glb | availability | true |
 | [IMPROVEMENT_ACTION_INVALID](./IMPROVEMENT_ACTION_INVALID.md) | improvement | configuration | false |
 | [IMPROVEMENT_ACTION_KIND_INVALID](./IMPROVEMENT_ACTION_KIND_INVALID.md) | improvement | configuration | false |
 | [IMPROVEMENT_ACTION_UNKNOWN_KEY](./IMPROVEMENT_ACTION_UNKNOWN_KEY.md) | improvement | configuration | false |
@@ -179,6 +198,7 @@ deterministic projections enriched with source locations discovered by
 | [INVALID_SCENE_ORIENTATION](./INVALID_SCENE_ORIENTATION.md) | invalid | state | false |
 | [INVALID_SCENE_POSITION](./INVALID_SCENE_POSITION.md) | invalid | state | false |
 | [INVALID_SCENE_SIZE](./INVALID_SCENE_SIZE.md) | invalid | state | false |
+| [INVALID_SERVER_RESPONSE](./INVALID_SERVER_RESPONSE.md) | dashboard | availability | true |
 | [INVALID_T2C_INTENT](./INVALID_T2C_INTENT.md) | invalid | state | false |
 | [INVALID_T2C_INTENT_KEYS](./INVALID_T2C_INTENT_KEYS.md) | invalid | state | false |
 | [INVALID_T2C_INTENT_PACK](./INVALID_T2C_INTENT_PACK.md) | invalid | state | false |

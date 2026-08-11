@@ -95,6 +95,7 @@ nl-dsl:
 
 dashboard:
 	@npm run build
+	@if [ "$(DASHBOARD_PROJECT)" = ".factory-demo/project/project.projectdsl" ]; then node scripts/ensure-factory-demo.mjs; fi
 	@url="http://127.0.0.1:$(PORT)/"; \
 		probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \
 			echo "hint: use the existing workspace dashboard with 'make -C .. dashboard', or choose another demo port with 'make dashboard PORT=7332'"; exit 2; }; \

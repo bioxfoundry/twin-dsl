@@ -5,6 +5,7 @@ RUN apt-get update \
 WORKDIR /opt/runtime
 COPY dist ./dist
 COPY public ./public
+COPY error ./error
 COPY schemas ./schemas
 COPY proto ./proto
 COPY scripts/cad-to-gltf.py ./scripts/cad-to-gltf.py

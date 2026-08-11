@@ -30,6 +30,53 @@ async function assetRoot(): Promise<string> {
   throw new Error("DASHBOARD_ASSETS_NOT_FOUND");
 }
 
+interface ErrorCatalogEntry {
+  code: string;
+  title: string;
+  subsystem: string;
+  defaultSeverity: string;
+  errorClass: string;
+  retryable: boolean;
+  meaning: string;
+  causes: string[];
+  impact: string;
+  resolution: string;
+}
+
+interface ErrorCatalogDocument {
+  schema: "bioxfoundry.error-catalog/v1";
+  entries: ErrorCatalogEntry[];
+}
+
+const ERROR_CODE = /^(?:[A-Z][A-Z0-9_-]{2,}|[a-z][a-z0-9_-]{2,})$/;
+const DASHBOARD_INTERNAL_ERROR = "DASHBOARD_INTERNAL_ERROR";
+
+/** Locate the generated error reference from source, dist and vendored layouts. */
+async function errorRoot(): Promise<string> {
+  const here = fileURLToPath(new URL(".", import.meta.url));
+  for (const candidate of ["../../../error", "../../error", "../../../../error"]) {
+    const path = resolve(here, candidate);
+    try {
+      await stat(join(path, "catalog.json"));
+      return path;
+    } catch {
+      /* try the next layout */
+    }
+  }
+  throw new Error("ERROR_REFERENCE_ASSETS_NOT_FOUND");
+}
+
+function codeFromError(value: unknown): string {
+  const detail = value instanceof Error ? value.message : String(value);
+  const candidate = detail.split(":", 1)[0];
+  return ERROR_CODE.test(candidate) ? candidate : DASHBOARD_INTERNAL_ERROR;
+}
+
+function errorLinks(code: string): { documentation: string; errorReference: string } {
+  const encoded = encodeURIComponent(code);
+  return { documentation: `/error/${encoded}.md`, errorReference: `/api/errors/${encoded}` };
+}
+
 async function readJson<T>(path: string): Promise<T | null> {
   try {
     return JSON.parse(await readFile(path, "utf8")) as T;
@@ -129,6 +176,10 @@ function sendJson(response: ServerResponse, status: number, value: unknown): voi
   send(response, status, JSON.stringify(value, null, 2), "application/json; charset=utf-8");
 }
 
+function sendError(response: ServerResponse, status: number, code: string, details: Record<string, unknown> = {}): void {
+  sendJson(response, status, { ...details, error: code, code, ...errorLinks(code) });
+}
+
 async function readBody(request: IncomingMessage, limitBytes = 1_000_000): Promise<string> {
   const chunks: Buffer[] = [];
   let size = 0;
@@ -207,6 +258,12 @@ interface DashboardState {
 
 export async function startDashboard(options: DashboardOptions): Promise<{ url: string; close: () => Promise<void> }> {
   const publicDir = await assetRoot();
+  const errorsDir = await errorRoot();
+  const errorCatalog = await readJson<ErrorCatalogDocument>(join(errorsDir, "catalog.json"));
+  if (errorCatalog?.schema !== "bioxfoundry.error-catalog/v1" || !Array.isArray(errorCatalog.entries)) {
+    throw new Error("ERROR_REFERENCE_CATALOG_INVALID");
+  }
+  const errorsByCode = new Map(errorCatalog.entries.map((entry) => [entry.code, entry]));
   const current = join(resolve(options.outDir), "current");
   const runtime = new LivingProjectRuntime();
   const mode: LlmMode = options.mode ?? "deterministic";
@@ -303,16 +360,39 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
         if (request.method === "GET" && url.pathname === "/api/dsl") {
           return sendJson(response, 200, await readDslArtifacts(current, options.configPath));
         }
+        const errorApi = url.pathname.match(/^\/api\/errors\/([^/]+)$/);
+        const errorMarkdown = url.pathname.match(/^\/error\/([^/]+)\.md$/);
+        if (request.method === "GET" && (errorApi || errorMarkdown)) {
+          let code: string;
+          try { code = decodeURIComponent((errorApi ?? errorMarkdown)![1]); }
+          catch { return sendError(response, 400, "ERROR_REFERENCE_CODE_INVALID"); }
+          if (!ERROR_CODE.test(code)) return sendError(response, 400, "ERROR_REFERENCE_CODE_INVALID", { requestedCode: code });
+          const entry = errorsByCode.get(code);
+          if (!entry) return sendError(response, 404, "ERROR_REFERENCE_NOT_FOUND", { requestedCode: code });
+          if (errorMarkdown) {
+            try {
+              return send(response, 200, await readFile(join(errorsDir, `${code}.md`)), "text/markdown; charset=utf-8");
+            } catch {
+              return sendError(response, 500, "ERROR_REFERENCE_ASSETS_NOT_FOUND", { requestedCode: code });
+            }
+          }
+          return sendJson(response, 200, {
+            schema: "bioxfoundry.error-reference/v1",
+            ...entry,
+            ...errorLinks(code),
+            source: "error/catalog.json",
+          });
+        }
         if (request.method === "GET" && url.pathname === "/api/scene.usda") {
           const { twin, scene } = await state();
-          if (!twin || !scene) return sendJson(response, 404, { error: "NO_SCENE_YET" });
+          if (!twin || !scene) return sendError(response, 404, "NO_SCENE_YET");
           return send(response, 200, renderOpenUsd(scene, twin), "text/plain; charset=utf-8");
         }
         if (request.method === "GET" && url.pathname === "/api/asset") {
           const wanted = url.searchParams.get("uri");
           const resources = await readJson<Array<{ uri?: string; sourcePath?: string }>>(join(current, "resources.json"));
           const resource = resources?.find(item => item.uri === wanted);
-          if (!resource?.sourcePath) return sendJson(response, 404, { error: "ASSET_NOT_GROUNDED" });
+          if (!resource?.sourcePath) return sendError(response, 404, "ASSET_NOT_GROUNDED");
           const bytes = await readFile(resource.sourcePath);
           const lower = resource.sourcePath.toLowerCase();
           const type = lower.endsWith(".glb") ? "model/gltf-binary"
@@ -325,12 +405,11 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
           return send(response, 200, bytes, type);
         }
         if (request.method === "POST" && url.pathname === "/api/iterate") {
-          if (readOnly) return sendJson(response, 403, {
-            error: "DASHBOARD_READ_ONLY",
+          if (readOnly) return sendError(response, 403, "DASHBOARD_READ_ONLY", {
             diagnostic: "DUPLICATE_TWIN_ITERATION_WRITER",
             message: "This inspection replica cannot write the living runtime; use the elected iteration controller.",
           });
-          if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
+          if (busy) return sendError(response, 409, "ITERATION_IN_PROGRESS");
           busy = true;
           const started = Date.now();
           await dashboardLog("info","iteration:start",{project:options.configPath});
@@ -339,8 +418,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
             await dashboardLog("info","iteration:complete",{durationMs:Date.now()-started,noChange:receipt.noChange,ok:receipt.validation.ok,iterationUri:receipt.iterationUri});
             if (!receipt.validation.ok) {
               await dashboardLog("warn","iteration:blocked",{failures:receipt.validation.failures});
-              return sendJson(response, 422, {
-                error: "ITERATION_BLOCKED",
+              return sendError(response, 422, "ITERATION_BLOCKED", {
                 iterationUri: receipt.iterationUri,
                 noChange: receipt.noChange,
                 ok: false,
@@ -357,19 +435,18 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
           }
         }
         if (request.method === "POST" && url.pathname === "/api/intake") {
-          if (readOnly) return sendJson(response, 403, {
-            error: "DASHBOARD_READ_ONLY",
+          if (readOnly) return sendError(response, 403, "DASHBOARD_READ_ONLY", {
             diagnostic: "DUPLICATE_TWIN_ITERATION_WRITER",
             message: "Physical intake is disabled on an inspection replica.",
           });
           // Claim the slot before the first await: checking `busy` and then yielding on
           // readBody lets two concurrent requests both pass the check.
-          if (busy) return sendJson(response, 409, { error: "ITERATION_IN_PROGRESS" });
+          if (busy) return sendError(response, 409, "ITERATION_IN_PROGRESS");
           busy = true;
           try {
             const incoming = validatePhysicalEvidence(JSON.parse(await readBody(request)) as PhysicalEvidenceDocument);
             const preview = await state();
-            if (!preview.twin || !preview.scene) return sendJson(response, 404, { error: "NO_SCENE_YET" });
+            if (!preview.twin || !preview.scene) return sendError(response, 404, "NO_SCENE_YET");
 
             const projectDir = dirname(resolve(options.configPath));
             const evidencePath = join(projectDir, "baseline/physical-evidence.json");
@@ -393,15 +470,13 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
             if (accepted.size === 0) {
               // Nothing survived, so there is nothing to persist. Writing here is what used
               // to discard the whole baseline on a fully rejected intake.
-              return sendJson(response, 422, {
-                error: "PHYSICAL_EVIDENCE_REJECTED",
+              return sendError(response, 422, "PHYSICAL_EVIDENCE_REJECTED", {
                 report,
                 hint: "nothing was written; fix the rejected records and post again",
               });
             }
             if (!previewResult.geometryValidation.ok) {
-              return sendJson(response, 422, {
-                error: "GEOMETRY_VALIDATION_FAILED",
+              return sendError(response, 422, "GEOMETRY_VALIDATION_FAILED", {
                 report,
                 geometryValidation: previewResult.geometryValidation,
                 hint: "nothing was written; correct pose, dimensions or spatial constraints",
@@ -444,9 +519,12 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
         if (request.method === "GET" && url.pathname === "/favicon.ico") {
           return send(response, 200, Buffer.alloc(0), "image/x-icon");
         }
-        return sendJson(response, 404, { error: "NOT_FOUND", path: url.pathname });
+        return sendError(response, 404, "NOT_FOUND", { path: url.pathname });
       } catch (error) {
-        sendJson(response, 500, { error: error instanceof Error ? error.message : String(error) });
+        const detail = error instanceof Error ? error.message : String(error);
+        const candidate = codeFromError(error);
+        const code = errorsByCode.has(candidate) ? candidate : DASHBOARD_INTERNAL_ERROR;
+        sendError(response, 500, code, { detail });
       }
     })();
   });

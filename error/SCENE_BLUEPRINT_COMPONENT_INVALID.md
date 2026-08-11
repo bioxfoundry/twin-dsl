@@ -30,7 +30,7 @@ Scene validation and twin iteration stop before an invalid component can enter s
 
 ## Resolution
 
-Regenerate or migrate the scene blueprint. Ensure every component has non-empty id and type, a supported spatialClass and a sourceRoles array containing only supported roles, then validate again.
+For the generated factory demo rerun make dashboard; it now migrates a stale canonical blueprint automatically (or run npm run build && node scripts/ensure-factory-demo.mjs). For a real project, regenerate or explicitly migrate its blueprint so every component has non-empty id and type, a supported spatialClass and a sourceRoles array containing only supported roles, then validate again.
 
 ## Emitted by
 
