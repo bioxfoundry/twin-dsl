@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.process-animation/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "projectId", "sourceProcessUri", "sourceSceneId", "timing", "animations"],
+  "properties": {
+    "schema": {"const": "subactor.process-animation/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "projectId": {"type": "string", "minLength": 1},
+    "sourceProcessUri": {"type": "string", "minLength": 1},
+    "sourceSceneId": {"type": "string", "minLength": 1},
+    "timing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mode", "factualProcessDuration", "stepDurationMs", "disclaimer"],
+      "properties": {
+        "mode": {"const": "normalized-presentation"},
+        "factualProcessDuration": {"const": false},
+        "stepDurationMs": {"type": "integer", "minimum": 100},
+        "disclaimer": {"type": "string", "minLength": 1}
+      }
+    },
+    "animations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["processId", "available", "successStepIds", "failureStepIds", "clips"],
+        "properties": {
+          "processId": {"type": "string", "minLength": 1},
+          "available": {"type": "boolean"},
+          "unavailableReason": {"type": "string", "minLength": 1},
+          "successStepIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "failureStepIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "clips": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["stepId", "startMs", "endMs", "effects"],
+              "properties": {
+                "stepId": {"type": "string", "minLength": 1},
+                "startMs": {"type": "integer", "minimum": 0},
+                "endMs": {"type": "integer", "minimum": 1},
+                "effects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["kind", "basis"],
+                    "properties": {
+                      "kind": {"enum": ["highlight", "pulse", "flow", "state"]},
+                      "componentId": {"type": "string", "minLength": 1},
+                      "fromComponentId": {"type": "string", "minLength": 1},
+                      "toComponentId": {"type": "string", "minLength": 1},
+                      "state": {"enum": ["active", "completed", "observing", "error", "recovering"]},
+                      "basis": {"const": "presentation-only"}
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

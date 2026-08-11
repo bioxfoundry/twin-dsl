@@ -73,9 +73,11 @@ async function scanErrors() {
     const body = await readFile(file, "utf8");
     const patterns = [
       { surface: "exception", expression: /new Error\s*\(\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
-      { surface: "response", expression: /(?:error|errorCode)\s*:\s*[`"']([A-Za-z][A-Za-z0-9_-]{2,})/g },
+      { surface: "exception", expression: /\bfail\s*\(\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
+      { surface: "response", expression: /(?:error|errorCode|unavailableReason)\s*:\s*[`"']([A-Za-z][A-Za-z0-9_-]{2,})/g },
       { surface: "response", expression: /\bsendError\s*\(\s*[^,]+,\s*[^,]+,\s*[`"']([A-Za-z][A-Za-z0-9_-]{2,})/g },
       { surface: "diagnostic", expression: /(?:code)\s*:\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
+      { surface: "diagnostic", expression: /\bprocessFinding\s*\(\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
       { surface: "diagnostic", expression: /const\s+[A-Z][A-Z0-9_]*ERROR[A-Z0-9_]*\s*=\s*[`"']([A-Z][A-Z0-9_]{2,})/g },
       { surface: "operator", expression: /echo\s+["'][^"']*?([A-Z][A-Z0-9_]{2,}):/g },
     ];

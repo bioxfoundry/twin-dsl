@@ -96,6 +96,12 @@
     "assemblyReportUri": {
       "type": "string"
     },
+    "processUri": {
+      "type": "string"
+    },
+    "processAnimationUri": {
+      "type": "string"
+    },
     "twinUri": {
       "type": "string"
     },

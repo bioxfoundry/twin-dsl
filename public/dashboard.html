@@ -55,6 +55,14 @@
   .stat div{flex:1;min-width:88px}
   .stat b{display:block;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
   .stat small{color:var(--muted);font-size:11px}
+  select{width:100%;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:7px;font:inherit;font-size:12px}
+  .process-controls{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+  .process-controls button{padding:5px 6px;font-size:11px}
+  .process-step{border-left:2px solid var(--line);padding:5px 7px;margin:4px 0;color:var(--muted);font-size:11px}
+  .process-step.active{border-color:#fbbf24;background:#2a2619;color:var(--ink)}
+  .process-step.done{border-color:#3ddc97;color:#a7f3d0}
+  .process-step.recovery{border-color:#ff6b6b}
+  .process-evidence{display:block;color:#7f8ca0;font-size:10px}
 </style>
 </head>
 <body>
@@ -110,6 +118,25 @@
       <div class="kv"><span>placed parts</span><span id="a-placed" class="mono">–</span></div>
       <div id="a-assemblies"></div>
       <div id="a-findings"></div>
+    </div>
+    <div class="card" id="process-card">
+      <h2>Source-grounded process animation</h2>
+      <select id="process-select" aria-label="Process"></select>
+      <div class="process-controls">
+        <button id="btn-process-play">Play</button>
+        <button id="btn-process-pause">Pause</button>
+        <button id="btn-process-reset">Reset</button>
+        <button id="btn-process-success">Success path</button>
+        <button id="btn-process-failure">Failure path</button>
+        <button id="btn-process-focus">Focus actors</button>
+      </div>
+      <div class="kv"><span>coverage</span><span id="process-coverage" class="mono">–</span></div>
+      <div class="kv"><span>ordering</span><span id="process-ordering" class="mono">–</span></div>
+      <div class="kv"><span>path</span><span id="process-path" class="mono">success</span></div>
+      <div id="process-current" class="mono" style="margin:7px 0;color:var(--muted)">no process selected</div>
+      <div id="process-steps"></div>
+      <div id="process-gaps"></div>
+      <div id="process-timing" class="mono" style="margin-top:7px;color:var(--muted)"></div>
     </div>
     <div class="card">
       <h2>Revision state</h2>
@@ -281,6 +308,10 @@ gl.disable(gl.CULL_FACE);
 
 /* ----------------------------------------------------------- scene data */
 let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,SCENE_CENTER=[0,0,0],SCENE_RADIUS=40,framed=false,queryFocusApplied=false,INSPECTION=false,INSPECTION_IDS=null;
+let PROCESS_MODEL=null,PROCESS_ANIMATION=null,PROCESS_SELECTED=null,PROCESS_FRAME_HANDLE=null;
+const PROCESS_RUN={playing:false,outcome:'success',stepIndex:0,stepStartedAt:0};
+PROCESS_RUN.started=false;
+const PROCESS_COLORS={active:[1,.72,.16],completed:[.24,.86,.58],observing:[.24,.75,1],error:[1,.25,.28],recovering:[1,.45,.18],flowFrom:[.2,.85,1],flowTo:[.86,.4,1]};
 let recorder=null,recordedChunks=[],recordingTimer=null;
 const STL_CACHE=new Map();
 function loadGlb(bytes){
@@ -392,6 +423,7 @@ async function buildObjects(state){
   // carry identity and provide a focus target, while their child bindings carry geometry.
   const flatten=(items,parentId=null)=>items.flatMap(c=>[{...c,__parentId:parentId},...flatten(c.children||[],c.id)]);
   const byId=new Map(flatten(twin.components).map(c=>[c.id,c]));
+  const liveById=new Map(((state.twinState&&state.twinState.components)||[]).map(component=>[component.componentId,component.properties||[]]));
   const objs=scene.bindings.map((b,i)=>{
     const c=byId.get(b.componentId)||{type:'',properties:{},sourceUris:[]};
     const g=grade(c.properties.geometryEvidence);
@@ -400,7 +432,7 @@ async function buildObjects(state){
       label:c.properties.label||b.componentId,
       pos:b.position||[0,0,0], size:(b.size||[1,1,1]).map(v=>Math.max(Math.abs(v),.01)), orientation:b.orientation||[0,0,0,1], orientationProvided:Array.isArray(b.orientation),
       prim:b.primitive||'cube', grade:g, color:hex2rgb(GRADE_COLOR[g]),
-      assetUri:b.assetUri||null, props:c.properties, uris:c.sourceUris||[],
+      assetUri:b.assetUri||null, props:c.properties, uris:c.sourceUris||[],liveProperties:liveById.get(b.componentId)||[],
     };
   });
   // Frame the camera on the actual extent so any facility size fits.
@@ -414,6 +446,33 @@ async function buildObjects(state){
   }
   await Promise.all(objs.map(async o=>{const uri=scene.bindings[o.idx]?.assetUri;if(uri)o.mesh=await loadAsset(uri);}));
   return objs;
+}
+
+function selectedProcess(){return (PROCESS_MODEL&&PROCESS_MODEL.processes||[]).find(process=>process.id===PROCESS_SELECTED)||null;}
+function selectedProcessAnimation(){return (PROCESS_ANIMATION&&PROCESS_ANIMATION.animations||[]).find(animation=>animation.processId===PROCESS_SELECTED)||null;}
+function processSequence(){const animation=selectedProcessAnimation();return animation?(PROCESS_RUN.outcome==='failure'&&animation.failureStepIds.length?animation.failureStepIds:animation.successStepIds):[];}
+function processVisual(object,now){
+  const liveAlert=(object.liveProperties||[]).some(property=>property.quality==='fresh'&&/(error|alarm|critical|overheat|unsafe|fault)/i.test(String(property.state)));
+  if(liveAlert)return{color:PROCESS_COLORS.error,scale:1.045,source:'live'};
+  if(!PROCESS_RUN.started)return{color:null,scale:1,source:'base'};
+  const animation=selectedProcessAnimation(),sequence=processSequence();
+  if(!animation||!sequence.length)return{color:null,scale:1,source:'base'};
+  const stepId=sequence[Math.min(PROCESS_RUN.stepIndex,sequence.length-1)],clip=animation.clips.find(item=>item.stepId===stepId);
+  if(!clip)return{color:null,scale:1,source:'base'};
+  const effects=clip.effects.filter(effect=>[effect.componentId,effect.fromComponentId,effect.toComponentId].includes(object.id));
+  if(!effects.length){
+    if(sequence.slice(0,PROCESS_RUN.stepIndex).some(id=>animation.clips.find(item=>item.stepId===id)?.effects.some(effect=>[effect.componentId,effect.fromComponentId,effect.toComponentId].includes(object.id))))return{color:PROCESS_COLORS.completed,scale:1,source:'presentation'};
+    return{color:null,scale:1,source:'base'};
+  }
+  const pulse=1+.075*(.5+.5*Math.sin(now/180));
+  const recovery=effects.find(effect=>effect.state==='recovering'||effect.state==='error');
+  if(recovery)return{color:PROCESS_COLORS[recovery.state]||PROCESS_COLORS.error,scale:pulse,source:'presentation'};
+  const flowFrom=effects.some(effect=>effect.kind==='flow'&&effect.fromComponentId===object.id);
+  const flowTo=effects.some(effect=>effect.kind==='flow'&&effect.toComponentId===object.id);
+  if(flowFrom)return{color:PROCESS_COLORS.flowFrom,scale:pulse,source:'presentation'};
+  if(flowTo)return{color:PROCESS_COLORS.flowTo,scale:2-pulse,source:'presentation'};
+  const state=effects.find(effect=>effect.state)?.state||'active';
+  return{color:PROCESS_COLORS[state]||PROCESS_COLORS.active,scale:pulse,source:'presentation'};
 }
 
 function draw(pick){
@@ -430,17 +489,19 @@ function draw(pick){
   const view=M4.lookAt(eye,CENTER,[0,0,1]);
   const proj=M4.perspective(Math.PI/4,w/Math.max(h,1),Math.max(.001,RADIUS/500),Math.max(10,RADIUS*12+200));
   const vp=M4.mul(proj,view);
+  const now=performance.now();
   gl.uniform1f(U.flat,pick?1:0);
   for(const o of OBJECTS){
     if(INSPECTION&&!(INSPECTION_IDS&&INSPECTION_IDS.has(o.idx)))continue;
     // `scope` is an identity/group node, not proxy geometry. Rendering it as a box hid
     // the detailed child meshes and made a complete assembly look like a placeholder.
     if(o.prim==='scope'&&!o.assetUri)continue;
-    const model=M4.trs(o.pos,o.size,o.orientation);
+    const visual=pick?{color:null,scale:1}:processVisual(o,now);
+    const model=M4.trs(o.pos,o.size.map(value=>value*visual.scale),o.orientation);
     gl.uniformMatrix4fv(U.mvp,false,new Float32Array(M4.mul(vp,model)));
     gl.uniformMatrix4fv(U.model,false,new Float32Array(model));
     if(pick){const n=o.idx+1;gl.uniform3f(U.color,(n&255)/255,((n>>8)&255)/255,((n>>16)&255)/255);}
-    else{gl.uniform3f(U.color,...o.color);gl.uniform1f(U.sel,SELECTED===o.idx?1:0);}
+    else{gl.uniform3f(U.color,...(visual.color||o.color));gl.uniform1f(U.sel,SELECTED===o.idx?1:0);}
     const m=o.mesh||MESH[o.prim]||MESH.cube;
     gl.bindBuffer(gl.ARRAY_BUFFER,m.pb);gl.enableVertexAttribArray(A.pos);gl.vertexAttribPointer(A.pos,3,gl.FLOAT,false,0,0);
     gl.bindBuffer(gl.ARRAY_BUFFER,m.nb);gl.enableVertexAttribArray(A.nrm);gl.vertexAttribPointer(A.nrm,3,gl.FLOAT,false,0,0);
@@ -533,6 +594,8 @@ function showSelected(){
   const skip=new Set(['label']);
   const rows=Object.entries(o.props).filter(([k])=>!skip.has(k)).slice(0,14)
     .map(([k,v])=>`<div class="kv"><span>${k}</span><span class="mono">${String(v).slice(0,64)}</span></div>`).join('');
+  const live=(o.liveProperties||[]).map(property=>`<div class="kv"><span>live ${escapeCode(property.property)}</span><span class="mono ${property.quality==='fresh'?'ok':property.quality==='stale'?'warn':'bad'}">${escapeCode(property.state)} · ${escapeCode(property.quality)}</span></div>`).join('');
+  const processMembership=(PROCESS_MODEL&&PROCESS_MODEL.processes||[]).filter(process=>process.componentIds.includes(o.id)).map(process=>process.label).join(', ');
   $('sel').innerHTML=`
     <div class="kv"><span>componentId</span><span class="mono">${o.id}</span></div>
     <div class="kv"><span>scenePath</span><span class="mono">${o.path}</span></div>
@@ -541,8 +604,61 @@ function showSelected(){
     <div class="kv"><span>size m</span><span class="mono">${o.size.map(v=>v.toFixed(2)).join(' × ')}</span></div>
     <div class="kv"><span>orientation xyzw</span><span class="mono">${o.orientationProvided?o.orientation.map(v=>v.toFixed(4)).join(', '):'not evidenced (identity fallback)'}</span></div>
     <div class="kv"><span>evidence</span><span class="badge" style="background:${GRADE_COLOR[o.grade]}">${o.grade}</span></div>
+    ${live}
+    <div class="kv"><span>processes</span><span class="mono">${escapeCode(processMembership||'none')}</span></div>
     ${rows}
     <div class="kv"><span>sourceUris</span><span class="mono">${o.uris.length}</span></div>`;
+}
+
+function paintProcessPanel(){
+  const select=$('process-select'),processes=(PROCESS_MODEL&&PROCESS_MODEL.processes)||[];
+  select.innerHTML=processes.map(process=>`<option value="${escapeCode(process.id)}">${escapeCode(process.label)} · ${escapeCode(process.completeness)}</option>`).join('')||'<option value="">No source-grounded processes</option>';
+  if(!processes.some(process=>process.id===PROCESS_SELECTED))PROCESS_SELECTED=processes.find(process=>process.steps.length)?.id||processes[0]?.id||null;
+  select.value=PROCESS_SELECTED||'';
+  const process=selectedProcess(),animation=selectedProcessAnimation(),sequence=processSequence();
+  for(const id of ['btn-process-play','btn-process-pause','btn-process-reset','btn-process-success','btn-process-failure','btn-process-focus'])$(id).disabled=!process;
+  $('btn-process-play').disabled=!animation||!animation.available;
+  $('btn-process-failure').disabled=!animation||!animation.failureStepIds.length;
+  if(!process){
+    $('process-coverage').textContent='unavailable';$('process-ordering').textContent='–';$('process-current').textContent='No canonical process evidence is active.';$('process-steps').innerHTML='';$('process-gaps').innerHTML='';$('process-timing').textContent='';return;
+  }
+  $('process-coverage').innerHTML=`<span class="${process.completeness==='complete'?'ok':process.completeness==='partial'?'warn':'bad'}">${escapeCode(process.completeness)}</span> · ${process.steps.filter(step=>step.evidence.length).length}/${process.steps.length} steps evidenced`;
+  $('process-ordering').textContent=process.ordering;
+  $('process-path').textContent=PROCESS_RUN.outcome+(process.cyclic?' · cyclic':'');
+  const activeId=PROCESS_RUN.started?sequence[Math.min(PROCESS_RUN.stepIndex,Math.max(sequence.length-1,0))]:null;
+  const activeStep=process.steps.find(step=>step.id===activeId);
+  $('process-current').innerHTML=activeStep?`<span class="${activeStep.phase==='recover'?'bad':'ok'}">${escapeCode(activeStep.phase.toUpperCase())}</span> · ${escapeCode(activeStep.label)}`:animation&&animation.available?'ready · press Play':`unavailable · ${escapeCode(animation&&animation.unavailableReason||'no ordered steps')}`;
+  $('process-steps').innerHTML=sequence.map((stepId,index)=>{
+    const item=process.steps.find(step=>step.id===stepId),evidence=item&&item.evidence[0];if(!item)return'';
+    const cls=index<PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'done':index===PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'active':'';
+    return `<div class="process-step ${cls} ${item.phase==='recover'?'recovery':''}"><b>${index+1}. ${escapeCode(item.label)}</b><span class="process-evidence">${escapeCode(item.phase)} · ${evidence?`source page ${evidence.page||'?'} · intent ${evidence.intentId}`:'evidence missing'}</span></div>`;
+  }).join('')||'<div class="process-step">No executable sequence is supported by the source.</div>';
+  $('process-gaps').innerHTML=process.gaps.length?`<div class="warn mono">Known gaps</div>${process.gaps.map(gap=>`<div class="process-step recovery">${escapeCode(gap)}</div>`).join('')}:'';
+  $('process-timing').textContent=(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.disclaimer)||'Domain timing unavailable.';
+}
+
+function stopProcessFrame(){PROCESS_RUN.playing=false;if(PROCESS_FRAME_HANDLE!==null){cancelAnimationFrame(PROCESS_FRAME_HANDLE);PROCESS_FRAME_HANDLE=null;}}
+function resetProcessAnimation(){stopProcessFrame();PROCESS_RUN.started=false;PROCESS_RUN.stepIndex=0;PROCESS_RUN.stepStartedAt=0;paintProcessPanel();render();}
+function processFrame(now){
+  PROCESS_FRAME_HANDLE=null;if(!PROCESS_RUN.playing)return;
+  const sequence=processSequence(),duration=(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.stepDurationMs)||1600;
+  if(!sequence.length){stopProcessFrame();paintProcessPanel();render();return;}
+  if(!PROCESS_RUN.stepStartedAt)PROCESS_RUN.stepStartedAt=now;
+  if(now-PROCESS_RUN.stepStartedAt>=duration){
+    PROCESS_RUN.stepIndex++;
+    const process=selectedProcess();
+    if(PROCESS_RUN.stepIndex>=sequence.length){if(process&&process.cyclic&&PROCESS_RUN.outcome==='success')PROCESS_RUN.stepIndex=0;else{PROCESS_RUN.stepIndex=sequence.length-1;PROCESS_RUN.playing=false;}}
+    PROCESS_RUN.stepStartedAt=now;paintProcessPanel();
+  }
+  render();if(PROCESS_RUN.playing)PROCESS_FRAME_HANDLE=requestAnimationFrame(processFrame);
+}
+function playProcessAnimation(){
+  const animation=selectedProcessAnimation(),sequence=processSequence();if(!animation||!animation.available||!sequence.length)return;
+  PROCESS_RUN.started=true;PROCESS_RUN.playing=true;PROCESS_RUN.stepIndex=Math.min(PROCESS_RUN.stepIndex,sequence.length-1);PROCESS_RUN.stepStartedAt=performance.now();paintProcessPanel();if(PROCESS_FRAME_HANDLE===null)PROCESS_FRAME_HANDLE=requestAnimationFrame(processFrame);
+}
+function focusProcessActors(){
+  const process=selectedProcess();if(!process)return;const visible=OBJECTS.filter(object=>process.componentIds.includes(object.id)&&(object.assetUri||object.prim!=='scope'));if(!visible.length)return;
+  INSPECTION=true;INSPECTION_IDS=new Set(visible.map(object=>object.idx));let mn=[1e9,1e9,1e9],mx=[-1e9,-1e9,-1e9];for(const object of visible)for(let k=0;k<3;k++){mn[k]=Math.min(mn[k],object.pos[k]-object.size[k]/2);mx[k]=Math.max(mx[k],object.pos[k]+object.size[k]/2);}CENTER=[0,1,2].map(k=>(mn[k]+mx[k])/2);RADIUS=Math.max(...[0,1,2].map(k=>mx[k]-mn[k]),.05);cam.dist=Math.max(.18,RADIUS*2.2);$('hud').textContent=`process actors · ${process.label} · presentation only`;render();
 }
 function paintStats(state,events){
   const twinComponents=state.twin?((items=>{const walk=nodes=>nodes.flatMap(node=>[node,...walk(node.children||[])]);return walk(items||[]);})(state.twin.components)):[];
@@ -696,12 +812,20 @@ function paintDslLog(events,dsl){
   $('dsl-log').innerHTML=[...recent,...docs].join('\n\n')||'no DSL artifacts or events yet';
 }
 async function applyState(state,events){
+  PROCESS_MODEL=state.processModel||null;PROCESS_ANIMATION=state.processAnimation||null;
   OBJECTS=await buildObjects(state);
   if(!queryFocusApplied){const requested=new URLSearchParams(location.search).get('focus'),index=OBJECTS.findIndex(object=>object.id===requested);if(index>=0){SELECTED=index;focusObject(OBJECTS[index]);}queryFocusApplied=true;}
-  paintLegend();paintList();paintStats(state,events);showSelected();render();
+  paintLegend();paintList();paintStats(state,events);paintProcessPanel();showSelected();render();
 }
 $('btn-overview').onclick=()=>frameOverview();
 $('btn-focus').onclick=()=>focusObject(SELECTED===null?null:OBJECTS[SELECTED]);
+$('process-select').onchange=event=>{PROCESS_SELECTED=event.target.value||null;resetProcessAnimation();};
+$('btn-process-play').onclick=()=>playProcessAnimation();
+$('btn-process-pause').onclick=()=>{stopProcessFrame();paintProcessPanel();render();};
+$('btn-process-reset').onclick=()=>resetProcessAnimation();
+$('btn-process-success').onclick=()=>{PROCESS_RUN.outcome='success';resetProcessAnimation();};
+$('btn-process-failure').onclick=()=>{PROCESS_RUN.outcome='failure';resetProcessAnimation();};
+$('btn-process-focus').onclick=()=>focusProcessActors();
 $('btn-iterate').onclick=async()=>{
   const b=$('btn-iterate');b.disabled=true;b.textContent='Iterating…';
   const started=Date.now(); console.info('[digital-twin] iteration:start',{at:new Date().toISOString()}); notify('iteration started…','');
@@ -763,7 +887,7 @@ new ResizeObserver(()=>render()).observe(canvas);
 refresh();
 // Do not replace GPU buffers while an operator records or inspects a focused asset.
 // Overview resumes live polling; TwinState freshness is still re-evaluated server-side.
-setInterval(()=>{if(!INSPECTION)void refresh();},5000);
+setInterval(()=>{if(!INSPECTION&&!PROCESS_RUN.playing)void refresh();},5000);
 </script>
 </body>
 </html>

@@ -8,7 +8,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AssemblyReport, LlmMode, PhysicalEvidenceDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
+import type { AssemblyReport, LlmMode, PhysicalEvidenceDocument, ProcessAnimationDocument, ProcessDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
 import { LivingProjectRuntime } from "../runtime/living-project.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
@@ -101,7 +101,7 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl", "improvement.dsl"]) {
+  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "process.dsl", "process-animation.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl", "improvement.dsl"]) {
     try { const content=(await readFile(join(current, name), "utf8")).slice(0, 120_000);if(content.trim())documents.push({ name, content }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }
@@ -215,6 +215,8 @@ interface DashboardState {
     twin: TwinDocument | null;
     twinState: TwinStateDocument | null;
     assemblyReport: AssemblyReport | null;
+    processModel: ProcessDocument | null;
+    processAnimation: ProcessAnimationDocument | null;
     scene: SceneDocument | null;
     geometryValidation: unknown;
     geometryBuilds: unknown;
@@ -232,6 +234,8 @@ interface DashboardState {
     twin: TwinDocument | null;
     twinState: TwinStateDocument | null;
     assemblyReport: AssemblyReport | null;
+    processModel: ProcessDocument | null;
+    processAnimation: ProcessAnimationDocument | null;
     scene: SceneDocument | null;
     geometryValidation: unknown;
     geometryBuilds: unknown;
@@ -240,6 +244,8 @@ interface DashboardState {
   twin: TwinDocument | null;
   twinState: TwinStateDocument | null;
   assemblyReport: AssemblyReport | null;
+  processModel: ProcessDocument | null;
+  processAnimation: ProcessAnimationDocument | null;
   candidateTwin: TwinDocument | null;
   scene: SceneDocument | null;
   report: unknown;
@@ -279,13 +285,17 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   }
 
   async function state(): Promise<DashboardState> {
-    const [twin, candidateTwin, twinState, candidateTwinState, currentAssemblyReport, candidateAssemblyReport, scene, candidateScene, report, currentGeometryValidation, candidateGeometryValidation, currentGeometryBuilds, candidateGeometryBuilds, currentProjectIntegrity, candidateProjectIntegrity, observations, iteration] = await Promise.all([
+    const [twin, candidateTwin, twinState, candidateTwinState, currentAssemblyReport, candidateAssemblyReport, processModel, candidateProcessModel, processAnimation, candidateProcessAnimation, scene, candidateScene, report, currentGeometryValidation, candidateGeometryValidation, currentGeometryBuilds, candidateGeometryBuilds, currentProjectIntegrity, candidateProjectIntegrity, observations, iteration] = await Promise.all([
       readJson<TwinDocument>(join(current, "twin.json")),
       readJson<TwinDocument>(join(dirname(current), "candidate", "twin.json")),
       readJson<TwinStateDocument>(join(current, "twin-state.json")),
       readJson<TwinStateDocument>(join(dirname(current), "candidate", "twin-state.json")),
       readJson<AssemblyReport>(join(current, "assembly-report.json")),
       readJson<AssemblyReport>(join(dirname(current), "candidate", "assembly-report.json")),
+      readJson<ProcessDocument>(join(current, "process.json")),
+      readJson<ProcessDocument>(join(dirname(current), "candidate", "process.json")),
+      readJson<ProcessAnimationDocument>(join(current, "process-animation.json")),
+      readJson<ProcessAnimationDocument>(join(dirname(current), "candidate", "process-animation.json")),
       readJson<SceneDocument>(join(current, "scene.json")),
       readJson<SceneDocument>(join(dirname(current), "candidate", "scene.json")),
       readJson(join(current, "physical-evidence.report.json")),
@@ -309,7 +319,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
       revisionUri:twin?contentUri("twin",twin):null,
       sceneRevisionUri:scene?contentUri("scene",scene):null,
       sourceSnapshotHash:twin?.sourceSnapshotHash??null,
-      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,scene,
+      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,processModel,processAnimation,scene,
       geometryValidation:currentGeometryValidation,
       geometryBuilds:currentGeometryBuilds,
       projectIntegrity:currentProjectIntegrity,
@@ -322,7 +332,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
       sceneRevisionUri:candidateScene?contentUri("scene",candidateScene):null,
       sourceSnapshotHash:candidateTwin?.sourceSnapshotHash??null,
       validation:latest?.validation??null,
-      twin:candidateTwin,twinState:evaluatedCandidateTwinState,assemblyReport:candidateAssemblyReport,scene:candidateScene,
+      twin:candidateTwin,twinState:evaluatedCandidateTwinState,assemblyReport:candidateAssemblyReport,processModel:candidateProcessModel,processAnimation:candidateProcessAnimation,scene:candidateScene,
       geometryValidation:candidateGeometryValidation,
       geometryBuilds:candidateGeometryBuilds,
       projectIntegrity:candidateProjectIntegrity,
@@ -330,7 +340,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
     return {
       control:{mode:readOnly?"read-only":"writer",mutationsEnabled:!readOnly},
       active,latestCandidate,
-      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,candidateTwin,scene,report,
+      twin,twinState:evaluatedTwinState,assemblyReport:currentAssemblyReport,processModel,processAnimation,candidateTwin,scene,report,
       // Compatibility fields describe the scene actually rendered. Candidate diagnostics
       // have a dedicated namespace above and therefore cannot silently colour ACTIVE red.
       geometryValidation:currentGeometryValidation,

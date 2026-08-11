@@ -241,7 +241,7 @@ export interface TwinBuildReceipt {
   generatedAt: string;
 }
 
-export type LivingStageName = "preflight" | "research" | "development" | "runtime" | "reasoning" | "geometry" | "assembly" | "twin" | "scene" | "improvement" | "feedback";
+export type LivingStageName = "preflight" | "research" | "development" | "runtime" | "reasoning" | "geometry" | "assembly" | "process" | "twin" | "scene" | "improvement" | "feedback";
 export interface LivingIterationReceipt {
   schema: "subactor.living-iteration/v2";
   projectId: string;
@@ -265,6 +265,8 @@ export interface LivingIterationReceipt {
   observationUri: string;
   twinStateUri?: string;
   assemblyReportUri?: string;
+  processUri?: string;
+  processAnimationUri?: string;
   twinUri: string;
   sceneUri: string;
   improvementUri: string;

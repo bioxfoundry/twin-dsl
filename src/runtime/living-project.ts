@@ -20,6 +20,8 @@ import type {
   MathDocument,
   ObservationDocument,
   PhysicalEvidenceReport,
+  ProcessAnimationDocument,
+  ProcessDocument,
   ProjectIntegrityReport,
   ObservationRecord,
   ResourceDiff,
@@ -84,6 +86,9 @@ import { analyzeAssemblies, renderAssemblyReportDsl } from "./assembly.js";
 import { renderStartDocument, startDocumentPath, type StartValidationSummary } from "./start-document.js";
 import { inspectPresentationEvidence, presentationDirectoryFingerprint, renderPresentationEvidenceDsl } from "./presentation-evidence.js";
 import { loadSourceCoverage } from "./source-coverage.js";
+import { deriveBiofoundryProcesses } from "./process-model.js";
+import { compileProcessAnimation, renderProcessAnimationDsl } from "./process-animation.js";
+import { renderProcessDsl } from "../dsl/process.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -621,6 +626,12 @@ export class LivingProjectRuntime {
     const assemblyReport:AssemblyReport|undefined = assemblyDocument
       ? analyzeAssemblies({projectId:project.id,document:assemblyDocument,twin,scene,allowedAssetUris:resources.map((resource)=>resource.uri)})
       : undefined;
+    const processModel:ProcessDocument|undefined = project.profile === "biofoundry"
+      ? deriveBiofoundryProcesses({projectId:project.id,sourceSnapshotHash:researchHash,intents:intentLoad.evidence,twin})
+      : undefined;
+    const processAnimation:ProcessAnimationDocument|undefined = processModel
+      ? compileProcessAnimation(processModel,scene)
+      : undefined;
 
     const allowed = evaluateMath(math,"IterationAllowed") === true && intentDsl.invalid === 0;
     const scenePolicyAllowed = evaluateMath(math,"ScenePublishAllowed") === true && intentDsl.invalid === 0;
@@ -700,6 +711,12 @@ export class LivingProjectRuntime {
       await writeJson(join(candidate,"assembly-report.json"),assemblyReport);
       await writeFile(join(candidate,"assembly-report.dsl"),renderAssemblyReportDsl(assemblyReport));
     }
+    if(processModel && processAnimation) {
+      await writeJson(join(candidate,"process.json"),processModel);
+      await writeFile(join(candidate,"process.dsl"),renderProcessDsl(processModel));
+      await writeJson(join(candidate,"process-animation.json"),processAnimation);
+      await writeFile(join(candidate,"process-animation.dsl"),renderProcessAnimationDsl(processAnimation));
+    }
     await writeJson(join(candidate,"twin.json"),twin);
     await writeJson(join(candidate,"scene.json"),scene);
     await writeFile(join(candidate,"scene.usda"),renderOpenUsd(scene,twin));
@@ -718,7 +735,7 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings,notices:scanned.notices});
 
-    const artifactNames = ["project.json","resources.json",...(hasSourceCoverage?["source-coverage-index.json"]:[]),"archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
+    const artifactNames = ["project.json","resources.json",...(hasSourceCoverage?["source-coverage-index.json"]:[]),"archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),...(processModel&&processAnimation?["process.json","process.dsl","process-animation.json","process-animation.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
     if(publish) {
       const current = join(outDir,"current");
       await mkdir(current,{recursive:true});
@@ -732,12 +749,14 @@ export class LivingProjectRuntime {
     const observationUri = contentUri("observation",observation);
     const twinStateUri = twinState ? contentUri("twin-state",twinState) : undefined;
     const assemblyReportUri = assemblyReport ? contentUri("assembly-report",assemblyReport) : undefined;
+    const processUri = processModel ? contentUri("process",processModel) : undefined;
+    const processAnimationUri = processAnimation ? contentUri("process-animation",processAnimation) : undefined;
     const twinUri = contentUri("twin",twin);
     const sceneUri = contentUri("scene",scene);
     const improvementUri = contentUri("improvement",improvement);
     const iterationId = randomUUID();
     const idempotencyKey = sha256(canonicalJson({projectId:project.id,stableKey,previousIterationUri:previous?.iterationUri??null}));
-    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinStateUri:twinStateUri??null,assemblyReportUri:assemblyReportUri??null,twinUri,sceneUri,improvementUri};
+    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinStateUri:twinStateUri??null,assemblyReportUri:assemblyReportUri??null,processUri:processUri??null,processAnimationUri:processAnimationUri??null,twinUri,sceneUri,improvementUri};
     const iterationUri = contentUri("iteration",iterationCore);
 
     const receipt:LivingIterationReceipt = {
@@ -762,6 +781,8 @@ export class LivingProjectRuntime {
       observationUri,
       twinStateUri,
       assemblyReportUri,
+      processUri,
+      processAnimationUri,
       twinUri,
       sceneUri,
       improvementUri,
@@ -776,6 +797,7 @@ export class LivingProjectRuntime {
         {name:"reasoning",status:allowed?"succeeded":"blocked",artifactUris:[mathUri],reason:allowed?undefined:"IterationAllowed=false"},
         {name:"geometry",status:geometryBuildFailures.length?"blocked":"succeeded",artifactUris:geometryMaterializations.flatMap(item=>Object.values(item.receipt.artifacts).map(artifact=>artifact.uri)),reason:geometryBuildFailures[0]},
         {name:"assembly",status:assemblyReport?.ok===false?"blocked":"succeeded",artifactUris:assemblyReportUri?[assemblyReportUri]:[],reason:assemblyReport?.ok===false?"AssemblyValidationFailed":undefined},
+        {name:"process",status:processModel?"succeeded":"skipped",artifactUris:[...(processUri?[processUri]:[]),...(processAnimationUri?[processAnimationUri]:[])],reason:processModel?undefined:"profile has no process projection"},
         {name:"twin",status:allowed?"succeeded":"blocked",artifactUris:[twinUri]},
         {name:"scene",status:publish?"succeeded":"blocked",artifactUris:[sceneUri],reason:publish?undefined:"ScenePublishAllowed=false"},
         {name:"improvement",status:"succeeded",artifactUris:[improvementUri]},
@@ -793,6 +815,7 @@ export class LivingProjectRuntime {
       `Runtime observations: ${observation.observations.length}`,
       ...(twinState?[`TwinState bindings: ${twinState.coverage.bindings}; fresh: ${twinState.coverage.fresh}; stale: ${twinState.coverage.stale}; expired: ${twinState.coverage.expired}; unknown: ${twinState.coverage.unknown}`]:[]),
       ...(assemblyReport?[`Assembly completeness: ${assemblyReport.coverage.completeAssemblies}/${assemblyReport.coverage.assemblies}; required parts: ${assemblyReport.coverage.completeRequiredParts}/${assemblyReport.coverage.requiredParts}`]:[]),
+      ...(processModel?[`ProcessDSL coverage: ${processModel.coverage.complete}/${processModel.coverage.processes} complete; ${processModel.coverage.partial} partial; ${processModel.coverage.declaredOnly} declared-only; steps ${processModel.coverage.evidencedSteps}/${processModel.coverage.steps} evidenced.`]:[]),
       `Archive projects: ${scanned.archiveAnalyses.length}; materializable geometry entries: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.materializableGeometryEntries,0)}; unsupported CAD entries: ${scanned.archiveAnalyses.reduce((sum,item)=>sum+item.coverage.unsupportedCadEntries,0)}`,
       `IntentDSL packs: ${intentDsl.packs}; records: ${intentDsl.records}; invalid: ${intentDsl.invalid}`,
       "",
@@ -854,7 +877,7 @@ export class LivingProjectRuntime {
       intentId:intentUri,
       correlationId:iterationId,
       traceId,
-      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,...(twinStateUri?[twinStateUri]:[]),...(assemblyReportUri?[assemblyReportUri]:[]),twinUri,sceneUri,improvementUri],
+      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,...(twinStateUri?[twinStateUri]:[]),...(assemblyReportUri?[assemblyReportUri]:[]),...(processUri?[processUri]:[]),...(processAnimationUri?[processAnimationUri]:[]),twinUri,sceneUri,improvementUri],
       payload:{iterationUri,validation:receipt.validation,authorityWarnings},
     };
     await appendJsonLine(join(outDir,"events.jsonl"),event);

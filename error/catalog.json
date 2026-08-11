@@ -4943,6 +4943,201 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "PROCESS_ANIMATION_COMPONENT_MISSING",
+      "title": "Process animation component missing",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "An animation effect references a component that is absent from the accepted SceneDSL.",
+      "causes": [
+        "the process model and scene were generated from different project revisions",
+        "a process actor was renamed or omitted while its animation binding remained"
+      ],
+      "impact": "The animation candidate is rejected, so the dashboard cannot present a misleading effect on another object.",
+      "resolution": "Use the component id in the error detail to repair the process actor or SceneDSL binding, regenerate both artifacts from one revision, and validate again."
+    },
+    {
+      "code": "PROCESS_ANIMATION_INVALID",
+      "title": "Process animation invalid",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The process animation input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "PROCESS_ANIMATION_TIMING_INVALID",
+      "title": "Process animation timing invalid",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The process animation timing input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "PROCESS_COMPLETE_WITH_GAPS",
+      "title": "Process complete with gaps",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A process is marked complete while still declaring missing source evidence or unresolved implementation gaps.",
+      "causes": [
+        "completeness was promoted without resolving every recorded gap",
+        "a source update removed evidence used by an earlier complete model"
+      ],
+      "impact": "The process document is rejected instead of overstating what the supplied materials prove.",
+      "resolution": "Either attach evidence for every required step and remove the gaps, or downgrade completeness to partial or declared-only before regenerating."
+    },
+    {
+      "code": "PROCESS_COMPONENT_MISSING",
+      "title": "Process component missing",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "A source-grounded process step references a device or work-area component that is absent from TwinDSL.",
+      "causes": [
+        "the source describes equipment not yet represented in TwinDSL",
+        "the component identifier drifted between the process and twin models"
+      ],
+      "impact": "Process publication and animation stop because the intended actor cannot be bound to a real twin component.",
+      "resolution": "Add the evidenced component to TwinDSL or correct the stale actor id, then regenerate ProcessDSL against the accepted twin."
+    },
+    {
+      "code": "PROCESS_DETAIL_DECLARED_ONLY",
+      "title": "Process detail declared only",
+      "subsystem": "process",
+      "defaultSeverity": "warning",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The materials name a process capability but do not provide an ordered, executable protocol for it.",
+      "causes": [
+        "the study contains only a capability declaration or demonstration claim",
+        "the detailed SOP, parameters, transitions or safety conditions are not present in the ingested evidence"
+      ],
+      "impact": "The capability remains visible, but no step animation or executable behavior is generated from invented details.",
+      "resolution": "Ingest and review the missing protocol or SOP, link its intent records, then promote the process to partial or complete only after validation."
+    },
+    {
+      "code": "PROCESS_DSL_INVALID",
+      "title": "Process dsl invalid",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The process dsl input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "PROCESS_EVIDENCE_MISSING",
+      "title": "Process evidence missing",
+      "subsystem": "process",
+      "defaultSeverity": "warning",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The process cannot be described at the requested fidelity because one or more required source facts were not found.",
+      "causes": [
+        "the supplied document does not specify the missing step, parameter or relationship",
+        "conversion, OCR or intent extraction omitted the relevant source fragment"
+      ],
+      "impact": "The process is explicitly partial and the missing behavior is excluded from executable or animated semantics.",
+      "resolution": "Follow the reported gap to the binary source and Markdown mirror, improve deterministic extraction if evidence exists, or add the missing reviewed material."
+    },
+    {
+      "code": "PROCESS_ID_DUPLICATE",
+      "title": "Process id duplicate",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The process id evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "PROCESS_ORDERING_UNEVIDENCED",
+      "title": "Process ordering unevidenced",
+      "subsystem": "process",
+      "defaultSeverity": "info",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "Displayed steps are arranged for presentation, but the source does not prove that they form an operational sequence.",
+      "causes": [
+        "the source describes functions independently rather than as a protocol",
+        "a process twin is named without explicit transition or ordering evidence"
+      ],
+      "impact": "The dashboard may illustrate related functions, but the order is labelled presentation-only and cannot drive devices.",
+      "resolution": "Provide an approved ordered protocol with transition evidence; until then keep orderingBasis set to presentation-only."
+    },
+    {
+      "code": "PROCESS_STEP_ID_DUPLICATE",
+      "title": "Process step id duplicate",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The process step id evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "PROCESS_TIMING_UNSPECIFIED",
+      "title": "Process timing unspecified",
+      "subsystem": "process",
+      "defaultSeverity": "info",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The source does not specify laboratory durations for the modeled process steps.",
+      "causes": [
+        "the study describes logic and data flow without cycle-time parameters",
+        "device-specific timing belongs to an SOP or machine configuration not present in the corpus"
+      ],
+      "impact": "Animation uses normalized display timing that must not be interpreted as real execution time or device control.",
+      "resolution": "Add reviewed timing evidence to the process source; until then preserve factualProcessDuration=false and the dashboard disclaimer."
+    },
+    {
+      "code": "PROCESS_TRANSITION_INVALID",
+      "title": "Process transition invalid",
+      "subsystem": "process",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The process transition input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
       "code": "PROJECT_AUTONOMY_MODE_INVALID",
       "title": "Project autonomy mode invalid",
       "subsystem": "project",

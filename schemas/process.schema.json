@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.process/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "projectId", "sourceSnapshotHash", "processes", "coverage", "findings"],
+  "properties": {
+    "schema": {"const": "subactor.process/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "projectId": {"type": "string", "minLength": 1},
+    "sourceSnapshotHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "processes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "label", "kind", "completeness", "ordering", "cyclic", "componentIds", "steps", "evidence", "gaps"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["manipulation", "optimization", "cultivation", "imaging", "sample-preparation", "synthesis", "cloning"]},
+          "completeness": {"enum": ["complete", "partial", "declared-only"]},
+          "ordering": {"enum": ["source", "presentation-only", "declared-only"]},
+          "cyclic": {"type": "boolean"},
+          "entryStepId": {"type": "string", "minLength": 1},
+          "successStepId": {"type": "string", "minLength": 1},
+          "failureStepId": {"type": "string", "minLength": 1},
+          "componentIds": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["id", "label", "phase", "componentIds", "interactions", "transitions", "evidence", "gaps"],
+              "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "label": {"type": "string", "minLength": 1},
+                "phase": {"enum": ["validate", "plan", "command", "operate", "observe", "update", "optimize", "recover"]},
+                "componentIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "interactions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["kind", "componentIds"],
+                    "properties": {
+                      "kind": {"enum": ["validation", "command", "operation", "observation", "state-update", "safety"]},
+                      "componentIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                      "fromComponentId": {"type": "string", "minLength": 1},
+                      "toComponentId": {"type": "string", "minLength": 1},
+                      "property": {"type": "string", "minLength": 1},
+                      "state": {"type": "string", "minLength": 1}
+                    }
+                  }
+                },
+                "transitions": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "success": {"type": "string", "minLength": 1},
+                    "failure": {"type": "string", "minLength": 1}
+                  }
+                },
+                "evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["intentId", "intentUri", "sourceUri", "artifactUri", "revisionHash", "excerpt"],
+                    "properties": {
+                      "intentId": {"type": "string", "minLength": 1},
+                      "intentUri": {"type": "string", "minLength": 1},
+                      "sourceUri": {"type": "string", "minLength": 1},
+                      "artifactUri": {"type": "string", "minLength": 1},
+                      "revisionHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+                      "fragment": {"type": "string"},
+                      "page": {"type": "integer", "minimum": 1},
+                      "artifactUrn": {"type": "string"},
+                      "excerpt": {"type": "string", "minLength": 1}
+                    }
+                  }
+                },
+                "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["intentId", "intentUri", "sourceUri", "artifactUri", "revisionHash", "excerpt"],
+              "properties": {
+                "intentId": {"type": "string", "minLength": 1},
+                "intentUri": {"type": "string", "minLength": 1},
+                "sourceUri": {"type": "string", "minLength": 1},
+                "artifactUri": {"type": "string", "minLength": 1},
+                "revisionHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+                "fragment": {"type": "string"},
+                "page": {"type": "integer", "minimum": 1},
+                "artifactUrn": {"type": "string"},
+                "excerpt": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["processes", "complete", "partial", "declaredOnly", "steps", "evidencedSteps", "missingEvidence", "missingComponents"],
+      "properties": {
+        "processes": {"type": "integer", "minimum": 0},
+        "complete": {"type": "integer", "minimum": 0},
+        "partial": {"type": "integer", "minimum": 0},
+        "declaredOnly": {"type": "integer", "minimum": 0},
+        "steps": {"type": "integer", "minimum": 0},
+        "evidencedSteps": {"type": "integer", "minimum": 0},
+        "missingEvidence": {"type": "integer", "minimum": 0},
+        "missingComponents": {"type": "integer", "minimum": 0}
+      }
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["code", "severity", "message", "resolution"],
+        "properties": {
+          "code": {"type": "string", "minLength": 1},
+          "severity": {"enum": ["info", "warning", "error"]},
+          "processId": {"type": "string"},
+          "stepId": {"type": "string"},
+          "componentId": {"type": "string"},
+          "message": {"type": "string", "minLength": 1},
+          "resolution": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

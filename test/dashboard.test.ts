@@ -62,6 +62,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
     latestCandidate: unknown;
     twin: TwinDocument;
     scene: SceneDocument;
+    processModel: { schema: string; coverage: { processes: number } };
+    processAnimation: { schema: string; timing: { factualProcessDuration: boolean; mode: string } };
     projectIntegrity: { schema: string; ok: boolean };
   };
   assert.ok(state.twin.components.length > 0, "no twin components served");
@@ -69,6 +71,10 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.equal(state.scene.bindings.length, flatten(state.twin.components).length);
   assert.equal(state.scene.sourceTwinId, state.twin.id);
   assert.equal(state.projectIntegrity.schema, "subactor.project-integrity/v1");
+  assert.equal(state.processModel.schema, "subactor.process/v1");
+  assert.equal(state.processAnimation.schema, "subactor.process-animation/v1");
+  assert.equal(state.processAnimation.timing.factualProcessDuration, false);
+  assert.equal(state.processAnimation.timing.mode, "normalized-presentation");
   assert.equal(state.active.status, "accepted");
   assert.match(state.active.revisionUri, /^urn:subactor:twin:sha256:/);
   assert.equal(state.active.sourceSnapshotHash, state.twin.sourceSnapshotHash);
@@ -87,7 +93,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /latest\.occurredAt\|\|latest\.recordedAt/);
   assert.match(dashboardHtml, /orientation:b\.orientation/);
   assert.match(dashboardHtml, /normalizeAssetMesh/);
-  assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size,o\.orientation\)/);
+  assert.match(dashboardHtml, /M4\.trs\(o\.pos,o\.size\.map\(value=>value\*visual\.scale\),o\.orientation\)/);
   assert.match(dashboardHtml, /const spatialVolume=/);
   assert.match(dashboardHtml, /candidate rejected · active preserved/);
   assert.match(dashboardHtml, /position:\[7\.5,9,1\.6\]/);
@@ -99,6 +105,14 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /id="s-unique-mesh"/);
   assert.match(dashboardHtml, /id="a-validation"/);
   assert.match(dashboardHtml, /state\.assemblyReport/);
+  assert.match(dashboardHtml, /id="process-select"/);
+  assert.match(dashboardHtml, /id="btn-process-play"/);
+  assert.match(dashboardHtml, /Success path/);
+  assert.match(dashboardHtml, /Failure path/);
+  assert.match(dashboardHtml, /function processVisual/);
+  assert.match(dashboardHtml, /presentation only/);
+  assert.match(dashboardHtml, /PROCESS_MODEL=state\.processModel/);
+  assert.match(dashboardHtml, /state\.processAnimation/);
   assert.match(dashboardHtml, /canvas\.captureStream\(30\)/);
   assert.match(dashboardHtml, /OES_element_index_uint/);
   assert.match(dashboardHtml, /drawElements\(gl\.TRIANGLES/);
@@ -152,6 +166,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.ok(dslLog.documents.some((document) => document.name === "project-integrity.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "presentation-evidence.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "process.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "process-animation.dsl"));
   assert.equal(dslLog.documents.some((document) => document.name.startsWith("latest-candidate/")),false,"an accepted staging directory is not a rejected candidate");
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
   const dashboardLog = await readFile(join(created.projectDir, "logs/dashboard-0.log"), "utf8");

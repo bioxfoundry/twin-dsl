@@ -15,8 +15,13 @@ import { validatePhysicalEvidence } from "../src/scene/physical-evidence.js";
 import { validateGeometryBuild } from "../src/geometry/build-contract.js";
 import { validateLiveBinding } from "../src/dsl/live-binding.js";
 import { validateAssembly } from "../src/dsl/assembly.js";
+import { validateProcessDocument } from "../src/dsl/process.js";
 import { validateSourceCoverage } from "../src/runtime/source-coverage.js";
+import { deriveBiofoundryProcesses } from "../src/runtime/process-model.js";
+import { compileProcessAnimation, validateProcessAnimation } from "../src/runtime/process-animation.js";
 import { buildSourceCoverage } from "../js/f2md/src/source-coverage.js";
+import { canonicalIntents, COMPONENT_IDS, twin } from "./fixtures/process-fixture.js";
+import type { SceneDocument } from "../src/core/types.js";
 
 const schemasDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "schemas");
 async function schema(name: string): Promise<unknown> {
@@ -360,6 +365,49 @@ test("source coverage schema accepts the emitted contract and runtime verifies c
   tamperedHash.coverageSha256 = "c".repeat(64);
   assert.equal(matchesJsonSchema(await schema("source-coverage.schema.json"), tamperedHash), true);
   assert.equal(accepts(validateSourceCoverage, tamperedHash), false, "runtime must verify the canonical report hash");
+});
+
+test("process and animation schemas accept emitted documents and reject contract drift", async () => {
+  const processes = deriveBiofoundryProcesses({
+    projectId: "biofoundry",
+    sourceSnapshotHash: "d".repeat(64),
+    intents: canonicalIntents(),
+    twin: twin(),
+  });
+  const scene: SceneDocument = {
+    schema: "subactor.scene/v1",
+    id: "process-schema-scene",
+    format: "openusd",
+    sourceTwinId: "test-twin",
+    bindings: COMPONENT_IDS.map((componentId, index) => ({
+      twinUri: `urn:test#${componentId}`,
+      componentId,
+      scenePath: `/Biofoundry/${componentId}`,
+      primitive: "cube",
+      position: [index, 0, 0],
+      size: [1, 1, 1],
+      propertyMap: {},
+    })),
+  };
+  const animation = compileProcessAnimation(processes, scene);
+  const badProcessKind = structuredClone(processes) as unknown as { processes: Array<{ kind: string }> };
+  badProcessKind.processes[0].kind = "invented";
+  const factualAnimation = structuredClone(animation) as unknown as { timing: { factualProcessDuration: boolean } };
+  factualAnimation.timing.factualProcessDuration = true;
+
+  await assertNoDrift("process.schema.json", validateProcessDocument, [
+    { name: "emitted process", document: processes },
+    { name: "unknown process kind", document: badProcessKind },
+  ]);
+  await assertNoDrift("process-animation.schema.json", (value) => validateProcessAnimation(value, processes, scene), [
+    { name: "emitted animation", document: animation },
+    { name: "animation falsely claims factual timing", document: factualAnimation },
+  ]);
+
+  const brokenTransition = structuredClone(processes);
+  brokenTransition.processes[0].steps[0].transitions.success = "unknown-step";
+  assert.equal(matchesJsonSchema(await schema("process.schema.json"), brokenTransition), true, "JSON Schema cannot express graph reachability");
+  assert.equal(accepts(validateProcessDocument, brokenTransition), false, "runtime must enforce graph reachability");
 });
 
 test("every shipped schema uses only the supported vocabulary", async () => {
