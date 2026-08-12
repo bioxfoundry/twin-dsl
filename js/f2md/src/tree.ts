@@ -86,6 +86,48 @@ export async function walkFiles(root: string): Promise<string[]> {
   return out;
 }
 
+async function conversionFiles(root: string): Promise<string[]> {
+  const excludedTargets = new Set<string>();
+  let hasArchivePolicy = false;
+  try {
+    const manifest = JSON.parse(await readFile(join(root, "ARCHIVE_EXTRACTION_MANIFEST.json"), "utf8")) as {
+      schema?: unknown;
+      archives?: Array<{ target?: unknown; targetPreexisted?: unknown }>;
+    };
+    if (manifest.schema === "bioxfoundry.archive-extraction-manifest/v1" && Array.isArray(manifest.archives)) {
+      hasArchivePolicy = true;
+      for (const archive of manifest.archives) {
+        if (archive.targetPreexisted === false && typeof archive.target === "string" && archive.target) {
+          excludedTargets.add(archive.target.replaceAll("\\", "/").replace(/^\.\//, "").replace(/\/$/, ""));
+        }
+      }
+    }
+  } catch {
+    // Ordinary trees do not need an archive policy.
+  }
+  return (await walkFiles(root)).filter((path) => {
+    const rel = relative(root, path).split(sep).join("/");
+    if (["ARCHIVE_EXTRACTION_MANIFEST.json", "ARCHIVE_EXTRACTION_REPORT.md"].includes(rel)) return false;
+    if (hasArchivePolicy && rel.split("/").some((part) => part.endsWith(".extracted"))) return false;
+    return ![...excludedTargets].some((target) => rel.startsWith(`${target}/`));
+  });
+}
+
+async function mirrorFiles(root: string, current = root): Promise<string[]> {
+  if (current !== root && (await stat(join(current, "VERSION")).catch(() => null))?.isFile()) return [];
+  const out: string[] = [];
+  const entries = (await readdir(current, { withFileTypes: true })).sort((a, b) => a.name.localeCompare(b.name));
+  for (const entry of entries) {
+    if (entry.name.startsWith(".")) continue;
+    const path = join(current, entry.name);
+    if (entry.isDirectory()) {
+      if (SKIP_DIRS.has(entry.name)) continue;
+      out.push(...await mirrorFiles(root, path));
+    } else if (entry.isFile()) out.push(path);
+  }
+  return out;
+}
+
 async function treeSnapshot(root: string, paths: string[]): Promise<string> {
   const digest = createHash("sha256");
   const ordered = [...paths].sort((left, right) => Buffer.compare(
@@ -104,7 +146,7 @@ async function treeSnapshot(root: string, paths: string[]): Promise<string> {
 
 async function writeVersion(source: string, target: string, sourcePaths: string[]): Promise<void> {
   // A mirror can coexist with operational output. Only conversion-contract files are payloads.
-  const generated = await walkFiles(target);
+  const generated = await mirrorFiles(target);
   const inArtifactStore = (path: string): boolean =>
     relative(target, path).split(sep).slice(0, -1)
       .some((part) => part.endsWith(".artifacts") || part.endsWith(".assets"));
@@ -285,7 +327,7 @@ export async function convertTree(src: string, out: string, options: TreeOptions
     sourceCoverageJson: "source-coverage.json",
     sourceCoverageDsl: "source-coverage.dsl",
   };
-  const paths = options.manifestPath ? await selectedFiles(source, options.manifestPath) : await walkFiles(source);
+  const paths = options.manifestPath ? await selectedFiles(source, options.manifestPath) : await conversionFiles(source);
   const coverageRecords: SourceCoverageRecord[] = [];
 
   for (let index = 0; index < paths.length; index++) {

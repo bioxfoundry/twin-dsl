@@ -66,7 +66,7 @@ def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
 
     # A mirror can share its directory with runtime receipts or reports.  Only Markdown
     # payloads are conversion output, so unrelated operational files cannot alter this version.
-    generated_paths = list(walk_files(root))
+    generated_paths = list(mirror_files(root))
 
     # Markdown previews inside the ArtifactStore are sidecars, not mirror documents. Keep them in
     # the output snapshot once via ``asset_paths`` without inflating OUTPUT_FILES or double-hashing.
@@ -103,10 +103,10 @@ def _write_version(source: str, root: str, source_paths: Sequence[str]) -> None:
 
 def refresh_version(source: str, root: str) -> Dict[str, int]:
     """Refresh the mirror identity without reconverting its already-reviewed Markdown files."""
-    source_paths = list(walk_files(os.path.abspath(source)))
+    source_paths = conversion_files(os.path.abspath(source))
     absolute_root = os.path.abspath(root)
     output_paths = [
-        path for path in walk_files(absolute_root)
+        path for path in mirror_files(absolute_root)
         if path.endswith(".md") and not _in_generated_artifact_store(absolute_root, path)
     ]
     _write_version(os.path.abspath(source), absolute_root, source_paths)
@@ -202,6 +202,47 @@ def walk_files(root: str) -> Iterator[str]:
             yield os.path.join(directory, name)
 
 
+def conversion_files(root: str) -> List[str]:
+    """Apply the default archive materialization policy for full-corpus conversion."""
+    excluded_targets: set[str] = set()
+    has_archive_policy = False
+    manifest_path = os.path.join(root, "ARCHIVE_EXTRACTION_MANIFEST.json")
+    try:
+        with open(manifest_path, encoding="utf-8") as handle:
+            manifest = json.load(handle)
+        if manifest.get("schema") == "bioxfoundry.archive-extraction-manifest/v1":
+            has_archive_policy = True
+            for archive in manifest.get("archives", []):
+                target = archive.get("target") if isinstance(archive, dict) else None
+                if archive.get("targetPreexisted") is False and isinstance(target, str) and target:
+                    excluded_targets.add(target.replace("\\", "/").removeprefix("./").rstrip("/"))
+    except (OSError, json.JSONDecodeError, AttributeError):
+        pass
+    paths: List[str] = []
+    for path in walk_files(root):
+        relative = os.path.relpath(path, root).replace(os.sep, "/")
+        if relative in {"ARCHIVE_EXTRACTION_MANIFEST.json", "ARCHIVE_EXTRACTION_REPORT.md"}:
+            continue
+        if has_archive_policy and any(part.endswith(".extracted") for part in relative.split("/")):
+            continue
+        if any(relative.startswith(target + "/") for target in excluded_targets):
+            continue
+        paths.append(path)
+    return paths
+
+
+def mirror_files(root: str) -> Iterator[str]:
+    """Walk one conversion root without absorbing nested independently versioned mirrors."""
+    for directory, dirnames, filenames in os.walk(root):
+        if directory != root and os.path.isfile(os.path.join(directory, "VERSION")):
+            dirnames[:] = []
+            continue
+        dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS and not d.startswith("."))
+        for name in sorted(filenames):
+            if not name.startswith("."):
+                yield os.path.join(directory, name)
+
+
 def selected_files(source: str, manifest_path: str) -> List[str]:
     """Load an exact hash-bound source subset; refuse drift and path escapes."""
     try:
@@ -288,7 +329,7 @@ def convert_tree(
 
     chain = chain or default_chain(docling_url)
     result = TreeResult()
-    paths = selected_files(src, manifest_path) if manifest_path else list(walk_files(src))
+    paths = selected_files(src, manifest_path) if manifest_path else conversion_files(src)
     coverage_records: List[Dict[str, Any]] = []
     for index, path in enumerate(paths, 1):
         relative = os.path.relpath(path, src)
