@@ -82,6 +82,53 @@ The dashboard exposes the accepted Twin, Scene, OpenUSD, validation reports, pro
 
 See [Dashboard](docs/DASHBOARD.md), [project documentation export](docs/PROJECT_DOCUMENTATION_EXPORT.md), and [Process DSL and animation](docs/PROCESS_DSL_AND_ANIMATION.md).
 
+### Historical dashboard iterations
+
+The screenshots below are retained as a visual history of dashboard and Scene development. They
+show successive implementation iterations; they are not presentation evidence for the current
+Twin revision unless a `subactor.presentation-evidence/v1` manifest binds the exact image hash to
+the active Twin and Scene URIs.
+
+#### Iteration 1
+
+![Dashboard iteration 1](img.png)
+
+#### Iteration 2
+
+![Dashboard iteration 2](img_1.png)
+
+#### Iteration 3
+
+![Dashboard iteration 3](img_2.png)
+
+#### Iteration 4
+
+![Dashboard iteration 4](img_3.png)
+
+#### Iteration 5
+
+![Dashboard iteration 5](img_4.png)
+
+#### Iteration 6
+
+![Dashboard iteration 6](img_5.png)
+
+#### Iteration 7
+
+![Dashboard iteration 7](img_6.png)
+
+#### Iteration 8
+
+![Dashboard iteration 8](img_7.png)
+
+#### Iteration 9
+
+![Dashboard iteration 9](img_8.png)
+
+#### Iteration 10
+
+![Dashboard iteration 10](img_9.png)
+
 ## Convert source material to Markdown
 
 The Python and JavaScript `f2md` packages normalize PDF, Office, HTML, text, archives, and geometry metadata into Markdown with provenance.
