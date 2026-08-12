@@ -41,6 +41,8 @@ authority: deterministyczne bramki mathDSL + projectDSL + signed-grant policy
     ↓
 Digital Twin: twinDSL → sceneDSL → OpenUSD
     ↓
+analysis trace: citations + decisions + gaps + DSL snapshots → versioned JSON/DSL/Markdown
+    ↓
 feedback + improvementDSL → następna iteracja researchu i developmentu
 ```
 
@@ -51,6 +53,11 @@ System rozdziela trzy pętle:
 3. **execution loop** — aktualizuje Twin i artefakty dopiero po twardych bramkach runtime.
 
 `todo2code` pozostaje kanonicznym Intent Evidence DSL dla poleceń, planów, kodu, Git, dokumentacji i diagnostyki Intent vs Reality. Subactor AQL/OQL/URI Process pozostaje granicą authority i efektów. LLM może proponować DSL, ale nie definiuje bramek bezpieczeństwa i nie wywołuje executorów bezpośrednio.
+
+Każda zmieniona iteracja zapisuje także audytowalny raport `analysis-trace.{json,dsl,md}` oraz
+manifest SHA-256. Raport opisuje jawne wejścia, reguły, wyniki, alternatywy i luki dowodowe; nie
+ujawnia prywatnego toku rozumowania modelu. Bieżące i historyczne lokalizacje oraz reguły retencji
+opisuje [`docs/ANALYSIS_TRACE.md`](docs/ANALYSIS_TRACE.md).
 
 ## Co zmieniło się ostatnio
 

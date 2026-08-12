@@ -1,8 +1,13 @@
 # Changelog
 
-## [Unreleased] - 2026-08-11
+## [Unreleased] - 2026-08-12
 
 ### Added
+- Add deterministic `subactor.analysis-trace/v1` JSON, AnalysisTraceDSL and Markdown reports with
+  bounded source quotations, hash-verified internal links, explicit decisions/alternatives/gaps,
+  generator and input revisions, embedded DSL snapshots and immutable per-iteration history.
+- Expose active analysis reports and verified source Markdown through the dashboard without
+  accepting filesystem paths from HTTP; register every new failure in `error/[code].md`.
 - Add an observe-only MQTT 3.1.1 transport, exact `MqttBindingDSL` URI Process routes,
   validated/idempotent `UriProcessRun` projection, Docker Mosquitto service and live
   process-driven dashboard animation for simulation, shadow and hardware observation sources.

@@ -6,6 +6,7 @@ import type {
   DslGenerationResult,
   AssemblyDocument,
   AssemblyReport,
+  AnalysisTraceDocument,
   DomainEvent,
   GenerationAudit,
   GeometryValidationReport,
@@ -71,7 +72,7 @@ import {
   projectBiofoundryIntentEvidence,
   type GroundedIntentEvidence,
 } from "./biofoundry-concept.js";
-import { RUNTIME_GENERATION } from "../core/generation.js";
+import { RUNTIME_GENERATION, RUNTIME_PACKAGE_VERSION } from "../core/generation.js";
 import { materializeBlueprintScene, materializeBlueprintTwin, validateSceneBlueprint } from "../scene/blueprint.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 import { geometryRequirementsFromTwin, validateGeometry } from "../scene/geometry-validation.js";
@@ -89,6 +90,7 @@ import { loadSourceCoverage } from "./source-coverage.js";
 import { deriveBiofoundryProcesses } from "./process-model.js";
 import { compileProcessAnimation, renderProcessAnimationDsl } from "./process-animation.js";
 import { renderProcessDsl } from "../dsl/process.js";
+import { buildAnalysisTrace, renderAnalysisTraceDsl, renderAnalysisTraceMarkdown, runtimeSourceRevision } from "./analysis-trace.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -735,14 +737,6 @@ export class LivingProjectRuntime {
     await writeFile(join(candidate,"improvement.dsl"),renderImprovementDsl(improvement));
     await writeJson(join(candidate,"generation-audit.json"),{math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings,warnings:scanned.warnings,notices:scanned.notices});
 
-    const artifactNames = ["project.json","resources.json",...(hasSourceCoverage?["source-coverage-index.json"]:[]),"archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),...(processModel&&processAnimation?["process.json","process.dsl","process-animation.json","process-animation.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json"];
-    if(publish) {
-      const current = join(outDir,"current");
-      await mkdir(current,{recursive:true});
-      if(!hasSourceCoverage) await rm(join(current,"source-coverage-index.json"),{force:true});
-      for(const name of artifactNames) await writeFile(join(current,name),await readFile(join(candidate,name)));
-    }
-
     const developmentEvidenceUri = contentUri("development-evidence",developmentEvidence);
     const treeUri = contentUri("tree",tree);
     const mathUri = contentUri("math",math);
@@ -754,9 +748,61 @@ export class LivingProjectRuntime {
     const twinUri = contentUri("twin",twin);
     const sceneUri = contentUri("scene",scene);
     const improvementUri = contentUri("improvement",improvement);
+    const analysisGeneratedAt = new Date().toISOString();
+    const previousTrace = await readOptional<AnalysisTraceDocument>(join(outDir,"current/analysis-trace.json"));
+    const generationAudit = {math:mathGeneration.audit,twin:twinGeneration.audit,scene:sceneGeneration.audit,authorityWarnings};
+    const dslSnapshots:Record<string,string> = {
+      "math.dsl":renderMathDsl(math),
+      ...(processModel?{"process.dsl":renderProcessDsl(processModel)}:{}),
+      ...(processAnimation?{"process-animation.dsl":renderProcessAnimationDsl(processAnimation)}:{}),
+      "geometry-validation.dsl":renderGeometryValidationDsl(geometryReport),
+      "project-integrity.dsl":renderProjectIntegrityDsl(projectIntegrity),
+    };
+    const artifactHashes = Object.fromEntries(Object.entries(dslSnapshots).map(([name,value])=>[name,sha256(value)]));
+    const analysisTrace = buildAnalysisTrace({
+      project,projectConfigHash,generatedAt:analysisGeneratedAt,
+      generator:{name:"@subactor/digital-twin-runtime-starter",packageVersion:RUNTIME_PACKAGE_VERSION,runtimeGeneration:RUNTIME_GENERATION,sourceRevision:await runtimeSourceRevision(),mode},
+      researchSnapshotHash:researchHash,developmentFingerprint,observationSnapshotHash:observationHash,
+      intentDsl:{semanticHash:intentDsl.semanticHash,packs:intentDsl.packs,records:intentDsl.records,invalid:intentDsl.invalid},
+      resources,twin,scene,geometry:geometryReport,assembly:assemblyReport,processes:processModel,processUri,processAnimationUri,
+      generationAudit,groundedIntents:intentLoad.evidence,previousTrace,artifactHashes,
+    });
+    const finalAnalysisTraceDsl = renderAnalysisTraceDsl(analysisTrace);
+    const finalAnalysisTraceMarkdown = renderAnalysisTraceMarkdown(analysisTrace,dslSnapshots);
+    const finalAnalysisTraceUri = contentUri("analysis-trace",analysisTrace);
+    const finalAnalysisTraceJson = JSON.stringify(analysisTrace,null,2)+"\n";
+    const analysisManifest = {
+      schema:"subactor.analysis-trace-manifest/v1",traceUri:finalAnalysisTraceUri,generatedAt:analysisGeneratedAt,
+      artifacts:{
+        "analysis-trace.json":sha256(finalAnalysisTraceJson),
+        "analysis-trace.dsl":sha256(finalAnalysisTraceDsl),
+        "analysis-trace.md":sha256(finalAnalysisTraceMarkdown),
+        ...analysisTrace.artifactHashes,
+      },
+    };
+    await writeFile(join(candidate,"analysis-trace.json"),finalAnalysisTraceJson);
+    await writeFile(join(candidate,"analysis-trace.dsl"),finalAnalysisTraceDsl);
+    await writeFile(join(candidate,"analysis-trace.md"),finalAnalysisTraceMarkdown);
+    await writeJson(join(candidate,"analysis-manifest.json"),analysisManifest);
+    const historyName = `${analysisGeneratedAt.replace(/[:.]/g,"-")}-${finalAnalysisTraceUri.slice(-12)}`;
+    const historyDir = join(outDir,"analysis-history",historyName);
+    await mkdir(historyDir,{recursive:true});
+    await writeFile(join(historyDir,"analysis-trace.json"),finalAnalysisTraceJson);
+    await writeFile(join(historyDir,"analysis-trace.dsl"),finalAnalysisTraceDsl);
+    await writeFile(join(historyDir,"analysis-trace.md"),finalAnalysisTraceMarkdown);
+    await writeJson(join(historyDir,"analysis-manifest.json"),analysisManifest);
+    for(const [name,value] of Object.entries(dslSnapshots)) await writeFile(join(historyDir,name),value);
+    await writeJson(join(outDir,"analysis-history","latest.json"),{schema:"subactor.analysis-trace-pointer/v1",generatedAt:analysisGeneratedAt,traceUri:finalAnalysisTraceUri,directory:historyName});
+    const artifactNames = ["project.json","resources.json",...(hasSourceCoverage?["source-coverage-index.json"]:[]),"archive-project-analysis.json","archive-project-analysis.dsl","evidence-sets.json","evidence-sets.dsl","development.intent.json","development.evidence.json","tree.json","math.json","math.dsl","observations.json","observations.dsl",...(twinState?["twin-state.json","twin-state.dsl"]:[]),...(assemblyReport?["assembly-report.json","assembly-report.dsl"]:[]),...(processModel&&processAnimation?["process.json","process.dsl","process-animation.json","process-animation.dsl"]:[]),"twin.json","scene.json","scene.usda","scene.diff.json","physical-evidence.report.json","geometry-builds.json","geometry-builds.dsl","geometry-validation.json","geometry-validation.dsl","project-integrity.json","project-integrity.dsl","presentation-evidence.json","presentation-evidence.dsl","intent-dsl.index.json","improvement.json","improvement.dsl","generation-audit.json","analysis-trace.json","analysis-trace.dsl","analysis-trace.md","analysis-manifest.json"];
+    if(publish) {
+      const current = join(outDir,"current");
+      await mkdir(current,{recursive:true});
+      if(!hasSourceCoverage) await rm(join(current,"source-coverage-index.json"),{force:true});
+      for(const name of artifactNames) await writeFile(join(current,name),await readFile(join(candidate,name)));
+    }
     const iterationId = randomUUID();
     const idempotencyKey = sha256(canonicalJson({projectId:project.id,stableKey,previousIterationUri:previous?.iterationUri??null}));
-    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinStateUri:twinStateUri??null,assemblyReportUri:assemblyReportUri??null,processUri:processUri??null,processAnimationUri:processAnimationUri??null,twinUri,sceneUri,improvementUri};
+    const iterationCore = {projectId:project.id,iterationId,traceId,idempotencyKey,researchHash,developmentFingerprint,observationHash,intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,twinStateUri:twinStateUri??null,assemblyReportUri:assemblyReportUri??null,processUri:processUri??null,processAnimationUri:processAnimationUri??null,analysisTraceUri:finalAnalysisTraceUri,twinUri,sceneUri,improvementUri};
     const iterationUri = contentUri("iteration",iterationCore);
 
     const receipt:LivingIterationReceipt = {
@@ -783,6 +829,7 @@ export class LivingProjectRuntime {
       assemblyReportUri,
       processUri,
       processAnimationUri,
+      analysisTraceUri:finalAnalysisTraceUri,
       twinUri,
       sceneUri,
       improvementUri,
@@ -794,7 +841,7 @@ export class LivingProjectRuntime {
         {name:"research",status:researchPresent?"succeeded":"blocked",artifactUris:resources.map(resource=>resource.uri),reason:researchPresent?undefined:"research evidence missing"},
         {name:"development",status:developmentEvidence.acceptance==="accepted"?"succeeded":"blocked",artifactUris:[intentUri,developmentEvidenceUri],reason:developmentEvidence.acceptance==="accepted"?undefined:`development ${developmentEvidence.acceptance}`},
         {name:"runtime",status:runtimePresent?"succeeded":"blocked",artifactUris:[observationUri,...(twinStateUri?[twinStateUri]:[])],reason:runtimePresent?undefined:"runtime observations missing"},
-        {name:"reasoning",status:allowed?"succeeded":"blocked",artifactUris:[mathUri],reason:allowed?undefined:"IterationAllowed=false"},
+        {name:"reasoning",status:allowed?"succeeded":"blocked",artifactUris:[mathUri,finalAnalysisTraceUri],reason:allowed?undefined:"IterationAllowed=false"},
         {name:"geometry",status:geometryBuildFailures.length?"blocked":"succeeded",artifactUris:geometryMaterializations.flatMap(item=>Object.values(item.receipt.artifacts).map(artifact=>artifact.uri)),reason:geometryBuildFailures[0]},
         {name:"assembly",status:assemblyReport?.ok===false?"blocked":"succeeded",artifactUris:assemblyReportUri?[assemblyReportUri]:[],reason:assemblyReport?.ok===false?"AssemblyValidationFailed":undefined},
         {name:"process",status:processModel?"succeeded":"skipped",artifactUris:[...(processUri?[processUri]:[]),...(processAnimationUri?[processAnimationUri]:[])],reason:processModel?undefined:"profile has no process projection"},
@@ -877,7 +924,7 @@ export class LivingProjectRuntime {
       intentId:intentUri,
       correlationId:iterationId,
       traceId,
-      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,...(twinStateUri?[twinStateUri]:[]),...(assemblyReportUri?[assemblyReportUri]:[]),...(processUri?[processUri]:[]),...(processAnimationUri?[processAnimationUri]:[]),twinUri,sceneUri,improvementUri],
+      evidenceUris:[intentUri,developmentEvidenceUri,treeUri,mathUri,observationUri,...(twinStateUri?[twinStateUri]:[]),...(assemblyReportUri?[assemblyReportUri]:[]),...(processUri?[processUri]:[]),...(processAnimationUri?[processAnimationUri]:[]),finalAnalysisTraceUri,twinUri,sceneUri,improvementUri],
       payload:{iterationUri,validation:receipt.validation,authorityWarnings},
     };
     await appendJsonLine(join(outDir,"events.jsonl"),event);

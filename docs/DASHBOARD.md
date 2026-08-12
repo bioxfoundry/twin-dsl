@@ -109,6 +109,8 @@ Szczegóły i wymagane bramki opisuje
 | `GET` | `/api/mqtt` | lightweight observe-only MQTT connection and active URI Process run projection for animation refresh |
 | `GET` | `/api/events` | bounded view of the latest 100 append-only iteration events |
 | `GET` | `/api/dsl` | current DSL artifacts plus failed candidate geometry/integrity receipts |
+| `GET` | `/api/analysis?format=json|md|dsl` | active revision's versioned analysis trace, citations and deterministic decisions |
+| `GET` | `/api/source?artifact=<uri>&revision=<sha256>` | hash-verified internal Markdown cited by the active analysis trace; paths are never accepted from HTTP |
 | `GET` | `/api/scene.usda` | the scene rendered to OpenUSD |
 | `POST` | `/api/iterate` | run one iteration; returns 422 with exact failures when authority blocks publication |
 | `POST` | `/api/intake` | apply a `subactor.physical-evidence/v1` document |

@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.analysis-trace-manifest/v1",
+  "title": "Analysis trace artifact hash manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "traceUri", "generatedAt", "artifacts"],
+  "properties": {
+    "schema": {"const": "subactor.analysis-trace-manifest/v1"},
+    "traceUri": {"type": "string", "pattern": "^urn:subactor:analysis-trace:sha256:[a-f0-9]{64}$"},
+    "generatedAt": {"type": "string", "minLength": 20},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+    }
+  }
+}

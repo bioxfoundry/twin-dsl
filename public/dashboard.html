@@ -79,6 +79,7 @@
     <button id="btn-intake">Apply floor-plan evidence</button>
     <button id="btn-iterate" class="primary">Run iteration</button>
     <button id="btn-record">Record 3D video</button>
+    <a href="/api/analysis?format=md" target="_blank" rel="noopener"><button>Analysis report</button></a>
     <a id="usd" href="/api/scene.usda" download="scene.usda"><button>Export USD</button></a>
   </header>
   <div id="stage">
@@ -189,6 +190,12 @@
     <div class="card">
       <h2>Runtime observations</h2>
       <div id="obs"><span class="mono" style="color:var(--muted)">none</span></div>
+    </div>
+    <div class="card">
+      <h2>Analysis &amp; provenance</h2>
+      <div class="kv"><span>human report</span><a href="/api/analysis?format=md" target="_blank" rel="noopener">analysis-trace.md</a></div>
+      <div class="kv"><span>machine contract</span><a href="/api/analysis?format=json" target="_blank" rel="noopener">analysis-trace.json</a></div>
+      <div class="kv"><span>DSL</span><a href="/api/analysis?format=dsl" target="_blank" rel="noopener">analysis-trace.dsl</a></div>
     </div>
     <div class="card">
       <h2>DSL &amp; iteration log</h2>

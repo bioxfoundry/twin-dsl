@@ -5,11 +5,11 @@
  * Dependency-free by design (node:http only), matching the rest of the runtime.
  */
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
-import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { appendFile, mkdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AssemblyReport, LlmMode, MqttSourceMode, PhysicalEvidenceDocument, ProcessAnimationDocument, ProcessDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
-import { contentUri } from "../core/canonical.js";
+import { contentUri, sha256 } from "../core/canonical.js";
 import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
 import { parseProjectDsl } from "../dsl/project.js";
 import { LivingProjectRuntime } from "../runtime/living-project.js";
@@ -104,7 +104,7 @@ async function readEventLog(outDir: string): Promise<{ schema: string; ok: boole
 
 async function readDslArtifacts(current: string, configPath: string): Promise<{ schema: string; documents: Array<{ name: string; content: string }> }> {
   const documents: Array<{ name: string; content: string }> = [];
-  for (const name of ["observations.dsl", "twin-state.dsl", "assembly-report.dsl", "process.dsl", "process-animation.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl", "improvement.dsl"]) {
+  for (const name of ["analysis-trace.dsl", "observations.dsl", "twin-state.dsl", "assembly-report.dsl", "process.dsl", "process-animation.dsl", "archive-project-analysis.dsl", "evidence-sets.dsl", "math.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl", "improvement.dsl"]) {
     try { const content=(await readFile(join(current, name), "utf8")).slice(0, 120_000);if(content.trim())documents.push({ name, content }); }
     catch { /* artifact is optional before the first accepted iteration */ }
   }
@@ -113,7 +113,7 @@ async function readDslArtifacts(current: string, configPath: string): Promise<{ 
   // place, so the receipt gate is required to avoid presenting ACTIVE as a rejected candidate.
   const latest=await readJson<{validation?:{ok?:boolean}}>(join(dirname(current),"latest.json"));
   if(latest?.validation?.ok===false) {
-    for (const name of ["archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl"]) {
+    for (const name of ["analysis-trace.dsl", "archive-project-analysis.dsl", "geometry-builds.dsl", "geometry-validation.dsl", "project-integrity.dsl", "presentation-evidence.dsl"]) {
       try {
         const content=(await readFile(join(dirname(current), "candidate", name), "utf8")).slice(0, 120_000);
         if(content.trim())documents.push({name:`latest-candidate/${name}`,content});
@@ -188,6 +188,54 @@ function sendJson(response: ServerResponse, status: number, value: unknown): voi
 
 function sendError(response: ServerResponse, status: number, code: string, details: Record<string, unknown> = {}): void {
   sendJson(response, status, { ...details, error: code, code, ...errorLinks(code) });
+}
+
+function within(root: string, candidate: string): boolean {
+  const rel = relative(resolve(root), resolve(candidate));
+  return rel === "" || (!rel.startsWith(`..${sep}`) && rel !== ".." && !isAbsolute(rel));
+}
+
+/**
+ * Resolve an immutable Markdown artifact without accepting a filesystem path from HTTP.
+ * The content hash is checked before bytes leave the process, so a citation cannot silently
+ * drift to a different revision of the document.
+ */
+async function readCitedMarkdown(
+  configPath: string,
+  artifactUri: string,
+  revisionHash: string,
+): Promise<{ content: Buffer; sourcePath: string }> {
+  const prefix = "subactor://markdown/";
+  if (!artifactUri.startsWith(prefix) || !/^[a-f0-9]{64}$/.test(revisionHash)) {
+    throw new Error("SOURCE_CITATION_INVALID");
+  }
+  let artifactPath: string;
+  try { artifactPath = decodeURIComponent(artifactUri.slice(prefix.length)); }
+  catch { throw new Error("SOURCE_CITATION_INVALID"); }
+  if (!artifactPath || isAbsolute(artifactPath) || artifactPath.split(/[\\/]+/).includes("..")) {
+    throw new Error("SOURCE_CITATION_INVALID");
+  }
+
+  const projectRoot = dirname(resolve(configPath));
+  const project = parseProjectDsl(await readFile(resolve(configPath), "utf8"));
+  const projectParent = dirname(projectRoot);
+  const workspaceRoot = basename(projectParent) === "projects" ? dirname(projectParent) : projectParent;
+  const roots = [
+    resolve(workspaceRoot, project.id),
+    ...project.sources.map(source => resolve(projectRoot, source.path)),
+  ];
+  for (const root of roots) {
+    const candidate = resolve(root, artifactPath);
+    if (!within(root, candidate)) continue;
+    try {
+      const [canonicalRoot, canonicalCandidate] = await Promise.all([realpath(root), realpath(candidate)]);
+      if (!within(canonicalRoot, canonicalCandidate)) continue;
+      const content = await readFile(canonicalCandidate);
+      if (sha256(content) !== revisionHash) continue;
+      return { content, sourcePath: canonicalCandidate };
+    } catch { /* try the next declared project source root */ }
+  }
+  throw new Error("SOURCE_REVISION_NOT_FOUND");
 }
 
 async function readBody(request: IncomingMessage, limitBytes = 1_000_000): Promise<string> {
@@ -429,6 +477,30 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
         }
         if (request.method === "GET" && url.pathname === "/api/dsl") {
           return sendJson(response, 200, await readDslArtifacts(current, options.configPath));
+        }
+        if (request.method === "GET" && url.pathname === "/api/analysis") {
+          const format = url.searchParams.get("format") ?? "json";
+          const name = format === "md" ? "analysis-trace.md" : format === "dsl" ? "analysis-trace.dsl" : "analysis-trace.json";
+          if (!["json", "md", "dsl"].includes(format)) return sendError(response, 400, "ANALYSIS_TRACE_FORMAT_INVALID", { requestedFormat: format });
+          try {
+            const content = await readFile(join(current, name));
+            const type = format === "json" ? "application/json; charset=utf-8" : format === "md" ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
+            return send(response, 200, content, type);
+          } catch { return sendError(response, 404, "ANALYSIS_TRACE_NOT_AVAILABLE"); }
+        }
+        if (request.method === "GET" && url.pathname === "/api/source") {
+          const artifact = url.searchParams.get("artifact") ?? "";
+          const revision = url.searchParams.get("revision") ?? "";
+          try {
+            const source = await readCitedMarkdown(options.configPath, artifact, revision);
+            response.setHeader("x-subactor-artifact-uri", artifact);
+            response.setHeader("x-subactor-revision-sha256", revision);
+            response.setHeader("content-disposition", `inline; filename="${source.sourcePath.split(/[\\/]/).at(-1)?.replaceAll('"', "") ?? "source.md"}"`);
+            return send(response, 200, source.content, "text/markdown; charset=utf-8");
+          } catch (error) {
+            const code = codeFromError(error);
+            return sendError(response, code === "SOURCE_CITATION_INVALID" ? 400 : 404, code, { artifact, revision });
+          }
         }
         if (request.method === "POST" && url.pathname === "/api/mqtt/mode") {
           if (!mqttController) return sendError(response, 409, "MQTT_BINDING_NOT_CONFIGURED");

@@ -6,6 +6,9 @@ deterministic projections enriched with source locations discovered by
 
 | Code | Subsystem | Class | Retryable |
 | --- | --- | --- | --- |
+| [ANALYSIS_TRACE_FORMAT_INVALID](./ANALYSIS_TRACE_FORMAT_INVALID.md) | analysis | configuration | false |
+| [ANALYSIS_TRACE_INVALID](./ANALYSIS_TRACE_INVALID.md) | analysis | configuration | false |
+| [ANALYSIS_TRACE_NOT_AVAILABLE](./ANALYSIS_TRACE_NOT_AVAILABLE.md) | analysis | availability | true |
 | [ARCHIVE_CAD_BACKEND_MISSING](./ARCHIVE_CAD_BACKEND_MISSING.md) | archive | configuration | false |
 | [ARCHIVE_ENTRY_LIMIT](./ARCHIVE_ENTRY_LIMIT.md) | archive | state | true |
 | [ARCHIVE_FILE_LIMIT](./ARCHIVE_FILE_LIMIT.md) | archive | state | true |
@@ -514,6 +517,7 @@ deterministic projections enriched with source locations discovered by
 | [SCENE_TWIN_URI_NOT_GROUNDED](./SCENE_TWIN_URI_NOT_GROUNDED.md) | scene | integrity | false |
 | [SCENE_UNKNOWN_KEY](./SCENE_UNKNOWN_KEY.md) | scene | configuration | false |
 | [SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN](./SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN.md) | semantic | policy | false |
+| [SOURCE_CITATION_INVALID](./SOURCE_CITATION_INVALID.md) | source | configuration | false |
 | [SOURCE_COVERAGE_CONVERTER_INVALID](./SOURCE_COVERAGE_CONVERTER_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_CONVERTER_VERSION_INVALID](./SOURCE_COVERAGE_CONVERTER_VERSION_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_COVERAGE_HASH_INVALID](./SOURCE_COVERAGE_COVERAGE_HASH_INVALID.md) | source coverage | configuration | false |
@@ -546,6 +550,7 @@ deterministic projections enriched with source locations discovered by
 | [SOURCE_COVERAGE_TREE_REFS_INVALID](./SOURCE_COVERAGE_TREE_REFS_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_TWIN_REVISION_STATUS_INVALID](./SOURCE_COVERAGE_TWIN_REVISION_STATUS_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_NOT_FOUND](./SOURCE_NOT_FOUND.md) | source | configuration | false |
+| [SOURCE_REVISION_NOT_FOUND](./SOURCE_REVISION_NOT_FOUND.md) | source | availability | true |
 | [SPEC_BLUEPRINT_MISSING](./SPEC_BLUEPRINT_MISSING.md) | spec | configuration | false |
 | [SPEC_DSL_DIR_MISSING](./SPEC_DSL_DIR_MISSING.md) | spec | configuration | false |
 | [SPEC_INTENT_CORRUPTION_DETECTED](./SPEC_INTENT_CORRUPTION_DETECTED.md) | spec | state | false |

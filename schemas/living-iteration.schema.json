@@ -102,6 +102,9 @@
     "processAnimationUri": {
       "type": "string"
     },
+    "analysisTraceUri": {
+      "type": "string"
+    },
     "twinUri": {
       "type": "string"
     },

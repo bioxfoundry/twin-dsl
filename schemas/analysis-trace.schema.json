@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.analysis-trace/v1",
+  "title": "Deterministic Digital Twin analysis trace",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "id", "projectId", "generatedAt", "generator", "inputs", "outputs", "method", "decisions", "citations", "generationAudit", "comparison", "artifactHashes"],
+  "properties": {
+    "schema": {"const": "subactor.analysis-trace/v1"},
+    "id": {"type": "string", "minLength": 1},
+    "projectId": {"type": "string", "minLength": 1},
+    "generatedAt": {"type": "string", "minLength": 20},
+    "generator": {
+      "type": "object", "additionalProperties": false,
+      "required": ["name", "packageVersion", "runtimeGeneration", "sourceRevision", "mode"],
+      "properties": {
+        "name": {"const": "@subactor/digital-twin-runtime-starter"},
+        "packageVersion": {"type": "string", "minLength": 1},
+        "runtimeGeneration": {"type": "string", "minLength": 1},
+        "sourceRevision": {"type": "string", "minLength": 1},
+        "mode": {"enum": ["deterministic", "prefer-llm", "require-llm"]}
+      }
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["projectConfigHash", "researchSnapshotHash", "developmentFingerprint", "observationSnapshotHash", "intentDslSemanticHash", "intentDslPacks", "intentDslRecords", "invalidIntentPacks", "resources", "resourcesByRole"],
+      "properties": {
+        "projectConfigHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "researchSnapshotHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "developmentFingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "observationSnapshotHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "intentDslSemanticHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "intentDslPacks": {"type": "integer", "minimum": 0},
+        "intentDslRecords": {"type": "integer", "minimum": 0},
+        "invalidIntentPacks": {"type": "integer", "minimum": 0},
+        "resources": {"type": "integer", "minimum": 0},
+        "resourcesByRole": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+      }
+    },
+    "outputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["twinUri", "sceneUri", "components", "sceneBindings", "meshBindings", "uniqueMeshes", "primitiveFallbacks", "geometryRequiredChecks", "geometryPassedRequiredChecks", "completeAssemblies", "assemblies", "processes", "processSteps", "evidencedProcessSteps"],
+      "properties": {
+        "twinUri": {"type": "string", "minLength": 1},
+        "sceneUri": {"type": "string", "minLength": 1},
+        "processUri": {"type": "string", "minLength": 1},
+        "processAnimationUri": {"type": "string", "minLength": 1},
+        "components": {"type": "integer", "minimum": 0},
+        "sceneBindings": {"type": "integer", "minimum": 0},
+        "meshBindings": {"type": "integer", "minimum": 0},
+        "uniqueMeshes": {"type": "integer", "minimum": 0},
+        "primitiveFallbacks": {"type": "integer", "minimum": 0},
+        "geometryRequiredChecks": {"type": "integer", "minimum": 0},
+        "geometryPassedRequiredChecks": {"type": "integer", "minimum": 0},
+        "completeAssemblies": {"type": "integer", "minimum": 0},
+        "assemblies": {"type": "integer", "minimum": 0},
+        "processes": {"type": "integer", "minimum": 0},
+        "processSteps": {"type": "integer", "minimum": 0},
+        "evidencedProcessSteps": {"type": "integer", "minimum": 0}
+      }
+    },
+    "method": {
+      "type": "object", "additionalProperties": false,
+      "required": ["policy", "explanationBoundary", "stages"],
+      "properties": {
+        "policy": {"const": "deterministic-first"},
+        "explanationBoundary": {"type": "string", "minLength": 1},
+        "stages": {
+          "type": "array", "minItems": 1,
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["order", "id", "rule", "inputArtifacts", "outputArtifacts"],
+            "properties": {
+              "order": {"type": "integer", "minimum": 1},
+              "id": {"type": "string", "minLength": 1},
+              "rule": {"type": "string", "minLength": 1},
+              "inputArtifacts": {"type": "array", "items": {"type": "string", "minLength": 1}},
+              "outputArtifacts": {"type": "array", "items": {"type": "string", "minLength": 1}}
+            }
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "subject", "outcome", "ruleId", "confidence", "basis", "citationIds", "alternatives", "gaps"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "outcome": {"type": "string", "minLength": 1},
+          "ruleId": {"type": "string", "minLength": 1},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "basis": {"type": "string", "minLength": 1},
+          "citationIds": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+          "alternatives": {
+            "type": "array", "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["value", "status", "reason"],
+              "properties": {
+                "value": {"type": "string", "minLength": 1},
+                "status": {"enum": ["rejected", "unresolved", "deferred"]},
+                "reason": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "kind", "title", "href"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["internal", "external"]},
+          "title": {"type": "string", "minLength": 1},
+          "href": {"type": "string", "minLength": 1},
+          "artifactUri": {"type": "string", "minLength": 1},
+          "resourceUri": {"type": "string", "minLength": 1},
+          "revisionHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "page": {"type": "integer", "minimum": 1},
+          "lines": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+          "fragment": {"type": "string", "minLength": 1},
+          "excerpt": {"type": "string", "minLength": 1, "maxLength": 800},
+          "license": {"type": "string", "minLength": 1},
+          "converter": {"type": "string", "minLength": 1},
+          "converterVersion": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "generationAudit": {
+      "type": "object", "additionalProperties": false,
+      "required": ["math", "twin", "scene", "authorityWarnings"],
+      "properties": {
+        "math": {"type": "object"},
+        "twin": {"type": "object"},
+        "scene": {"type": "object"},
+        "authorityWarnings": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "comparison": {
+      "type": "object", "additionalProperties": false,
+      "required": ["previousTraceUri", "changed", "changes"],
+      "properties": {
+        "previousTraceUri": {"type": ["string", "null"]},
+        "changed": {"type": "boolean"},
+        "changes": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true}
+      }
+    },
+    "artifactHashes": {"type": "object", "additionalProperties": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}
+  }
+}

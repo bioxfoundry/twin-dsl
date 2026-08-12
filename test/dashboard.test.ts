@@ -8,6 +8,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { Script } from "node:vm";
+import { sha256 } from "../src/core/canonical.js";
 import { startDashboard } from "../src/serve/dashboard.js";
 import { createLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
@@ -143,6 +144,8 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /id="error-card"/);
   assert.match(dashboardHtml, /showErrorReference/);
   assert.match(dashboardHtml, /Open error\/\$\{code\}\.md/);
+  assert.match(dashboardHtml, /Analysis report/);
+  assert.match(dashboardHtml, /\/api\/analysis\?format=md/);
   assert.ok(dashboardHtml.includes("active ${activeRevision.slice(-12)}"));
 
   const errorReferenceResponse = await fetch(`${server.url}api/errors/SCENE_BLUEPRINT_COMPONENT_INVALID`);
@@ -183,8 +186,44 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.ok(dslLog.documents.some((document) => document.name === "evidence-sets.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "process.dsl"));
   assert.ok(dslLog.documents.some((document) => document.name === "process-animation.dsl"));
+  assert.ok(dslLog.documents.some((document) => document.name === "analysis-trace.dsl"));
   assert.equal(dslLog.documents.some((document) => document.name.startsWith("latest-candidate/")),false,"an accepted staging directory is not a rejected candidate");
   assert.ok(dslLog.documents.every((document) => document.content.length > 0));
+  const analysisResponse=await fetch(`${server.url}api/analysis?format=md`);
+  assert.equal(analysisResponse.status,200);
+  assert.match(await analysisResponse.text(),/^---[\s\S]*# Analysis trace/m);
+  const analysisJson=await (await fetch(`${server.url}api/analysis?format=json`)).json() as {schema:string;generator:{runtimeGeneration:string};decisions:unknown[]};
+  assert.equal(analysisJson.schema,"subactor.analysis-trace/v1");
+  assert.ok(analysisJson.generator.runtimeGeneration);
+  assert.ok(analysisJson.decisions.length>0);
+  const analysisManifest=JSON.parse(await readFile(join(outDir,"current/analysis-manifest.json"),"utf8")) as {schema:string;traceUri:string;artifacts:Record<string,string>};
+  assert.equal(analysisManifest.schema,"subactor.analysis-trace-manifest/v1");
+  for(const [name,digest] of Object.entries(analysisManifest.artifacts)) {
+    const artifactRoot=name.startsWith("analysis-trace.")?join(outDir,"current"):join(outDir,"analysis-history",(JSON.parse(await readFile(join(outDir,"analysis-history/latest.json"),"utf8")) as {directory:string}).directory);
+    assert.equal(sha256(await readFile(join(artifactRoot,name))),digest,`${name} manifest hash drifted`);
+  }
+  const historyPointer=JSON.parse(await readFile(join(outDir,"analysis-history/latest.json"),"utf8")) as {schema:string;traceUri:string;directory:string};
+  assert.equal(historyPointer.schema,"subactor.analysis-trace-pointer/v1");
+  assert.equal(historyPointer.traceUri,analysisManifest.traceUri);
+  assert.equal(await readFile(join(outDir,"analysis-history",historyPointer.directory,"analysis-trace.json"),"utf8"),await readFile(join(outDir,"current/analysis-trace.json"),"utf8"));
+  const sourceRoot=join(created.projectDir,"data/project");
+  const sourcePath=join(sourceRoot,"spec.md");
+  const sourceText="# Grounded source\n\nExact bytes are revision checked.\n";
+  await mkdir(sourceRoot,{recursive:true});
+  await writeFile(sourcePath,sourceText);
+  const sourceArtifact="subactor://markdown/spec.md";
+  const sourceRevision=sha256(sourceText);
+  const citedSourceResponse=await fetch(`${server.url}api/source?artifact=${encodeURIComponent(sourceArtifact)}&revision=${sourceRevision}`);
+  assert.equal(citedSourceResponse.status,200);
+  assert.equal(await citedSourceResponse.text(),sourceText);
+  assert.equal(citedSourceResponse.headers.get("x-subactor-artifact-uri"),sourceArtifact);
+  assert.equal(citedSourceResponse.headers.get("x-subactor-revision-sha256"),sourceRevision);
+  const driftedSourceResponse=await fetch(`${server.url}api/source?artifact=${encodeURIComponent(sourceArtifact)}&revision=${"0".repeat(64)}`);
+  assert.equal(driftedSourceResponse.status,404);
+  assert.equal((await driftedSourceResponse.json() as {code:string}).code,"SOURCE_REVISION_NOT_FOUND");
+  const unsafeSourceResponse=await fetch(`${server.url}api/source?artifact=${encodeURIComponent("subactor://markdown/../secret.md")}&revision=${sourceRevision}`);
+  assert.equal(unsafeSourceResponse.status,400);
+  assert.equal((await unsafeSourceResponse.json() as {code:string}).code,"SOURCE_CITATION_INVALID");
   const dashboardLog = await readFile(join(created.projectDir, "logs/dashboard-0.log"), "utf8");
   assert.match(dashboardLog, /"event":"server:listening"/);
 

@@ -1,7 +1,8 @@
-import type { AutonomyMode, DslKind, LlmMode, ResultKind, SourceAnchor, SourceRole } from "./contracts.js";
+import type { AutonomyMode, DslKind, IntentRecord, LlmMode, ResourceRecord, ResultKind, SourceAnchor, SourceRole } from "./contracts.js";
 import type { MathDocument, SceneDocument, TreeDocument, TwinDocument } from "./documents.js";
+import type { ProcessDocument } from "./process.js";
 import type { GeometryBuildContract } from "./geometry.js";
-import type { SpatialClass, SpatialRequirements } from "./physical.js";
+import type { GeometryValidationReport, SpatialClass, SpatialRequirements } from "./physical.js";
 import type { ObservationDocument } from "./runtime-state.js";
 
 export type ProjectIntegrityLayer = "requirements" | "research" | "design" | "development" | "runtime" | "twin" | "scene" | "validation";
@@ -195,6 +196,121 @@ export interface GenerationAudit {
   cost?: number | null;
 }
 
+/**
+ * Reproducible explanation of one generated Twin revision.
+ *
+ * This is an audit of explicit inputs and deterministic rules, not a model's private chain of
+ * thought. Every conclusion is therefore reviewable as data: source locator, bounded excerpt,
+ * rule id, confidence, outcome and the exact DSL that crossed the runtime boundary.
+ */
+export interface AnalysisTraceCitation {
+  id: string;
+  kind: "internal" | "external";
+  title: string;
+  href: string;
+  artifactUri?: string;
+  resourceUri?: string;
+  revisionHash?: string;
+  page?: number;
+  lines?: [number, number];
+  fragment?: string;
+  excerpt?: string;
+  license?: string;
+  converter?: string;
+  converterVersion?: string;
+}
+export interface AnalysisTraceDecision {
+  id: string;
+  subject: string;
+  outcome: string;
+  ruleId: string;
+  confidence: "high" | "medium" | "low";
+  basis: string;
+  citationIds: string[];
+  alternatives: Array<{ value: string; status: "rejected" | "unresolved" | "deferred"; reason: string }>;
+  gaps: string[];
+}
+export interface AnalysisTraceDocument {
+  schema: "subactor.analysis-trace/v1";
+  id: string;
+  projectId: string;
+  generatedAt: string;
+  generator: {
+    name: "@subactor/digital-twin-runtime-starter";
+    packageVersion: string;
+    runtimeGeneration: string;
+    sourceRevision: string;
+    mode: LlmMode;
+  };
+  inputs: {
+    projectConfigHash: string;
+    researchSnapshotHash: string;
+    developmentFingerprint: string;
+    observationSnapshotHash: string;
+    intentDslSemanticHash: string;
+    intentDslPacks: number;
+    intentDslRecords: number;
+    invalidIntentPacks: number;
+    resources: number;
+    resourcesByRole: Record<string, number>;
+  };
+  outputs: {
+    twinUri: string;
+    sceneUri: string;
+    processUri?: string;
+    processAnimationUri?: string;
+    components: number;
+    sceneBindings: number;
+    meshBindings: number;
+    uniqueMeshes: number;
+    primitiveFallbacks: number;
+    geometryRequiredChecks: number;
+    geometryPassedRequiredChecks: number;
+    completeAssemblies: number;
+    assemblies: number;
+    processes: number;
+    processSteps: number;
+    evidencedProcessSteps: number;
+  };
+  method: {
+    policy: "deterministic-first";
+    explanationBoundary: string;
+    stages: Array<{ order: number; id: string; rule: string; inputArtifacts: string[]; outputArtifacts: string[] }>;
+  };
+  decisions: AnalysisTraceDecision[];
+  citations: AnalysisTraceCitation[];
+  generationAudit: { math: GenerationAudit; twin: GenerationAudit; scene: GenerationAudit; authorityWarnings: string[] };
+  comparison: {
+    previousTraceUri: string | null;
+    changed: boolean;
+    changes: string[];
+  };
+  artifactHashes: Record<string, string>;
+}
+
+export interface AnalysisTraceBuildInput {
+  project: LivingProjectDocument;
+  projectConfigHash: string;
+  generatedAt: string;
+  generator: AnalysisTraceDocument["generator"];
+  researchSnapshotHash: string;
+  developmentFingerprint: string;
+  observationSnapshotHash: string;
+  intentDsl: { semanticHash: string; packs: number; records: number; invalid: number };
+  resources: ResourceRecord[];
+  twin: TwinDocument;
+  scene: SceneDocument;
+  geometry: GeometryValidationReport;
+  assembly?: import("./runtime-state.js").AssemblyReport;
+  processes?: ProcessDocument;
+  processUri?: string;
+  processAnimationUri?: string;
+  generationAudit: AnalysisTraceDocument["generationAudit"];
+  groundedIntents: Array<{ record: IntentRecord; sourceUri: string }>;
+  previousTrace?: AnalysisTraceDocument;
+  artifactHashes: Record<string, string>;
+}
+
 export interface DslGenerationResult<T = unknown> {
   schema: "subactor.dsl-generation-result/v1";
   kind: DslKind;
@@ -269,6 +385,8 @@ export interface LivingIterationReceipt {
   assemblyReportUri?: string;
   processUri?: string;
   processAnimationUri?: string;
+  /** Added additively to v2 receipts; absent only on historical pre-trace iterations. */
+  analysisTraceUri?: string;
   twinUri: string;
   sceneUri: string;
   improvementUri: string;

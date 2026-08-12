@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.analysis-trace-pointer/v1",
+  "title": "Latest immutable analysis history pointer",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "generatedAt", "traceUri", "directory"],
+  "properties": {
+    "schema": {"const": "subactor.analysis-trace-pointer/v1"},
+    "generatedAt": {"type": "string", "minLength": 20},
+    "traceUri": {"type": "string", "pattern": "^urn:subactor:analysis-trace:sha256:[a-f0-9]{64}$"},
+    "directory": {"type": "string", "pattern": "^[0-9TZ-]+-[a-f0-9]{12}$"}
+  }
+}

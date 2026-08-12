@@ -2,6 +2,51 @@
   "schema": "bioxfoundry.error-catalog/v1",
   "entries": [
     {
+      "code": "ANALYSIS_TRACE_FORMAT_INVALID",
+      "title": "Analysis trace format invalid",
+      "subsystem": "analysis",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The dashboard analysis endpoint received an unsupported representation format.",
+      "causes": [
+        "the format query parameter is not json, md or dsl",
+        "a client constructed the analysis URL with a stale or misspelled format"
+      ],
+      "impact": "No report is returned; active Twin and analysis artifacts remain unchanged.",
+      "resolution": "Request /api/analysis?format=json, /api/analysis?format=md or /api/analysis?format=dsl."
+    },
+    {
+      "code": "ANALYSIS_TRACE_INVALID",
+      "title": "Analysis trace invalid",
+      "subsystem": "analysis",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The generated AnalysisTrace JSON or DSL violates subactor.analysis-trace/v1 or references an absent citation.",
+      "causes": [
+        "a required identity, hash, decision, citation or stage is malformed",
+        "decision or citation identifiers are duplicated, or a decision references an unknown citation"
+      ],
+      "impact": "The iteration stops before the invalid explanation can be published as an accepted report.",
+      "resolution": "Use the suffix after ANALYSIS_TRACE_INVALID to locate the field, compare the artifact with schemas/analysis-trace.schema.json, repair the deterministic projection and rerun the iteration."
+    },
+    {
+      "code": "ANALYSIS_TRACE_NOT_AVAILABLE",
+      "title": "Analysis trace not available",
+      "subsystem": "analysis",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "No accepted analysis trace exists in the active current/ artifact set.",
+      "causes": [
+        "the project has not completed a trace-enabled iteration",
+        "the latest candidate was rejected and no prior accepted report exists"
+      ],
+      "impact": "The dashboard cannot return the requested report, but any accepted Twin and Scene remain unchanged.",
+      "resolution": "Run one validated project iteration and inspect candidate/analysis-trace.* plus latest.json if publication is blocked."
+    },
+    {
       "code": "ARCHIVE_CAD_BACKEND_MISSING",
       "title": "Archive cad backend missing",
       "subsystem": "archive",
@@ -7315,6 +7360,21 @@
       "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
     },
     {
+      "code": "SOURCE_CITATION_INVALID",
+      "title": "Source citation invalid",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "A source-document request is not an immutable subactor://markdown citation.",
+      "causes": [
+        "the artifact URI uses another scheme, is empty or contains path traversal",
+        "the revision parameter is not a 64-character lowercase SHA-256 digest"
+      ],
+      "impact": "The server refuses the source bytes and does not interpret the request as a filesystem path.",
+      "resolution": "Follow the href emitted in analysis-trace.md/json or pass its exact artifactUri and revisionHash to /api/source."
+    },
+    {
       "code": "SOURCE_COVERAGE_CONVERTER_INVALID",
       "title": "Source coverage converter invalid",
       "subsystem": "source coverage",
@@ -7793,6 +7853,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SOURCE_REVISION_NOT_FOUND",
+      "title": "Source revision not found",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The cited Markdown bytes are unavailable under declared project source roots or no longer match the cited SHA-256 revision.",
+      "causes": [
+        "the source mirror was not mounted or copied with the project",
+        "the Markdown file changed after intentDSL generation and must be re-converted or restored"
+      ],
+      "impact": "The citation remains recorded, but the dashboard refuses to show unverified or drifted source text.",
+      "resolution": "Restore or mount the artifact bytes whose SHA-256 equals revision, or regenerate and validate intentDSL plus the Twin analysis from the new source revision."
     },
     {
       "code": "SPEC_BLUEPRINT_MISSING",
