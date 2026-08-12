@@ -26,7 +26,7 @@ export DOCKER_BUILDKIT = 1
 export COMPOSE_DOCKER_CLI_BUILD = 1
 
 .PHONY: verify demo research biofoundry realtime nl-dsl clean \
-        up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo \
+        up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo mqtt-demo \
         specification-validate prune-cache env
 
 ## --- configuration ---------------------------------------------------------
@@ -42,9 +42,9 @@ env: .env
 ## Start persistent services, wait for their Compose healthchecks, then probe from the host.
 ## The runtime is a one-shot `doctor` job and runs only after its dependencies are healthy.
 up: .env
-	$(COMPOSE) up -d --build --wait clickhouse docling
+	$(COMPOSE) up -d --build --wait clickhouse docling mqtt
 	@$(MAKE) --no-print-directory service-check
-	$(COMPOSE) run --rm runtime
+	$(COMPOSE) run --rm --build runtime
 	@$(MAKE) --no-print-directory endpoints
 
 ## Stop the stack. Named volumes (clickhouse data, docling models) are kept on purpose,
@@ -75,6 +75,7 @@ service-check: .env
 	@set -a; . ./.env; set +a; \
 		CLICKHOUSE_URL="http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}" \
 		DOCLING_URL="http://127.0.0.1:$${DOCLING_PORT:-15001}" \
+		MQTT_URL="mqtt://127.0.0.1:$${MQTT_PORT:-18883}" \
 		CLICKHOUSE_USER="$${CLICKHOUSE_USER:-digital_twin}" \
 		CLICKHOUSE_PASSWORD="$${CLICKHOUSE_PASSWORD:-digital_twin_local}" \
 		node dist/src/cli/main.js service-check
@@ -85,6 +86,7 @@ endpoints: .env
 		echo "ClickHouse HTTP: http://127.0.0.1:$${CLICKHOUSE_HTTP_PORT:-18123}  (container :8123)"; \
 		echo "ClickHouse native: 127.0.0.1:$${CLICKHOUSE_NATIVE_PORT:-19000}  (container :9000)"; \
 		echo "Docling health/API: http://127.0.0.1:$${DOCLING_PORT:-15001}/health  (container :5001)"; \
+		echo "MQTT observations: mqtt://127.0.0.1:$${MQTT_PORT:-18883}  (container :1883, observe-only)"; \
 		echo "Dashboard: NOT started by make up; from the workspace root run 'make dashboard' to open http://127.0.0.1:7331/"; \
 		echo "Workspace factory: from the workspace root run 'make dashboard PORT=7332' when port 7331 is occupied"
 
@@ -125,11 +127,11 @@ specification-validate:
 		"$(SPEC_SOURCE_DIR)" "$(SPEC_MARKDOWN_DIR)" "$(SPEC_DSL_DIR)" \
 		"$(SPEC_BLUEPRINT)" "$(SPEC_INTENT_INDEX)" "$(SPEC_TWIN)" "$(SPEC_SCENE)" "$(SPEC_REPORT)"
 
-dashboard:
+dashboard: .env
 	@npm run build
 	@if [ "$(DASHBOARD_PROJECT)" = "$(FACTORY_DEMO_PROJECT)" ]; then node scripts/ensure-factory-demo.mjs; fi
 	@echo "Dashboard project: $(DASHBOARD_PROJECT)"
-	@url="http://127.0.0.1:$(PORT)/"; \
+	@set -a; . ./.env; set +a; url="http://127.0.0.1:$(PORT)/"; \
 		probe="$$(node scripts/dashboard-port-check.mjs "$(DASHBOARD_PROJECT)" "$(PORT)")" || { \
 			echo "hint: stop the conflicting process or choose another port with 'make dashboard PORT=7332'"; exit 2; }; \
 		echo "$$probe"; \
@@ -139,7 +141,7 @@ dashboard:
 			elif command -v cmd.exe >/dev/null 2>&1; then cmd.exe /c start "" "$$url"; \
 			else echo "dashboard already running: $$url"; fi; exit 0;; \
 		esac; \
-		node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \
+		MQTT_URL="mqtt://127.0.0.1:$${MQTT_PORT:-18883}" node dist/src/cli/main.js dashboard "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(PORT)" "$(MODE)" & server_pid=$$!; \
 		trap 'kill $$server_pid 2>/dev/null || true' EXIT INT TERM; \
 		ready=0; for attempt in $$(seq 1 50); do \
 		node -e 'fetch(process.argv[1]).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))' "$${url}api/state" && { ready=1; break; }; \
@@ -156,6 +158,18 @@ dashboard-demo:
 	@$(MAKE) --no-print-directory dashboard \
 		DASHBOARD_PROJECT="$(FACTORY_DEMO_PROJECT)" \
 		DASHBOARD_RUNTIME="$(FACTORY_DEMO_RUNTIME)"
+
+## Publish a validated simulated URI Process run to the local observation broker.
+MQTT_PROCESS ?= cultivation_monitoring
+MQTT_SOURCE_MODE ?= simulation
+MQTT_STEP_INTERVAL_MS ?= 900
+mqtt-demo: .env
+	@npm run build
+	@set -a; . ./.env; set +a; \
+		MQTT_URL="mqtt://127.0.0.1:$${MQTT_PORT:-18883}" \
+		node dist/src/cli/main.js mqtt-demo \
+		"$${DT_MQTT_BINDING_FILE:-$(dir $(DASHBOARD_PROJECT))config/mqtt-bindings.dsl}" \
+		"$(DASHBOARD_RUNTIME)/current/process.json" "$(MQTT_PROCESS)" "$(MQTT_SOURCE_MODE)" "$(MQTT_STEP_INTERVAL_MS)"
 
 clean:
 	npm run clean

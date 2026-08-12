@@ -64,6 +64,7 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
     scene: SceneDocument;
     processModel: { schema: string; coverage: { processes: number } };
     processAnimation: { schema: string; timing: { factualProcessDuration: boolean; mode: string } };
+    mqtt: { schema: string; configured: boolean; authority: string; connection: string };
     projectIntegrity: { schema: string; ok: boolean };
   };
   assert.ok(state.twin.components.length > 0, "no twin components served");
@@ -75,6 +76,9 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.equal(state.processAnimation.schema, "subactor.process-animation/v1");
   assert.equal(state.processAnimation.timing.factualProcessDuration, false);
   assert.equal(state.processAnimation.timing.mode, "normalized-presentation");
+  assert.equal(state.mqtt.schema, "subactor.mqtt-dashboard-state/v1");
+  assert.equal(state.mqtt.configured, false);
+  assert.equal(state.mqtt.authority, "observe-only");
   assert.equal(state.active.status, "accepted");
   assert.match(state.active.revisionUri, /^urn:subactor:twin:sha256:/);
   assert.equal(state.active.sourceSnapshotHash, state.twin.sourceSnapshotHash);
@@ -115,6 +119,11 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /fragment\.split\('#'\)\.pop\(\)/);
   assert.match(dashboardHtml, /PROCESS_MODEL=state\.processModel/);
   assert.match(dashboardHtml, /state\.processAnimation/);
+  assert.match(dashboardHtml, /id="mqtt-mode"/);
+  assert.match(dashboardHtml, /function paintMqttPanel/);
+  assert.match(dashboardHtml, /adoptMqttState\(state\.mqtt\|\|null\)/);
+  assert.match(dashboardHtml, /fetch\('\/api\/mqtt'\)/);
+  assert.match(dashboardHtml, /\/api\/mqtt\/mode/);
   assert.match(dashboardHtml, /canvas\.captureStream\(30\)/);
   assert.match(dashboardHtml, /OES_element_index_uint/);
   assert.match(dashboardHtml, /drawElements\(gl\.TRIANGLES/);
@@ -209,6 +218,43 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.deepEqual(flatten(after.twin.components).map((c) => c.id), before, "intake must not change component identity");
   const bound = after.scene.bindings.find((b) => b.componentId === target);
   assert.deepEqual(bound?.size, [12.4, 14.2, 3.2]);
+});
+
+test("dashboard exposes an observe-only MQTT source selector without granting device control", async (t) => {
+  const root = await mkdtemp(join(tmpdir(), "dt-dashboard-mqtt-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const created = await createLivingProject({ name: "MQTT Dashboard", outDir: join(root, "project"), profile: "biofoundry" });
+  const bindingPath = join(root, "mqtt-bindings.dsl");
+  await writeFile(bindingPath, `MQTT_BINDINGS dashboard-test
+DEFAULT_MODE simulation
+AUTHORITY observe-only
+BROKER local
+URL_ENV TEST_MQTT_URL_INTENTIONALLY_UNSET
+CLIENT_ID "dashboard-test"
+KEEP_ALIVE_SECONDS 30
+END_BROKER
+PROCESS_ROUTE test-process
+BROKER_ID local
+TOPIC "biofoundry/{mode}/process/test_process/events"
+QOS 0
+PROCESS_ID test_process
+PROCESS_URI twin://biofoundry/process/query/test_process
+MODES [simulation,shadow,hardware]
+END_PROCESS_ROUTE
+END_MQTT_BINDINGS
+`);
+  const server = await startDashboard({ configPath: created.configPath, outDir: join(root, "runtime"), port: 0, mqttBindingPath: bindingPath });
+  t.after(() => server.close());
+  const before = await (await fetch(`${server.url}api/state`)).json() as { mqtt: { configured: boolean; mode: string; connection: string; authority: string } };
+  assert.equal(before.mqtt.configured, true);
+  assert.equal(before.mqtt.mode, "simulation");
+  assert.equal(before.mqtt.connection, "disconnected");
+  assert.equal(before.mqtt.authority, "observe-only");
+  const response = await fetch(`${server.url}api/mqtt/mode`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ mode: "hardware" }) });
+  const selected = await response.json() as { mode: string; authority: string };
+  assert.equal(response.status, 200);
+  assert.equal(selected.mode, "hardware");
+  assert.equal(selected.authority, "observe-only");
 });
 
 test("dashboard iteration failure returns a stable code and error reference links", async (t) => {

@@ -5,6 +5,7 @@ const required=[
   'services:',
   'clickhouse:',
   'docling:',
+  'mqtt:',
   'runtime:',
   'healthcheck:',
   'depends_on:',
@@ -12,6 +13,7 @@ const required=[
   'volumes:',
   'CLICKHOUSE_URL: http://clickhouse:8123',
   'DOCLING_URL: http://docling:5001',
+  'MQTT_URL: mqtt://mqtt:1883',
 ];
 for(const token of required)if(!text.includes(token))throw new Error(`COMPOSE_TOKEN_MISSING:${token}`);
 const secretLine=text.split(/\r?\n/).find(line=>line.includes('OPENROUTER_API_KEY:'));
@@ -30,4 +32,4 @@ for(const name of ['CLICKHOUSE_USER','CLICKHOUSE_PASSWORD']){
 // Docker's default address pools run out on hosts with many stacks; the subnet must stay pinned.
 if(!/ipam:/.test(text)||!/subnet:/.test(text))throw new Error('COMPOSE_NETWORK_SUBNET_UNPINNED');
 
-console.log(JSON.stringify({ok:true,services:['clickhouse','docling','runtime'],checks:['healthchecks','service-healthy-dependencies','secret-indirection','internal-service-urls','clickhouse-credentials','pinned-network-subnet']}));
+console.log(JSON.stringify({ok:true,services:['clickhouse','docling','mqtt','runtime'],checks:['healthchecks','service-healthy-dependencies','secret-indirection','internal-service-urls','clickhouse-credentials','mqtt-observation-broker','pinned-network-subnet']}));

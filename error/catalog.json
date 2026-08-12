@@ -3458,6 +3458,1101 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "MQTT_ACK_INVALID",
+      "title": "Mqtt ack invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt ack input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_ACK_UNEXPECTED",
+      "title": "Mqtt ack unexpected",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt ack unexpected condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_BLOCK_END_REQUIRED",
+      "title": "Mqtt binding block end required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding block end input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_BROKER_INVALID",
+      "title": "Mqtt binding broker invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding broker input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_BROKER_NOT_STARTED",
+      "title": "Mqtt binding broker not started",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt binding broker not started condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_BROKER_UNKNOWN_KEY",
+      "title": "Mqtt binding broker unknown key",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding broker input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_DEFAULT_MODE_UNROUTED",
+      "title": "Mqtt binding default mode unrouted",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt binding default mode unrouted condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_DOCUMENT_INVALID",
+      "title": "Mqtt binding document invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding document input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_DOCUMENT_REQUIRED",
+      "title": "Mqtt binding document required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding document input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_END_REQUIRED",
+      "title": "Mqtt binding end required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding end input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_HEADER_REQUIRED",
+      "title": "Mqtt binding header required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding header input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_KEEP_ALIVE_INVALID",
+      "title": "Mqtt binding keep alive invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding keep alive input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_MODE_INVALID",
+      "title": "Mqtt binding mode invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding mode input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_MODE_TOPIC_AMBIGUOUS",
+      "title": "Mqtt binding mode topic ambiguous",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt binding mode topic ambiguous condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_NOT_CONFIGURED",
+      "title": "Mqtt binding not configured",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The mqtt binding dependency or operation was unavailable at the runtime boundary.",
+      "causes": [
+        "the service or executable is not running",
+        "configuration, network access or the selected adapter is unavailable"
+      ],
+      "impact": "The requested stage cannot complete, but persisted accepted artifacts remain unchanged.",
+      "resolution": "Inspect the detail following the code, verify service/tool health and configuration, then retry when the dependency is available."
+    },
+    {
+      "code": "MQTT_BINDING_QOS_INVALID",
+      "title": "Mqtt binding qos invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding qos input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_ROUTE_INVALID",
+      "title": "Mqtt binding route invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding route input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_ROUTE_NOT_STARTED",
+      "title": "Mqtt binding route not started",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt binding route not started condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_ROUTE_UNKNOWN_KEY",
+      "title": "Mqtt binding route unknown key",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding route input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_TOPIC_DUPLICATE",
+      "title": "Mqtt binding topic duplicate",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The mqtt binding topic evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "MQTT_BINDING_TOPIC_INVALID",
+      "title": "Mqtt binding topic invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding topic input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_TOPIC_PLACEHOLDER_INVALID",
+      "title": "Mqtt binding topic placeholder invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding topic placeholder input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_BINDING_TOPIC_WILDCARD_FORBIDDEN",
+      "title": "MQTT binding topic wildcard forbidden",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "A MqttBindingDSL route used MQTT '+' or '#' syntax. URI Process routes must expand to exact topics so a message has one deterministic process and source-mode identity.",
+      "causes": [
+        "TOPIC contains '+' or '#'",
+        "a broad telemetry subscription was copied into a process route"
+      ],
+      "impact": "The binding is rejected before the dashboard subscribes, preventing unrelated messages from being interpreted as this process.",
+      "resolution": "Replace the wildcard with an exact topic. Use the single supported {mode} placeholder when simulation, shadow and hardware require separate exact topics."
+    },
+    {
+      "code": "MQTT_BINDING_TRAILING_CONTENT",
+      "title": "Mqtt binding trailing content",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt binding trailing content condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_BINDING_UNKNOWN_KEY",
+      "title": "Mqtt binding unknown key",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt binding input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_CLIENT_CONNECT_IN_PROGRESS",
+      "title": "Mqtt client connect in progress",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": true,
+      "meaning": "The mqtt client connect operation cannot proceed in the current bounded runtime state.",
+      "causes": [
+        "another writer or operation is active",
+        "a configured size, time or concurrency budget was reached"
+      ],
+      "impact": "The current request is delayed or refused without replacing accepted state.",
+      "resolution": "Wait for the active operation to finish or reduce the bounded input; change limits only through an explicit reviewed configuration."
+    },
+    {
+      "code": "MQTT_CLIENT_NOT_CONNECTED",
+      "title": "Mqtt client not connected",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt client not connected condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_CONNACK_REJECTED",
+      "title": "Mqtt connack rejected",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The mqtt connack operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
+      "code": "MQTT_CONNACK_TIMEOUT",
+      "title": "Mqtt connack timeout",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt connack timeout condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_CONNECTION_CLOSED",
+      "title": "Mqtt connection closed",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt connection closed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_CONNECT_FAILED",
+      "title": "MQTT broker connection failed",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The MQTT client could not establish a TCP/TLS session and receive an accepted MQTT 3.1.1 CONNACK.",
+      "causes": [
+        "the Mosquitto container is stopped or its host port differs from MQTT_URL",
+        "DNS, firewall, TLS or broker authentication rejected the connection"
+      ],
+      "impact": "The accepted Twin remains available, but MQTT process observations and live process-driven animation are disconnected.",
+      "resolution": "Run docker compose ps and make service-check, verify MQTT_URL and MQTT_PORT, inspect docker compose logs mqtt, then restart the dashboard after the broker is healthy."
+    },
+    {
+      "code": "MQTT_CONNECT_TIMEOUT",
+      "title": "Mqtt connect timeout",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt connect timeout condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_DEMO_BROKER_NOT_FOUND",
+      "title": "Mqtt demo broker not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo broker input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_DEMO_PROCESS_ENTRY_REQUIRED",
+      "title": "Mqtt demo process entry required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo process entry input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_DEMO_PROCESS_NOT_FOUND",
+      "title": "Mqtt demo process not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo process input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_DEMO_PROCESS_PATH_EMPTY",
+      "title": "Mqtt demo process path empty",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt demo process path empty condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_DEMO_PROCESS_STEP_NOT_FOUND",
+      "title": "Mqtt demo process step not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo process step input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_DEMO_ROUTE_NOT_FOUND",
+      "title": "Mqtt demo route not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo route input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_DEMO_TOPIC_NOT_FOUND",
+      "title": "Mqtt demo topic not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt demo topic input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_MODE_INVALID",
+      "title": "Mqtt mode invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt mode input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_MODE_UNAVAILABLE",
+      "title": "MQTT source mode unavailable",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The requested simulation, shadow or hardware observation mode has no route in the active MqttBindingDSL.",
+      "causes": [
+        "the mode was omitted from every PROCESS_ROUTE MODES list",
+        "the dashboard request names a mode that this project intentionally does not expose"
+      ],
+      "impact": "The dashboard keeps the previous observation source; it does not emit any MQTT command or change accepted project state.",
+      "resolution": "Select one of /api/state mqtt.availableModes, or explicitly add the mode to the reviewed PROCESS_ROUTE and validate ProjectDSL again."
+    },
+    {
+      "code": "MQTT_PACKET_LENGTH_INVALID",
+      "title": "Mqtt packet length invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt packet length input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PORT",
+      "title": "Mqtt port",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt port condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_DOCUMENT_REQUIRED",
+      "title": "Mqtt process event document required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event document input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_ENTRY_STEP_MISMATCH",
+      "title": "Mqtt process event entry step mismatch",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The mqtt process event entry step evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_INITIAL_STATE_INVALID",
+      "title": "Mqtt process event initial state invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event initial state input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_INVALID",
+      "title": "Mqtt process event invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_JSON_INVALID",
+      "title": "Mqtt process event json invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event json input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_MODE_FORBIDDEN",
+      "title": "Mqtt process event mode forbidden",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The mqtt process event mode operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_OUT_OF_ORDER",
+      "title": "Mqtt process event out of order",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt process event out of order condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_ROUTE_MISMATCH",
+      "title": "Mqtt process event route mismatch",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The mqtt process event route evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_SEQUENCE_GAP",
+      "title": "MQTT process event sequence gap",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A URI Process run skipped one or more monotonically increasing sequence numbers, so the dashboard cannot prove which state or step transitions occurred.",
+      "causes": [
+        "the publisher started in the middle of a run or lost its durable counter",
+        "messages were lost upstream or multiple publishers reused one runId"
+      ],
+      "impact": "The message is recorded as rejected and the previous projected run remains active; the run is never presented as complete.",
+      "resolution": "Replay the missing event(s) in order with the same run identity, or start a new runId at sequence 1 with state PLANNED. Do not renumber an already accepted run."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_STATE_TRANSITION_INVALID",
+      "title": "Mqtt process event state transition invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event state transition input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_STEP_INVALID",
+      "title": "Mqtt process event step invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event step input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_STEP_REQUIRED",
+      "title": "Mqtt process event step required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event step input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_STEP_TRANSITION_INVALID",
+      "title": "Mqtt process event step transition invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event step transition input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_TOO_LARGE",
+      "title": "Mqtt process event too large",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": true,
+      "meaning": "The mqtt process event operation cannot proceed in the current bounded runtime state.",
+      "causes": [
+        "another writer or operation is active",
+        "a configured size, time or concurrency budget was reached"
+      ],
+      "impact": "The current request is delayed or refused without replacing accepted state.",
+      "resolution": "Wait for the active operation to finish or reduce the bounded input; change limits only through an explicit reviewed configuration."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_TOPIC_MODE_MISMATCH",
+      "title": "Mqtt process event topic mode mismatch",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The mqtt process event topic mode evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "MQTT_PROCESS_EVENT_UNKNOWN_KEY",
+      "title": "Mqtt process event unknown key",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process event input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_MODEL_NOT_AVAILABLE",
+      "title": "Mqtt process model not available",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The mqtt process model dependency or operation was unavailable at the runtime boundary.",
+      "causes": [
+        "the service or executable is not running",
+        "configuration, network access or the selected adapter is unavailable"
+      ],
+      "impact": "The requested stage cannot complete, but persisted accepted artifacts remain unchanged.",
+      "resolution": "Inspect the detail following the code, verify service/tool health and configuration, then retry when the dependency is available."
+    },
+    {
+      "code": "MQTT_PROCESS_REVISION_MISMATCH",
+      "title": "MQTT process revision mismatch",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The event processRevision does not equal the sourceSnapshotHash of the active ProcessDSL document.",
+      "causes": [
+        "a simulator or real adapter still publishes events for an older process graph",
+        "the dashboard was iterated while a run based on the previous ProcessDSL revision was active"
+      ],
+      "impact": "The event cannot select an animation step because the named step graph may have changed; it is rejected without changing the projected run.",
+      "resolution": "Read sourceSnapshotHash from the active process.json, rebuild/restart the publisher against that revision and begin a new runId at sequence 1."
+    },
+    {
+      "code": "MQTT_PROCESS_ROUTE_PROCESS_NOT_FOUND",
+      "title": "Mqtt process route process not found",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt process route process input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PROCESS_RUN_IDENTITY_MISMATCH",
+      "title": "Mqtt process run identity mismatch",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The mqtt process run identity evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "MQTT_PUBLISH_INVALID",
+      "title": "Mqtt publish invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt publish input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_PUBLISH_PACKET_ID_REQUIRED",
+      "title": "Mqtt publish packet id required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt publish packet id input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_QOS_UNSUPPORTED",
+      "title": "Mqtt qos unsupported",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt qos unsupported condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_STRING_TOO_LARGE",
+      "title": "Mqtt string too large",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": true,
+      "meaning": "The mqtt string operation cannot proceed in the current bounded runtime state.",
+      "causes": [
+        "another writer or operation is active",
+        "a configured size, time or concurrency budget was reached"
+      ],
+      "impact": "The current request is delayed or refused without replacing accepted state.",
+      "resolution": "Wait for the active operation to finish or reduce the bounded input; change limits only through an explicit reviewed configuration."
+    },
+    {
+      "code": "MQTT_SUBACK_REJECTED",
+      "title": "Mqtt suback rejected",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The mqtt suback operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
+      "code": "MQTT_SUBSCRIBE_TOPICS_REQUIRED",
+      "title": "Mqtt subscribe topics required",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt subscribe topics input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_TOPIC_UNBOUND",
+      "title": "Mqtt topic unbound",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mqtt topic unbound condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "MQTT_URL_INVALID",
+      "title": "Mqtt url invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt url input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "MQTT_URL_NOT_CONFIGURED",
+      "title": "Mqtt url not configured",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The mqtt url dependency or operation was unavailable at the runtime boundary.",
+      "causes": [
+        "the service or executable is not running",
+        "configuration, network access or the selected adapter is unavailable"
+      ],
+      "impact": "The requested stage cannot complete, but persisted accepted artifacts remain unchanged.",
+      "resolution": "Inspect the detail following the code, verify service/tool health and configuration, then retry when the dependency is available."
+    },
+    {
+      "code": "MQTT_URL_PROTOCOL_INVALID",
+      "title": "Mqtt url protocol invalid",
+      "subsystem": "mqtt",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The mqtt url protocol input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
       "code": "MUTATION_APPLY_AFTER_ANALYSIS_REQUIRED",
       "title": "Mutation apply after analysis required",
       "subsystem": "mutation apply",

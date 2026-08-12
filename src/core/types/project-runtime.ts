@@ -91,6 +91,8 @@ export interface LivingProjectDocument {
     logicalRoot: string;
     /** Optional deterministic ObservationDSL → TwinState projection contract. */
     liveBindingFile?: string;
+    /** Optional MQTT observation routes for URI Process run projection. */
+    mqttBindingFile?: string;
   };
   webResearch?: {
     dqlFile: string;

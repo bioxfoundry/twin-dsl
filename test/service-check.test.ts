@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createServer, type Server } from "node:http";
+import { createServer as createTcpServer, type Server as TcpServer } from "node:net";
 import { checkExternalServices } from "../src/runtime/service-check.js";
 
 async function start(handler:(req:import("node:http").IncomingMessage,res:import("node:http").ServerResponse)=>void):Promise<{server:Server;url:string}>{
@@ -12,16 +13,20 @@ async function start(handler:(req:import("node:http").IncomingMessage,res:import
 }
 
 async function stop(server:Server):Promise<void>{await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
+async function stopTcp(server:TcpServer):Promise<void>{await new Promise<void>((resolve,reject)=>server.close(error=>error?reject(error):resolve()));}
 
 test("service-check performs real ClickHouse query and Docling health request",async()=>{
   const clickhouse=await start((_req,res)=>{res.writeHead(200,{"content-type":"application/json"});res.end('{"ok":1}\n');});
   const docling=await start((req,res)=>{assert.equal(req.url,"/health");res.writeHead(200,{"content-type":"application/json"});res.end('{"status":"ok"}');});
+  const mqtt=createTcpServer(socket=>socket.on("data",data=>{if((data[0]>>4)===1)socket.write(Buffer.from([0x20,0x02,0x00,0x00]));}));
+  await new Promise<void>(resolve=>mqtt.listen(0,"127.0.0.1",resolve));
+  const mqttAddress=mqtt.address();if(!mqttAddress||typeof mqttAddress==="string")throw new Error("TEST_MQTT_ADDRESS_INVALID");
   try {
-    const result=await checkExternalServices({clickhouseUrl:clickhouse.url,doclingUrl:docling.url,timeoutMs:1000});
+    const result=await checkExternalServices({clickhouseUrl:clickhouse.url,doclingUrl:docling.url,mqttUrl:`mqtt://127.0.0.1:${mqttAddress.port}`,timeoutMs:1000});
     assert.equal(result.ok,true);
-    assert.equal(result.checks.length,2);
-    assert.deepEqual(result.checks.map(x=>x.service),["clickhouse","docling"]);
+    assert.equal(result.checks.length,3);
+    assert.deepEqual(result.checks.map(x=>x.service),["clickhouse","docling","mqtt"]);
   } finally {
-    await Promise.all([stop(clickhouse.server),stop(docling.server)]);
+    await Promise.all([stop(clickhouse.server),stop(docling.server),stopTcp(mqtt)]);
   }
 });

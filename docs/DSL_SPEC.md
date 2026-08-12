@@ -144,8 +144,9 @@ The full contract and epistemic meaning of `PASS · INCOMPLETE` are documented i
 
 ## Live-twin contracts
 
-`LiveBindingDSL`, `TwinState` and `AssemblyDSL` are executable runtime contracts. BehaviorDSL,
-VisualDSL and event transport remain the next architectural steps. The canonical object remains a
+`LiveBindingDSL`, `TwinState`, `AssemblyDSL`, `ProcessAnimationDSL` and the observe-only
+`MqttBindingDSL`/`UriProcessRun` projection are executable runtime contracts. BehaviorDSL and
+VisualDSL remain later architectural steps. The canonical object remains a
 versioned JSON/Protobuf AST; text is its reviewable DSL projection.
 
 The reference implementations are independently built as `@subactor/assembly-dsl` and
@@ -200,6 +201,45 @@ nonexistent `componentId` blocks the iteration. Open-ended ranges are strict (`*
 TTL, mapped state and `projectedAt`; `/api/state` adds `evaluatedAt` and re-evaluates quality on every
 read, so a quiet sensor still transitions from `fresh` to `stale` and `expired` without a new model
 revision.
+
+### MqttBindingDSL and URI Process runs (implemented, observe-only)
+
+MQTT is a transport binding and does not redefine ProcessDSL semantics or grant effect authority.
+`MQTT_BINDING_FILE` in ProjectDSL activates exact broker/topic routes:
+
+```text
+MQTT_BINDINGS biofoundry-uri-processes
+DEFAULT_MODE simulation
+AUTHORITY observe-only
+BROKER "local"
+URL_ENV MQTT_URL
+CLIENT_ID "biofoundry-dashboard"
+KEEP_ALIVE_SECONDS 30
+END_BROKER
+PROCESS_ROUTE "cultivation-monitoring"
+BROKER_ID "local"
+TOPIC "biofoundry/{mode}/process/cultivation_monitoring/events"
+QOS 1
+PROCESS_ID "cultivation_monitoring"
+PROCESS_URI twin://biofoundry/process/query/cultivation_monitoring
+MODES [simulation,shadow,hardware]
+END_PROCESS_ROUTE
+END_MQTT_BINDINGS
+```
+
+Only `{mode}` may be expanded; MQTT `+` and `#` wildcards are forbidden. Secrets and endpoints stay
+outside DSL in the environment variable named by `URL_ENV`. Each JSON event follows
+`subactor.mqtt-process-event/v1` and binds `processUri`, `processRevision`, `runId`, monotonically
+increasing `sequence`, `state`, optional `stepId`, correlation/idempotency identity and
+`sourceMode`. The reducer emits `subactor.uri-process-run/v1`, aligned with URI Process run states:
+`PLANNED`, `WAITING`, `READY`, `RUNNING`, `SUCCEEDED`, `FAILED`, `CANCELLED`, `COMPENSATING`,
+`COMPENSATED`.
+
+The runtime rejects unknown topics, revision drift, missing/out-of-order events, invalid state
+transitions and ProcessDSL step transitions. Accepted and rejected messages are appended to
+`mqtt/process-events.jsonl`; current projections are written to `mqtt/runs.json`. Dashboard mode
+switching selects an observation source only. Even `hardware` remains `observe-only`: this
+contract contains no command topic, dispatcher or authority token.
 
 ### BehaviorDSL and VisualDSL (planned)
 

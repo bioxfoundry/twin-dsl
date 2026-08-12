@@ -8,9 +8,12 @@ import { createServer, type IncomingMessage, type ServerResponse } from "node:ht
 import { appendFile, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import type { AssemblyReport, LlmMode, PhysicalEvidenceDocument, ProcessAnimationDocument, ProcessDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
+import type { AssemblyReport, LlmMode, MqttSourceMode, PhysicalEvidenceDocument, ProcessAnimationDocument, ProcessDocument, SceneDocument, TwinDocument, TwinStateDocument } from "../core/types.js";
 import { contentUri } from "../core/canonical.js";
+import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
+import { parseProjectDsl } from "../dsl/project.js";
 import { LivingProjectRuntime } from "../runtime/living-project.js";
+import { MqttProcessController, mqttNotConfiguredState, type MqttDashboardState, type MqttProcessAuditRecord } from "../runtime/mqtt-process-controller.js";
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 import { renderOpenUsd } from "../scene/openusd.js";
 import { evaluateTwinStateFreshness } from "../runtime/twin-state.js";
@@ -123,6 +126,13 @@ async function readDslArtifacts(current: string, configPath: string): Promise<{ 
       content: (await readFile(join(dirname(resolve(configPath)), "logs", "testql-latest.testqldsl"), "utf8")).slice(0, 120_000),
     });
   } catch { /* TestQL has not run for this project yet */ }
+  try {
+    const project = parseProjectDsl(await readFile(resolve(configPath), "utf8"));
+    if (project.observations.mqttBindingFile) {
+      const mqttPath = resolve(dirname(resolve(configPath)), project.observations.mqttBindingFile);
+      documents.push({ name: project.observations.mqttBindingFile, content: (await readFile(mqttPath, "utf8")).slice(0, 120_000) });
+    }
+  } catch { /* MQTT bindings are optional; startup reports configured-contract errors. */ }
   return { schema: "subactor.dsl-log-view/v1", documents };
 }
 
@@ -201,6 +211,8 @@ export interface DashboardOptions {
   mode?: LlmMode;
   /** Inspection replicas must not run iterations or persist physical intake. */
   readOnly?: boolean;
+  /** Explicit MQTT binding override; ProjectDSL is used when this is omitted. */
+  mqttBindingPath?: string;
 }
 
 interface DashboardState {
@@ -258,6 +270,7 @@ interface DashboardState {
   renderedScope: "current";
   diagnosticScope: "current" | "candidate";
   observations: unknown;
+  mqtt: MqttDashboardState;
   iteration: unknown;
   updatedAt: string;
 }
@@ -275,13 +288,57 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   const mode: LlmMode = options.mode ?? "deterministic";
   const readOnly = options.readOnly ?? false;
   const dashboardLogPath = join(dirname(resolve(options.configPath)), "logs", `dashboard-${options.port}.log`);
+  const mqttAuditPath = join(resolve(options.outDir), "mqtt", "process-events.jsonl");
+  const mqttRunsPath = join(resolve(options.outDir), "mqtt", "runs.json");
   let busy = false;
+  let mqttController: MqttProcessController | undefined;
 
   async function dashboardLog(level:"info"|"warn"|"error",event:string,details:Record<string,unknown>={}):Promise<void>{
     const record={schema:"subactor.dashboard-log/v1",at:new Date().toISOString(),level,event,port:options.port,mode,readOnly,...details};
     await mkdir(dirname(dashboardLogPath),{recursive:true});
     await appendFile(dashboardLogPath,JSON.stringify(record)+"\n").catch(()=>undefined);
     console[level](`[dashboard] ${event}`,details);
+  }
+
+  async function mqttAudit(record: MqttProcessAuditRecord): Promise<void> {
+    await mkdir(dirname(mqttAuditPath), { recursive: true });
+    await appendFile(mqttAuditPath, `${JSON.stringify(record)}\n`);
+    if (record.run && mqttController) {
+      await writeFile(mqttRunsPath, `${JSON.stringify({
+        schema: "subactor.uri-process-runs/v1",
+        projectedAt: record.recordedAt,
+        runs: mqttController.snapshot().activeRuns,
+      }, null, 2)}\n`);
+    }
+    await dashboardLog(record.status === "rejected" ? "warn" : "info", `mqtt:${record.status}`, {
+      brokerId: record.brokerId,
+      topic: record.topic,
+      processId: record.event?.processId,
+      runId: record.event?.runId,
+      sequence: record.event?.sequence,
+      error: record.error,
+    });
+  }
+
+  let configuredMqttPath = options.mqttBindingPath;
+  if (!configuredMqttPath) {
+    try {
+      const project = parseProjectDsl(await readFile(resolve(options.configPath), "utf8"));
+      configuredMqttPath = project.observations.mqttBindingFile
+        ? resolve(dirname(resolve(options.configPath)), project.observations.mqttBindingFile)
+        : undefined;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException)?.code !== "ENOENT") throw error;
+    }
+  }
+  if (configuredMqttPath) {
+    const binding = parseMqttBindingDsl(await readFile(resolve(configuredMqttPath), "utf8"));
+    mqttController = new MqttProcessController({
+      binding,
+      loadProcesses: () => readJson<ProcessDocument>(join(current, "process.json")),
+      audit: mqttAudit,
+    });
+    mqttController.start();
   }
 
   async function state(): Promise<DashboardState> {
@@ -350,7 +407,7 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
       artifactScope:"current",
       renderedScope:"current",
       diagnosticScope:latestRejected?"candidate":"current",
-      observations,iteration,updatedAt:new Date().toISOString(),
+      observations,mqtt:mqttController?.snapshot()??mqttNotConfiguredState(),iteration,updatedAt:new Date().toISOString(),
     };
   }
 
@@ -364,11 +421,35 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
         if (request.method === "GET" && url.pathname === "/api/state") {
           return sendJson(response, 200, await state());
         }
+        if (request.method === "GET" && url.pathname === "/api/mqtt") {
+          return sendJson(response, 200, mqttController?.snapshot() ?? mqttNotConfiguredState());
+        }
         if (request.method === "GET" && url.pathname === "/api/events") {
           return sendJson(response, 200, await readEventLog(options.outDir));
         }
         if (request.method === "GET" && url.pathname === "/api/dsl") {
           return sendJson(response, 200, await readDslArtifacts(current, options.configPath));
+        }
+        if (request.method === "POST" && url.pathname === "/api/mqtt/mode") {
+          if (!mqttController) return sendError(response, 409, "MQTT_BINDING_NOT_CONFIGURED");
+          let body: unknown;
+          try { body = JSON.parse(await readBody(request, 16_384)); }
+          catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            return sendError(response, 400, codeFromError(error), { detail });
+          }
+          const selected = (body as { mode?: unknown })?.mode;
+          if (typeof selected !== "string" || !["simulation", "shadow", "hardware"].includes(selected)) {
+            return sendError(response, 400, "MQTT_MODE_INVALID", { requestedMode: selected });
+          }
+          try {
+            mqttController.setMode(selected as MqttSourceMode);
+            await dashboardLog("info", "mqtt:mode-selected", { selectedMode: selected, authority: "observe-only" });
+            return sendJson(response, 200, mqttController.snapshot());
+          } catch (error) {
+            const detail = error instanceof Error ? error.message : String(error);
+            return sendError(response, 409, codeFromError(error), { detail });
+          }
         }
         const errorApi = url.pathname.match(/^\/api\/errors\/([^/]+)$/);
         const errorMarkdown = url.pathname.match(/^\/error\/([^/]+)\.md$/);
@@ -561,6 +642,9 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
   await dashboardLog("info","server:listening",{host,actualPort:port,url:`http://${host}:${port}/`});
   return {
     url: `http://${host}:${port}/`,
-    close: () => new Promise<void>((done, fail) => server.close((error) => (error ? fail(error) : done()))),
+    close: () => {
+      mqttController?.close();
+      return new Promise<void>((done, fail) => server.close((error) => (error ? fail(error) : done())));
+    },
   };
 }

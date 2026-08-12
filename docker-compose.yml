@@ -36,6 +36,19 @@ services:
       timeout: 10s
       retries: 20
 
+  mqtt:
+    image: eclipse-mosquitto:2.0.20
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${MQTT_PORT:-18883}:1883"
+    volumes:
+      - ./deploy/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_pub -h 127.0.0.1 -p 1883 -t biofoundry/health -m ok"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
   runtime:
     build:
       context: .
@@ -46,6 +59,7 @@ services:
       CLICKHOUSE_USER: ${CLICKHOUSE_USER:-digital_twin}
       CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-digital_twin_local}
       DOCLING_URL: http://docling:5001
+      MQTT_URL: mqtt://mqtt:1883
       DT_SEARCH_BACKEND: clickhouse
       OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
       OPENROUTER_MODEL: ${OPENROUTER_MODEL:-mistralai/codestral-2508}
@@ -58,6 +72,8 @@ services:
       clickhouse:
         condition: service_healthy
       docling:
+        condition: service_healthy
+      mqtt:
         condition: service_healthy
 
 networks:

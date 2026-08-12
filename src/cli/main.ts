@@ -32,6 +32,9 @@ import { GeometryService } from "../geometry/geometry-service.js";
 import { renderGeometryDsl, renderGeometryReceiptDsl } from "../geometry/geometry-dsl.js";
 import { analyzeZipFile, findZipFiles, materializeArchiveGeometry, writeArchiveAnalysis } from "../ingestion/archive-project.js";
 import { validateSpecificationDsl, writeSpecificationDslValidation } from "../runtime/specification-dsl-validation.js";
+import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
+import { runMqttProcessDemo } from "../runtime/mqtt-process-demo.js";
+import type { MqttSourceMode, ProcessDocument } from "../core/types.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -59,7 +62,7 @@ async function main():Promise<void>{
   const [cmd,...args]=process.argv.slice(2);
   if(cmd==='doctor'){
     const t2c=new Todo2CodeAdapter(),probes=new TwinProbesAdapter(),llm=new OpenRouterStructuredClient();
-    console.log(JSON.stringify({node:process.version,todo2code:{root:t2c.root,bin:t2c.bin,available:await t2c.available()},twinProbes:{bin:probes.bin,available:await probes.available()},openscad:await openScadStatus(),openrouter:{configured:llm.configured(),baseUrl:llm.config.baseUrl,model:llm.config.model,dataCollection:llm.config.dataCollection},doclingUrl:process.env.DOCLING_URL??null,clickhouseUrl:process.env.CLICKHOUSE_URL??null,mutationGrantSecretConfigured:Boolean(process.env.MUTATION_GRANT_HMAC_SECRET||process.env.APPLY_GRANT_HMAC_SECRET||process.env.TOKEN_PEPPER),dockerExpected:process.env.DOCKER_HOST??'local-socket'},null,2));return;
+    console.log(JSON.stringify({node:process.version,todo2code:{root:t2c.root,bin:t2c.bin,available:await t2c.available()},twinProbes:{bin:probes.bin,available:await probes.available()},openscad:await openScadStatus(),openrouter:{configured:llm.configured(),baseUrl:llm.config.baseUrl,model:llm.config.model,dataCollection:llm.config.dataCollection},doclingUrl:process.env.DOCLING_URL??null,clickhouseUrl:process.env.CLICKHOUSE_URL??null,mqttUrl:process.env.MQTT_URL??null,mqttAuthority:"observe-only",mutationGrantSecretConfigured:Boolean(process.env.MUTATION_GRANT_HMAC_SECRET||process.env.APPLY_GRANT_HMAC_SECRET||process.env.TOKEN_PEPPER),dockerExpected:process.env.DOCKER_HOST??'local-socket'},null,2));return;
   }
   if(cmd==='service-check'){const result=await checkExternalServices();console.log(JSON.stringify(result,null,2));if(!result.ok)process.exitCode=1;return;}
   if(cmd==='demo'){const[base='examples',out='.dt-run']=args;console.log(JSON.stringify(await runDemo(base,out),null,2));return;}
@@ -148,11 +151,20 @@ async function main():Promise<void>{
       configPath:resolve(config),outDir:resolve(out),port:Number(port),
       host:process.env.DT_DASHBOARD_HOST??"127.0.0.1",mode:llmMode(mode),
       readOnly:process.env.DT_DASHBOARD_READ_ONLY==="1",
+      mqttBindingPath:process.env.DT_MQTT_BINDING_FILE?resolve(process.env.DT_MQTT_BINDING_FILE):undefined,
     });
     console.log(JSON.stringify({dashboard:server.url,config:resolve(config),out:resolve(out)},null,2));
     const stop=():void=>{void server.close().then(()=>process.exit(0));};
     process.once('SIGINT',stop);process.once('SIGTERM',stop);
     return;
+  }
+  if(cmd==='mqtt-demo'){
+    const[bindingPath,processPath,processId,sourceMode='simulation',interval='900']=args;
+    if(!bindingPath||!processPath||!processId)throw new Error('CLI_ARGUMENTS_REQUIRED:mqtt-demo:usage=mqtt-demo <mqtt-bindings.dsl> <process.json> <process-id> [simulation|shadow|hardware] [interval-ms]');
+    if(!['simulation','shadow','hardware'].includes(sourceMode))throw new Error(`MQTT_MODE_INVALID:${sourceMode}`);
+    const binding=parseMqttBindingDsl(await readFile(resolve(bindingPath),'utf8'));
+    const processes=await json(resolve(processPath)) as ProcessDocument;
+    console.log(JSON.stringify(await runMqttProcessDemo({binding,processes,processId,mode:sourceMode as MqttSourceMode,intervalMs:Number(interval)}),null,2));return;
   }
   if(cmd==='scene-render'){
     const[scenePath,twinPath,out]=args;if(!scenePath||!twinPath)throw new Error('CLI_ARGUMENTS_REQUIRED:scene-render:usage=scene-render <scene.json> <twin.json> [out.usda]');
@@ -207,7 +219,7 @@ async function main():Promise<void>{
     console.log(JSON.stringify({source:resolve(source),out:resolve(out),archives:analyses.length,coverage:analyses.reduce((sum,item)=>({entries:sum.entries+item.coverage.entries,geometryEntries:sum.geometryEntries+item.coverage.geometryEntries,materializableGeometryEntries:sum.materializableGeometryEntries+item.coverage.materializableGeometryEntries,unsupportedCadEntries:sum.unsupportedCadEntries+item.coverage.unsupportedCadEntries}),{entries:0,geometryEntries:0,materializableGeometryEntries:0,unsupportedCadEntries:0}),materialized:receipts.reduce((sum,item)=>sum+item.coverage.materialized,0),failed:receipts.reduce((sum,item)=>sum+item.coverage.failed,0)},null,2));return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('CLI_ARGUMENTS_REQUIRED:crawl:usage=crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | specification-dsl-validate | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | mqtt-demo | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | specification-dsl-validate | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));

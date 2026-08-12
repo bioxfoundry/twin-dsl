@@ -7,6 +7,7 @@ import { canonicalJson, sha256 } from "../core/canonical.js";
 import { biofoundryLiveBlueprintV02 } from "../scene/blueprint.js";
 import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
+import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
 
 export type ProjectProfile = "generic" | "biofoundry";
 export interface CreateProjectOptions { name:string; outDir:string; profile?:ProjectProfile; managerIntent?:string; }
@@ -373,6 +374,15 @@ export async function verifyLivingProject(configPath:string):Promise<{ok:boolean
       checks.push({name:`live-bindings:${document.observations.liveBindingFile}`,ok:true,message:`valid (${bindings.bindings.length} bindings)`});
     } catch(error) {
       checks.push({name:`live-bindings:${document.observations.liveBindingFile}`,ok:false,message:error instanceof Error?error.message:String(error)});
+    }
+  }
+  if(document.observations.mqttBindingFile) {
+    const bindingPath = resolve(base,document.observations.mqttBindingFile);
+    try {
+      const bindings = parseMqttBindingDsl(await readFile(bindingPath,"utf8"));
+      checks.push({name:`mqtt-bindings:${document.observations.mqttBindingFile}`,ok:true,message:`valid (${bindings.processRoutes.length} URI Process routes; ${bindings.authority})`});
+    } catch(error) {
+      checks.push({name:`mqtt-bindings:${document.observations.mqttBindingFile}`,ok:false,message:error instanceof Error?error.message:String(error)});
     }
   }
   if(document.scene.assemblyFile) {

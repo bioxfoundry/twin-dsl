@@ -16,6 +16,8 @@ import { validateGeometryBuild } from "../src/geometry/build-contract.js";
 import { validateLiveBinding } from "../src/dsl/live-binding.js";
 import { validateAssembly } from "../src/dsl/assembly.js";
 import { validateProcessDocument } from "../src/dsl/process.js";
+import { validateMqttBinding } from "../src/dsl/mqtt-binding.js";
+import { validateMqttProcessEvent } from "../src/runtime/uri-process-run.js";
 import { validateSourceCoverage } from "../src/runtime/source-coverage.js";
 import { deriveBiofoundryProcesses } from "../src/runtime/process-model.js";
 import { compileProcessAnimation, validateProcessAnimation } from "../src/runtime/process-animation.js";
@@ -186,6 +188,44 @@ test("assembly schema and runtime validator agree", async () => {
     { name: "relative scene path", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], parts: [{ ...assemblyBase.assemblies[0].parts[0], scenePath: "Lab/Lid" }] }] } },
     { name: "unknown kind", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], kind: "workflow" }] } },
     { name: "unknown part key", document: { ...assemblyBase, assemblies: [{ ...assemblyBase.assemblies[0], parts: [{ ...assemblyBase.assemblies[0].parts[0], guessed: true }] }] } },
+  ]);
+});
+
+const mqttBindingBase = {
+  schema: "subactor.mqtt-binding/v1", id: "mqtt-v1", defaultMode: "simulation", authority: "observe-only",
+  brokers: [{ id: "local", urlEnv: "MQTT_URL", clientId: "dashboard", keepAliveSeconds: 30 }],
+  processRoutes: [{
+    id: "cultivation", brokerId: "local", topic: "biofoundry/{mode}/process/cultivation/events", qos: 1,
+    processId: "cultivation", processUri: "twin://biofoundry/process/query/cultivation",
+    modes: ["simulation", "shadow", "hardware"],
+  }],
+};
+
+test("mqtt-binding schema and runtime validator agree", async () => {
+  await assertNoDrift("mqtt-binding.schema.json", validateMqttBinding, [
+    { name: "valid", document: mqttBindingBase },
+    { name: "command authority forbidden", document: { ...mqttBindingBase, authority: "command" } },
+    { name: "wildcard forbidden", document: { ...mqttBindingBase, processRoutes: [{ ...mqttBindingBase.processRoutes[0], topic: "biofoundry/+/events" }] } },
+    { name: "bad env", document: { ...mqttBindingBase, brokers: [{ ...mqttBindingBase.brokers[0], urlEnv: "mqtt-url" }] } },
+    { name: "unknown key", document: { ...mqttBindingBase, dispatchCommands: true } },
+  ]);
+});
+
+const mqttEventBase = {
+  schema: "subactor.mqtt-process-event/v1", eventId: "event-1", processId: "cultivation",
+  processUri: "twin://biofoundry/process/query/cultivation", processRevision: "a".repeat(64),
+  runId: "run-1", sequence: 1, state: "PLANNED", occurredAt: "2026-08-12T10:00:00.000Z",
+  correlationId: "correlation-1", idempotencyKey: "run-1:1", sourceMode: "simulation",
+};
+
+test("mqtt process-event schema and runtime validator agree", async () => {
+  await assertNoDrift("mqtt-process-event.schema.json", validateMqttProcessEvent, [
+    { name: "valid", document: mqttEventBase },
+    { name: "running with step", document: { ...mqttEventBase, state: "RUNNING", stepId: "operate" } },
+    { name: "running without step", document: { ...mqttEventBase, state: "RUNNING" } },
+    { name: "bad revision", document: { ...mqttEventBase, processRevision: "old" } },
+    { name: "bad URI", document: { ...mqttEventBase, processUri: "twin://biofoundry/process/command/cultivation" } },
+    { name: "unknown key", document: { ...mqttEventBase, payload: {} } },
   ]);
 });
 

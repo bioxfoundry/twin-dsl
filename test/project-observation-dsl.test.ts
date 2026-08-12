@@ -15,6 +15,31 @@ test('projectDSL preserves an explicit development policy boundary',()=>{
   assert.match(renderProjectDsl(project),/^POLICY_ENVIRONMENT development$/m);
 });
 
+test('projectDSL preserves the optional MQTT observation binding',()=>{
+  const project=parseProjectDsl(`PROJECT demo
+NAME "Demo"
+PROFILE generic
+MANAGER_INTENT "Observe URI Process runs"
+SOURCE runtime "logs" subactor://project/demo/runtime
+MQTT_BINDING_FILE "config/mqtt-bindings.dsl"
+POLICY_APPROVED true
+POLICY_REQUIRE_RESEARCH false
+POLICY_REQUIRE_DEVELOPMENT false
+POLICY_REQUIRE_DEVELOPMENT_ACCEPTANCE false
+POLICY_ALLOW_DEVELOPMENT_FIXTURE false
+POLICY_REQUIRE_RUNTIME true
+POLICY_AUTO_PUBLISH_SCENE false
+POLICY_ALLOW_RUNTIME_SELF_MODIFICATION false
+POLICY_AUTONOMY_MODE observe
+POLICY_REQUIRE_SIGNED_MUTATION_GRANT true
+POLICY_MAX_ITERATIONS_PER_HOUR 12
+POLICY_MAX_CONSECUTIVE_FAILURES 3
+SCENE_FORMAT openusd
+`);
+  assert.equal(project.observations.mqttBindingFile,'config/mqtt-bindings.dsl');
+  assert.match(renderProjectDsl(project),/^MQTT_BINDING_FILE "config\/mqtt-bindings\.dsl"$/m);
+});
+
 test('observationDSL preserves receivedAt independently from observedAt',()=>{
   const source=`OBSERVATIONS live SNAPSHOT ${'a'.repeat(64)}\nOBSERVATION obs-1\nAT "2026-08-08T20:00:00Z"\nRECEIVED_AT "2026-08-08T20:00:01Z"\nSUBJECT urn:component:test\nMETRIC "temperature"\nVALUE 22\nUNIT "Cel"\nSEVERITY info\nSOURCES urn:sensor:test\nLABELS live\nEND\n`;
   const record=parseObservationDsl(renderObservationDsl(parseObservationDsl(source))).observations[0];

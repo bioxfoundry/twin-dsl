@@ -3,6 +3,9 @@
 ## [Unreleased] - 2026-08-11
 
 ### Added
+- Add an observe-only MQTT 3.1.1 transport, exact `MqttBindingDSL` URI Process routes,
+  validated/idempotent `UriProcessRun` projection, Docker Mosquitto service and live
+  process-driven dashboard animation for simulation, shadow and hardware observation sources.
 - Add deterministic `bioxfoundry.source-coverage/v1` JSON/DSL emission to both f2md
   implementations, with explicit terminal states, byte-stable cross-language output and a
   fail-closed `ProjectIntegrity` consumer.

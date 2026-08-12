@@ -130,3 +130,81 @@ export interface ProcessAnimationDocument {
   };
   animations: ProcessAnimation[];
 }
+
+/** Source selected for an observed process run. It never grants command authority. */
+export type MqttSourceMode = "simulation" | "shadow" | "hardware";
+export type UriProcessRunState =
+  | "PLANNED"
+  | "WAITING"
+  | "READY"
+  | "RUNNING"
+  | "SUCCEEDED"
+  | "FAILED"
+  | "CANCELLED"
+  | "COMPENSATING"
+  | "COMPENSATED";
+
+export interface MqttBrokerBinding {
+  id: string;
+  /** Environment variable holding mqtt:// or mqtts:// URL; credentials do not enter the DSL. */
+  urlEnv: string;
+  clientId: string;
+  keepAliveSeconds: number;
+}
+
+export interface MqttProcessRoute {
+  id: string;
+  brokerId: string;
+  /** Exact topic or a topic containing one `{mode}` placeholder. MQTT wildcards are forbidden. */
+  topic: string;
+  qos: 0 | 1;
+  processId: string;
+  processUri: string;
+  modes: MqttSourceMode[];
+}
+
+export interface MqttBindingDocument {
+  schema: "subactor.mqtt-binding/v1";
+  id: string;
+  defaultMode: MqttSourceMode;
+  brokers: MqttBrokerBinding[];
+  processRoutes: MqttProcessRoute[];
+  /** V1 is deliberately observation-only; MQTT messages cannot dispatch hardware effects. */
+  authority: "observe-only";
+}
+
+export interface MqttProcessEvent {
+  schema: "subactor.mqtt-process-event/v1";
+  eventId: string;
+  processId: string;
+  processUri: string;
+  processRevision: string;
+  runId: string;
+  sequence: number;
+  state: UriProcessRunState;
+  stepId?: string;
+  occurredAt: string;
+  correlationId: string;
+  idempotencyKey: string;
+  sourceMode: MqttSourceMode;
+}
+
+export interface UriProcessRunDocument {
+  schema: "subactor.uri-process-run/v1";
+  runId: string;
+  processId: string;
+  processUri: string;
+  processRevision: string;
+  state: UriProcessRunState;
+  currentStepIds: string[];
+  sourceMode: MqttSourceMode;
+  correlationId: string;
+  sequence: number;
+  startedAt?: string;
+  updatedAt: string;
+  finishedAt?: string;
+  eventIds: string[];
+  idempotencyKeys: string[];
+  /** Explicit continuity defects. A run with gaps must not be presented as complete. */
+  gaps: string[];
+}

@@ -87,7 +87,8 @@
       "properties": {
         "paths": {"type":"array","items":{"type":"string"}},
         "logicalRoot": {"type":"string"},
-        "liveBindingFile": {"type":"string"}
+        "liveBindingFile": {"type":"string"},
+        "mqttBindingFile": {"type":"string"}
       }
     },
     "webResearch": {

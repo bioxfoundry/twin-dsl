@@ -120,6 +120,16 @@
       <div id="a-assemblies"></div>
       <div id="a-findings"></div>
     </div>
+    <div class="card" id="mqtt-card">
+      <h2>MQTT · URI Process observations</h2>
+      <select id="mqtt-mode" aria-label="MQTT source mode"></select>
+      <div class="kv"><span>connection</span><span id="mqtt-connection" class="mono">not configured</span></div>
+      <div class="kv"><span>authority</span><span id="mqtt-authority" class="mono">observe-only</span></div>
+      <div class="kv"><span>subscriptions</span><span id="mqtt-subscriptions" class="mono">0</span></div>
+      <div class="kv"><span>accepted / rejected</span><span id="mqtt-events" class="mono">0 / 0</span></div>
+      <div id="mqtt-run" class="mono" style="margin-top:7px;color:var(--muted)">No observed process run.</div>
+      <div id="mqtt-error" class="bad mono"></div>
+    </div>
     <div class="card" id="process-card">
       <h2>Source-grounded process animation</h2>
       <select id="process-select" aria-label="Process"></select>
@@ -309,7 +319,7 @@ gl.disable(gl.CULL_FACE);
 
 /* ----------------------------------------------------------- scene data */
 let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,SCENE_CENTER=[0,0,0],SCENE_RADIUS=40,framed=false,queryFocusApplied=false,INSPECTION=false,INSPECTION_IDS=null;
-let PROCESS_MODEL=null,PROCESS_ANIMATION=null,PROCESS_SELECTED=null,PROCESS_FRAME_HANDLE=null;
+let PROCESS_MODEL=null,PROCESS_ANIMATION=null,PROCESS_SELECTED=null,PROCESS_FRAME_HANDLE=null,MQTT_STATE=null,MQTT_FRAME_HANDLE=null,MQTT_LAST_RUN_KEY=null;
 const PROCESS_RUN={playing:false,outcome:'success',stepIndex:0,stepStartedAt:0};
 PROCESS_RUN.started=false;
 const PROCESS_COLORS={active:[1,.72,.16],completed:[.24,.86,.58],observing:[.24,.75,1],error:[1,.25,.28],recovering:[1,.45,.18],flowFrom:[.2,.85,1],flowTo:[.86,.4,1]};
@@ -451,29 +461,33 @@ async function buildObjects(state){
 
 function selectedProcess(){return (PROCESS_MODEL&&PROCESS_MODEL.processes||[]).find(process=>process.id===PROCESS_SELECTED)||null;}
 function selectedProcessAnimation(){return (PROCESS_ANIMATION&&PROCESS_ANIMATION.animations||[]).find(animation=>animation.processId===PROCESS_SELECTED)||null;}
+function selectedMqttRun(){return ((MQTT_STATE&&MQTT_STATE.activeRuns)||[]).filter(run=>run.processId===PROCESS_SELECTED).sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0]||null;}
 function processSequence(){const animation=selectedProcessAnimation();return animation?(PROCESS_RUN.outcome==='failure'&&animation.failureStepIds.length?animation.failureStepIds:animation.successStepIds):[];}
 function processVisual(object,now){
   const liveAlert=(object.liveProperties||[]).some(property=>property.quality==='fresh'&&/(error|alarm|critical|overheat|unsafe|fault)/i.test(String(property.state)));
   if(liveAlert)return{color:PROCESS_COLORS.error,scale:1.045,source:'live'};
-  if(!PROCESS_RUN.started)return{color:null,scale:1,source:'base'};
+  const mqttRun=selectedMqttRun();
+  if(!PROCESS_RUN.started&&!mqttRun?.currentStepIds?.length)return{color:null,scale:1,source:'base'};
   const animation=selectedProcessAnimation(),sequence=processSequence();
   if(!animation||!sequence.length)return{color:null,scale:1,source:'base'};
-  const stepId=sequence[Math.min(PROCESS_RUN.stepIndex,sequence.length-1)],clip=animation.clips.find(item=>item.stepId===stepId);
+  const liveStepId=mqttRun&&mqttRun.currentStepIds&&mqttRun.currentStepIds[0];
+  const effectiveIndex=liveStepId?Math.max(0,sequence.indexOf(liveStepId)):PROCESS_RUN.stepIndex;
+  const stepId=liveStepId||sequence[Math.min(PROCESS_RUN.stepIndex,sequence.length-1)],clip=animation.clips.find(item=>item.stepId===stepId);
   if(!clip)return{color:null,scale:1,source:'base'};
   const effects=clip.effects.filter(effect=>[effect.componentId,effect.fromComponentId,effect.toComponentId].includes(object.id));
   if(!effects.length){
-    if(sequence.slice(0,PROCESS_RUN.stepIndex).some(id=>animation.clips.find(item=>item.stepId===id)?.effects.some(effect=>[effect.componentId,effect.fromComponentId,effect.toComponentId].includes(object.id))))return{color:PROCESS_COLORS.completed,scale:1,source:'presentation'};
+    if(sequence.slice(0,effectiveIndex).some(id=>animation.clips.find(item=>item.stepId===id)?.effects.some(effect=>[effect.componentId,effect.fromComponentId,effect.toComponentId].includes(object.id))))return{color:PROCESS_COLORS.completed,scale:1,source:liveStepId?'mqtt':'presentation'};
     return{color:null,scale:1,source:'base'};
   }
   const pulse=1+.075*(.5+.5*Math.sin(now/180));
   const recovery=effects.find(effect=>effect.state==='recovering'||effect.state==='error');
-  if(recovery)return{color:PROCESS_COLORS[recovery.state]||PROCESS_COLORS.error,scale:pulse,source:'presentation'};
+  if(recovery)return{color:PROCESS_COLORS[recovery.state]||PROCESS_COLORS.error,scale:pulse,source:liveStepId?'mqtt':'presentation'};
   const flowFrom=effects.some(effect=>effect.kind==='flow'&&effect.fromComponentId===object.id);
   const flowTo=effects.some(effect=>effect.kind==='flow'&&effect.toComponentId===object.id);
   if(flowFrom)return{color:PROCESS_COLORS.flowFrom,scale:pulse,source:'presentation'};
   if(flowTo)return{color:PROCESS_COLORS.flowTo,scale:2-pulse,source:'presentation'};
   const state=effects.find(effect=>effect.state)?.state||'active';
-  return{color:PROCESS_COLORS[state]||PROCESS_COLORS.active,scale:pulse,source:'presentation'};
+  return{color:PROCESS_COLORS[state]||PROCESS_COLORS.active,scale:pulse,source:liveStepId?'mqtt':'presentation'};
 }
 
 function draw(pick){
@@ -625,19 +639,41 @@ function paintProcessPanel(){
   }
   $('process-coverage').innerHTML=`<span class="${process.completeness==='complete'?'ok':process.completeness==='partial'?'warn':'bad'}">${escapeCode(process.completeness)}</span> · ${process.steps.filter(step=>step.evidence.length).length}/${process.steps.length} steps evidenced`;
   $('process-ordering').textContent=process.ordering;
-  $('process-path').textContent=PROCESS_RUN.outcome+(process.cyclic?' · cyclic':'');
-  const activeId=PROCESS_RUN.started?sequence[Math.min(PROCESS_RUN.stepIndex,Math.max(sequence.length-1,0))]:null;
+  const mqttRun=selectedMqttRun(),mqttStepId=mqttRun&&mqttRun.currentStepIds&&mqttRun.currentStepIds[0];
+  $('process-path').textContent=mqttRun?`${mqttRun.sourceMode} · ${mqttRun.state}`:PROCESS_RUN.outcome+(process.cyclic?' · cyclic':'');
+  const effectiveIndex=mqttStepId?Math.max(0,sequence.indexOf(mqttStepId)):PROCESS_RUN.stepIndex;
+  const activeId=mqttStepId||(PROCESS_RUN.started?sequence[Math.min(PROCESS_RUN.stepIndex,Math.max(sequence.length-1,0))]:null);
   const activeStep=process.steps.find(step=>step.id===activeId);
-  $('process-current').innerHTML=activeStep?`<span class="${activeStep.phase==='recover'?'bad':'ok'}">${escapeCode(activeStep.phase.toUpperCase())}</span> · ${escapeCode(activeStep.label)}`:animation&&animation.available?'ready · press Play':`unavailable · ${escapeCode(animation&&animation.unavailableReason||'no ordered steps')}`;
+  $('process-current').innerHTML=activeStep?`<span class="${activeStep.phase==='recover'?'bad':'ok'}">${escapeCode(activeStep.phase.toUpperCase())}</span> · ${escapeCode(activeStep.label)}${mqttRun?' · MQTT':''}`:mqttRun?`${escapeCode(mqttRun.state)} · ${escapeCode(mqttRun.processUri)}`:animation&&animation.available?'ready · press Play':`unavailable · ${escapeCode(animation&&animation.unavailableReason||'no ordered steps')}`;
   $('process-steps').innerHTML=sequence.map((stepId,index)=>{
     const item=process.steps.find(step=>step.id===stepId),evidence=item&&item.evidence[0];if(!item)return'';
-    const cls=index<PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'done':index===PROCESS_RUN.stepIndex&&PROCESS_RUN.started?'active':'';
+    const started=Boolean(mqttStepId)||PROCESS_RUN.started,cls=index<effectiveIndex&&started?'done':index===effectiveIndex&&started?'active':'';
     const locator=evidence?(evidence.page?`page ${evidence.page}`:evidence.fragment?`fragment ${evidence.fragment.split('#').pop()}`:'fragment unavailable'):'';
     const sourced=(item.parameters||[]).map(parameter=>`${parameter.name}=${String(parameter.value)}${parameter.unit?' '+parameter.unit:''}`).join(' · ');
     return `<div class="process-step ${cls} ${item.phase==='recover'?'recovery':''}"><b>${index+1}. ${escapeCode(item.label)}</b><span class="process-evidence">${escapeCode(item.phase)} · ${evidence?`source ${escapeCode(locator)} · intent ${escapeCode(evidence.intentId)}`:'evidence missing'}</span>${sourced?`<span class="process-parameters">${escapeCode(sourced)}</span>`:''}</div>`;
   }).join('')||'<div class="process-step">No executable sequence is supported by the source.</div>';
   $('process-gaps').innerHTML=process.gaps.length?`<div class="warn mono">Known gaps</div>${process.gaps.map(gap=>`<div class="process-step recovery">${escapeCode(gap)}</div>`).join('')}:'';
-  $('process-timing').textContent=(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.disclaimer)||'Domain timing unavailable.';
+  $('process-timing').textContent=mqttRun?'Step selection follows validated MQTT observations; visual pulse timing remains presentation-only.':(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.disclaimer)||'Domain timing unavailable.';
+}
+
+function paintMqttPanel(){
+  const mqtt=MQTT_STATE||{configured:false,mode:null,availableModes:[],connection:'not-configured',authority:'observe-only',subscriptions:[],acceptedEvents:0,rejectedEvents:0,activeRuns:[]};
+  const select=$('mqtt-mode');
+  select.innerHTML=(mqtt.availableModes||[]).map(mode=>`<option value="${escapeCode(mode)}">${escapeCode(mode)}</option>`).join('')||'<option value="">not configured</option>';
+  select.value=mqtt.mode||'';select.disabled=!mqtt.configured;
+  $('mqtt-connection').innerHTML=`<span class="${mqtt.connection==='connected'?'ok':mqtt.connection==='degraded'?'warn':'bad'}">${escapeCode(mqtt.connection)}</span>`;
+  $('mqtt-authority').textContent=mqtt.authority||'observe-only';
+  $('mqtt-subscriptions').textContent=String((mqtt.subscriptions||[]).length);
+  $('mqtt-events').textContent=`${mqtt.acceptedEvents||0} / ${mqtt.rejectedEvents||0}`;
+  const run=(mqtt.activeRuns||[]).slice().sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  $('mqtt-run').textContent=run?`${run.state} · ${run.processUri} · #${run.sequence}`:'No observed process run.';
+  $('mqtt-error').textContent=mqtt.lastError||((mqtt.brokers||[]).find(broker=>broker.error)?.error)||'';
+}
+
+function ensureMqttFrame(){
+  if(MQTT_FRAME_HANDLE!==null)return;
+  const frame=()=>{MQTT_FRAME_HANDLE=null;const run=selectedMqttRun();if(!run||!['RUNNING','COMPENSATING'].includes(run.state))return;render();MQTT_FRAME_HANDLE=requestAnimationFrame(frame);};
+  if(selectedMqttRun())MQTT_FRAME_HANDLE=requestAnimationFrame(frame);
 }
 
 function stopProcessFrame(){PROCESS_RUN.playing=false;if(PROCESS_FRAME_HANDLE!==null){cancelAnimationFrame(PROCESS_FRAME_HANDLE);PROCESS_FRAME_HANDLE=null;}}
@@ -807,6 +843,10 @@ async function refresh(){
   paintDslLog(events,dsl);
   await applyState(state,events);
 }
+async function refreshMqtt(){
+  try{const response=await fetch('/api/mqtt');if(!response.ok)return;adoptMqttState(await response.json());paintMqttPanel();paintProcessPanel();render();ensureMqttFrame();}
+  catch(error){console.warn('[digital-twin] mqtt refresh failed',error);}
+}
 function paintDslLog(events,dsl){
   $('log-count').textContent=String(events.count||0);
   const recent=(events.events||[]).slice(-4).map(e=>
@@ -815,14 +855,28 @@ function paintDslLog(events,dsl){
   $('dsl-log').innerHTML=[...recent,...docs].join('\n\n')||'no DSL artifacts or events yet';
 }
 async function applyState(state,events){
-  PROCESS_MODEL=state.processModel||null;PROCESS_ANIMATION=state.processAnimation||null;
+  PROCESS_MODEL=state.processModel||null;PROCESS_ANIMATION=state.processAnimation||null;adoptMqttState(state.mqtt||null);
   OBJECTS=await buildObjects(state);
   if(!queryFocusApplied){const requested=new URLSearchParams(location.search).get('focus'),index=OBJECTS.findIndex(object=>object.id===requested);if(index>=0){SELECTED=index;focusObject(OBJECTS[index]);}queryFocusApplied=true;}
-  paintLegend();paintList();paintStats(state,events);paintProcessPanel();showSelected();render();
+  paintLegend();paintList();paintStats(state,events);paintMqttPanel();paintProcessPanel();showSelected();render();ensureMqttFrame();
+}
+function adoptMqttState(mqtt){
+  MQTT_STATE=mqtt;
+  const latestMqttRun=((MQTT_STATE&&MQTT_STATE.activeRuns)||[]).slice().sort((a,b)=>String(b.updatedAt).localeCompare(String(a.updatedAt)))[0];
+  const mqttRunKey=latestMqttRun?`${latestMqttRun.sourceMode}:${latestMqttRun.runId}:${latestMqttRun.sequence}`:null;
+  if(latestMqttRun&&mqttRunKey!==MQTT_LAST_RUN_KEY){PROCESS_SELECTED=latestMqttRun.processId;stopProcessFrame();PROCESS_RUN.started=false;MQTT_LAST_RUN_KEY=mqttRunKey;}
 }
 $('btn-overview').onclick=()=>frameOverview();
 $('btn-focus').onclick=()=>focusObject(SELECTED===null?null:OBJECTS[SELECTED]);
 $('process-select').onchange=event=>{PROCESS_SELECTED=event.target.value||null;resetProcessAnimation();};
+$('mqtt-mode').onchange=async event=>{
+  const mode=event.target.value;if(!mode)return;
+  try{
+    const response=await fetch('/api/mqtt/mode',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({mode})});
+    const result=await response.json();if(!response.ok)throw new Error(result.error||'MQTT_MODE_CHANGE_FAILED');
+    MQTT_STATE=result;MQTT_LAST_RUN_KEY=null;paintMqttPanel();paintProcessPanel();render();notify(`MQTT source mode: ${mode} · observe-only`,'ok');
+  }catch(error){await showErrorReference({error:(error.message||String(error)).split(':')[0],detail:error.message||String(error)},'mqtt mode');await refresh();}
+};
 $('btn-process-play').onclick=()=>playProcessAnimation();
 $('btn-process-pause').onclick=()=>{stopProcessFrame();paintProcessPanel();render();};
 $('btn-process-reset').onclick=()=>resetProcessAnimation();
@@ -891,6 +945,9 @@ refresh();
 // Do not replace GPU buffers while an operator records or inspects a focused asset.
 // Overview resumes live polling; TwinState freshness is still re-evaluated server-side.
 setInterval(()=>{if(!INSPECTION&&!PROCESS_RUN.playing)void refresh();},5000);
+// Process steps are short-lived observations; poll their lightweight projection separately so
+// an MQTT-driven animation does not wait for the heavier scene/artifact refresh.
+setInterval(()=>{if(MQTT_STATE&&MQTT_STATE.configured)void refreshMqtt();},400);
 </script>
 </body>
 </html>

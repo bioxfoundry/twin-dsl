@@ -60,8 +60,13 @@ triggered from the page run under.
   re-evaluated at every `/api/state` read; it does not freeze at the last iteration timestamp.
 - **Runtime observations** and the active content-addressed Twin revision. `sourceSnapshotHash`
   remains separate input provenance and is not presented as an artifact revision. ObservationDSL
-  is projected deterministically through LiveBindingDSL; BehaviorDSL/VisualDSL are not yet applied
-  to geometry, so current colours still communicate geometry evidence only.
+  is projected deterministically through LiveBindingDSL. Validated MQTT URI Process events select
+  the corresponding ProcessAnimationDSL step and animate its actors; process animation colours are
+  a transient presentation overlay and never replace the underlying geometry-evidence grade.
+- **MQTT / URI Process** shows broker connection, exact subscription count, accepted/rejected
+  events and the active run URI/state/sequence. `simulation`, `shadow` and `hardware` select an
+  observation source. All three are explicitly `observe-only`; the dashboard has no device command
+  endpoint and cannot turn an MQTT payload into hardware authority.
 - **DSL & iteration log** — the latest append-only runtime events plus current
   `observations.dsl`, `twin-state.dsl`, `math.dsl`, `improvement.dsl`, GeometryValidationDSL,
   ProjectIntegrityDSL and TestQLDSL,
@@ -100,12 +105,29 @@ Szczegóły i wymagane bramki opisuje
 | Method | Path | Purpose |
 | --- | --- | --- |
 | `GET` | `/` | dashboard page |
-| `GET` | `/api/state` | explicit `active` revision, optional rejected `latestCandidate`, observations, TwinState, Assembly report and latest iteration receipt |
+| `GET` | `/api/state` | active/candidate revisions, observations, TwinState, Assembly report, MQTT connection and URI Process run projections |
+| `GET` | `/api/mqtt` | lightweight observe-only MQTT connection and active URI Process run projection for animation refresh |
 | `GET` | `/api/events` | bounded view of the latest 100 append-only iteration events |
 | `GET` | `/api/dsl` | current DSL artifacts plus failed candidate geometry/integrity receipts |
 | `GET` | `/api/scene.usda` | the scene rendered to OpenUSD |
 | `POST` | `/api/iterate` | run one iteration; returns 422 with exact failures when authority blocks publication |
 | `POST` | `/api/intake` | apply a `subactor.physical-evidence/v1` document |
+| `POST` | `/api/mqtt/mode` | select `simulation`, `shadow` or `hardware` observation source; never dispatches a command |
+
+## MQTT process demonstration
+
+After `make up` has started the Mosquitto broker, start the dashboard and publish a complete,
+validated simulated run in a second terminal:
+
+```bash
+make dashboard PORT=7332
+make mqtt-demo MQTT_PROCESS=cultivation_monitoring MQTT_SOURCE_MODE=simulation
+```
+
+`make mqtt-demo` reads the active `process.json`, uses its `sourceSnapshotHash`, walks the explicit
+success transitions and publishes `PLANNED → READY → RUNNING(step…) → SUCCEEDED` with QoS 1. The
+same contract can be implemented by a real adapter, but it must publish observations on the exact
+`hardware` topic; it does not receive commands from this runtime.
 
 `POST /api/intake` is **durable**, not a preview: it validates the document, writes
 `baseline/physical-evidence.json` into the project, adds `SCENE_PHYSICAL_EVIDENCE_FILE` to the

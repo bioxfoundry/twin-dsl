@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.uri-process-run/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "runId", "processId", "processUri", "processRevision", "state", "currentStepIds", "sourceMode", "correlationId", "sequence", "updatedAt", "eventIds", "idempotencyKeys", "gaps"],
+  "properties": {
+    "schema": {"const": "subactor.uri-process-run/v1"},
+    "runId": {"type": "string", "minLength": 1},
+    "processId": {"type": "string", "minLength": 1},
+    "processUri": {"type": "string", "minLength": 1},
+    "processRevision": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "state": {"enum": ["PLANNED", "WAITING", "READY", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATING", "COMPENSATED"]},
+    "currentStepIds": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "sourceMode": {"enum": ["simulation", "shadow", "hardware"]},
+    "correlationId": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "startedAt": {"type": "string", "minLength": 1},
+    "updatedAt": {"type": "string", "minLength": 1},
+    "finishedAt": {"type": "string", "minLength": 1},
+    "eventIds": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "idempotencyKeys": {"type": "array", "items": {"type": "string", "minLength": 1}, "uniqueItems": true},
+    "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+  }
+}

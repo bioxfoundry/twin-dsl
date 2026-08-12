@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.mqtt-process-event/v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "eventId", "processId", "processUri", "processRevision", "runId", "sequence", "state", "occurredAt", "correlationId", "idempotencyKey", "sourceMode"],
+  "anyOf": [
+    {"type": "object", "required": ["stepId"], "properties": {"state": {"enum": ["RUNNING", "COMPENSATING"]}}},
+    {"type": "object", "properties": {"state": {"enum": ["PLANNED", "WAITING", "READY", "SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATED"]}}}
+  ],
+  "properties": {
+    "schema": {"const": "subactor.mqtt-process-event/v1"},
+    "eventId": {"type": "string", "minLength": 1},
+    "processId": {"type": "string", "minLength": 1},
+    "processUri": {"type": "string", "pattern": "^twin://[a-z0-9.-]+/process/query/[a-z0-9._~-]+$"},
+    "processRevision": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "runId": {"type": "string", "minLength": 1},
+    "sequence": {"type": "integer", "minimum": 1},
+    "state": {"enum": ["PLANNED", "WAITING", "READY", "RUNNING", "SUCCEEDED", "FAILED", "CANCELLED", "COMPENSATING", "COMPENSATED"]},
+    "stepId": {"type": "string", "minLength": 1},
+    "occurredAt": {"type": "string", "minLength": 1},
+    "correlationId": {"type": "string", "minLength": 1},
+    "idempotencyKey": {"type": "string", "minLength": 1},
+    "sourceMode": {"enum": ["simulation", "shadow", "hardware"]}
+  }
+}

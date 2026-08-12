@@ -97,11 +97,11 @@ Test dystrybucji z gotowego `dist/`, bez kompilacji TypeScript:
 npm run verify:dist
 ```
 
-Usługi pomocnicze (ClickHouse + Docling) przez `make`:
+Usługi pomocnicze (ClickHouse + Docling + MQTT) przez `make`:
 
 ```bash
 make up            # tworzy .env, czeka na healthchecki, sonduje endpointy i uruchamia runtime doctor
-make service-check # ponawia sondę ClickHouse + Docling z hosta
+make service-check # ponawia sondę ClickHouse + Docling + MQTT z hosta
 make logs
 make down          # zatrzymuje, ale ZACHOWUJE wolumeny (modele Docling, dane ClickHouse)
 make down-clean    # kasuje też wolumeny — kolejny start pobierze modele od nowa
@@ -112,8 +112,8 @@ kolejne kilka sekund.
 
 ### Usługi, porty i zmienne po `make up`
 
-`make up` uruchamia ClickHouse i Docling, czeka aż ich healthchecki Compose przejdą, a następnie
-sonduje oba endpointy z hosta przez `service-check`. Na końcu uruchamia jednorazowy job
+`make up` uruchamia ClickHouse, Docling i lokalny broker Mosquitto, czeka aż healthchecki Compose
+przejdą, a następnie sonduje wszystkie trzy endpointy z hosta przez `service-check`. Na końcu uruchamia jednorazowy job
 `runtime doctor`, który sprawdza konfigurację runtime i jego połączenie z usługami. Po sukcesie
 wypisuje te same adresy, które można wyświetlić ponownie poleceniem `make endpoints`:
 
@@ -122,10 +122,11 @@ wypisuje te same adresy, które można wyświetlić ponownie poleceniem `make en
 | ClickHouse HTTP | `http://127.0.0.1:18123` | `8123` | `CLICKHOUSE_HTTP_PORT`, `CLICKHOUSE_URL`, `CLICKHOUSE_USER`, `CLICKHOUSE_PASSWORD` |
 | ClickHouse native | `127.0.0.1:19000` | `9000` | `CLICKHOUSE_NATIVE_PORT` |
 | Docling health/API | `http://127.0.0.1:15001/health` | `5001` | `DOCLING_PORT`, `DOCLING_URL` |
+| MQTT observations | `mqtt://127.0.0.1:18883` | `1883` | `MQTT_PORT`, `MQTT_URL` |
 | Dashboard twina | `http://127.0.0.1:7331/` | — | **nie uruchamia go `make up`**; start: workspace `make dashboard PORT=7331` |
 
-Sekcja `healthcheck` w Compose istnieje dla obu usług długotrwałych: ClickHouse (`/ping`) i
-Docling (`/health`). `runtime` nie ma healthchecka, ponieważ nie jest serwerem — jego komenda
+Sekcja `healthcheck` w Compose istnieje dla usług długotrwałych: ClickHouse (`/ping`),
+Docling (`/health`) i Mosquitto (testowy publish). `runtime` nie ma healthchecka, ponieważ nie jest serwerem — jego komenda
 `doctor` kończy się powodzeniem albo błędem i jest wykonywana przez `make up` dopiero po zdrowym
 stanie zależności.
 
@@ -135,7 +136,7 @@ katalogu workspace przez `make dashboard`; nasłuchuje lokalnie na `127.0.0.1`.
 
 `.env.example` jest katalogiem domyślnej konfiguracji runtime: zawiera integrację todo2code
 (`T2C_*`), twin-probes (`TWIN_PROBES_*`), OpenRouter (`OPENROUTER_*`), usługi (`CLICKHOUSE_*`,
-`DOCLING_*`, `COMPOSE_PROJECT_NAME`, `DT_NETWORK_SUBNET`) i zasady runtime (`DT_*`). Klucz
+`DOCLING_*`, `MQTT_*`, `COMPOSE_PROJECT_NAME`, `DT_NETWORK_SUBNET`) i zasady runtime (`DT_*`). Klucz
 `OPENROUTER_API_KEY` jest opcjonalny — tryb `DT_LLM_MODE=deterministic` nie wysyła żądań do LLM.
 
 ## Konwersja dokumentów do Markdown
