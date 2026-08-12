@@ -1,11 +1,11 @@
 # OpenRouter: NL → patchDSL → *DSL
 
-## Zakres
+## Scope
 
-`NlDslCompiler` zapewnia jedną granicę dla:
+`NlDslCompiler` provides a single boundary for:
 
 ```text
-NL → intentDSL   (deterministyczna baza todo2code + patchDSL)
+NL → intentDSL   (deterministic todo2code baseline + patchDSL)
 NL → resourceDSL plan
 NL → queryDSL
 NL → DQL crawl
@@ -15,24 +15,24 @@ NL → twinDSL
 NL → sceneDSL
 ```
 
-## Rola todo2code w Intent
+## The role of todo2code in Intent
 
-`todo2code` już posiada:
+`todo2code` already has:
 
 - `t2c.intent/v1`;
-- klasy epistemiczne;
+- epistemic classes;
 - provenance runtime-owned;
-- tryby `deterministic|prefer-llm|require-llm`;
-- walidację structured outputs;
-- graf i diagnostykę Intent vs Reality.
+- `deterministic|prefer-llm|require-llm` modes;
+- structured outputs validation;
+- Intent vs Reality graph and diagnostics.
 
-Starter wywołuje jego CLI w trybie deterministycznym, aby uzyskać stan bazowy:
+The starter invokes its CLI in deterministic mode to get the baseline state:
 
 ```bash
 t2c extract nl request.md --root <tmp> --out intent.jsonl
 ```
 
-Konfiguracja:
+Configuration:
 
 ```dotenv
 T2C_ROOT=/home/tom/github/semcod/todo2code
@@ -40,20 +40,20 @@ T2C_BIN=/home/tom/github/semcod/todo2code/dist/src/cli.js
 T2C_NL_MODE=deterministic
 ```
 
-Ewentualne wzbogacenie przez model nie jest delegowane do klienta LLM `todo2code`. Przechodzi
-przez tę samą lokalną granicę patchDSL co pozostałe artefakty.
+Any model enrichment is not delegated to the `todo2code` LLM client. It goes
+through the same local patchDSL boundary as other artifacts.
 
-## Jedyna granica LLM
+## The only LLM boundary
 
-OpenRouter otrzymuje:
+OpenRouter receives:
 
-- `LLM_POLICY subactor.llm-policy/v1` zapisane jako DSL;
-- `LLM_CONTEXT subactor.llm-context/v1` z żądaniem, stanem bazowym i dozwolonymi ścieżkami;
-- JSON Schema docelowego artefaktu i koperty patcha;
-- gramatykę GGML GBNF dla `subactor.patch-dsl/v1`;
-- SHA-256 kanonicznego stanu bazowego.
+- `LLM_POLICY subactor.llm-policy/v1` saved as DSL;
+- `LLM_CONTEXT subactor.llm-context/v1` with the request, baseline state, and allowed paths;
+- JSON Schema for the target artifact and patch envelope;
+- GGML GBNF grammar for `subactor.patch-dsl/v1`;
+- SHA-256 of the canonical base state.
 
-Model nie zwraca Twin, Scene, mathDSL ani tekstu bezpośrednio. Jedynym wynikiem jest:
+The model does not return Twin, Scene, mathDSL, or text directly. The only output is:
 
 ```text
 PATCHDSL "subactor.patch-dsl/v1"
@@ -63,16 +63,16 @@ SET "/dsl" "MATH proposed-v1\n..."
 END_PATCH
 ```
 
-Tekst patchDSL znajduje się w ścisłej kopercie `subactor.patch-envelope/v1`. Lokalny algorytm
-sprawdza kopertę, gramatykę, target, hash bazy, limit operacji, bezpieczeństwo JSON Pointer i
-listę dozwolonych korzeni. Dopiero potem stosuje patch do kopii bazy i przekazuje wynik do
-istniejącego parsera oraz walidatora domenowego. Model nie wykonuje patcha i nie zapisuje plików.
+The patchDSL text is in a strict `subactor.patch-envelope/v1` envelope. The local algorithm
+checks the envelope, grammar, target, base hash, operation limit, JSON Pointer safety, and
+the list of allowed roots. Only then does it apply the patch to a copy of the base and pass the result to
+the existing parser and domain validator. The model does not execute the patch or save files.
 
-Indeks zasobów jest kompaktowany do pól tożsamości/proweniencji i ograniczony przez
-`DT_LLM_RESOURCE_CONTEXT_LIMIT` (domyślnie 80). Pełny korpus nadal pozostaje wejściem
-deterministycznych walidatorów; limit dotyczy tylko propozycji LLM.
+The resource index is compacted to identity/provenance fields and limited by
+`DT_LLM_RESOURCE_CONTEXT_LIMIT` (default 80). The full corpus still remains input
+to deterministic validators; the limit only applies to LLM proposals.
 
-Wysyłane ustawienia:
+Settings sent:
 
 ```json
 {
@@ -97,21 +97,21 @@ Wysyłane ustawienia:
 }
 ```
 
-Opcjonalnie:
+Optional:
 
 ```json
 {"plugins":[{"id":"response-healing"}]}
 ```
 
-## Tryby
+## Modes
 
 ### deterministic
 
-Brak sieci. Runtime waliduje wersjonowany fixture lub wynik deterministycznego generatora.
+No network. Runtime validates a versioned fixture or the result of a deterministic generator.
 
 ### prefer-llm
 
-Najpierw OpenRouter. Błąd powoduje jawny fallback:
+OpenRouter first. An error causes an explicit fallback:
 
 ```json
 {
@@ -121,7 +121,7 @@ Najpierw OpenRouter. Błąd powoduje jawny fallback:
 }
 ```
 
-Skrót CLI `llm` jest aliasem `prefer-llm`, a nie `require-llm`.
+The `llm` CLI shortcut is an alias for `prefer-llm`, not `require-llm`.
 
 The developer-safe defaults are a 30-second timeout and one retry/repair attempt per artifact
 (`OPENROUTER_TIMEOUT_MS=30000`, `OPENROUTER_MAX_RETRIES=1`). This prevents an unavailable weak
@@ -131,53 +131,53 @@ validated deterministic artifact.
 
 ### require-llm
 
-Brak klucza, timeout, niezgodna odpowiedź lub błąd schematu kończą operację błędem. Nie występuje ukryty fallback.
+Missing key, timeout, incompatible response, or schema error terminates the operation with an error. No hidden fallback occurs.
 
 ## Resource DSL
 
-LLM nie tworzy finalnego `subactor.resource/v1`, ponieważ nie zna treści ani SHA-256. Z NL powstaje wyłącznie:
+The LLM does not create the final `subactor.resource/v1` because it does not know the content or SHA-256. From NL, only the following is generated:
 
 ```text
 subactor.resource-plan/v1 status=proposed
 ```
 
-Dopiero importer odczytuje źródło i materializuje immutable resource URI.
+Only the importer reads the source and materializes the immutable resource URI.
 
-## Test mock
+## Mock test
 
-`test/openrouter.test.ts` uruchamia prawdziwy klient Fetch przeciw kontrolowanemu mockowi i sprawdza:
+`test/openrouter.test.ts` runs a real Fetch client against a controlled mock and checks:
 
 - `json_schema`;
 - `strict=true`;
 - `require_parameters=true`;
 - `data_collection=deny`;
 - `response-healing`;
-- brak klucza API w wyniku;
-- parser patchDSL i parser `mathDSL` po kontrolowanym zastosowaniu patcha;
-- odrzucenie złego hasha bazy, targetu, obcej ścieżki i niebezpiecznego JSON Pointer;
-- korektę słabszego modelu: kod lokalnego parsera (np. `MATH_HEADER_REQUIRED`) wraca w następnej
-  próbie jako `LLM_REPAIR`; Markdown fence i swobodna proza są odrzucane.
+- no API key in the result;
+- the patchDSL parser and the `mathDSL` parser after controlled patch application;
+- rejection of bad base hash, target, foreign path, and unsafe JSON Pointer;
+- correction of a weaker model: local parser code (e.g., `MATH_HEADER_REQUIRED`) returns in the next
+  attempt as `LLM_REPAIR`; Markdown fence and free prose are rejected.
 
-## Zweryfikowany GLM-5.2
+## Verified GLM-5.2
 
-Przebieg projektu `nanobionic-laboratory-md` z `z-ai/glm-5.2`, limitem 30 s i jedną naprawą:
+The `nanobionic-laboratory-md` project run with `z-ai/glm-5.2`, a 30s limit, and one repair:
 
 - MathDSL: LLM PASS, 3.3 s;
-- TwinDSL: timeout, jawny deterministic fallback;
-- SceneDSL: odpowiedź po 22.2 s odrzucona przez grounding, jawny fallback;
-- kompletna iteracja: 124 s, `validation.ok=true`.
+- TwinDSL: timeout, explicit deterministic fallback;
+- SceneDSL: response after 22.2s rejected by grounding, explicit fallback;
+- complete iteration: 124 s, `validation.ok=true`.
 
-Powtórzenie przez dokładnie tę samą ścieżkę co przycisk dashboardu (`POST /api/iterate`) również
-przeszło: MathDSL 9.3 s przez Baidu/OpenRouter, Twin i Scene zakończone kontrolowanym timeoutem i
-fallbackiem, całość 141.6 s, `validation.ok=true`. `logs/dashboard-7445.log` zawiera odpowiadające
-mu zdarzenia `iteration:start` oraz `iteration:complete`.
+Repeating through the exact same path as the dashboard button (`POST /api/iterate`) also
+passed: MathDSL 9.3s via Baidu/OpenRouter, Twin and Scene ended with controlled timeout and
+fallback, total 141.6s, `validation.ok=true`. `logs/dashboard-7445.log` contains the corresponding
+`iteration:start` and `iteration:complete` events.
 
-Po aktywowaniu rzeczywistego providera development `todo2code` zamiast fixture wykonano kolejne
-dwa pełne przebiegi. MathDSL przeszedł przez Together (34.7 s), a potem Baidu (36.4 s); SceneDSL
-został raz odrzucony przez domain grounding, a pozostałe kosztowne projekcje zakończyły się jawnym
-fallbackiem. Obie rewizje miały `validation.ok=true`, po czym pętla osiągnęła `noChange=true` z
-diffem `0/0/0` i stabilnym fingerprintem todo2code.
+After enabling the real development `todo2code` provider instead of the fixture, two more full
+runs were completed. MathDSL passed through Together (34.7s), then Baidu (36.4s); SceneDSL
+was once rejected by domain grounding, and the remaining costly projections ended with an explicit
+fallback. Both revisions had `validation.ok=true`, after which the loop reached `noChange=true` with
+diff `0/0/0` and a stable todo2code fingerprint.
 
-`generation-audit.json` przechowuje model/provider, czas, tokeny, koszt oraz `degraded/reason`.
-W trybie developerskim dashboard powinien używać `prefer-llm`; 30 s na artefakt jest rozsądnym
-budżetem operacyjnym, podczas gdy deterministyczne CAD/Assembly/TwinState nie zależą od modelu.
+`generation-audit.json` stores the model/provider, time, tokens, cost, and `degraded/reason`.
+In developer mode, the dashboard should use `prefer-llm`; 30s per artifact is a reasonable
+operational budget, while deterministic CAD/Assembly/TwinState do not depend on the model.

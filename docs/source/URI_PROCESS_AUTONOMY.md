@@ -6,10 +6,10 @@ status: current
 updated: 2026-07-21
 ---
 
-# URI Process w autonomicznym Subactor
+# URI Process in autonomous Subactor
 
-Zadanie jest kontraktem wykonawczym pomiędzy właścicielem wyniku a aktorem. Rozdzielone są Contract AQL, OQL oraz konkretne URI Process w formacie `scheme://target/package/resource/operation`.
+A task is an execution contract between the result owner and the actor. Contract AQL, OQL, and specific Process URIs are separated in the format `scheme://target/package/resource/operation`.
 
-## Ticket przed efektem
+## Ticket before effect
 
-Przed wykonaniem musi istnieć ticket Planfile z manifestem, jawną definicją AQL/EQL/OQL/URI, zgodnością wykonywanego kroku, idempotency key związanym z ticketem oraz planem zapisania wyniku i referencji do logu. Control tworzy ticket przed dispatch, a bridge ponownie waliduje go na ostatniej granicy efektu.
+Before execution, a Planfile ticket must exist with a manifest, explicit AQL/EQL/OQL/URI definition, compliance of the executed step, an idempotency key associated with the ticket, and a plan to save the result and log reference. Control creates the ticket before dispatch, and the bridge re-validates it at the final effect boundary.

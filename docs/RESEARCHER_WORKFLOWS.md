@@ -1,8 +1,8 @@
-# Kompleksowe workflow researchera
+# End-to-end researcher workflows
 
-## 1. Analiza lokalnego folderu i ZIP klienta
+## 1. Analyze a local folder and customer ZIP
 
-Cel: zbudować drzewo wymagań oraz wykryć sprzeczności.
+Goal: build a requirements tree and detect inconsistencies.
 
 ```text
 manager/ + customer/ + customer.zip
@@ -14,20 +14,20 @@ manager/ + customer/ + customer.zip
 → todo2code result record
 ```
 
-Komendy:
+Command:
 
 ```bash
 npm run demo:research
 ```
 
-Zastosowania:
+Uses:
 
-- audyt dokumentacji wdrożeniowej;
-- porównanie bieżącej specyfikacji z archiwum;
-- wykrywanie wycofanych komponentów;
-- budowa source-addressed knowledge tree.
+- audit of implementation documentation;
+- comparison of current specification with archive;
+- detection of deprecated components;
+- building a source-addressed knowledge tree.
 
-## 2. Research internetowy przez DQL i sitemap
+## 2. Internet research via DQL and sitemap
 
 DQL:
 
@@ -48,23 +48,23 @@ VALIDATE [same-origin, citations, budget]
 
 Crawler:
 
-1. czyta `urlset` albo `sitemapindex`;
-2. sprawdza protokół, host i ochronę przed prywatnymi adresami;
-3. stosuje include/exclude;
-4. egzekwuje budżet;
-5. konwertuje HTML do Markdown;
+1. reads `urlset` or `sitemapindex`;
+2. checks protocol, host, and protection against private addresses;
+3. applies include/exclude rules;
+4. enforces budget;
+5. converts HTML to Markdown;
 6. nadaje resource URI;
-7. zachowuje URL i revision hash.
+7. preserves the URL and revision hash.
 
-Internet jest źródłem kontekstowym. Nie może nadpisać manager policy ani zweryfikowanych wymiarów klienta.
+The Internet is a contextual source. It cannot override manager policy or verified client dimensions.
 
-## 3. Research z pytaniem logicznym
+## 3. Research with a logical question
 
-Pytanie:
+Question:
 
-> Czy system ma wystarczające dowody, aby przebudować scenę?
+> Does the system have sufficient evidence to rebuild the scene?
 
-`queryDSL` znajduje wymagane dokumenty. `mathDSL` materializuje bramkę:
+`queryDSL` finds required documents. `mathDSL` materializes the gateway:
 
 ```text
 EXPR SceneRebuildAllowed = AND(
@@ -75,30 +75,30 @@ EXPR SceneRebuildAllowed = AND(
 )
 ```
 
-Wynik zawiera binding każdego predykatu do URI źródła. Nie jest to swobodna odpowiedź LLM.
+The result contains a binding of each predicate to the source URI. This is not a free LLM response.
 
-## 4. Research aktualizujący Digital Twin
+## 4. Research updating Digital Twin
 
-Przykład:
+Example:
 
-- manager zmienia limit bioreaktorów;
-- klient dodaje nowy wymiar urządzenia;
-- projekt zapisuje nową temperaturę;
-- sitemap publikuje nową instrukcję techniczną.
+- manager changes bioreactor limit;
+- client adds a new device dimension;
+- project saves a new temperature;
+- sitemap publishes a new technical instruction.
 
-Watcher tworzy diff zasobów. Starter bezpiecznie przebudowuje cały kandydat projekcji; poniższa mapa pokazuje, które projekcje produkcyjny incremental planner może później przeliczać selektywnie:
+The Watcher creates a resource diff. The Starter safely rebuilds the entire projection candidate; the map below shows which production incremental planner projections can later be selectively recalculated:
 
 ```text
 manager change → math + twin + scene
 customer geometry → twin + scene
 project telemetry → twin + scene
-internet context → tree/query; scene tylko po jawnej relacji i walidacji
-archive history → tree/query; bez automatycznego observed state
+internet context → tree/query; scene only after an explicit relation and validation
+archive history → tree/query; no automatic observed state
 ```
 
 ## 5. Research → development
 
-Wynik researchu można przekazać do `todo2code` jako `result` lub dokument runu. Następny przebieg:
+The research result can be passed to `todo2code` as `result` or a run document. Next run:
 
 ```text
 validated query result
@@ -110,4 +110,4 @@ validated query result
 → re-analysis
 ```
 
-Pozytywna analiza nie oznacza automatycznie `DONE`.
+A positive analysis does not automatically mean `DONE`.

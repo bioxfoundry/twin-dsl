@@ -1,6 +1,6 @@
-# Model danych
+# Data model
 
-Każdy rekord ma co najmniej:
+Each record has at least:
 
 ```json
 {
@@ -13,7 +13,7 @@ Każdy rekord ma co najmniej:
 }
 ```
 
-## Relacje
+## Relationships
 
 ```text
 organization
@@ -30,30 +30,30 @@ organization
   └── activities
 ```
 
-Identyfikatory mogą być przekazywane bezpośrednio. Operacje OQL mogą również rozwiązywać
-relacje przez `client_name`, `contact_email`, `project_external_ref` i `contract_number`.
+Identifiers can be passed directly. OQL operations can also resolve
+relations via `client_name`, `contact_email`, `project_external_ref`, and `contract_number`.
 
-Usunięcie API jest miękką archiwizacją przez `archived_at`. Dane nie są fizycznie kasowane
-poza developerskim endpointem resetu.
+API deletion is a soft archive via `archived_at`. Data is not physically erased except by the
+development reset endpoint.
 
-## Zasoby projektocentryczne
+## Project-centric resources
 
 ```text
-projects               projekt nadrzędny
-project_sources        proweniencja URL/pliku/repozytorium
-project_imports        przebiegi importu
-knowledge_documents    Markdown i Business Blueprint
-business_processes     procesy operacyjne projektu
-campaigns              kampanie marketingowe
-offers                 oferty wymagające review
-leads                   kontakty przed kwalifikacją
-opportunities           szanse sprzedażowe
-support_cases           sprawy wsparcia
-test_suites             definicje TestQL
-test_runs               dowody wykonania testów
-outcomes                mierzalne rezultaty
-evidence                pakiety dowodowe
+projects               parent project
+project_sources        URL/file/repository provenance
+project_imports        import runs
+knowledge_documents    Markdown and Business Blueprint
+business_processes     project operating processes
+campaigns              marketing campaigns
+offers                 offers requiring review
+leads                   contacts before qualification
+opportunities           sales opportunities
+support_cases           support cases
+test_suites             TestQL definitions
+test_runs               test execution evidence
+outcomes                measurable outcomes
+evidence                evidence packages
 ```
 
-Wszystkie te encje przyjmują `project_id`. Workspace nie kopiuje danych; agreguje
-rekordy domenowe według tego identyfikatora.
+All these entities accept `project_id`. A Workspace does not copy data; it aggregates
+domain records by this identifier.

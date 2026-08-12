@@ -1,49 +1,49 @@
-# Historia zdarzeń — autonomia Digital Twin (twin-dsl)
+# Event History — Digital Twin Autonomy (twin-dsl)
 
-**Projekt:** `@subactor/digital-twin-runtime-starter` / `bioxfoundry/twin-dsl`  
-**Zakres:** zaplanowane i wykonane prace w sesji operacyjnej (2026-08-06) oraz stan autonomicznej ewolucji Twin.  
+**Project:** `@subactor/digital-twin-runtime-starter` / `bioxfoundry/twin-dsl`
+**Scope:** Planned and executed work in the operational session (2026-08-06) and the state of Twin's autonomous evolution.
 **Aktor sesji:** agent Grok Build (xAI) w workspace `/home/tom/github/bioxfoundry/twin-dsl`  
-**Zasoby reużycia:** `~/github/semcod/*`, `~/github/subactor/*` (m.in. runtime apply-grant, todo2code, twin-probes, autonomy-lab)  
+**Reuse resources:** `~/github/semcod/*`, `~/github/subactor/*` (incl. runtime apply-grant, todo2code, twin-probes, autonomy-lab)
 **Indeks kodu:** `project/map.toon.yaml`  
-**Status Nanobionic Laboratory living project:** **utworzony i ziterowany** (`/home/tom/github/bioxfoundry/projects/nanobionic-laboratory`)
+**Nanobionic Laboratory living-project status:** **created and iterated** (`/home/tom/github/bioxfoundry/projects/nanobionic-laboratory`)
 
 ---
 
-## 0. Legenda zdarzeń
+## 0. Event Legend
 
 | Status | Znaczenie |
 |--------|-----------|
-| `PLANNED` | zaplanowane w sesji / w lukach autonomii |
-| `EXECUTED` | zaimplementowane lub zweryfikowane w tej sesji / w baseline 0.4.0 |
-| `VERIFIED` | potwierdzone testami lub demo |
-| `PENDING` | czeka na ludzką decyzję lub zewnętrzną infrastrukturę |
-| `AUTONOMOUS` | działa w pętli living project bez ręcznej interwencji (w granicach policy) |
+| `PLANNED` | planned during the session / in autonomy gaps |
+| `EXECUTED` | implemented or verified during this session / in baseline 0.4.0 |
+| `VERIFIED` | confirmed by tests or demo |
+| `PENDING` | awaiting human decision or external infrastructure |
+| `AUTONOMOUS` | operates in a living project loop without manual intervention (within policy limits) |
 
 ---
 
-## 1. Oś czasu sesji
+## 1. Session Timeline
 
 ```text
-[T0]  Baseline: Digital Twin Runtime Starter 0.4.0 już w repo twin-dsl
+[T0]  Baseline: Digital Twin Runtime Starter 0.4.0 already present in twin-dsl
       (authority gates, living loop, improvementDSL, lease, service-check, Docker imports)
 
-[T1]  PLANNED  — reużyć semcod/subactor; domknąć lukę pełnej autonomii kodu
-[T2]  EXECUTED — inwentaryzacja: apply-grant, todo2code patch API, twin-probes, autonomy-lab
-[T3]  EXECUTED — 0.5.0: kryptograficzne granty, izolacja, mutation pipeline, probes adapter
+[T1]  PLANNED  — reuse semcod/subactor; close the full code-autonomy gap
+[T2]  EXECUTED — inventory: apply-grant, todo2code patch API, twin-probes, autonomy-lab
+[T3]  EXECUTED — 0.5.0: cryptographic grants, isolation, mutation pipeline, probes adapter
 [T4]  VERIFIED — npm test 24/24; demo:autonomy; demo:mutation
-[T5]  PLANNED  — bootstrap Nanobionic Laboratory z PDF studii (intencja + źródła)
+[T5]  PLANNED  — bootstrap Nanobionic Laboratory from the study PDF (intent + sources)
 [T6]  EXECUTED — project-create + project-add-source + project-iterate (validation.ok)
-[T7]  EXECUTED — dokument historii zdarzeń (EVENT_HISTORY_AUTONOMY.md)
+[T7]  EXECUTED — event-history document (EVENT_HISTORY_AUTONOMY.md)
 [T8]  EXECUTED — Nanobionic bootstrap + first iteration + BOOTSTRAP.md w living project
-[T9]  EXECUTED — most ChatGPT concept twin (8 stref, GLB/USDA/DSL) z living-runtime
+[T9]  EXECUTED — bridge the ChatGPT concept Twin (8 zones, GLB/USDA/DSL) from living-runtime
 [T10] EXECUTED — profile biofoundry → semantic twin/scene (0.5.1); re-iterate nanobionic + live project
 ```
 
 ---
 
-## 2. Stan wejściowy (0.4.0) — co już było „gotowe”
+## 2. Input State (0.4.0) — what was already "ready"
 
-### 2.1 Pętla autonomiczna (model)
+### 2.1 Autonomous Loop (model)
 
 ```text
 research sources
@@ -57,10 +57,10 @@ research sources
   -> next source / code / runtime change
 ```
 
-**Status:** `AUTONOMOUS` dla analizy, projekcji, walidacji, propozycji i bezpiecznej publikacji sceny  
-**Status:** `PENDING` dla nieograniczonej samomodyfikacji kodu runtime
+**Status:** `AUTONOMOUS` for analysis, projection, validation, proposal, and safe scene publication
+**Status:** `PENDING` for unrestricted runtime code self-modification
 
-### 2.2 Authority — LLM nie jest źródłem bramek
+### 2.2 Authority — LLM is not the source of gates
 
 Runtime generuje i broni m.in.:
 
@@ -91,14 +91,14 @@ EXPR ScenePublishAllowed = AND(IterationAllowed, OR(NOT(RequireDevelopmentAccept
 EXPR RuntimeSelfModificationAllowed = AND(AllowRuntimeSelfModification, AutonomyModeApply, MutationGrantGate, DevelopmentAccepted)
 ```
 
-Gdy LLM próbuje nadpisać binding/expression authority, runtime:
+When LLM attempts to overwrite binding/expression authority, runtime:
 
 ```text
 LLM_AUTHORITY_BINDING_IGNORED:<name>
 LLM_AUTHORITY_EXPRESSION_IGNORED:<name>
 ```
 
-i dopisuje akcję w `improvementDSL` (`status: proposed`).
+and appends the action to `improvementDSL` (`status: proposed`).
 
 **Status:** `VERIFIED` (test: *LLM cannot override authority-owned math gates*)
 
@@ -110,7 +110,7 @@ acceptance: accepted | review_required | rejected | unknown
 inputs: intent.graph.json, diagnostics.json, manifest.json
 ```
 
-Fixture tylko przy jawnej polityce:
+The fixture is accepted only under an explicit policy:
 
 ```projectdsl
 POLICY_ALLOW_DEVELOPMENT_FIXTURE false
@@ -118,23 +118,23 @@ POLICY_ALLOW_DEVELOPMENT_FIXTURE false
 
 **Status:** `VERIFIED`
 
-### 2.4 Niezawodność ciągłej pętli (0.4.0)
+### 2.4 Continuous Loop Reliability (0.4.0)
 
-| Mechanizm | Status |
+| Mechanism | Status |
 |-----------|--------|
-| Trwała dzierżawa projektu (lease) | `AUTONOMOUS` |
-| Limit iteracji / godzinę | `AUTONOMOUS` |
+| Persistent project lease | `AUTONOMOUS` |
+| Iteration limit / hour | `AUTONOMOUS` |
 | Bounded exponential retry watchera | `AUTONOMOUS` |
 | Failure receipt + `dead-letter.jsonl` | `AUTONOMOUS` |
 | Event envelope, idempotency key, trace ID | `AUTONOMOUS` |
 | Last-known-good Scene | `AUTONOMOUS` |
-| Brak rebuild przy identycznym snapshotcie | `AUTONOMOUS` |
+| No rebuild with identical snapshot | `AUTONOMOUS` |
 | Docker-safe `imports/` + `imports/manifest.jsonl` | `AUTONOMOUS` |
-| `service-check` (ClickHouse `SELECT 1`, Docling `/health`) | `AUTONOMOUS` (gdy usługi w górze) |
+| `service-check` (ClickHouse `SELECT 1`, Docling `/health`) | `AUTONOMOUS` (when services are up) |
 
 ### 2.5 improvementDSL (propose-only)
 
-Przykład planowanego / generowanego planu doskonalenia:
+Example of a planned / generated improvement plan:
 
 ```improvementdsl
 IMPROVEMENT improvement-fix-dev-evidence
@@ -146,59 +146,59 @@ ACTION action-1 KIND development APPROVAL false TARGETS [subactor://project/cust
 ACTION action-2 KIND validation APPROVAL true TARGETS [subactor://project/customer-biofoundry/development] TITLE "Resolve development diagnostics" REASON "Development evidence is not accepted by the deterministic acceptance gate"
 ```
 
-**Status:** `AUTONOMOUS` (generowanie przy każdej zmienionej iteracji)  
-**Status:** `PENDING` (automatyczne apply kodu z planu — celowo nie)
+**Status:** `AUTONOMOUS` (generated with each changed iteration)
+**Status:** `PENDING` (automatic application of plan-generated code is intentionally disabled)
 
 ---
 
-## 3. Plan 0.5.0 (sesja) — luka pełnej autonomii kodu
+## 3. Plan 0.5.0 (session) — full code autonomy gap
 
-### 3.1 Docelowy przepływ (planowany w FULL_AUTONOMY_GAPS)
+### 3.1 Target flow (planned in FULL_AUTONOMY_GAPS)
 
 ```text
 todo2code diagnostics
   → code-change-plan
   → source-patch proposal
-  → kryptograficznie podpisany grant
-  → izolowany worktree lub kontener
+  → cryptographically signed grant
+  → isolated worktree or container
   → apply
-  → testy
-  → ponowny pipeline todo2code
-  → niezależny acceptance
+  → tests
+  → repeated todo2code pipeline
+  → independent acceptance
   → canary
-  → promocja albo rollback
+  → promotion or rollback
 ```
 
-### 3.2 Co wykonano w 0.5.0 vs co pozostało
+### 3.2 What was done in 0.5.0 vs what remains
 
-| Krok | Status | Realizacja |
+| Step | Status | Implementation |
 |------|--------|------------|
-| Diagnostyki / plan (kontrakt) | `EXECUTED` (adapter + przykłady) | `Todo2CodeAdapter`, `code-change-plan.example.json` |
-| Source-patch proposal | `EXECUTED` | `proposeSourcePatch` lub lokalny empty proposal |
+| Diagnostics / plan (contract) | `EXECUTED` (adapter + examples) | `Todo2CodeAdapter`, `code-change-plan.example.json` |
+| Source-patch proposal | `EXECUTED` | `proposeSourcePatch` or a local empty proposal |
 | Krypto grant HS256 | `EXECUTED` + `VERIFIED` | `src/runtime/mutation-grant.ts` (port z `subactor/runtime`) |
 | Izolowany worktree / copy | `EXECUTED` + `VERIFIED` | `src/runtime/isolated-worktree.ts` |
 | Apply w izolacji | `EXECUTED` (fail-closed) | `mutation-apply` + jti consume |
-| Testy po apply | `PENDING` | wymaga realnego t2c + suite |
+| Tests after apply | `PENDING` | requires real t2c + suite |
 | Re-analysis / close-code-change | `PENDING` | semcod/todo2code |
-| Niezależny evaluator | `PENDING` | autonomy contract `require_distinct_identity` |
+| Independent evaluator | `PENDING` | autonomy contract `require_distinct_identity` |
 | Canary / rollback | `PENDING` | wzorce w `subactor/autonomy-lab` |
-| Promocja izolacja → main | `PENDING` | celowo poza 0.5.0 |
+| Isolation → main promotion | `PENDING` | intentionally outside 0.5.0 |
 
 ---
 
-## 4. Zdarzenia wykonania 0.5.0 (szczegół)
+## 4. Execution events 0.5.0 (detail)
 
 ### EVT-0501 — Port signed mutation grant
 
 **Status:** `EXECUTED`  
-**Źródło reużycia:** `/home/tom/github/subactor/runtime/src/apply-grant.mjs`  
+**Reuse source:** `/home/tom/github/subactor/runtime/src/apply-grant.mjs`
 **Artefakty:**
 
 - `src/runtime/mutation-grant.ts`
 - `schemas/signed-mutation-grant.schema.json`
 - `examples/autonomy/signed-mutation-grant.example.json`
 
-**Sekrety (kolejność):**
+**Secrets (order):**
 
 ```text
 MUTATION_GRANT_HMAC_SECRET
@@ -206,7 +206,7 @@ APPLY_GRANT_HMAC_SECRET
 TOKEN_PEPPER
 ```
 
-**DSL / dokument grantu (po `grant-issue`):**
+**DSL / grant document (after `grant-issue`):**
 
 ```json
 {
@@ -235,9 +235,9 @@ node dist/src/cli/main.js grant-issue <projectId> <planHash> <artifactSha256> <t
 node dist/src/cli/main.js grant-verify grant.json <projectId> <planHash>
 ```
 
-**Reguła fail-closed:** placeholdery (`replace-with-detached-signature`) **nie** ustawiają `SignedMutationGrantPresent`.
+**Fail-closed rule:** placeholders (`replace-with-detached-signature`) **do not** set `SignedMutationGrantPresent`.
 
-### EVT-0502 — Izolowany workspace
+### EVT-0502 — Isolated workspace
 
 **Status:** `EXECUTED`  
 **Artefakt:** `src/runtime/isolated-worktree.ts`
@@ -250,7 +250,7 @@ ELSE
   write .dt-isolated-workspace.json
 ```
 
-**Uwaga (poprawka w sesji):** zagnieżdżony katalog w monorepo **nie** tworzy worktree całego repo — tylko directory-copy.
+**Note (session correction):** a nested directory in a monorepo **does not** create a worktree of the entire repo — only a directory-copy.
 
 ### EVT-0503 — Mutation pipeline (propose / apply)
 
@@ -261,7 +261,7 @@ ELSE
 - `schemas/mutation-proposal-receipt.schema.json`
 - `examples/autonomy/code-change-plan.example.json`
 
-**Przepływ propose:**
+**Propose flow:**
 
 ```text
 load plan → planHash
@@ -273,7 +273,7 @@ append events.jsonl
 dispose workspace unless keepWorkspace
 ```
 
-**Przykład planu zmian:**
+**Example change plan:**
 
 ```json
 {
@@ -290,7 +290,7 @@ dispose workspace unless keepWorkspace
 }
 ```
 
-**Receipt (skrót):**
+**Receipt (summary):**
 
 ```json
 {
@@ -312,17 +312,17 @@ dispose workspace unless keepWorkspace
 
 ```bash
 node dist/src/cli/main.js mutation-propose project.projectdsl plan.json .living-runtime
-# apply — tylko przy policy apply + self-mod + grant + approval-hash; zapis tylko w izolacji
+# apply — only with apply policy + self-modification + grant + approval hash; writes stay isolated
 node dist/src/cli/main.js mutation-apply project.projectdsl plan.json source-patch.json <approvalHash> .living-runtime
 ```
 
 ### EVT-0504 — twin-probes evidence
 
 **Status:** `EXECUTED`  
-**Źródło:** `/home/tom/github/subactor/twin-probes`  
+**Source:** `/home/tom/github/subactor/twin-probes`
 **Artefakt:** `src/adapters/twin-probes.ts`
 
-**Kontrakt cyklu (musi mieć `watches`):**
+**Cycle contract (must have `watches`):**
 
 ```json
 {
@@ -345,7 +345,7 @@ node dist/src/cli/main.js mutation-apply project.projectdsl plan.json source-pat
 node dist/src/cli/main.js probes-ingest cycle.json .living-runtime/candidate/probe.evidence.json
 ```
 
-### EVT-0505 — Rozszerzenie adaptera todo2code
+### EVT-0505 — todo2code adapter extension
 
 **Status:** `EXECUTED`  
 **Artefakt:** `src/adapters/todo2code.ts`
@@ -356,7 +356,7 @@ extract / readLatestAnalysis / extractNl   (0.4.0)
 + applySourcePatch(patchPath, { actor, approvalHash, receiptPath, cwd })
 ```
 
-### EVT-0506 — Weryfikacja
+### EVT-0506 — Verification
 
 **Status:** `VERIFIED`
 
@@ -372,11 +372,11 @@ Nowe testy:
 
 ---
 
-## 5. Living project — co działa autonomicznie (operacyjnie)
+## 5. Living project — what operates autonomously (operationally)
 
-### 5.1 projectDSL (szkielet living project)
+### 5.1 projectDSL (living-project skeleton)
 
-Po `project-create` generowany jest m.in. dokument projektu (logicznie):
+After `project-create`, the project document (logically) is generated, among other things:
 
 ```projectdsl
 PROJECT nanobionic-laboratory
@@ -410,23 +410,23 @@ POLICY_MAX_CONSECUTIVE_FAILURES 5
 SCENE_FORMAT openusd
 ```
 
-### 5.2 Komendy autonomicznej pętli
+### 5.2 Autonomous loop commands
 
 ```bash
-# jednorazowa iteracja
+# one-off iteration
 node dist/src/cli/main.js project-iterate project.projectdsl .living-runtime deterministic
 
-# ciągła ewolucja (watcher)
+# continuous evolution (watcher)
 node dist/src/cli/main.js project-watch project.projectdsl .living-runtime prefer-llm
 
 # status
 node dist/src/cli/main.js project-status .living-runtime
 
-# brama usług
+# service gate
 node dist/src/cli/main.js service-check
 ```
 
-Docker (w wygenerowanym projekcie):
+Docker (in the generated project):
 
 ```bash
 docker compose up -d --build
@@ -437,7 +437,7 @@ docker compose run --rm runtime \
   project-watch /project/project.projectdsl /project/.living-runtime prefer-llm
 ```
 
-### 5.3 Artefakty każdej iteracji (`.living-runtime/`)
+### 5.3 Artifacts of each iteration (`.living-runtime/`)
 
 ```text
 receipts/<iteration>.json      # subactor.living-iteration/v2
@@ -451,39 +451,43 @@ failures/                      # living-failure
 dead-letter.jsonl
 events.jsonl
 .iteration-lease/
-mutations/                     # 0.5.0: propose/apply receipts (gdy użyte)
+mutations/                     # 0.5.0: propose/apply receipts (when used)
 ```
 
-### 5.4 Tryby autonomii
+### 5.4 Autonomy modes
 
-| Mode | Zachowanie | Status |
+| Mode | Behavior | Status |
 |------|------------|--------|
-| `observe` | tylko analiza / projekcja | `AUTONOMOUS` |
-| `propose` | + improvementDSL + mutation-propose | `AUTONOMOUS` (domyślny) |
-| `apply` | intencja mutacji + izolowany apply po grant | `EXECUTED` control-plane; promocja `PENDING` |
+| `observe` | analysis / projection only | `AUTONOMOUS` |
+| `propose` | + improvementDSL + mutation-propose | `AUTONOMOUS` (default) |
+| `apply` | mutation intent + isolated apply after grant | `EXECUTED` control plane; promotion `PENDING` |
 
 ---
 
-## 6. Nanobionic Laboratory — plan bootstrapu (sesja T5–T6)
+## 6. Nanobionic Laboratory — bootstrap plan (session T5–T6)
 
-### 6.1 Źródła wiedzy
+### 6.1 Sources of knowledge
 
-| Ścieżka | Rola |
+| Path | Role |
 |---------|------|
-| `"/home/tom/github/bioxfoundry/idea/Atvirojo kodo biofoundry studija-1.pdf"` | intencja strategiczna + evidence customer |
+| `"/home/tom/github/bioxfoundry/idea/Atvirojo kodo biofoundry studija-1.pdf"` | strategic intent + customer evidence |
 | `/home/tom/github/bioxfoundry/nanobionic-laboratory/**` | korpus: SiLA/ROS/OpenTwins, OSCAR, BIO-SPEC, CAD, software |
 
-### 6.2 Gdzie ma żyć intencja (nie w PDF)
+### 6.2 Where the intent should live (not in PDF)
 
 | Artefakt | Rola |
 |----------|------|
-| `data/manager/policy.md` | **authority** — skrócona intencja operacyjna |
-| `project.projectdsl` → `MANAGER_INTENT` | kontrakt projektu |
+| `data/manager/policy.md` | **authority** — concise operational intent |
+| `project.projectdsl` → `MANAGER_INTENT` | project contract |
 | `project/ticket-001/user-manager.md` | ticket request |
-| `config/development.intent.fixture.json` | seed t2c.intent (do czasu real todo2code) |
-| PDF przez `project-add-source … customer` | evidence (imports + manifest) |
+| `config/development.intent.fixture.json` | t2c.intent seed (until real todo2code is available) |
+| PDF via `project-add-source … customer` | evidence (imports + manifest) |
 
-### 6.3 Intencja menedżera (planowana treść z PDF)
+### 6.3 Manager's intent (planned content from PDF)
+
+The following fenced block preserves the original Polish manager-intent evidence. Its English
+translation follows immediately after the block; the original value is retained because changing a
+historical record would falsify what the session actually used.
 
 ```markdown
 # Manager policy — Nanobionic Laboratory / Open-Source Biofoundry
@@ -508,7 +512,16 @@ ChemOS 2.0 (plan eksperymentów) → SiLA 2 (urządzenia) → ROS 2 (robotyka)
 - Preferuj open-source, modularność, lokalną odtwarzalność.
 ```
 
-### 6.4 Komendy bootstrapu (PLANNED / PENDING — nie wykonane w sesji)
+English translation:
+
+> Maintain and develop a validated Digital Twin of an open-source biofoundry for open medicine and
+> small-scale biological processes. The loop connects ChemOS 2.0 experiment planning, SiLA 2
+> devices, ROS 2 robotics, and OpenTwins physical/Twin state. Begin with digital infrastructure and
+> one BIO-SPEC bioreactor demonstration process. Keep projectDSL and policy authoritative over the
+> LLM, disable runtime self-modification until signed grant, isolation, and acceptance are present,
+> and prefer open source, modularity, and local reproducibility.
+
+### 6.4 Bootstrap commands (PLANNED / PENDING — not executed during the session)
 
 ```bash
 cd /home/tom/github/bioxfoundry/twin-dsl
@@ -539,7 +552,7 @@ $CLI project-status $PROJ/.living-runtime
 **Status katalogu living project:**  
 `/home/tom/github/bioxfoundry/projects/nanobionic-laboratory` — **EXISTS** (bootstrap + iterate 2026-08-06).
 
-### 6.6 Pierwsza iteracja (EXECUTED)
+### 6.6 First iteration (EXECUTED)
 
 ```text
 iterationId: a339fd30-fc90-4c08-9b6d-724db5a4f626
@@ -552,7 +565,7 @@ scene: .living-runtime/candidate/scene.usda
 log: projects/nanobionic-laboratory/BOOTSTRAP.md
 ```
 
-Źródła w `imports/manifest.jsonl`:
+Sources in `imports/manifest.jsonl`:
 
 ```text
 customer  idea/Atvirojo kodo biofoundry studija-1.pdf
@@ -562,7 +575,7 @@ development  I. Bioreactor/.../Software  (+ code/src/bioreactor/)
 project   nanobionic_lab_whitepaper.pdf
 ```
 
-### 6.5 Oczekiwane twinDSL / treeDSL po pierwszej iteracji (przykład docelowy)
+### 6.5 Expected twinDSL / treeDSL after the first iteration (target example)
 
 ```treedsl
 TREE nanobionic-laboratory
@@ -582,8 +595,8 @@ NODE lab "Nanobionic Laboratory" ROLE facility
 ```
 
 ```twindsl
-# logiczny kształt (po materializacji runtime zapisuje JSON twinDSL)
-# komponenty uziemione w resource URI ze źródeł customer/project/development
+# logical shape (after materialization, the runtime writes JSON twinDSL)
+# components grounded in resource URIs from customer/project/development sources
 TWIN nanobionic-laboratory
 SOURCE_SNAPSHOT <sha256>
 COMPONENT lab.facility
@@ -594,9 +607,9 @@ COMPONENT lab.facility
 
 ---
 
-## 7. Rejestr plików zmienionych / dodanych w sesji 0.5.0
+## 7. Register of files changed / added in session 0.5.0
 
-### Dodane
+### Added
 
 ```text
 src/runtime/mutation-grant.ts
@@ -611,7 +624,7 @@ examples/autonomy/code-change-plan.example.json
 docs/EVENT_HISTORY_AUTONOMY.md          # ten plik
 ```
 
-### Zmodyfikowane (główne)
+### Modified (main)
 
 ```text
 src/core/types.ts                       # SignedMutationGrant, MutationProposalReceipt
@@ -628,7 +641,7 @@ examples/autonomy/README.md
 examples/autonomy/signed-mutation-grant.example.json
 ```
 
-### Reużyte zewnętrznie (bez kopiowania całego repo)
+### Externally reused (without copying the entire repo)
 
 ```text
 subactor/runtime        apply-grant (HMAC model)
@@ -639,33 +652,33 @@ subactor/autonomy-lab   canary/promotion patterns (docs only)
 
 ---
 
-## 8. Co dalej działa autonomicznie (kontrakt operacyjny)
+## 8. What continues to operate autonomously (operational contract)
 
-Po utworzeniu living project i uruchomieniu `project-watch` system **sam**:
+After creating a living project and starting `project-watch`, the system autonomously:
 
-1. skanuje źródła manager/customer/project/archive/development/runtime  
+1. scans manager/customer/project/archive/development/runtime sources
 2. buduje resource / tree / observation  
-3. wywołuje development evidence (todo2code lub fixture wg policy)  
-4. scala mathDSL z ochroną authority  
+3. invokes development evidence (todo2code or fixture according to policy)
+4. scales mathDSL with authority protection
 5. buduje twin + scene (OpenUSD)  
-6. waliduje grounding URI  
+6. validates URI grounding;
 7. publikuje candidate lub current (last-known-good)  
 8. generuje `improvementDSL` propose-only  
-9. zapisuje receipt, eventy, failures, dead-letter  
-10. limituje tempo i blokuje równoległe iteracje lease’em  
+9. records receipt, events, failures, dead-letter
+10. limits tempo and blocks parallel iterations with a lease
 
-**Nie robi autonomicznie (domyślnie):**
+**Does not do autonomously (by default):**
 
-- nie zmienia kodu live bez grantu + apply mode  
-- nie promuje patchy z izolacji do main  
-- nie uruchamia canary/rollback  
-- nie zastępuje niezależnego evaluatora  
+- does not change live code without a grant and apply mode;
+- does not promote patches from isolation to main;
+- does not run canary/rollback
+- does not replace an independent evaluator
 
 ---
 
-## 9. Macierz statusów końcowych
+## 9. Final status matrix
 
-| Obszar | Status |
+| Area | Status |
 |--------|--------|
 | Knowledge loop (research → resource → tree/query/math) | `AUTONOMOUS` |
 | Development loop (todo2code evidence) | `AUTONOMOUS` (fixture/real wg policy) |
@@ -676,27 +689,27 @@ Po utworzeniu living project i uruchomieniu `project-watch` system **sam**:
 | Real t2c patch + re-analysis E2E | `PENDING` |
 | Canary / promotion / evaluator | `PENDING` |
 | Nanobionic living project bootstrap | `EXECUTED` + first iterate `VERIFIED` |
-| Dokumentacja historii zdarzeń | `EXECUTED` (ten plik) |
+| Event history documentation | `EXECUTED` (this file) |
 
 ---
 
-## 10. Powiązane dokumenty
+## 10. Related documents
 
-| Plik | Treść |
+| File | Content |
 |------|--------|
-| `docs/AUTONOMY_MODEL.md` | model bramek i mutacji |
-| `docs/FULL_AUTONOMY_GAPS.md` | luki do pełnej autonomii kodu |
-| `docs/AUTONOMY_FINDINGS.md` | wnioski z testów 0.4.0 |
+| `docs/AUTONOMY_MODEL.md` | gate and mutation model |
+| `docs/FULL_AUTONOMY_GAPS.md` | gaps to full code autonomy |
+| `docs/AUTONOMY_FINDINGS.md` | findings from 0.4.0 tests |
 | `docs/PROJECT_WIZARD.md` | kreator living project |
-| `docs/QUICK_SOURCE_RECIPES.md` | dodawanie PDF/ZIP/kodu |
-| `docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md` | pętla ciągła |
-| `VERIFICATION.md` | raport weryfikacji 0.5.0 |
+| `docs/QUICK_SOURCE_RECIPES.md` | adding PDF/ZIP/code |
+| `docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md` | continuous loop |
+| `VERIFICATION.md` | 0.5.0 verification report |
 | `CHANGELOG.md` | 0.4.0 / 0.5.0 |
 | `examples/autonomy/` | scenariusze i grant/plan examples |
 
 ---
 
-## 11. Podpis sesji
+## 11. Session signature
 
 ```text
 schema: subactor.session-event-log/v1
@@ -710,7 +723,7 @@ next_autonomous_action: project-watch prefer-llm within POLICY_* bounds
 ```
 
 ```text
-# minimalny „event” zamykający sesję (logiczny)
+# minimal logical event that closes the session
 EVENT session.closed
 PROJECT twin-dsl
 TRACE session-2026-08-06-autonomy-0.5.0

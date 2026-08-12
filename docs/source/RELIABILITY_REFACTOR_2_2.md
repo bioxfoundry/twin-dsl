@@ -1,51 +1,51 @@
-# Refaktoryzacja niezawodności 2.2
+# Reliability Refactoring 2.2
 
-## Naprawione ograniczenia
+## Fixed Limitations
 
-### Pełne read-modify-write w JsonStore
+### Full read-modify-write in JsonStore
 
-Aktualizacje w jednym procesie są serializowane jako całość, a nie tylko podczas zapisu.
-Usuwa to utratę rekordów przy równoległych wywołaniach w developerskim JSON Store.
+Updates within a single process are serialized as a whole, not just during writing.
+This eliminates record loss with parallel calls in the developer JSON Store.
 
-Nadal nie jest to blokada między wieloma procesami lub hostami. Produkcja wymaga bazy
-transakcyjnej.
+This is still not a lock between multiple processes or hosts. Production requires a transactional
+database.
 
-### Atomowe roszczenie idempotency key
+### Atomic idempotency-key claim
 
-Bridge zapisuje stan `processing` przed wykonaniem adaptera. Kolejne wykonanie tego samego
-klucza otrzymuje rezultat zapisany, poprzedni błąd albo status in-progress. Roszczenie ma
-lease i może zostać odzyskane po awarii.
+Bridge writes `processing` state before adapter execution. Subsequent execution of the same
+key receives the saved result, previous error, or in-progress status. The claim has a
+lease and can be recovered after a failure.
 
-### Egzekwowanie OQL EXPECT
+### OQL EXPECT enforcement
 
-Rezultat adaptera jest sprawdzany po wykonaniu kroku. Niespełnione `EXPECT` powoduje błąd
-kroku, zamiast dekoracyjnie pozostać wyłącznie w tekście OQL.
+The adapter result is checked after step execution. Unsatisfied `EXPECT` causes a step error,
+instead of decoratively remaining only in the OQL text.
 
-### Semantyka warunków AQL
+### AQL condition semantics
 
-Parser obsługuje:
+The parser supports:
 
-- pierwszeństwo `AND` przed `OR`;
-- nawiasy;
+- `AND` precedence over `OR`;
+- parentheses;
 - `NOT`;
 - `exists(...)`.
 
-Usuwa to niejednoznaczność wcześniejszej ewaluacji od lewej do prawej.
+This removes the ambiguity of earlier left-to-right evaluation.
 
-### Pluginowy adapter registry
+### Pluggable adapter registry
 
-Kanały komunikacyjne są odseparowane od głównego switcha wykonawczego. Dodanie providera
-nie wymaga zmiany semantyki AQL.
+Communication channels are separated from the main execution switch. Adding a provider
+does not require changing AQL semantics.
 
-## Pozostałe granice wersji developerskiej
+## Remaining developer version limits
 
-Przed produkcją nadal potrzebne są:
+Before production, the following are still needed:
 
-1. PostgreSQL i transakcje;
-2. canonical OQL AST jako jedyne źródło wykonania;
-3. trwała kolejka lub Temporal/BullMQ;
-4. pełne output schemas adapterów;
-5. policy engine i separation of duties;
-6. TestQL preflight/postflight dla każdego adaptera;
+1. PostgreSQL and transactions;
+2. canonical OQL AST as the sole source of execution;
+3. durable queue or Temporal/BullMQ;
+4. full output schemas of adapters;
+5. policy engine and separation of duties;
+6. TestQL preflight/postflight for each adapter;
 7. telemetry trace/correlation IDs;
-8. mechanizm kompensacji i rollbacku.
+8. compensation and rollback mechanism.

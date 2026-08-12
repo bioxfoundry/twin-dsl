@@ -1,53 +1,53 @@
-# Kontrakty autonomii AQL/OQL
+# AQL/OQL autonomy contracts
 
-Kontrakt jest trwałą delegacją udzieloną przez człowieka posiadającego
-`plans:approve`. Określa dozwolone modele AQL, operacje OQL, domeny odbiorców,
-maksymalną liczbę kroków, limit wykonań i termin wygaśnięcia. Agent z
-`plans:propose` może korzystać z aktywnego kontraktu, ale nie może go rozszerzyć.
+A contract is a durable delegation granted by a human with
+`plans:approve`. It specifies allowed AQL models, OQL operations, recipient domains,
+maximum number of steps, execution limit, and expiration. An agent with
+`plans:propose` can use an active contract but cannot extend it.
 
-`POST /api/autonomy/contracts` tworzy kontrakt, a `POST /api/plans/autonomous`
-ocenia hash i wszystkie kroki planu przed wykonaniem. Zgodny plan zostaje
-zatwierdzony tożsamością kontraktu i wykonany z idempotentnymi kluczami. Plan
-poza zakresem pozostaje `proposed`, a Planfile otrzymuje ticket `actor:human`.
+`POST /api/autonomy/contracts` creates a contract, and `POST /api/plans/autonomous`
+evaluates the hash and all plan steps before execution. A compliant plan is
+approved by the contract's identity and executed with idempotent keys. An out-of-scope plan
+remains `proposed`, and the Planfile receives an `actor:human` ticket.
 
-Operacja z `requires_human_approval: true` zawsze trafia do człowieka — nawet
-jeżeli jej nazwa znajduje się na liście dozwolonych operacji.
+An operation with `requires_human_approval: true` always goes to a human — even
+if its name is on the list of allowed operations.
 
-## Odpowiedzialność i delegowanie
+## Responsibility and Delegation
 
-Founder jest korzeniem odpowiedzialności. Kontrakt bez pola `principal` należy
-do `human:founder`, a praca bez pokrycia trafia do kolejki foundera i jest
-notyfikowana na `founder@localhost`.
+The Founder is the root of responsibility. A contract without a `principal` field belongs
+to `human:founder`, and uncovered work goes to the founder's queue and is
+reported to `founder@localhost`.
 
-`principal` wskazuje osobę albo bota, np.
-`{"kind":"bot","id":"it-provisioner-bot"}`. Ticket utworzony w ramach takiego
-kontraktu otrzymuje tego samego wykonawcę i kolejkę. Sam routing nie udaje
-wykonania: bot musi mieć rzeczywisty adapter lub proces URIrun, który odbierze
-ticket i zapisze dowód rezultatu.
+`principal` indicates a person or bot, e.g.,
+`{"kind":"bot","id":"it-provisioner-bot"}`. A ticket created under such a contract receives
+the same executor and queue. Routing itself does not simulate
+execution: the bot must have a real adapter or URIrun process that will receive
+the ticket and record proof of the result.
 
-Founder może delegować bez kontraktu nadrzędnego. Inna osoba może tworzyć dalsze
-delegacje tylko wtedy, gdy poda `parent_contract_id`, jest podmiotem aktywnego
-kontraktu nadrzędnego, a ten kontrakt dopuszcza operację
-`autonomy.contract.delegate`. Bot nie może sam rozszerzać swoich uprawnień.
+The Founder can delegate without a parent contract. Another person can create further
+delegations only if they provide `parent_contract_id`, are the principal of an active
+parent contract, and that contract allows the operation
+`autonomy.contract.delegate`. A bot cannot extend its own permissions.
 
-## Contract AQL i walidacja TestQL
+## AQL contract and TestQL validation
 
-Czytelny kontrakt można zapisać jako `components/contracts/**/*.contract.aql`. Kompilator
-`@subactor/runtime/contract-aql` zamienia go na kontrakt runtime i sprawdza składnię,
-ograniczenia zakresu oraz łańcuch delegacji. Przykładem jest
+A readable contract can be saved as `components/contracts/**/*.contract.aql`. The compiler
+`@subactor/runtime/contract-aql` converts it into a runtime contract and checks syntax,
+scope limitations, and the delegation chain. An example is
 `components/contracts/actors/bots/it-provisioner/it-provisioner.contract.aql`.
 
-Scenariusz `tests/testql/contract-aql-validation.testql.toon.yaml` dowodzi dwóch
-własności: poprawny kontrakt kompiluje się z kompletem znaczników walidacji, a
-bot próbujący delegować uprawnienia zostaje odrzucony stabilnym kodem
-`contract_aql_bot_cannot_delegate`. Lokalnie można go uruchomić przez
-`npm run test:contract-aql` albo jako część środowiska TestQL.
+The `tests/testql/contract-aql-validation.testql.toon.yaml` scenario proves two
+properties: a valid contract compiles with a complete set of validation tags, and a
+bot attempting to delegate permissions is rejected with the stable code
+`contract_aql_bot_cannot_delegate`. Locally, it can be run via
+`npm run test:contract-aql` or as part of the TestQL environment.
 
-Gotowy portfel kontraktów znajduje się w `components/contracts/actors/`. Manifest obejmuje
-foundera, Operations Lead, Marketing Lead oraz boty IT, komunikacji, przeglądarki i
-projektów. `signing-manifest.json` klasyfikuje każdy kontrakt jako podpisywalną
-delegację człowieka albo kontrakt techniczny. Test portfela wymusza unikalność aktorów, poprawność każdego pliku
-oraz zasadę, że uprawnienie do dalszej delegacji może otrzymać tylko człowiek.
+A ready-made portfolio of contracts is located in `components/contracts/actors/`. The manifest includes
+the founder, Operations Lead, Marketing Lead, and IT, communications, browser, and
+project bots. `signing-manifest.json` classifies each contract as a signable
+human delegation or a technical contract. The portfolio test enforces actor uniqueness, the correctness of each file,
+and the rule that only a human can receive the right to further delegate.
 
-Generowanie całego portfela dokumentów opisuje kanoniczna dokumentacja
+The generation of the entire document portfolio is described in the canonical documentation
 [`subactor/platform`](https://github.com/subactor/platform/blob/main/docs/CONTRACT_GENERATION.md).

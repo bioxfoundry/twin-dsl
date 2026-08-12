@@ -1,100 +1,100 @@
-# Plan rozwoju po `twin-dsl` 0.5.34
+# Development plan after `twin-dsl` 0.5.34
 
-- Stan odniesienia: 2026-08-10
-- Projekt referencyjny: `nanobionic-laboratory-md`
-- Charakter dokumentu: plan wykonawczy; nie jest potwierdzeniem wykonania opisanych niżej prac.
+- Reference date: 2026-08-10
+- Reference project: `nanobionic-laboratory-md`
+- Document type: execution plan; not a confirmation of the work described below being completed.
 
-## Cel
+## Goal
 
-Następne iteracje powinny poprawić przede wszystkim wiarygodność wejścia i dowodów, a dopiero
-potem efekt wizualny. Docelowy przebieg ma:
+Subsequent iterations should primarily improve the reliability of input and evidence, and only then
+the visual effect. The target workflow should:
 
-1. wykazać los każdego skonfigurowanego dokumentu i zasobu;
-2. generować deterministyczny bazowy DSL z pełną proweniencją;
-3. używać LLM wyłącznie do wytworzenia walidowanego `patchDSL`;
-4. wiązać geometrię, stan i prezentację z jedną zaakceptowaną rewizją;
-5. wykrywać `ERROR`, wykonywać ograniczone naprawy i ponownie uruchamiać bramki;
-6. nie przedstawiać braku danych, pominiętego testu ani starego artefaktu jako wyniku zaliczonego.
+1. demonstrate the fate of each configured document and asset;
+2. generate a deterministic baseline DSL with full provenance;
+3. use LLM exclusively to produce validated `patchDSL`;
+4. bind geometry, state, and presentation to a single accepted revision;
+5. detect `ERROR`, perform limited repairs, and restart gates;
+6. not present missing data, a skipped test, or an old artifact as a passed result.
 
-## Zweryfikowany punkt wyjścia
+## Verified starting point
 
-| Obszar | Stan po iteracji 0.5.34 |
+| Area | Status after iteration 0.5.34 |
 | --- | --- |
-| Publikacja | `twin-dsl` 0.5.34 i `diagnose-agent` 0.1.9 opublikowane |
-| Rewizja projektu | `f63f23b2-2bde-4588-b7fe-cacf29ffdcb3`, `validation.ok=true` |
-| Powtórzenie | `noChange=true`, bez drugiej publikacji tej samej treści |
-| Lokalna bramka | 0 błędów i 0 pominiętych etapów |
-| Granica LLM | 5 transportów, 3 konsumentów, 12 kontraktów, 0 błędów |
-| Assembly | 3/3 kompletnych assembly, 18/18 wymaganych części |
-| Scena | 45 bindingów, 18 bindingów assetów i 18 unikalnych GLB |
-| GLB przez dashboard | 18/18: HTTP 200, GLB v2 i SHA-256 zgodne z URN |
-| Dowody przestrzenne | 64/102 wymaganych kontroli |
-| Integralność projektu | 3 ostrzeżenia i 7 jawnych założeń |
-| Prezentacja | 8 historycznych plików, `UNVERIFIED`, brak manifestu i danych kamery |
+| Publication | `twin-dsl` 0.5.34 and `diagnose-agent` 0.1.9 published |
+| Project revision | `f63f23b2-2bde-4588-b7fe-cacf29ffdcb3`, `validation.ok=true` |
+| Repetition | `noChange=true`, no second publication of the same content |
+| Local gate | 0 errors and 0 skipped steps |
+| LLM boundary | 5 transports, 3 consumers, 12 contracts, 0 errors |
+| Assembly | 3/3 complete assemblies, 18/18 required parts |
+| Scene | 45 bindings, 18 asset bindings, and 18 unique GLBs |
+| GLB via dashboard | 18/18: HTTP 200, GLB v2 and SHA-256 consistent with URN |
+| Spatial evidence | 64/102 required checks |
+| Project integrity | 3 warnings and 7 explicit assumptions |
+| Presentation | 8 historical files, `UNVERIFIED`, no manifest and camera data |
 
-Aktualne trzy ostrzeżenia są poprawnym wynikiem walidacji, a nie awarią runtime:
+The current three warnings are a correct validation result, not a runtime failure:
 
-- `CONCEPTUAL_GEOMETRY_ASSUMPTION`: siedem obiektów używa geometrii konceptualnej;
-- `GEOMETRY_VALIDATION_INCOMPLETE`: brakuje 12 kontroli pozycji, 8 rozmiaru i 18 orientacji;
-- `PRESENTATION_EVIDENCE_UNVERIFIED`: istniejące zrzuty nie dowodzą aktywnej rewizji.
+- `CONCEPTUAL_GEOMETRY_ASSUMPTION`: seven objects use conceptual geometry;
+- `GEOMETRY_VALIDATION_INCOMPLETE`: 12 position, 8 size, and 18 orientation checks are missing;
+- `PRESENTATION_EVIDENCE_UNVERIFIED`: existing dumps do not prove active revision.
 
-## Zasady architektoniczne
+## Architectural principles
 
-### Jedna odpowiedzialność dla każdego projektu
+### One responsibility per project
 
-| Projekt | Właściciel odpowiedzialności | Czego nie powinien implementować |
+| Project | Responsibility owner | What it should not implement |
 | --- | --- | --- |
-| `f2md` / `research-agent` | konwersja źródeł, Markdown, hashe i proweniencja | SSOT, authority, rendering i wykonywanie patchy |
-| `doDSL` | intake Git/web/upload, orkiestracja kompilatorów i utworzenie kandydata SSOT | własny kompilator `t2c.intent`, promocja SSOT i wykonanie poleceń LLM |
-| `todo2code` | Intent Evidence, Intent vs Reality, diagnostyka kodu i propozycje zmian | CAD, rendering, promocja SSOT i automatyczne zastosowanie patcha |
-| `onlyDSL` | IFURI, authority, accepted SSOT, kandydat i promocja | konwersja CAD, budowa Twin/Scene i duplikowanie parserów źródeł |
-| `twin-dsl` | Resource/Tree/Math/Observation/Twin/Scene, geometria i rewizja renderowana | alternatywny SSOT, alternatywny `todo2code` i swobodny executor LLM |
-| `diagnose-agent` | deterministyczne wykrywanie i stabilne kody błędów | modyfikowanie projektu |
-| `repair-agent` | strategie mechaniczne i kontrolowane propozycje `patchDSL` | zgadywanie dowodów, transformacji i automatyczne zatwierdzanie LLM |
+| `f2md` / `research-agent` | source conversion, Markdown, hashes and provenance | SSOT, authority, rendering and patch execution |
+| `doDSL` | Git/web/upload intake, compiler orchestration and SSOT candidate creation | own `t2c.intent` compiler, SSOT promotion and LLM command execution |
+| `todo2code` | Intent Evidence, Intent vs Reality, code diagnostics, and change proposals | CAD, rendering, SSOT promotion, and automatic patch application |
+| `onlyDSL` | IFURI, authority, accepted SSOT, candidate and promotion | CAD conversion, Twin/Scene build and source parser duplication |
+| `twin-dsl` | Resource/Tree/Math/Observation/Twin/Scene, geometry, and rendered revision | an alternative SSOT, an alternative `todo2code`, or an unrestricted LLM executor |
+| `diagnose-agent` | deterministic detection and stable error codes | modifying the project |
+| `repair-agent` | mechanical strategies and controlled `patchDSL` proposals | guessing proofs, transformations, and automatic LLM approval |
 
-Integracja ma przebiegać przez wersjonowane pliki i URI. Import biblioteki jest dopuszczalny tylko
-dla małego, niezależnie wydawanego pakietu kontraktów. Nie należy kopiować schematów do kolejnego
-repozytorium ani utrzymywać drugiego parsera tego samego DSL.
+Integration is to be done via versioned files and URIs. Library import is only allowed
+for a small, independently released contract package. Schemas should not be copied to another
+repository or maintain a second parser of the same DSL.
 
-### Jedyna dozwolona rola LLM
+### The only permitted LLM role
 
-Każdy kontekst przekazywany do modelu musi zawierać JSON Schema oraz GBNF. Odpowiedzią wykonywalną
-jest wyłącznie `patchDSL` związany z hashem bazowego dokumentu:
+Every context passed to the model must contain JSON Schema and GBNF. The executable response
+is exclusively `patchDSL` associated with the hash of the base document:
 
 ```text
 evidence + deterministic base DSL
   -> LLM(schema + GBNF)
   -> patchDSL(baseHash, evidenceUris, operations)
-  -> walidacja schematu, hasha, URI i dozwolonych ścieżek
-  -> deterministyczne zastosowanie do candidate
-  -> testy i walidacja
-  -> jawna promocja
+  -> schema, hash, URI, and allowed-path validation
+  -> deterministic application to the candidate
+  -> tests and validation
+  -> explicit promotion
 ```
 
-Proza modelu może być poradą, ale nigdy wejściem executora. Niepoprawna odpowiedź, timeout lub brak
-modelu mają pozostawić bazowy DSL bez zmian. W profilu developerskim wystarczy lokalna flaga apply,
-izolowany katalog, hash patcha, allowlista ścieżek i receipt; kryptograficzny mutation grant nie jest
-wymagany. Profil produkcyjny pozostaje osobną, bardziej restrykcyjną polityką.
+Model prose can be advice, but never executor input. An incorrect response, timeout, or lack of
+model should leave the base DSL unchanged. In the developer profile, a local apply flag is sufficient,
+an isolated directory, patch hash, path allowlist, and receipt; a cryptographic mutation grant is not
+required. The production profile remains a separate, more restrictive policy.
 
-## Kolejność realizacji
+## Order of execution
 
-| Kolejność | Proponowane wydanie | Wynik |
+| Order | Proposed release | Result |
 | ---: | --- | --- |
-| 1 | 0.5.35 | jednoznaczna wersja zależności i `SourceCoverageDSL` dla wszystkich wejść |
-| 2 | 0.5.36 | świeże, rewizyjnie związane dowody prezentacji z parametrami kamery |
-| 3 | 0.5.37 | klasyfikacja reprezentacji i domykanie brakujących dowodów geometrii |
-| 4 | 0.5.38 | ograniczona pętla `diagnose -> repair -> verify -> iterate -> report` |
-| 5 | po stabilizacji | pionowa integracja `doDSL -> onlyDSL -> twin-dsl` przez artefakty plikowe |
+| 1 | 0.5.35 | unambiguous dependency versioning and `SourceCoverageDSL` for all inputs |
+| 2 | 0.5.36 | fresh, revision-linked presentation evidence with camera parameters |
+| 3 | 0.5.37 | classification of representations and closing missing geometry evidence |
+| 4 | 0.5.38 | limited loop `diagnose -> repair -> verify -> iterate -> report` |
+| 5 | after stabilization | vertical integration `doDSL -> onlyDSL -> twin-dsl` via file artifacts |
 
-Numery wydań są propozycją. Każde wydanie powinno mieć jeden główny cel i dać się wdrożyć bez
-oczekiwania na następne.
+Release numbers are proposals. Each release should have one main goal and be deployable without
+waiting for the next one.
 
-## Etap 1 — pełne rozliczenie źródeł i zależności
+## Stage 1 — full accounting of sources and dependencies
 
 ### 1.1 `SourceCoverageDSL`
 
-`research-agent` lub `f2md` powinien emitować `source-coverage.json` oraz
-`source-coverage.dsl`. Każdy wykryty element wejściowy musi mieć dokładnie jeden stan końcowy:
+`research-agent` or `f2md` should emit `source-coverage.json` and
+`source-coverage.dsl`. Each detected input element must have exactly one final state:
 
 ```text
 converted
@@ -105,74 +105,74 @@ quarantined
 failed
 ```
 
-Rekord powinien zawierać co najmniej:
+The record should contain at least:
 
-- ścieżkę logiczną, typ i SHA-256 źródła;
-- ścieżkę pochodnego Markdown, jeżeli powstał;
-- `resourceUri`, URI intentu i referencje TreeDSL;
-- identyfikator konwertera oraz jego wersję;
-- stan końcowy i stabilny kod powodu;
-- informację, czy element wszedł do aktywnej rewizji Twin.
+- logical path, type, and SHA-256 of the source;
+- path of the derived Markdown, if created;
+- `resourceUri`, intent URIs, and TreeDSL references;
+- converter ID and its version;
+- final state and stable reason code;
+- information on whether the element entered an active Twin revision.
 
-`twin-dsl` ma ten raport konsumować, nie odtwarzać. W `ProjectIntegrityDSL` należy rozróżnić:
+`twin-dsl` is to consume this report, not recreate it. In `ProjectIntegrityDSL`, distinguish:
 
-- źródło niewykryte;
-- wykryte, lecz bez konwersji;
-- binarne z poprawną proweniencją;
-- skonwertowane, lecz niepowiązane z drzewem;
-- powiązane, lecz niewykorzystane przez Twin.
+- source undetected;
+- detected but not converted;
+- binary with correct provenance;
+- converted, but not linked to the tree;
+- linked, but not used by Twin.
 
 Kryteria akceptacji:
 
-- 100% skonfigurowanych wejść ma jawny stan końcowy;
-- suma stanów równa się liczbie wykrytych wejść;
-- nie istnieje ciche pominięcie ani `skipped` przedstawione jako `passed`;
-- zmiana jednego dokumentu zmienia wyłącznie jego hashe i zależne URI;
-- drugi przebieg bez zmiany daje identyczny raport i `noChange=true`.
+- 100% of configured inputs have an explicit final state;
+- sum of states equals the number of detected inputs;
+- no silent omission or `skipped` presented as `passed`;
+- changing one document changes only its hashes and dependent URIs;
+- a second unchanged run produces an identical report and `noChange=true`.
 
-### 1.2 Pinowanie zależności po tożsamości Git
+### 1.2 Pinning dependencies by Git identity
 
-Kanoniczny checkout `semcod/todo2code` znajduje się w jednej lokalizacji:
+The canonical `semcod/todo2code` checkout is in one location:
 
 ```text
 /home/tom/github/semcod/todo2code -> 2380dd8b2f7d...
 ```
 
-Numer wersji nadal nie wystarcza. Receipt development powinien zapisywać `remote`, pełny commit,
-`packageVersion`, hash schematu i hash pliku wykonywalnego. Jeżeli konfiguracja wskazuje checkout
-o innym commicie lub schemacie niż przypięta tożsamość, `doctor` ma zwrócić jawny błąd konfiguracji.
+Version number is still not enough. Receipt development should record `remote`, full commit,
+`packageVersion`, schema hash, and executable hash. If the configuration points to a checkout
+with a different commit or schema than the pinned identity, `doctor` should return an explicit configuration error.
 
-Ta sama reguła powinna objąć `onlyDSL`, `doDSL`, `f2md` i vendora `twin-dsl`. Proponowany
-`dependency-lock.json` ma być generowany z faktycznie uruchomionych narzędzi, nie ręcznie z README.
+The same rule should apply to `onlyDSL`, `doDSL`, `f2md`, and the `twin-dsl` vendor. The proposed
+`dependency-lock.json` should be generated from actually run tools, not manually from README.
 
-## Etap 2 — dowód prezentacji aktywnej rewizji
+## Stage 2 — proof of active revision presentation
 
-Istniejących ośmiu plików nie należy opatrywać nowym manifestem. Nie znamy ich dokładnej kamery i
-nie przedstawiają aktywnej rewizji.
+Existing eight files should not be given a new manifest. We do not know their exact camera and
+they do not represent an active revision.
 
-Należy dodać kontrolowaną komendę capture, która:
+A controlled capture command should be added that:
 
-1. odczytuje zaakceptowane `twinUri`, `sceneUri` i `iterationUri`;
-2. ustawia statyczną kamerę lub rejestruje deterministyczną trajektorię orbity;
-3. zapisuje PNG/WebM oraz parametry `eye`, `target`, `up`, FOV i hash trajektorii;
-4. oblicza hashe plików po zakończeniu zapisu;
-5. atomowo zapisuje `presentation/manifest.json` zgodny ze schematem;
-6. ponownie uruchamia inspekcję i publikuje status `CURRENT` tylko przy pełnej zgodności.
+1. reads the accepted `twinUri`, `sceneUri`, and `iterationUri`;
+2. sets a static camera or records a deterministic orbit trajectory;
+3. saves PNG/WebM and `eye`, `target`, `up`, FOV parameters, and trajectory hash;
+4. calculates file hashes after saving is complete;
+5. atomically saves `presentation/manifest.json` compliant with the schema;
+6. restarts inspection and publishes `CURRENT` status only upon full compliance.
 
-Testy negatywne muszą obejmować zmieniony obraz, inną scenę, nieznaną kamerę, brak pliku, zmianę
-trajektorii i próbę wyjścia ścieżką poza katalog prezentacji.
+Negative tests must include a changed image, a different scene, an unknown camera, a missing file, a change in
+trajectory, and an attempt to exit the path outside the presentation directory.
 
-Kryterium akceptacji: `PRESENTATION_EVIDENCE_UNVERIFIED` znika wyłącznie po nowym capture dla
-bieżącej rewizji. Następna zmiana sceny automatycznie zmienia status na `STALE`.
+Acceptance criterion: `PRESENTATION_EVIDENCE_UNVERIFIED` disappears only after a new capture for the
+current revision. The next scene change automatically changes the status to `STALE`.
 
-## Etap 3 — geometria, która ma znaczenie fizyczne
+## Stage 3 — geometry that matters physically
 
-Aktualne 18 GLB jest technicznie poprawne. Następnym celem nie jest zwiększanie liczby trójkątów,
-lecz udowodnienie reprezentacji, transformacji i jednostek.
+The current 18 GLBs are technically correct. The next goal is not to increase the number of triangles,
+but proving representation, transformations, and units.
 
-### 3.1 Klasyfikacja reprezentacji
+### 3.1 Representation classification
 
-Każdy binding powinien mieć deterministyczne `representationPolicy`:
+Each binding should have a deterministic `representationPolicy`:
 
 ```text
 logical-marker
@@ -182,66 +182,66 @@ mesh-required
 mesh-preferred
 ```
 
-Dzięki temu wskaźnik mesh coverage nie będzie liczył logicznych markerów jako defektów CAD.
-`conceptual-proxy` pozostaje ostrzeżeniem lub jawnym zaakceptowanym założeniem, nigdy pełnym dowodem.
+This will prevent the mesh coverage indicator from counting logical markers as CAD defects.
+`conceptual-proxy` remains a warning or an explicitly accepted assumption, never full proof.
 
-### 3.2 Domknięcie macierzy 102 kontroli
+### 3.2 Closure of the 102 control matrix
 
-Kolejność pracy dla każdego komponentu fizycznego:
+Work sequence for each physical component:
 
-1. istniejący asset i jego proweniencja;
-2. jednostka, układ współrzędnych, handedness i oś up;
-3. rozmiar z assetu lub silniejszego pomiaru;
-4. parent-relative position i orientation z autorytatywnego źródła;
-5. niezależna walidacja tolerancji;
-6. dopiero potem binding do sceny.
+1. existing asset and its provenance;
+2. unit, coordinate system, handedness, and up axis;
+3. size from an asset or stronger measurement;
+4. parent-relative position and orientation from an authoritative source;
+5. independent tolerance validation;
+6. only then binding to the scene.
 
-Brak danych ma tworzyć `EvidenceGapDSL` albo równoważny istniejący kontrakt z kodem powodu. Nie
-wolno układać części na podstawie środka bounding boxa ani rozciągać każdej osi do proxy size.
+Missing data must create an `EvidenceGapDSL` or equivalent existing contract with a reason code. Not
+allowed to arrange parts based on the bounding box center or stretch each axis to proxy size.
 
 Kryteria akceptacji:
 
-- siedem geometrii konceptualnych otrzymuje dowód albo pozostaje jawnym, nazwanym wyjątkiem;
-- licznik 64/102 rośnie po każdym pakiecie danych i nigdy przez dane zgadywane;
-- docelowe `COMPLETE` wymaga 102/102 rzeczywistych kontroli;
-- `componentId` i `scenePath` pozostają stabilne przy zmianie reprezentacji;
-- niezależny test HTTP nadal potwierdza GLB v2 i hash każdego aktywnego assetu.
+- seven conceptual geometries receive evidence or remain an explicit, named exception;
+- the 64/102 counter increments after each data packet and never through guessed data;
+- the `COMPLETE` target requires 102/102 actual checks;
+- `componentId` and `scenePath` remain stable when representation changes;
+- an independent HTTP test still confirms GLB v2 and the hash of each active asset.
 
-Materiały PBR, hierarchiczne STEP/OpenUSD i animacje są kolejnym etapem dopiero po poprawnych
-jednostkach i transformacjach.
+PBR materials, hierarchical STEP/OpenUSD, and animations are the next step only after correct
+units and transformations.
 
-## Etap 4 — ograniczona autonomiczna naprawa
+## Stage 4 — constrained autonomous repair
 
-Należy rozszerzyć obecną komendę `make repair-apply` do ograniczonego cyklu developerskiego,
-na przykład `make cycle PROJECT=<name> MAX_REPAIR_ITERATIONS=3`:
+The current `make repair-apply` command should be extended for a limited development cycle,
+for example `make cycle PROJECT=<name> MAX_REPAIR_ITERATIONS=3`:
 
 ```text
 project-verify
 -> iterate
 -> diagnose
--> jeśli ERROR: repair-agent --min-severity error
--> testy celowane
--> ponowne diagnose + iterate
+-> if ERROR: repair-agent --min-severity error
+-> targeted tests
+-> repeat diagnose + iterate
 -> make report
--> stop: zero ERROR, brak postępu albo limit iteracji
+-> stop: zero ERROR, no progress, or iteration limit
 ```
 
-Wymagane własności:
+Required properties:
 
-- deterministyczna strategia ma pierwszeństwo;
-- brak strategii daje `refused` z powodem, a nie pozorną naprawę;
-- propozycja LLM ma Schema + GBNF, `baseHash`, evidence URI i dozwolone ścieżki;
-- patch LLM trafia najpierw do izolowanego candidate;
-- każda próba ma receipt przed/po oraz listę rzeczywiście uruchomionych testów;
-- identyczny błąd bez postępu nie może wywołać nieskończonej pętli;
-- `WARNING` nie jest automatycznie naprawiany, jeżeli wymaga nowych danych lub decyzji projektowej.
+- deterministic strategy takes precedence;
+- no strategy yields `refused` with a reason, not a superficial repair;
+- LLM proposal has Schema + GBNF, `baseHash`, evidence URI, and allowed paths;
+- LLM patch goes to an isolated candidate first;
+- each attempt has a before/after receipt and a list of actually run tests;
+- an identical error without progress cannot cause an infinite loop;
+- `WARNING` is not automatically repaired if it requires new data or a design decision.
 
-Testy integracyjne powinny wstrzykiwać co najmniej: naprawialny błąd konfiguracji, błąd
-nienaprawialny, błędny patchDSL, zmianę bazowego hasha w trakcie pracy i regresję wykrytą po apply.
+Integration tests should inject at least: a repairable configuration error, an unrepairable
+error, an invalid patchDSL, a change in the base hash during operation, and a regression detected after apply.
 
-## Etap 5 — pionowa integracja bez duplikatów
+## Stage 5 — vertical integration without duplicates
 
-Docelowy przepływ między projektami:
+Target cross-project flow:
 
 ```text
 doDSL intake
@@ -256,21 +256,21 @@ doDSL intake
   -> repair-agent controlled execution
 ```
 
-Pierwszy benchmark powinien obejmować jeden mały fixture oraz realny
-`nanobionic-laboratory-md`. Na granicach należy testować pliki, nie prywatne funkcje bibliotek.
+The first benchmark should include one small fixture and a real
+`nanobionic-laboratory-md`. At the boundaries, test files, not private library functions.
 
-Kryteria akceptacji:
+Acceptance criteria:
 
-- jedna kanoniczna implementacja każdego schematu i kompilatora;
-- zgodność kontraktów sprawdzana macierzą wersji w CI;
-- brak importu `doDSL` z `onlyDSL` w przeciwnym kierunku;
-- `twin-dsl` działa także bez uruchomionych usług integracyjnych na zapisanych artefaktach;
-- usunięcie OpenRoutera nie zmienia deterministycznych znalezisk;
-- żaden projekt nie nazywa kandydata stanem zaakceptowanym.
+- one canonical implementation of each schema and compiler;
+- contract compliance checked by a version matrix in CI;
+- no import of `doDSL` from `onlyDSL` in the opposite direction;
+- `twin-dsl` also works without integration services running on saved artifacts;
+- removing OpenRouter does not change deterministic findings;
+- no project names a candidate an accepted state.
 
-## Interfejs developerski Makefile
+## Developer Makefile interface
 
-Już dostępne i zalecane:
+Already available and recommended:
 
 ```bash
 make up
@@ -283,63 +283,63 @@ make report PROJECT=nanobionic-laboratory-md
 make dashboard PROJECT=nanobionic-laboratory-md PORT=7444
 ```
 
-`make dashboard` rozpoznaje własny działający dashboard i może go wykorzystać ponownie; obcy proces
-na porcie ma kończyć się czytelnym błędem. Nie należy automatycznie zabijać procesu tylko dlatego,
-że zajmuje domyślny port.
+`make dashboard` recognizes its own running dashboard and can reuse it; a foreign process
+on the port should terminate with a clear error. Do not automatically kill a process just because
+it occupies the default port.
 
-Do dodania:
+To add:
 
 ```bash
-make coverage PROJECT=<name>             # SourceCoverageDSL + skrócone liczniki
-make capture PROJECT=<name> PORT=<port>  # capture + camera manifest + walidacja
-make cycle PROJECT=<name>                # ograniczona pętla developerska
-make report-json PROJECT=<name>          # stabilny raport maszynowy obok status.md
-make deps-lock PROJECT=<name>             # faktyczne commity i hashe kontraktów
+make coverage PROJECT=<name>             # SourceCoverageDSL + compact counters
+make capture PROJECT=<name> PORT=<port>  # capture + camera manifest + validation
+make cycle PROJECT=<name>                # bounded development loop
+make report-json PROJECT=<name>          # stable machine report next to status.md
+make deps-lock PROJECT=<name>            # exact commits and contract hashes
 ```
 
-Każdy target ma zwracać niezerowy kod dla błędu, wypisywać `SKIPPED` z powodem i pozostawiać receipt.
+Each target should return a non-zero code for an error, print `SKIPPED` with a reason, and leave a receipt.
 
-## Porządek w `TODO.md`
+## Order in `TODO.md`
 
-Obecny `TODO.md` jest generowany przez Prefact i zawiera 202 aktywne wpisy. Wiele z nich powtarza
-te same uwagi dla skopiowanych vendorów demo albo traktuje normalne konstrukcje CLI i pakietów
-Pythona jako problem. Nie jest to 202-elementowa lista defektów runtime.
+The current `TODO.md` is generated by Prefact and contains 202 active entries. Many of them repeat
+the same remarks for copied demo vendors or treat normal CLI and Python package constructs
+as a problem. This is not a 202-item list of runtime defects.
 
-Proponowane uporządkowanie:
+Proposed organization:
 
-1. wykluczyć `vendor/`, `dist/` i generowane katalogi demo z analizy źródła nadrzędnego;
-2. deduplikować po stabilnym kluczu reguła + kanoniczna ścieżka + symbol;
-3. skonfigurować jawne wyjątki dla poprawnych relative imports i `print` w CLI;
-4. zapisywać pełny wynik Prefact jako raport, a do `TODO.md` promować tylko zadania zaakceptowane;
-5. oddzielić backlog jakości kodu od znalezisk ProjectIntegrity i od braków danych;
-6. przeliczyć listę po zmianie konfiguracji, zamiast ręcznie edytować blok generowany.
+1. exclude `vendor/`, `dist/`, and generated demo directories from upstream source analysis;
+2. deduplicate by stable key rule + canonical path + symbol;
+3. configure explicit exceptions for valid relative imports and `print` in CLI;
+4. save the full Prefact result as a report, and promote only accepted tasks to `TODO.md`;
+5. separate code quality backlog from ProjectIntegrity findings and data deficiencies;
+6. recalculate the list after configuration changes, instead of manually editing the generated block.
 
-## Bramka każdej iteracji
+## Gateway of each iteration
 
-Minimalna definicja ukończenia:
+Minimum definition of completion:
 
-1. schema i renderer DSL mają test pozytywny, negatywny i test dryfu schematu;
-2. każdy kontekst LLM przechodzi audyt Schema + GBNF + hash-bound patchDSL;
-3. testy jednostkowe i integracyjne są zielone bez niejawnych pominięć;
-4. `make project-verify` i `make report` przechodzą;
-5. iteracja realnego projektu ma `validation.ok=true`;
-6. natychmiastowe powtórzenie daje `noChange=true`;
-7. dashboard przechodzi smoke test read-only;
-8. aktywne assety przechodzą weryfikację HTTP/GLB/hash;
-9. vendor projektu jest zsynchronizowany z wydaną wersją;
-10. publikacja odbywa się przez `goal -a`, po czym tag i `origin/main` są sprawdzone;
-11. istniejące zmiany użytkownika pozostają poza commitem i zachowują swoje hashe.
+1. schema and renderer DSL have positive, negative, and schema drift tests;
+2. each LLM context passes Schema + GBNF + hash-bound patchDSL audit;
+3. unit and integration tests are green without implicit omissions;
+4. `make project-verify` and `make report` pass;
+5. real project iteration has `validation.ok=true`;
+6. immediate repetition yields `noChange=true`;
+7. the dashboard passes a read-only smoke test;
+8. active assets pass HTTP/GLB/hash verification;
+9. project vendor is synchronized with the released version;
+10. publication occurs via `goal -a`, after which the tag and `origin/main` are checked;
+11. existing user changes remain outside the commit and retain their hashes.
 
-## Kiedy zatrzymać automatyczną ewolucję
+## When to stop automatic evolution
 
-Cykl ma się zatrzymać, gdy:
+The cycle should stop when:
 
-- nie ma `ERROR`;
-- pozostałe ostrzeżenia wymagają nowych pomiarów, CAD, kamery lub decyzji właściciela;
-- kolejna strategia nie zmienia diagnostyki;
-- zmienił się bazowy hash patcha;
-- test po naprawie wprowadził regresję;
-- osiągnięto limit iteracji lub czasu.
+- there is no `ERROR`;
+- other warnings require new measurements, CAD, camera, or owner decision;
+- the next strategy does not change diagnostics;
+- the base patch hash has changed;
+- post-fix test introduced a regression;
+- iteration or time limit reached.
 
-Zatrzymanie z ostrzeżeniem i precyzyjnym powodem jest poprawnym wynikiem. Generowanie brakujących
-danych albo podpisywanie starego zrzutu jako nowego dowodu nie jest naprawą.
+Stopping with a warning and a precise reason is a correct outcome. Generating missing
+data or signing an old dump as new evidence is not a fix.

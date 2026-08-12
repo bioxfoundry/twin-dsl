@@ -9,11 +9,11 @@ node dist/src/cli/main.js dashboard <project.projectdsl> <runtime-out-dir> [port
 # default: port 7331, deterministic mode
 ```
 
-Workspace Makefile wykonuje przed startem kontrolę portu. Zgodny, zdrowy dashboard tego samego
-projektu jest używany ponownie; inny Twin lub usługa zwraca jawny
-`DASHBOARD_PORT_CONFLICT:<host>:<port>:expected=<twin>:actual=<twin-or-service>`. Sam serwer
-zamienia systemowy `EADDRINUSE` na stabilne `DASHBOARD_PORT_IN_USE`, bez nieobsłużonego zdarzenia
-Node.js. Dla demonstracji uruchamianej z repozytorium `twin-dsl` można podać np.
+The workspace Makefile checks the port before launch. A compatible, healthy dashboard for the same
+project is reused; a different Twin or service returns the explicit diagnostic
+`DASHBOARD_PORT_CONFLICT:<host>:<port>:expected=<twin>:actual=<twin-or-service>`. The server maps
+the system `EADDRINUSE` error to stable `DASHBOARD_PORT_IN_USE` without an unhandled Node.js event.
+For a demonstration launched from the `twin-dsl` repository, use for example
 `make dashboard PORT=7332`.
 
 `Run iteration` reports `[digital-twin] iteration:start`, `iteration:complete` or
@@ -82,22 +82,22 @@ The recording is intentionally canvas-only: it captures exactly the rendered Dig
 including orbit/zoom and live updates. Add the downloaded file to the iteration presentation or
 store it next to the corresponding `generation-audit.json` as visual evidence.
 
-Weryfikacja instancji `nanobionic-laboratory-md` wygenerowała kontrolny zrzut
+Verification of the `nanobionic-laboratory-md` instance generated a reference screenshot
 `projects/nanobionic-laboratory-md/.living-runtime/current/presentation/digital-twin-dashboard.png`
-oraz 3-sekundowe nagranie orbity
+and a three-second orbit recording
 `projects/nanobionic-laboratory-md/.living-runtime/current/presentation/digital-twin-orbit.webm`.
-W bieżącym Chromium headless sam Blob `MediaRecorder` został sprawdzony: 113 071 B, VP9,
-63 dekodowalne klatki. Warstwa pobierania `blob:` w Playwright/Snap zwróciła natomiast pusty plik,
-dlatego test rozdziela walidację encodera od walidacji pobierania i zawsze uruchamia `ffprobe`.
-`digital-twin-dashboard.webm` jest zremuksowanym, dekodowalnym zapisem przechwyconej rewizji, a
-`digital-twin-orbit.webm` pozostaje 3-sekundowym testem ruchu kamery. Runtime waliduje teraz ścisły
-`subactor.presentation-evidence/v1`: ponownie liczy hash i rozmiar każdego PNG/WebM, porównuje
-`twinUri` i `sceneUri`, wymaga parametrów kamery (eye/target/up/FOV oraz hash trajektorii orbity),
-zapisuje `presentation-evidence.json` + PresentationEvidenceDSL i klasyfikuje
-wynik jako `CURRENT`, `STALE`, `UNVERIFIED`, `MISSING` albo `INVALID`. Istniejące pliki nie mają
-jeszcze manifestu ani opisu kamery, więc pozostają ostatnim udanym capture, nie dowodem bieżącej
-rewizji; `START.md` i ProjectIntegrityDSL pokazują ten brak jawnie.
-Szczegóły i wymagane bramki opisuje
+In the current headless Chromium build, the `MediaRecorder` Blob itself was verified: 113 071 B,
+VP9, and 63 decodable frames. The Playwright/Snap `blob:` download layer returned an empty file,
+so the test validates the encoder and download separately and always runs `ffprobe`.
+`digital-twin-dashboard.webm` is a remuxed, decodable recording of the captured revision, and
+`digital-twin-orbit.webm` remains a three-second camera-motion test. The runtime now validates strict
+`subactor.presentation-evidence/v1`: it recalculates the hash and size of each PNG/WebM, compares
+`twinUri` and `sceneUri`, requires camera parameters (eye/target/up/FOV and orbit trajectory hash),
+saves `presentation-evidence.json` plus PresentationEvidenceDSL, and classifies the result as
+`CURRENT`, `STALE`, `UNVERIFIED`, `MISSING`, or `INVALID`. The existing files do not yet have a
+manifest or camera description, so they remain the latest successful capture rather than proof of
+the current revision; `START.md` and ProjectIntegrityDSL expose this gap explicitly.
+Details and required gates are documented in
 [`DIGITAL_TWIN_DETAIL_AUDIT.md`](DIGITAL_TWIN_DETAIL_AUDIT.md).
 
 ## Endpoints

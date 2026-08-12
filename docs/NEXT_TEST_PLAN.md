@@ -1,121 +1,121 @@
-# Plan kolejnych testów i iteracji
+# Next test and iteration plan
 
-> Ten dokument zachowuje szczegółowy stan bazowy z 2026-08-08. Aktualny plan wykonawczy po
-> wydaniu 0.5.34 znajduje się w [`NEXT_DEVELOPMENT_PLAN.md`](NEXT_DEVELOPMENT_PLAN.md).
+> This document preserves a detailed baseline state from 2026-08-08. The current execution plan after
+> release 0.5.34 is in [`NEXT_DEVELOPMENT_PLAN.md`](NEXT_DEVELOPMENT_PLAN.md).
 
-## Stan bazowy — 2026-08-08
+## Baseline state — 2026-08-08
 
-| Obszar | Wynik |
+| Area | Result |
 |---|---:|
 | Python `f2md` | 40 passed, 2 skipped |
 | JavaScript `@subactor/f2md` | 25 passed |
 | Runtime Digital Twin | 95 passed |
 | `onlyDSL` | 44 passed |
 | `project-verify` | OK |
-| audyt korpusu + Twin | 0 ERROR, 34 WARNING |
-| Markdown → intentDSL | 112 plików, 1311 rekordów, 0 failures |
-| kanoniczny `t2c.intent/v1` validator | OK, 53 rekordy biznesplanu |
-| OpenRouter smoke test | OK, GLM-5.2 → 10 poprawnych rekordów |
-| komponenty Twin | 44 (30 bindingów sceny + 14 jawnych części MOS3S bez zgadywanych transformacji) |
-| aktywne bindingi mesh | 2 / 30 (2 unikalne assety; błędne 3 bindingi usunięte) |
-| komponenty live-bound | 2 / 44 (3 właściwości: 1 stale, 2 expired w ostatniej rewizji) |
-| kompletne assembly | 0 / 2; 2 / 17 wymaganych części kompletne; 16 assetów ugruntowanych, 3 części umieszczone |
+| corpus audit + Twin | 0 ERROR, 34 WARNING |
+| Markdown → intentDSL | 112 files, 1311 records, 0 failures |
+| canonical `t2c.intent/v1` validator | OK, 53 business-plan records |
+| OpenRouter smoke test | OK, GLM-5.2 → 10 correct records |
+| Twin components | 44 (30 scene bindings + 14 explicit MOS3S parts without guessed transforms) |
+| active mesh bindings | 2 / 30 (2 unique assets; 3 erroneous bindings removed) |
+| live-bound components | 2 / 44 (3 properties: 1 stale, 2 expired in last revision) |
+| complete assembly | 0 / 2; 2 / 17 required parts complete; 16 assets grounded, 3 parts placed |
 | SCAD `lid_UNF` compilation | PASS: 130,216 triangles, 3MF + GLB + USDA |
 | SCAD ↔ STEP reference validation | PASS: derived source, 23.37 µm / 25 µm reference tolerance |
-| ostrzeżenia skanera runtime | 26: wyłącznie binarne CAD (23 GLB, 2 STL, 1 STEP); 0 błędnych prób `.pdf.md` |
-| idempotencja pętli feedback | PASS: `noChange=true`, diff 0/0/0 po propagacji |
+| runtime scanner warnings | 26: binary CAD only (23 GLB, 2 STL, 1 STEP); 0 erroneous `.pdf.md` attempts |
+| feedback loop idempotence | PASS: `noChange=true`, diff 0/0/0 after propagation |
 
-## Priorytet P0 — wykonywać przy każdej zmianie
+## P0 Priority — execute on every change
 
-1. `pytest` w `py/f2md`.
-2. `npm test` w `js/f2md`.
-3. `npm test` w runtime.
+1. `pytest` in `py/f2md`.
+2. `npm test` in `js/f2md`.
+3. `npm test` in the runtime.
 4. `python -m f2md.audit ... --twin ... --json`.
-5. `python -m f2md.intent_compile ...` i walidacja jednego pełnego pakietu przez
-   `validateT2cIntent` z runtime.
-6. `project-verify` i deterministyczne `project-iterate`.
-7. `geometry-build` dla każdego aktywnego kontraktu: dependency closure, 3MF/GLB/USD load,
-   semantic mesh hash i niezależny reference check.
+5. `python -m f2md.intent_compile ...` and validation of one full package by
+   the runtime `validateT2cIntent`.
+6. `project-verify` and deterministic `project-iterate`.
+7. `geometry-build` for each active contract: dependency closure, 3MF/GLB/USD load,
+   semantic mesh hash and independent reference check.
 
-Akceptacja P0: brak błędów, niezmienione identyfikatory komponentów i ścieżki sceny, raport
-audytu zapisany przy rewizji.
+P0 acceptance: no errors, unchanged component IDs and scene paths, report
+audit recorded with the revision.
 
-## Priorytet P1 — następna iteracja geometrii
+## P1 Priority — next geometry iteration
 
-1. Utrzymywać jawne `ACTIVE/current` oraz osobne `LATEST CANDIDATE`; odrzucona scena nie może być
-   renderowana ani eksportowana, a jej diagnostyka nie może zastępować walidacji ACTIVE.
-2. Usunąć asset-binding pojedynczej części do workflow/urządzenia. GL45 może wiązać tylko port,
-   a `DisplayBox_2` tylko część przyszłego assembly bioprintera.
-3. ~~Uzgodnić `lid_UNF.scad` z referencyjnym STEP i nie luzować walidacji.~~ Zrealizowane przez
-   osobne źródło derived `lid_UNF.step-aligned.scad`: 18 mm, 130,216 trójkątów, reference extent
-   23.37 µm przy limicie 25 µm; oryginalne źródło pozostaje niezmienione jako provenance.
-4. Dla każdego komponentu `placeholder` wybrać istniejący dowód z korpusu:
-   `*.step.md`, `*.stl.md`, `*.f3d.md`, `*.scad.md`, IFC, survey albo floor-plan.
-5. Utworzyć `subactor.geometry-build/v1` dla wykonywalnych CAD albo
-   `subactor.physical-evidence/v1` dla już zweryfikowanych siatek.
-6. Utworzyć `subactor.physical-evidence/v1` z `assetUri` wskazującym zasób po imporcie,
-   jednostką metrów i osią Z.
-7. Wykonać `physical-intake` i sprawdzić, że grade rośnie, ale nigdy nie maleje.
-8. Ponownie wyrenderować OpenUSD i sprawdzić, że liczba primów oraz rozmiary/pozycje odpowiadają
-   bindingom sceny.
+1. Maintain explicit `ACTIVE/current` and separate `LATEST CANDIDATE`; a rejected scene cannot be
+   rendered or exported, and its diagnostics cannot supersede ACTIVE validation.
+2. Remove single-part asset-binding to workflow/device. GL45 can only bind a port,
+   and `DisplayBox_2` only a part of a future bioprinter assembly.
+3. ~~Reconcile `lid_UNF.scad` with reference STEP and do not loosen validation.~~ Achieved by
+   a separate derived source `lid_UNF.step-aligned.scad`: 18 mm, 130,216 triangles, reference extent
+   23.37 µm at 25 µm limit; original source remains unchanged as provenance.
+4. For each `placeholder` component, select existing evidence from the body:
+   `*.step.md`, `*.stl.md`, `*.f3d.md`, `*.scad.md`, IFC, survey, or floor plan.
+5. Create `subactor.geometry-build/v1` for executable CAD or
+   `subactor.physical-evidence/v1` for already verified meshes.
+6. Create `subactor.physical-evidence/v1` with `assetUri` pointing to the asset after import,
+   unit of meters and Z-axis.
+7. Perform `physical-intake` and verify that the grade increases but never decreases.
+8. Re-render OpenUSD and verify that the number of prims and sizes/positions correspond
+   to scene bindings.
 
-Akceptacja P1: `componentsWithoutGeometry` spada z 12 do 0 albo każdy pozostały placeholder ma
-   jawny raport `NO_PHYSICAL_EVIDENCE` z uzasadnieniem.
+P1 Acceptance: `componentsWithoutGeometry` drops from 12 to 0 or every remaining placeholder has
+   an explicit `NO_PHYSICAL_EVIDENCE` report with rationale.
 
-## Priorytet P1 — semantyczny live twin
+## P1 priority — semantic live Twin
 
-1. ~~Wdrożyć AssemblyDSL z trwałą hierarchią `device → assembly → part`.~~ Zrealizowane:
-   `assembly-report.json/.dsl`, fail-closed identity/asset drift i osobne `PASS · INCOMPLETE`.
-   Dalszy krok: pozyskać autorytatywne transformacje 14 części MOS3S i mesh płyty bioreaktora.
-2. ~~Wdrożyć TwinState jako deterministyczną projekcję ObservationDSL.~~ Zrealizowane:
-   `twin-state.json/.dsl`, source observation URN i fail-closed component identity.
-3. ~~Wdrożyć LiveBindingDSL z TTL i `ON_STALE`.~~ Zrealizowane; dashboard pokazuje odrębnie
-   `fresh|stale|expired|unknown`, a stara temperatura bootstrap nie jest stanem bieżącym.
-4. Wdrożyć BehaviorDSL jako automat stanów niezależny od dashboardu.
-5. Dodać VisualDSL, który jako jedyny może przełożyć Behavior/TwinState na materiał lub animację.
-6. Dopiero po stabilnym modelu eventu dodać SSE; polling pozostaje mechanizmem awaryjnym.
+1. ~~Implement AssemblyDSL with persistent `device → assembly → part` hierarchy.~~ Achieved:
+   `assembly-report.json/.dsl`, fail-closed identity/asset drift and separate `PASS · INCOMPLETE`.
+   Next step: acquire authoritative transformations of 14 MOS3S parts and bioreactor plate mesh.
+2. ~~Implement TwinState as a deterministic projection of ObservationDSL.~~ Achieved:
+   `twin-state.json/.dsl`, source observation URN, and fail-closed component identity.
+3. ~~Implement LiveBindingDSL with TTL and `ON_STALE`.~~ Achieved; dashboard shows separately
+   `fresh|stale|expired|unknown`, and the old bootstrap temperature is not the current state.
+4. Implement BehaviorDSL as a dashboard-independent state machine.
+5. Add VisualDSL, which is the only one that can translate Behavior/TwinState into material or animation.
+6. Only after a stable event model, add SSE; polling remains a fallback mechanism.
 
-Akceptacja: każda zmiana wizualna wskazuje `componentId`, observation URI, binding ID, stan przed/po
-i regułę BehaviorDSL; brak jawnego bindingu nie może zmieniać sceny.
+Acceptance: every visual change indicates `componentId`, observation URI, binding ID, before/after state
+and BehaviorDSL rule; lack of explicit binding cannot change the scene.
 
-## Priorytet P1 — jakość konwersji i tłumaczeń
+## P1 Priority — conversion and translation quality
 
-1. Usunąć 34 ostrzeżenia `CONFIDENTIALITY_MISMATCH` przez ponowne wygenerowanie całego drzewa
-   jednym `--secret-pattern` albo przez oznaczenie wyjątków w manifestu.
-2. Dodać testy regresji dla LaTeX z tabelą, matematyką, listą i blokiem `tcolorbox`.
-3. Dodać test zachowania Markdown przy tłumaczeniu: nagłówki, listy, tabele, fenced code i URI
-   nie mogą być zmienione przez Argos/OpenRouter.
-4. Porównać SHA-256 źródła, `sourceRelative`, `translatedFrom` i `translationOf` dla obu plików.
+1. Remove 34 `CONFIDENTIALITY_MISMATCH` warnings by regenerating the entire tree
+   with a single `--secret-pattern` or by marking exceptions in the manifest.
+2. Add regression tests for LaTeX with table, math, list, and `tcolorbox` block.
+3. Add Markdown behavior test for translation: headers, lists, tables, fenced code, and URI
+   cannot be changed by Argos/OpenRouter.
+4. Compare SHA-256 of source, `sourceRelative`, `translatedFrom`, and `translationOf` for both files.
 
-Akceptacja P1: 0 ostrzeżeń poufności, pary `*.<lang>.md`/`*.md` kompletne, poprawny parser Markdown.
+P1 Acceptance: 0 confidentiality warnings, `*.<lang>.md`/`*.md` pairs complete, correct Markdown parser.
 
-## Priorytet P2 — intentDSL i LLM
+## P2 priority — intentDSL and LLM
 
-1. Dodać test snapshotów: ten sam Markdown daje ten sam `sourceHash`, ID rekordów i liczbę
-   intentów.
-2. Dodać test negatywny: brak `schema`, duplikat ID, obcy `targetUri` lub zmienione źródło musi
-   zakończyć się `ERROR`, a nie publikacją.
-3. ~~Testować OpenRouter z mockowanym endpointem, w tym lokalną naprawę błędu parsera.~~ Zrealizowane:
-   błąd `MATH_HEADER_REQUIRED` wraca do modelu, fenced DSL jest normalizowany, 95/95 testów przechodzi.
-4. Kontynuować realne testy GLM/Grok w `prefer-llm` z budżetem czasu. Ostatni GLM-5.2:
-   z aktywnym todo2code MathDSL 36.4 s PASS (Baidu/OpenRouter), Twin i Scene przekroczyły
-   budżet → jawny deterministic fallback, `validation.ok=true`; wcześniejsze wywołanie dokładnie
-   z dashboardu trwało 141.6 s i również zakończyło się poprawną publikacją.
+1. Add snapshot tests: the same Markdown yields the same `sourceHash`, record IDs, and number of
+   intents.
+2. Add negative test: missing `schema`, duplicate ID, foreign `targetUri`, or changed source must
+   result in `ERROR`, not publication.
+3. ~~Test OpenRouter with a mocked endpoint, including local parser error fix.~~ Implemented:
+   `MATH_HEADER_REQUIRED` error returns to the model, fenced DSL is normalized, 95/95 tests pass.
+4. Continue real GLM/Grok tests in `prefer-llm` with a time budget. Latest GLM-5.2:
+   with active todo2code MathDSL 36.4 s PASS (Baidu/OpenRouter), Twin and Scene exceeded
+   budget → explicit deterministic fallback, `validation.ok=true`; previous call exactly
+   from the dashboard took 141.6 s and also resulted in a successful publication.
 
-Akceptacja P2: 100% odpowiedzi LLM przechodzi walidację albo jest odrzucone z czytelnym błędem;
-żadna odpowiedź nie zmienia plików runtime bez osobnej bramki i zgody.
+P2 Acceptance: 100% of LLM responses pass validation or are rejected with a readable error;
+no response modifies runtime files without a separate gate and consent.
 
-## Priorytet P2 — dashboard i nagrania
+## P2 priority — dashboard and recordings
 
-1. Test przeglądarkowy sprawdza obecność `Record 3D video`, `canvas.captureStream` i pobranie WebM.
-2. Test stabilności: 30 sekund nagrania nie zmienia `componentId`, `scenePath` ani rewizji Twin.
-3. Do prezentacji dołączać WebM razem z `audit-report.json`, `generation-audit.json` i URI rewizji.
+1. Browser test checks for `Record 3D video`, `canvas.captureStream`, and WebM download.
+2. Stability test: 30 seconds of recording does not change `componentId`, `scenePath`, or Twin revision.
+3. Include WebM with `audit-report.json`, `generation-audit.json`, and revision URI in the presentation.
 
-Akceptacja P2: nagranie jest lokalne, dashboard nadal działa bez nagrywania, a artefakty dowodowe
-mają ten sam `iterationUri`.
+P2 Acceptance: recording is local, dashboard still works without recording, and evidentiary artifacts
+have the same `iterationUri`.
 
-## Kryterium zatrzymania
+## Stop criterion
 
-Nie promować iteracji do `apply`, dopóki nie są spełnione: P0 bez błędów, `project-verify=OK`,
-`validation.ok=true`, stabilne ID/ścieżki sceny, brak nieuzasadnionych placeholderów i kompletna
-proweniencja intentów. Obecny projekt pozostaje poprawnie w trybie `propose`.
+Do not promote iterations to `apply` until: P0 without errors, `project-verify=OK`,
+`validation.ok=true`, stable scene ID/paths, no unjustified placeholders, and complete
+intent provenance. The current project remains correctly in `propose` mode.

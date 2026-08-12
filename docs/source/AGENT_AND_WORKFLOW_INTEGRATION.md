@@ -1,13 +1,13 @@
-# Integracja z systemami agentowymi i workflow
+# Integration with agent and workflow systems
 
-Subactor AQL/OQL pozostaje warstwą decyzyjną i kontrolną. Framework agentowy może być podłączony wyłącznie przed AQL jako tłumacz tekstu na typowany JSON albo jako narzędzie przygotowujące projekt planu.
+The AQL/OQL subactor remains the decision and control layer. The agent framework can only be connected before AQL as a text-to-typed-JSON translator or as a tool preparing a draft plan.
 
-## Zalecane wzorce
+## Recommended patterns
 
-- n8n / Make / Zapier: użyj `webhook.send`;
-- LangGraph / CrewAI / AutoGen: zwracają `propose_only` JSON i wywołują `/api/plans/propose`;
-- Slack / Teams: adaptery webhook;
-- system ticketowy: generic webhook lub osobny adapter;
-- Plesk: adapter bridge, nigdy bezpośrednio z LLM.
+- n8n / Make / Zapier: use `webhook.send`;
+- LangGraph / CrewAI / AutoGen: return `propose_only` JSON and call `/api/plans/propose`;
+- Slack / Teams: webhook adapters;
+- ticketing system: a generic webhook or dedicated adapter;
+- Plesk: adapter bridge, never directly from LLM.
 
-Agent nie otrzymuje tokenu `plans:execute`. Najwyżej token `plans:propose`. Zatwierdzenie i wykonanie powinny należeć do osobnych ról.
+The agent does not receive the `plans:execute` token. At most, the `plans:propose` token. Approval and execution should belong to separate roles.

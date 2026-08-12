@@ -1,12 +1,12 @@
-# Projekty, źródła wiedzy i import
+# Projects, knowledge sources, and import
 
-Projekt jest nadrzędnym kontekstem pracy Organization OS. Każdy rekord może być
-powiązany przez `project_id` z konkretnym produktem, klientem, inicjatywą albo
-projektem wewnętrznym.
+A project is the overarching context for Organization OS work. Every record can be
+linked via `project_id` to a specific product, client, initiative, or
+internal project.
 
-## Zasoby projektu
+## Project resources
 
-Workspace agreguje:
+The workspace aggregates:
 
 ```text
 project_sources
@@ -36,9 +36,9 @@ Endpoint:
 GET /api/org/projects/:project_id/workspace
 ```
 
-## Typy importu
+## Import types
 
-### Strona WWW
+### Website
 
 ```json
 {
@@ -49,20 +49,20 @@ GET /api/org/projects/:project_id/workspace
 
 Importer:
 
-- respektuje `robots.txt` w trybie best-effort;
-- pobiera tylko HTTP/HTTPS;
-- blokuje adresy prywatne i loopback;
-- weryfikuje każdy redirect przed wykonaniem;
-- pozostaje w obrębie początkowego originu;
-- ogranicza liczbę stron, głębokość, rozmiar i timeout;
-- tworzy Markdown z nagłówkami, tekstem, linkami, obrazami i metadanymi;
-- zapisuje proweniencję każdej strony.
+- honors `robots.txt` on a best-effort basis;
+- fetches HTTP/HTTPS only;
+- blocks private and loopback addresses;
+- verifies each redirect before execution;
+- stays within the initial origin;
+- limits the number of pages, depth, size, and timeout;
+- creates Markdown with headings, text, links, images, and metadata;
+- saves the provenance of each page.
 
-Nie wykonuje JavaScriptu strony. Dla aplikacji całkowicie client-side potrzebny jest
-osobny, izolowany adapter przeglądarkowy, np. Playwright, uruchamiany jako proces
-zatwierdzony i objęty TestQL.
+It does not execute page JavaScript. For entirely client-side applications, a separate,
+isolated browser adapter, e.g., Playwright, run as an approved process and covered by
+TestQL, is needed.
 
-### Katalog lokalny
+### Local directory
 
 ```json
 {
@@ -71,77 +71,77 @@ zatwierdzony i objęty TestQL.
 }
 ```
 
-Katalog musi znajdować się wewnątrz `PROJECT_IMPORT_ROOT`. Importer stosuje:
+The directory must be located within `PROJECT_IMPORT_ROOT`. The importer applies:
 
-- kontrolę realpath;
-- allowlistę rozszerzeń;
-- limit liczby plików;
-- limit pojedynczego pliku;
-- limit całkowity;
-- pomijanie plików binarnych;
-- ignorowanie `.git`, `node_modules`, `vendor`, buildów i cache.
+- realpath control;
+- extension allowlist;
+- file count limit;
+- per-file size limit;
+- total limit;
+- skipping binary files;
+- ignoring `.git`, `node_modules`, `vendor`, builds, and cache.
 
-### Repozytorium Git
+### Git repository
 
 ```json
 {
   "source_type": "git",
-  "source": "https://github.com/organizacja/projekt.git"
+  "source": "https://github.com/organization/project.git"
 }
 ```
 
-Wymagania:
+Requirements:
 
-- wyłącznie HTTPS;
-- brak danych logowania w URL;
-- allowlista hostów;
-- płytki clone;
-- wyłączone interaktywne pytania o credentials;
+- HTTPS only;
+- no login credentials in URL;
+- host allowlist;
+- shallow clone;
+- disabled interactive credential prompts;
 - timeout;
-- dalsza analiza według tych samych limitów plików.
+- further analysis according to the same file limits.
 
-## Rezultaty importu
+## Import results
 
-Każdy import tworzy:
+Each import creates:
 
-1. `source.md` — zunifikowaną wiedzę źródłową;
-2. `business-blueprint.md` — czytelny blueprint;
-3. ustrukturyzowany blueprint JSON;
+1. `source.md` — unified source knowledge;
+2. `business-blueprint.md` — a human-readable blueprint;
+3. structured blueprint JSON;
 4. `import.testql`;
 5. `test-results.json`;
-6. rekordy źródeł z proweniencją;
-7. dokumenty wiedzy;
-8. wynik TestQL;
-9. rekomendowany model AQL.
+6. source records with provenance;
+7. knowledge documents;
+8. TestQL result;
+9. recommended AQL model.
 
-## Sekrety
+## Secrets
 
-Przed wysłaniem materiału do LLM i zapisem dokumentu źródłowego wykrywane i
-redagowane są między innymi:
+Before sending material to LLM and saving the source document, the following are detected and
+redacted, among others:
 
-- klucze OpenRouter;
-- klucze AWS;
-- klucze prywatne;
-- wartości opisane jako token, API key, password lub secret.
+- OpenRouter keys;
+- AWS keys;
+- private keys;
+- values described as token, API key, password or secret.
 
-Wykrycie sekretu nie uruchamia działań biznesowych. AQL wybiera plan
+Secret detection does not trigger business actions. AQL selects the plan
 `security_review_required`.
 
-## Relacja z LLM
+## Relationship with the LLM
 
-Importer zawsze najpierw tworzy deterministyczny blueprint. LLM jest opcjonalne i
-może go jedynie uzupełnić w ramach ścisłego schematu.
+The importer always first creates a deterministic blueprint. LLM is optional and
+can only supplement it within a strict schema.
 
 ```text
-źródło
+source
 → Markdown
-→ redakcja sekretów
-→ deterministyczny blueprint
-→ opcjonalna analiza OpenRouter
-→ walidacja i merge
+→ secret redaction
+→ deterministic blueprint
+→ optional OpenRouter analysis
+→ validation and merge
 → TestQL
 → proposed AQL/OQL
-→ zatwierdzenie człowieka
+→ human approval
 ```
 
-Brak klucza albo awaria OpenRouter nie blokuje importu.
+Lack of a key or OpenRouter failure does not block import.

@@ -1,22 +1,22 @@
-# Audit konwersji, Digital Twin i zgodności z intencją
+# Audit of conversion, Digital Twin, and intent compliance
 
-## Która paczka konwertuje i tłumaczy?
+## Which package converts and translates?
 
-Za konwersję odpowiada `twin-dsl/py/f2md` (publikowana jako `f2md`).
+`twin-dsl/py/f2md` (published as `f2md`) is responsible for conversion.
 
-- `LocalToolConverter` uruchamia Pandoc dla LaTeX (`.tex` → Markdown), PDF i Office.
-- `TextConverter` jest bezpiecznym fallbackiem, gdy wyspecjalizowany backend jest niedostępny.
-- `STLMetadataConverter` lokalnie odczytuje binarne/ASCII STL (trójkąty, bounding box i wymiary),
-  więc awaria Docling nie tworzy już pustego placeholdera dla siatki.
-- `ArgosTranslator` tłumaczy Markdown offline; przy dokumentach poufnych polityka `hybrid` nie
-  wysyła treści do sieci.
-- `tree.py` zapisuje oryginał jako `*.secret.<lang>.md`, a język docelowy bez sufiksu, np.
+- `LocalToolConverter` runs Pandoc for LaTeX (`.tex` → Markdown), PDF, and Office.
+- `TextConverter` is a safe fallback when a specialized backend is unavailable.
+- `STLMetadataConverter` locally reads binary/ASCII STL (triangles, bounding box, and dimensions),
+  so a Docling failure no longer creates an empty placeholder for the mesh.
+- `ArgosTranslator` translates Markdown offline; for confidential documents, the `hybrid` policy does not
+  send content to the network.
+- `tree.py` saves the original as `*.secret.<lang>.md`, and the target language without a suffix, e.g.,
   `report.tex.secret.lt.md` + `report.tex.secret.md`.
 
-Kolejność jest celowa: format źródłowy → strukturalny Markdown → tłumaczenie Markdown. Dzięki
-temu tłumacz nie musi rozumieć LaTeX-a, a konwerter nie miesza ekstrakcji z tłumaczeniem.
+The order is intentional: source format → structural Markdown → Markdown translation. This way,
+the translator does not need to understand LaTeX, and the converter does not mix extraction with translation.
 
-## Audyt korpusu
+## Corpus audit
 
 ```bash
 PYTHONPATH=twin-dsl/py/f2md/src \
@@ -26,16 +26,16 @@ PYTHONPATH=twin-dsl/py/f2md/src \
   --json > audit-report.json
 ```
 
-Audyt sprawdza:
+The audit checks:
 
-- kompletność mapowania źródło → Markdown i kopertę proweniencji;
-- zgodność `source`, `inputKind`, `confidential`, `language` i backendu;
-- użycie Pandoca dla `.tex`;
-- zamknięcie bloków kodu, liczbę nagłówków i obecność tabel;
-- parę oryginał/tłumaczenie oraz metryki backendów;
-- błędy jako `ERROR`, problemy do następnej iteracji jako `WARNING` i wskazówkę naprawy.
+- completeness of source → Markdown mapping and provenance envelope;
+- compliance of `source`, `inputKind`, `confidential`, `language`, and backend;
+- use of Pandoc for `.tex`;
+- closure of code blocks, number of headers, and presence of tables;
+- original/translation pair and backend metrics;
+- errors as `ERROR`, problems for the next iteration as `WARNING`, and repair suggestions.
 
-Audyt artefaktów twina:
+Twin artifact audit:
 
 ```bash
 PYTHONPATH=twin-dsl/py/f2md/src \
@@ -44,19 +44,19 @@ PYTHONPATH=twin-dsl/py/f2md/src \
   --twin ../projects/nanobionic-laboratory-md/.living-runtime/current
 ```
 
-Sprawdzane są `twin.json`, `scene.json`, `scene.usda`, liczba komponentów i bindingów oraz liczba
-komponentów bez geometrii. `GEOMETRY_UNGROUNDED` nie jest cichym sukcesem: oznacza, że Markdown
-zawiera opis, ale runtime nie ma jeszcze zweryfikowanego CAD/IFC/survey/floor-plan.
+`twin.json`, `scene.json`, `scene.usda`, the number of components and bindings, and the number of
+components without geometry are checked. `GEOMETRY_UNGROUNDED` is not a silent success: it means that Markdown
+contains a description, but the runtime does not yet have verified CAD/IFC/survey/floor-plan.
 
-## Intencja → dowód → artefakt
+## Intent → evidence → artifact
 
-Każda iteracja powinna przechowywać `development.intent.json`, `development.evidence.json`,
-`generation-audit.json`, `twin.json`, `scene.json`, `scene.usda` i `improvement.dsl`. Te pliki są
-maszynowo walidowalne przez istniejące `intentDSL`, `observationDSL`, `twinDSL`, `sceneDSL` i
-`improvementDSL`; raport audytu jest dodatkowym, czytelnym dowodem jakości, a nie zamiennikiem
-bramek runtime.
+Each iteration should store `development.intent.json`, `development.evidence.json`,
+`generation-audit.json`, `twin.json`, `scene.json`, `scene.usda`, and `improvement.dsl`. These files are
+machine-validatable by existing `intentDSL`, `observationDSL`, `twinDSL`, `sceneDSL`, and
+`improvementDSL`; the audit report is additional, human-readable quality evidence, not a replacement.
+for runtime gates.
 
-Drugą warstwę można wygenerować z angielskiego korpusu:
+The second layer can be generated from the English corpus:
 
 ```bash
 PYTHONPATH=twin-dsl/py/f2md/src \
@@ -64,30 +64,29 @@ PYTHONPATH=twin-dsl/py/f2md/src \
   ../nanobionic-laboratory-md ../nanobionic-laboratory-md-dsl
 ```
 
-Powstają pakiety `*.intent.json` oraz `compile-report.json`. Każdy rekord przechodzi walidację
-`t2c.intent/v1`; kanoniczny walidator TypeScript runtime może potwierdzić wynik przed użyciem go
-w kolejnej iteracji.
+`*.intent.json` packages and `compile-report.json` are generated. Each record passes `t2c.intent/v1` validation;
+the canonical TypeScript runtime validator can confirm the result before it is used in the next iteration.
 
-Po ponownym przebiegu korpusu: 134 pliki źródłowe, 129 konwersji tekstowych/metadanych, 0 braków
-mapowania, 12 tłumaczeń oraz 16 konwersji `stl-metadata`. Audyt zakończył się `errors=0`; pozostałe
-ostrzeżenia dotyczą głównie niespójnych markerów poufności oraz 10 komponentów Twina, dla których
-runtime nadal nie ma przypisanego rekordu fizycznego. Po uruchomieniu `physical-intake` liczba
-placeholderów spadła z 12 do 10; dwa komponenty cell-free zostały oznaczone jako `cad` na podstawie
-istniejących plików STEP.
+After re-running the corpus: 134 source files, 129 text/metadata conversions, 0 mapping gaps,
+12 translations, and 16 `stl-metadata` conversions. The audit completed with `errors=0`; remaining
+warnings primarily concern inconsistent confidentiality markers and 10 Twin components for which
+the runtime still has no assigned physical record. After running `physical-intake`, the number of
+placeholders dropped from 12 to 10; two cell-free components were marked as `cad` based on
+existing STEP files.
 
-## Pętla zwrotna DSL w runtime
+## DSL feedback loop in runtime
 
-Aktywne pobieranie DSL odbywa się w `src/runtime/living-project.ts`:
+Active DSL fetching occurs in `src/runtime/living-project.ts`:
 
-1. `scanSources()` skanuje źródła projektu, w tym `imports/derived/...nanobionic-laboratory-md-dsl`.
-2. `indexIntentDsl()` wyszukuje pakiety `*.intent.json`, czyta oryginalny JSON (także dla nazw
-   typu `report.docx.md.intent.json`) i uruchamia `validateT2cIntent()` dla każdego pakietu.
-3. Wynik jest częścią `stableKey` i kontekstu generatora Twin/scene. Zmiana DSL wymusza nową iterację.
-4. Niepoprawny pakiet ustawia `IntentDslValidationFailed`, blokuje `IterationAllowed` i publikację sceny.
-5. Każdy cykl zapisuje indeks w `current/intent-dsl.index.json`, a `feedback/latest.md` zawiera liczbę
-   pakietów, rekordów i błędów. W ostatnim przebiegu: 112 pakietów, 1269 rekordów, 0 błędów.
+1. `scanSources()` scans project sources, including `imports/derived/...nanobionic-laboratory-md-dsl`.
+2. `indexIntentDsl()` searches for `*.intent.json` packages, reads the original JSON (also for names
+   like `report.docx.md.intent.json`), and runs `validateT2cIntent()` for each package.
+3. The result is part of `stableKey` and the Twin/scene generator context. A change in DSL forces a new iteration.
+4. An invalid package sets `IntentDslValidationFailed`, blocks `IterationAllowed`, and scene publication.
+5. Each cycle saves the index in `current/intent-dsl.index.json`, and `feedback/latest.md` contains the number
+   of packages, records, and errors. In the last run: 112 packages, 1269 records, 0 errors.
 
-Uruchomienie pętli powinno wskazywać katalog nadrzędny runtime (nie `current`):
+The loop should point to the runtime parent directory (not `current`):
 
 ```bash
 cd /home/tom/github/bioxfoundry/twin-dsl
@@ -96,26 +95,26 @@ node dist/src/cli/main.js project-iterate \
   /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/.living-runtime deterministic
 ```
 
-## Ocena `onlyDSL`
+## `onlyDSL` assessment
 
-`/home/tom/github/tom-sapletta-com/onlyDSL` ma użyteczne idee: IFURI, event sourcing, source index
-i ścisłą granicę LLM. Nie kopiujemy jego równoległych implementacji DSL do `twin-dsl`, ponieważ
-runtime posiada już walidatory i stabilne schematy `subactor.*`. Sensowna integracja to eksport
-raportu audytu jako artefaktu z URI/proweniencją i dalsze użycie istniejących bramek `todo2code`;
-bezpośrednie zastąpienie nimi obecnych walidatorów zwiększyłoby dryf schematów.
+`/home/tom/github/tom-sapletta-com/onlyDSL` has useful ideas: IFURI, event sourcing, source index
+and a strict LLM boundary. We do not copy its parallel DSL implementations to `twin-dsl` because
+the runtime already has validators and stable `subactor.*` schemas. A sensible integration is to export
+an audit report as an artifact with URI/provenance and further use existing `todo2code` gates;
+directly replacing current validators with them would increase schema drift.
 
-## Niedostateczny model 3D
+## Insufficient 3D model
 
-Jeżeli audyt pokazuje wiele `componentsWithoutGeometry`, model pozostaje konceptualny mimo bogatej
-dokumentacji. Następny krok to `physical-intake` z rekordami `document`, `measured`, `cad`, `ifc`
-lub `verified`, wskazującymi pliki w zaimportowanym korpusie. Dashboard wizualizuje klasę dowodu
-kolorem, więc postęp jest widoczny i mierzalny.
+If the audit shows many `componentsWithoutGeometry`, the model remains conceptual despite rich
+documentation. The next step is `physical-intake` with `document`, `measured`, `cad`, `ifc`
+or `verified` records, pointing to files in the imported corpus. The dashboard visualizes the class of evidence
+by color, so progress is visible and measurable.
 
-Pełny plan regresji, testów negatywnych i kryteriów promocji znajduje się w
+The full regression plan, negative tests, and promotion criteria are in
 [`NEXT_TEST_PLAN.md`](NEXT_TEST_PLAN.md).
 
-## Nagranie do prezentacji
+## Presentation recording
 
-Dashboard ma przycisk `Record 3D video`. Nagranie odbywa się lokalnie z `canvas.captureStream(30)`
-i pobiera plik WebM po zatrzymaniu. Do prezentacji należy dołączyć plik razem z `audit-report.json`
-oraz numerem rewizji z `generation-audit.json`, aby obraz miał odpowiadający mu dowód tekstowy.
+The dashboard has a `Record 3D video` button. Recording takes place locally with `canvas.captureStream(30)`
+and downloads a WebM file upon stopping. For presentation, the file should be attached along with `audit-report.json`
+and the revision number from `generation-audit.json`, so that the image has corresponding textual evidence.

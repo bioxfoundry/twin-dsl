@@ -1,40 +1,40 @@
-# Gotowość produkcyjna
+# Production Readiness
 
-Wersja 2.0.0 jest przeznaczona do developmentu, demonstracji i walidacji procesów.
+Version 2.0.0 is intended for development, demonstration, and process validation.
 
-Przed produkcją należy:
+Before production, you must:
 
-1. zastąpić JSON Store PostgreSQL-em;
-2. dodać migracje i ograniczenia kluczy obcych;
-3. dodać tenancy i polityki dostępu do pojedynczych rekordów;
-4. umieścić sekrety w Docker Secrets, Vault lub menedżerze chmurowym;
-5. dodać kolejkę z retry i dead-letter queue dla OQL;
-6. dodać kopie zapasowe i odtwarzanie;
-7. określić retencję rozmów, umów i danych HR;
-8. podłączyć podpis elektroniczny i repozytorium dokumentów;
-9. dodać pełny monitoring, tracing i alarmy;
-10. przeprowadzić review prawne RODO oraz polityk pracowniczych.
+1. replace JSON Store with PostgreSQL;
+2. add migrations and foreign key constraints;
+3. add tenancy and access policies for individual records;
+4. place secrets in Docker Secrets, Vault, or a cloud manager;
+5. add a queue with retry and dead-letter queue for OQL;
+6. add backup and recovery;
+7. define retention for conversations, agreements, and HR data;
+8. connect electronic signature and document repository;
+9. add full monitoring, tracing, and alerts;
+10. conduct legal review of GDPR and employee policies.
 
-Decyzje o zatrudnieniu, zwolnieniu, awansie, wynagrodzeniu, karze i podpisie umowy
-muszą pozostać decyzjami człowieka. AQL może organizować review, lecz nie zastępuje
-uprawnionego decydenta.
+Decisions about hiring, dismissal, promotion, compensation, disciplinary action, and signing a
+contract must remain human decisions. AQL can organize reviews but does not replace an authorized
+decision-maker.
 
-## Importer produkcyjny
+## Production importer
 
-Przed udostępnieniem importera poza środowiskiem developerskim:
+Before making the importer available outside the development environment:
 
-- ustaw konkretną `WEBSITE_IMPORT_ALLOWED_HOSTS` zamiast `*`;
-- uruchamiaj importer w osobnej sieci i bez dostępu do wewnętrznych usług;
-- dodaj proxy wychodzące i politykę DNS pinning;
-- przenieś artefakty do object storage;
-- dodaj kolejkę i worker zamiast synchronicznego żądania HTTP;
-- skanuj pliki antywirusowo;
-- zatwierdzaj import prywatnego repozytorium osobnym mechanizmem credentials;
-- przechowuj źródło, hash, datę i licencję materiału;
-- dodaj retencję oraz prawo do usunięcia danych;
-- izoluj renderer przeglądarkowy, jeżeli zostanie dodany dla stron client-side.
+- set a specific `WEBSITE_IMPORT_ALLOWED_HOSTS` instead of `*`;
+- run the importer in a separate network and without access to internal services;
+- add an outbound proxy and DNS pinning policy;
+- move artifacts to object storage;
+- add a queue and worker instead of a synchronous HTTP request;
+- scan files for malware;
+- approve private-repository imports through a separate credential mechanism;
+- store the source, hash, date, and license of the material;
+- add retention and the right to delete data;
+- isolate the browser renderer if it is added for client-side pages.
 
-## Sieć Docker
+## Docker Network
 
-Jawna podsieć rozwiązuje wyczerpanie default address pools w development. W produkcji
-adresację powinien przydzielać administrator klastra albo platforma orkiestracyjna.
+Explicit subnet resolves default address pool exhaustion in development. In production,
+addressing should be assigned by the cluster administrator or orchestration platform.

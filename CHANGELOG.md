@@ -2,6 +2,11 @@
 
 ## [Unreleased] - 2026-08-12
 
+### Documentation
+- Standardize the user-facing twin-dsl documentation on English, replace the outdated 0.5.4
+  README with a current 0.5.36 entry guide, and preserve historical Polish manager-intent text only
+  as explicitly labelled source evidence with an English translation.
+
 ### Added
 - Add deterministic `subactor.analysis-trace/v1` JSON, AnalysisTraceDSL and Markdown reports with
   bounded source quotations, hash-verified internal links, explicit decisions/alternatives/gaps,

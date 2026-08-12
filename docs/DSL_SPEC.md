@@ -66,7 +66,7 @@ EXPR <name> = AND(...) | OR(...) | NOT(...)
 EXPR <name> = EQ(...) | GTE(...) | LTE(...) | GT(...) | LT(...)
 ```
 
-No arbitrary code or `eval`. Twarde gates use booleans. Weighted scoring is permitted only after mandatory constraints pass.
+No arbitrary code or `eval`. Hard gates use booleans. Weighted scoring is permitted only after mandatory constraints pass.
 
 ## twinDSL
 

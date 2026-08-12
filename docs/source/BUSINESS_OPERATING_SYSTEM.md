@@ -1,119 +1,119 @@
 # Project Business Operating System
 
-Celem modułu jest zamiana wiedzy o projekcie w kontrolowany system prowadzenia
-biznesu. Import nie wykonuje kampanii ani nie wysyła ofert. Najpierw tworzy wiedzę,
-blueprint, testy i plan proposed.
+The module's goal is to transform project knowledge into a controlled business operating system.
+The import does not execute campaigns or send offers. It first creates knowledge,
+a blueprint, tests, and a proposed plan.
 
-## Pełna mapa procesów
+## Full process map
 
-Blueprint zawiera siedemnaście obszarów:
+The Blueprint contains seventeen areas:
 
-1. pozycjonowanie i oferta;
-2. reklama i pozyskiwanie ruchu;
-3. treści i edukacja rynku;
-4. pozyskanie i kwalifikacja leadów;
-5. sprzedaż i domykanie;
-6. monetyzacja i Revenue Operations;
-7. wdrożenie i dostarczenie wartości;
-8. wsparcie klienta;
-9. utrzymanie, rozwój i polecenia;
-10. produkt, roadmapa i eksperymenty;
-11. finanse, fakturowanie i należności;
-12. umowy, prawo i zgodność;
-13. ludzie, kompetencje i capacity;
-14. partnerstwa i zakupy;
-15. analityka, eksperymenty i decyzje;
-16. bezpieczeństwo, prywatność i ciągłość;
-17. TestQL, dowody i odpowiedzialność.
+1. positioning and offer;
+2. advertising and traffic acquisition;
+3. content and market education;
+4. lead generation and qualification;
+5. sales and closing;
+6. monetization and Revenue Operations;
+7. implementation and value delivery;
+8. customer support;
+9. retention, development, and referrals;
+10. product, roadmap, and experiments;
+11. finance, invoicing, and receivables;
+12. contracts, legal, and compliance;
+13. people, skills, and capacity;
+14. partnerships and procurement;
+15. analytics, experiments, and decisions;
+16. security, privacy, and continuity;
+17. TestQL, evidence, and accountability.
 
-Plan może dodatkowo utworzyć proces badania braków informacyjnych.
+The plan can additionally create a process for examining information gaps.
 
-## Odpowiedzialność
+## Accountability
 
-Każdy proces ma:
+Each process has:
 
 - `owner_role`;
-- cel;
+- a goal;
 - KPI;
 - status;
-- powiązanie z projektem;
-- źródło utworzenia;
-- historię zmian.
+- a project linkage;
+- a source of creation;
+- a change history.
 
-AI nie jest właścicielem rezultatu. LLM proponuje strukturę i treść roboczą.
-Outcome owner i approver są ludźmi lub formalnymi rolami organizacji.
+AI does not own the outcome. LLM proposes structure and draft content.
+Outcome owner and approver are humans or formal organizational roles.
 
-## Cykl od importu do wykonania
+## Import-to-execution cycle
 
 ```text
-1. Utwórz projekt
-2. Zaimportuj WWW/repozytorium/katalog
-3. Przejrzyj Markdown i blueprint
-4. Sprawdź TestQL importu
-5. Utwórz plan AQL/OQL
-6. Przeczytaj dokładny OQL
-7. Zatwierdź plan tokenem approvera
-8. Wykonaj adaptery
-9. Uruchom postflight TestQL
-10. Przeglądaj procesy, zadania, kampanie i wyniki w workspace
+1. Create a project
+2. Import a website, repository, or directory
+3. Review the Markdown and blueprint
+4. Check the import with TestQL
+5. Create an AQL/OQL plan
+6. Read the exact OQL
+7. Approve the plan with an approver token
+8. Execute the adapters
+9. Run postflight TestQL
+10. Review processes, tasks, campaigns, and outcomes in the workspace
 ```
 
 ## AQL
 
-`project-business-bootstrap.pl.aql` wybiera wariant:
+`project-business-bootstrap.pl.aql` selects a variant:
 
-- przegląd bezpieczeństwa przy możliwych sekretach;
-- dalsze badanie przy słabych dowodach;
-- pełny system biznesowy dla projektu rynkowego;
-- system produktu technicznego dla repozytorium;
-- standardowy bootstrap.
+- security review for potential secrets;
+- further investigation for weak evidence;
+- full business system for a market project;
+- technical product system for a repository;
+- standard bootstrap.
 
-AQL jest deterministyczne: identyczne wejście daje identyczną decyzję.
+AQL is deterministic: identical input yields identical decision.
 
 ## OQL
 
-OQL pokazuje wszystkie operacje przed wykonaniem. Dla pełnego projektu może utworzyć:
+OQL shows all operations before execution. For a full project, it can create:
 
-- procesy biznesowe;
-- kampanię startową;
-- ofertę do review;
-- zadania lejka sprzedaży;
-- zadanie bazy wiedzy wsparcia;
-- zadanie pomiaru przychodu;
-- outcome projektu;
+- business processes;
+- a launch campaign;
+- an offer for review;
+- sales funnel tasks;
+- a support knowledge-base task;
+- a revenue measurement task;
+- project outcome;
 - suite TestQL;
 - postflight TestQL.
 
-Plan ma hash OQL. Przy zatwierdzaniu zapisuje się hash, a przed wykonaniem system
-sprawdza, czy plan nie został zmieniony.
+The plan has an OQL hash. Upon approval, the hash is saved, and before execution, the system
+checks if the plan has been modified.
 
 ## TestQL
 
-Importer uruchamia TestQL dla:
+The Importer runs TestQL for:
 
-- liczby poprawnie pobranych źródeł;
-- rozmiaru Markdownu;
-- proweniencji;
-- liczby procesów;
-- liczby zadań;
-- wykrytych sekretów.
+- the number of sources correctly retrieved;
+- Markdown size;
+- provenance;
+- the number of processes;
+- the number of tasks;
+- detected secrets.
 
-Po wykonaniu OQL Bridge uruchamia postflight TestQL dla workspace projektu:
+After OQL execution, Bridge runs postflight TestQL for the project workspace:
 
-- co najmniej 17 procesów;
-- obecny proces reklamy;
-- obecny proces sprzedaży;
-- obecny Revenue Operations;
-- obecne wsparcie;
-- backlog zadań;
-- zdefiniowany outcome.
+- at least 17 processes;
+- the current advertising process;
+- current sales process;
+- current Revenue Operations;
+- current support;
+- task backlog;
+- a defined outcome.
 
-Niepowodzenie TestQL zatrzymuje plan jako `failed`, a nie `completed`.
+TestQL failure stops the plan as `failed`, not `completed`.
 
-## Automatyzacja marketingu i sprzedaży
+## Marketing and sales automation
 
-System przygotowuje strukturę, ale działania zewnętrzne muszą być osobnymi,
-zatwierdzonymi planami. Przykładowe kolejne modele AQL:
+The system prepares the structure, but external actions must be separate,
+approved plans. Example subsequent AQL models:
 
 ```text
 campaign-planning.pl.aql
@@ -125,5 +125,5 @@ support-triage.pl.aql
 renewal-and-upsell.pl.aql
 ```
 
-Wysłanie reklamy, oferty, wiadomości klientowi, zmiana ceny lub zobowiązanie umowne
-powinny wymagać odpowiedniego poziomu approval.
+Sending an advertisement, offer, message to a client, changing a price, or contractual obligation
+should require an appropriate level of approval.
