@@ -23,7 +23,7 @@ Build the runtime, then point the command at a project and its living-runtime di
 ```bash
 npm run build
 node dist/src/cli/main.js project-documentation \
-  /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/project.projectdsl \
+  /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/project/project.projectdsl \
   /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/.living-runtime \
   /home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/.living-runtime/current/documentation
 ```
@@ -39,9 +39,14 @@ project-documentation.manifest.json
 ```
 
 The manifest binds every byte stream to a SHA-256 digest, the active Twin/Scene/analysis URIs and
-the accepted iteration. Repeating the command against unchanged accepted artifacts produces the
-same bytes. The timestamp is taken from the accepted receipt or analysis trace, not from the export
-request.
+the accepted iteration. Repeating the command against unchanged accepted artifacts in the same
+runtime image produces the same bytes. The timestamp is taken from the accepted receipt or analysis
+trace, not from the export request.
+
+The human-readable formats deliberately begin with the project status, validation gaps, Twin
+architecture and process model. Full source roots, deterministic decisions and citations follow as
+audit appendices. Markdown and HTML include a table of contents. Empty MQTT or live-state contracts
+are written as explicit “not configured/not available” statements instead of empty tables.
 
 ## Download from the dashboard
 
@@ -68,8 +73,15 @@ Documentation is generated only from `current/`, never by mixing current artifac
 a mixed revision with `PROJECT_DOCUMENTATION_REVISION_MISMATCH`.
 
 The export is descriptive. MQTT remains observe-only and PDF/HTML generation cannot invoke device
-commands or run an iteration. The HTML contains no script and the PDF renderer is dependency-free.
-The report exposes bounded excerpts and evidence links, not hidden model chain-of-thought or entire
+commands or run an iteration. The HTML contains no script. Internal `/api/source` locators are
+displayed as dashboard locators rather than emitted as broken offline links; external HTTP(S)
+citations remain clickable.
+
+The PDF renderer has no npm/runtime-library dependency. It embeds DejaVu Sans as a Unicode Type 0
+font, preserves Polish characters and scientific symbols such as `µ` and `×`, wraps long URIs, and
+adds report hierarchy, revision footers and page numbers. The runtime Docker image installs the
+exact font package; a Base-14 fallback keeps export available on an unsupported bare host. The
+report exposes bounded excerpts and evidence links, not hidden model chain-of-thought or entire
 source documents.
 
 Contracts:

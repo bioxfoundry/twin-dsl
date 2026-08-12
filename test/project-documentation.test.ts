@@ -16,7 +16,7 @@ test("project documentation binds one accepted Twin revision across Markdown, HT
     name: "Documented Factory",
     outDir: join(root, "project"),
     profile: "biofoundry",
-    managerIntent: "Explain the accepted factory, processes, evidence and open gaps.",
+    managerIntent: "Explain the accepted factory, processes, evidence and open gaps: próbka 25 µL in a 60×36 m facility.",
   });
   const runtimeDir = join(root, "runtime");
   const receipt = await new LivingProjectRuntime().iterate(created.configPath, runtimeDir, "deterministic");
@@ -44,9 +44,22 @@ test("project documentation binds one accepted Twin revision across Markdown, HT
   assert.ok(first.document.decisions.length > 0);
   assert.ok(first.document.citations.length > 0);
   assert.equal(first.files.pdf.subarray(0, 8).toString("ascii"), "%PDF-1.4");
+  const pdfSource = first.files.pdf.toString("latin1");
+  assert.match(pdfSource, /\/Subtype \/Type0/);
+  assert.match(pdfSource, /\/ToUnicode/);
+  assert.match(pdfSource, /\/FontFile2/);
+  assert.match(pdfSource, /<00f3>/i, "PDF must map Polish Unicode text");
+  assert.match(pdfSource, /<00b5>/i, "PDF must map the micro sign");
+  assert.match(pdfSource, /<00d7>/i, "PDF must map the multiplication sign");
   assert.match(first.files.markdown, /^---[\s\S]*# Digital Twin project/m);
   assert.match(first.files.markdown, /## Processes and animations/);
+  assert.ok(first.files.markdown.indexOf("## Validation and open gaps") < first.files.markdown.indexOf("## Twin architecture"));
+  assert.ok(first.files.markdown.endsWith("\n"));
+  assert.doesNotMatch(first.files.markdown, /\]\(\/api\/source/);
   assert.match(first.files.html, /^<!doctype html>/);
+  assert.match(first.files.html, /<nav aria-label="Document contents">/);
+  assert.doesNotMatch(first.files.html, /href="\/api\/source/);
+  assert.doesNotMatch(first.files.html, /<tbody><\/tbody>/);
   assert.doesNotMatch(first.files.html, /<script/i);
   assert.doesNotMatch(first.files.json, new RegExp(root.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 
