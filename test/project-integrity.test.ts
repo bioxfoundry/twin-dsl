@@ -87,6 +87,17 @@ test("measured primitive proxy is not mislabeled as a conceptual assumption",()=
   assert.equal(report.coverage.assumptions,0);
 });
 
+test("licensed reference mesh stays an explicit assumption instead of claiming as-built identity",()=>{
+  const input=validInput();
+  input.twin.components[0].properties={...input.twin.components[0].properties,spatialClass:"physical",geometryEvidence:"document",geometryRepresentationClass:"functional-reference"};
+  const report=analyzeProjectIntegrity(input);
+  const finding=report.findings.find(item=>item.code==="REFERENCE_GEOMETRY_SUBSTITUTE");
+  assert.equal(report.ok,true);
+  assert.equal(report.complete,false);
+  assert.equal(finding?.severity,"warning");
+  assert.deepEqual(finding?.subjects,["a"]);
+});
+
 test("unbound presentation files are incomplete evidence, not a passing current capture",()=>{
   const input=validInput();
   input.presentationEvidence={

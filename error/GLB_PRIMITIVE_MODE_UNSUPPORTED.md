@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: GEOMETRY_VALIDATION_FAILED
+code: GLB_PRIMITIVE_MODE_UNSUPPORTED
 source: error/catalog.json
 generated: true
 ---
 
-# GEOMETRY_VALIDATION_FAILED — Geometry validation failed
+# GLB_PRIMITIVE_MODE_UNSUPPORTED — Glb primitive mode unsupported
 
-- Subsystem: `geometry`
+- Subsystem: `glb`
 - Severity: `error`
 - Error class: `state`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `response`
+- Surfaces: `exception`
 
 ## Meaning
 
-The runtime stopped because it detected the geometry validation failed condition.
+The runtime stopped because it detected the glb primitive mode unsupported condition.
 
 ## Likely causes
 
@@ -32,5 +32,4 @@ Inspect the detail appended after the code and the emitting source locations bel
 
 ## Emitted by
 
-- `src/runtime/project-integrity.ts`
-- `src/serve/dashboard.ts`
+- `public/dashboard.html`

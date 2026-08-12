@@ -139,6 +139,9 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /canvas\.captureStream\(30\)/);
   assert.match(dashboardHtml, /OES_element_index_uint/);
   assert.match(dashboardHtml, /drawElements\(gl\.TRIANGLES/);
+  assert.match(dashboardHtml, /const primitives=doc\.meshes\?\.flatMap/);
+  assert.match(dashboardHtml, /baseVertex/);
+  assert.match(dashboardHtml, /GLB_PRIMITIVE_MODE_UNSUPPORTED/);
   assert.match(dashboardHtml, /Focus selected/);
   assert.match(dashboardHtml, /o\.prim==='scope'&&!o\.assetUri/);
   assert.match(dashboardHtml, /function isDescendantOf/);

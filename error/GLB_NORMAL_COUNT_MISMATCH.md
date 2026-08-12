@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: SCENE_PATH_DUPLICATE
+code: GLB_NORMAL_COUNT_MISMATCH
 source: error/catalog.json
 generated: true
 ---
 
-# SCENE_PATH_DUPLICATE — Scene path duplicate
+# GLB_NORMAL_COUNT_MISMATCH — Glb normal count mismatch
 
-- Subsystem: `scene`
+- Subsystem: `glb`
 - Severity: `error`
 - Error class: `integrity`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `exception`
+- Surfaces: `exception`
 
 ## Meaning
 
-The scene path evidence is internally inconsistent or does not match its bound identity.
+The glb normal count evidence is internally inconsistent or does not match its bound identity.
 
 ## Likely causes
 
@@ -32,5 +32,4 @@ Use the detail after the code to locate the conflicting value, restore one canon
 
 ## Emitted by
 
-- `src/runtime/autonomy.ts`
-- `src/runtime/project-integrity.ts`
+- `public/dashboard.html`

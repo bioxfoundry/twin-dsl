@@ -334,7 +334,7 @@ type C = SceneBlueprint["components"][number];
 type B = SceneBlueprint["bindings"][number];
 
 /**
- * Detailed Biofoundry blueprint v0.3.1:
+ * Detailed Biofoundry blueprint v0.3.2:
  * - keeps stable v0.2 IDs (17)
  * - adds evidence-backed modules from nanobionic-laboratory corpus
  * - pathIncludes tighten equipment ↔ CAD/docs (no invented floor plan)
@@ -764,6 +764,28 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
       sourceRoles: ["project"], pathIncludes: ["syringebot", "chemical synthesis robot", "piis2468067222000554", "valve block", "servo valve", "purge"], maxSourceUris: 20,
       properties: { semanticEvidence: "direct", geometryEvidence: "document-only", placementBasis: "presentation-only", parentEquipment: "syringebot_01" },
     },
+    ...Array.from({ length: 6 }, (_, index): C => ({
+      id: `syringebot_syringe_${String(index + 1).padStart(2, "0")}`,
+      type: "cad-part",
+      parentId: "syringebot_syringe_bank_01",
+      spatialClass: "physical",
+      label: `Syringebot 60 mL syringe channel ${index + 1}`,
+      sourceRoles: ["project", "derived"],
+      pathIncludes: ["syringebot", "SYRINGE-60ml", "syringe-support-60ml.glb"],
+      maxSourceUris: 20,
+      properties: { semanticEvidence: "direct", geometryEvidence: "document-only", placementBasis: "derived-design", parentEquipment: "syringebot_syringe_bank_01", channel: index + 1 },
+    })),
+    ...Array.from({ length: 6 }, (_, index): C => ({
+      id: `syringebot_valve_block_${String(index + 1).padStart(2, "0")}`,
+      type: "cad-part",
+      parentId: "syringebot_valve_bank_01",
+      spatialClass: "physical",
+      label: `Syringebot two-valve block ${index + 1}`,
+      sourceRoles: ["project", "derived"],
+      pathIncludes: ["syringebot", "VALVE.stl", "two-valve-block.glb"],
+      maxSourceUris: 20,
+      properties: { semanticEvidence: "direct", geometryEvidence: "document-only", placementBasis: "derived-design", parentEquipment: "syringebot_valve_bank_01", channel: index + 1, valvesPerBlock: 2 },
+    })),
     {
       id: "oscar_pipette_tool_01", type: "robot-tool", parentId: "oscar_robot_01", spatialClass: "physical", label: "OSCAR pipette tool",
       sourceRoles: ["project", "development"], pathIncludes: ["oscar", "pipette-tool", "pipette tool"], maxSourceUris: 25,
@@ -852,7 +874,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     // corpus-backed
     { componentId: "biospec_bioreactor_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01", position: [21.0, -11.5, 1.1], size: [3.0, 2.2, 2.2], primitive: "cylinder" },
     { componentId: "oscar_robot_01", scenePath: "/Biofoundry/Equipment/Build/OscarRobot01", position: [6.0, 12.5, 1.0], size: [3.5, 2.5, 2.0] },
-    { componentId: "microscope_module_01", scenePath: "/Biofoundry/Equipment/Test/Microscope01", position: [20.5, 12.5, 0.85], size: [1.8, 1.5, 1.7] },
+    { componentId: "microscope_module_01", scenePath: "/Biofoundry/Equipment/Test/Microscope01", position: [20.5, 12.5, 0.85], size: [0.170598, 0.201433, 0.137917] },
     { componentId: "microfluidic_assembly_01", scenePath: "/Biofoundry/Equipment/Build/MicrofluidicAssembly01", position: [11.5, 12.0, 0.7], size: [1.6, 1.2, 1.4] },
     { componentId: "syringebot_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01", primitive: "scope" },
     { componentId: "bioprinter_mos3s_01", scenePath: "/Biofoundry/Equipment/Build/BioprinterMOS3S01", position: [8.5, 7.0, 0.95], size: [2.8, 2.0, 1.9] },
@@ -863,7 +885,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     { componentId: "ros2_robotics_01", scenePath: "/Biofoundry/Services/ROS2_01", position: [5.0, 7.5, 1.5], size: [0.8, 0.8, 3.0], primitive: "cylinder" },
     { componentId: "opentwins_state_01", scenePath: "/Biofoundry/Services/OpenTwins01", position: [-9.5, -6.5, 1.5], size: [0.8, 0.8, 3.0], primitive: "cylinder" },
     // Document-backed process actors. Coordinates/envelopes serve only the dashboard narrative.
-    { componentId: "biospec_controller_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01/Controller", position: [18.9, -12.2, 0.65], size: [0.8, 0.6, 1.3] },
+    { componentId: "biospec_controller_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01/Controller", position: [18.9, -12.2, 0.65], size: [0.0972, 0.0895, 0.0192] },
     { componentId: "biospec_feed_pump_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01/FeedPump", position: [19.8, -13.0, 0.45], size: [0.55, 0.55, 0.9], primitive: "cylinder" },
     { componentId: "biospec_gas_valve_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01/GasValve", position: [20.6, -13.0, 0.35], size: [0.7, 0.45, 0.7] },
     { componentId: "biospec_stirrer_01", scenePath: "/Biofoundry/Equipment/Flagship/BiospecBioreactor01/Stirrer", position: [21.0, -11.5, 0.2], size: [1.1, 1.1, 0.4], primitive: "cylinder" },
@@ -875,9 +897,23 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
     { componentId: "microfluidic_mux_valve_01", scenePath: "/Biofoundry/Equipment/Build/MicrofluidicAssembly01/MuxValve", position: [11.0, 13.6, 0.45], size: [0.65, 0.65, 0.9], primitive: "cylinder" },
     { componentId: "microfluidic_flow_sensor_01", scenePath: "/Biofoundry/Equipment/Build/MicrofluidicAssembly01/FlowSensor", position: [12.0, 13.6, 0.4], size: [0.55, 0.55, 0.8] },
     { componentId: "microfluidic_flow_chamber_01", scenePath: "/Biofoundry/Equipment/Build/MicrofluidicAssembly01/FlowChamber", position: [13.0, 13.6, 0.25], size: [1.0, 0.65, 0.5] },
-    { componentId: "syringebot_controller_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/Controller", position: [3.6, 6.5, 0.55], size: [0.8, 0.8, 1.1] },
-    { componentId: "syringebot_syringe_bank_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/SyringeBank", position: [5.0, 6.5, 1.0], size: [2.0, 0.8, 2.0] },
-    { componentId: "syringebot_valve_bank_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/ValveBank", position: [6.5, 6.5, 0.45], size: [1.0, 0.7, 0.9] },
+    { componentId: "syringebot_controller_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/Controller", position: [4.45, 6.15, 0.35], size: [0.2, 0.2, 0.119] },
+    { componentId: "syringebot_syringe_bank_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/SyringeBank", primitive: "scope" },
+    { componentId: "syringebot_valve_bank_01", scenePath: "/Biofoundry/Equipment/Build/Syringebot01/ValveBank", primitive: "scope" },
+    ...Array.from({ length: 6 }, (_, index): B => ({
+      componentId: `syringebot_syringe_${String(index + 1).padStart(2, "0")}`,
+      scenePath: `/Biofoundry/Equipment/Build/Syringebot01/SyringeBank/Channel${String(index + 1).padStart(2, "0")}`,
+      position: [4.725 + index * 0.11, 6.5, 0.95],
+      size: [0.095, 0.067, 0.164],
+      orientation: [0, 0, 0, 1],
+    })),
+    ...Array.from({ length: 6 }, (_, index): B => ({
+      componentId: `syringebot_valve_block_${String(index + 1).padStart(2, "0")}`,
+      scenePath: `/Biofoundry/Equipment/Build/Syringebot01/ValveBank/Block${String(index + 1).padStart(2, "0")}`,
+      position: [4.725 + index * 0.11, 6.75, 0.55],
+      size: [0.095, 0.0439782, 0.0695],
+      orientation: [0, 0, 0, 1],
+    })),
     { componentId: "oscar_pipette_tool_01", scenePath: "/Biofoundry/Equipment/Build/OscarRobot01/PipetteTool", position: [6.0, 12.0, 1.8], size: [0.35, 0.35, 1.6], primitive: "cylinder" },
     { componentId: "oscar_thermocycler_01", scenePath: "/Biofoundry/Equipment/Build/OscarRobot01/Thermocycler", position: [3.2, 14.0, 0.55], size: [1.8, 1.2, 1.1] },
     { componentId: "oscar_gel_electrophoresis_01", scenePath: "/Biofoundry/Equipment/Build/OscarRobot01/GelElectrophoresis", position: [6.2, 14.2, 0.25], size: [2.2, 1.1, 0.5] },
@@ -896,7 +932,7 @@ export function biofoundryLiveBlueprintV02(): SceneBlueprint {
 
   return validateSceneBlueprint({
     schema: "subactor.scene-blueprint/v1",
-    id: "biofoundry-live-v0.3.1",
+    id: "biofoundry-live-v0.3.2",
     twinKind: "conceptual",
     components,
     bindings,

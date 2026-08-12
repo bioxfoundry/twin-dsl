@@ -100,7 +100,7 @@
               "required": ["value", "status", "reason"],
               "properties": {
                 "value": {"type": "string", "minLength": 1},
-                "status": {"enum": ["rejected", "unresolved", "deferred"]},
+                "status": {"enum": ["rejected", "unresolved", "deferred", "selected-reference"]},
                 "reason": {"type": "string", "minLength": 1}
               }
             }

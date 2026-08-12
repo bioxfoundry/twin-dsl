@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: GEOMETRY_VALIDATION_FAILED
+code: DEVELOPMENT_EVIDENCE_NOT_ACCEPTED
 source: error/catalog.json
 generated: true
 ---
 
-# GEOMETRY_VALIDATION_FAILED — Geometry validation failed
+# DEVELOPMENT_EVIDENCE_NOT_ACCEPTED — Development evidence not accepted
 
-- Subsystem: `geometry`
+- Subsystem: `development`
 - Severity: `error`
 - Error class: `state`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `response`
+- Surfaces: `diagnostic`
 
 ## Meaning
 
-The runtime stopped because it detected the geometry validation failed condition.
+The runtime stopped because it detected the development evidence not accepted condition.
 
 ## Likely causes
 
@@ -33,4 +33,3 @@ Inspect the detail appended after the code and the emitting source locations bel
 ## Emitted by
 
 - `src/runtime/project-integrity.ts`
-- `src/serve/dashboard.ts`

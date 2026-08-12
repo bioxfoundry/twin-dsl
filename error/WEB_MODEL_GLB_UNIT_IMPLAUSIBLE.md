@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: GEOMETRY_VALIDATION_FAILED
+code: WEB_MODEL_GLB_UNIT_IMPLAUSIBLE
 source: error/catalog.json
 generated: true
 ---
 
-# GEOMETRY_VALIDATION_FAILED — Geometry validation failed
+# WEB_MODEL_GLB_UNIT_IMPLAUSIBLE — Web model glb unit implausible
 
-- Subsystem: `geometry`
+- Subsystem: `web`
 - Severity: `error`
 - Error class: `state`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `response`
+- Surfaces: `exception`
 
 ## Meaning
 
-The runtime stopped because it detected the geometry validation failed condition.
+The runtime stopped because it detected the web model glb unit implausible condition.
 
 ## Likely causes
 
@@ -32,5 +32,4 @@ Inspect the detail appended after the code and the emitting source locations bel
 
 ## Emitted by
 
-- `src/runtime/project-integrity.ts`
-- `src/serve/dashboard.ts`
+- `scripts/verify-web-models.mjs`

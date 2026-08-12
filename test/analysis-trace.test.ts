@@ -47,6 +47,7 @@ test("analysis trace records source-grounded decisions, alternatives and DSL rou
   assert.match(geometry?.outcome??"",/cube fallback/);
   assert.ok(geometry?.alternatives.some(item=>item.status==="rejected"&&item.value.includes("bioreactor CAD")));
   assert.ok(geometry?.citationIds.includes("external-rpi-hardware-docs"));
+  assert.equal(trace.outputs.primitiveFallbacks,1);
   const dsl=renderAnalysisTraceDsl(trace);
   assert.deepEqual(parseAnalysisTraceDsl(dsl),trace);
   const markdown=renderAnalysisTraceMarkdown(trace,{"math.dsl":"MATH trace\nEXPR Allowed = true\n"});
@@ -62,10 +63,14 @@ test("analysis trace reports structural changes against the previous trace",()=>
   const first=buildAnalysisTrace(fixture());
   const changedInput=fixture(first);
   changedInput.scene.bindings[0].assetUri="urn:subactor:resource:sha256:"+hash("9");
+  changedInput.twin.components[0].properties.geometryRepresentationClass="model-specific-reference";
   changedInput.generator={...changedInput.generator,runtimeGeneration:"trace-v2"};
   const second=buildAnalysisTrace(changedInput);
   assert.equal(second.comparison.changed,true);
   assert.ok(second.comparison.changes.includes("DECISION_CHANGED:biospec-controller-geometry"));
   assert.ok(second.comparison.changes.includes("OUTPUT_CHANGED:meshBindings:0→1"));
+  assert.ok(second.comparison.changes.includes("OUTPUT_CHANGED:primitiveFallbacks:1→0"));
+  assert.equal(second.decisions.find(decision=>decision.id==="component-projection:biospec_controller_01")?.confidence,"medium");
+  assert.ok(second.decisions.find(decision=>decision.id==="biospec-controller-geometry")?.alternatives.some(item=>item.status==="selected-reference"));
   assert.ok(second.comparison.changes.includes("GENERATOR_CHANGED:trace-v1→trace-v2"));
 });

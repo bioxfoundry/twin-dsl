@@ -917,6 +917,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "CONCEPTUAL_GEOMETRY_ASSUMPTION",
+      "title": "Conceptual geometry assumption",
+      "subsystem": "conceptual",
+      "defaultSeverity": "warning",
+      "errorClass": "evidence",
+      "retryable": false,
+      "meaning": "A physical or hybrid scene object still uses a simple primitive because no grounded component-level mesh has been accepted.",
+      "causes": [
+        "the project corpus has no component-specific CAD or mesh",
+        "a candidate model has not passed identity, license, hash, unit or physical-evidence intake"
+      ],
+      "impact": "The Twin remains usable, but the visual is conceptual and must not be interpreted as the actual device shape.",
+      "resolution": "Acquire or upload component-specific geometry, preserve license and provenance, normalize it to metres, bind its content URI through physical-evidence intake and rerun the iteration."
+    },
+    {
       "code": "DASHBOARD_ARGUMENTS_REQUIRED",
       "title": "Dashboard arguments required",
       "subsystem": "dashboard",
@@ -1173,6 +1188,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "DEVELOPMENT_EVIDENCE_NOT_ACCEPTED",
+      "title": "Development evidence not accepted",
+      "subsystem": "development",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the development evidence not accepted condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "DOCLING_CONVERSION_HTTP",
@@ -1789,6 +1819,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "GENERATION_FALLBACK_USED",
+      "title": "Generation fallback used",
+      "subsystem": "generation",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the generation fallback used condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "GENERATOR_CHANGED",
@@ -2947,19 +2992,49 @@
       "resolution": "Re-export the mesh with SCALAR indices encoded as UNSIGNED_BYTE, UNSIGNED_SHORT or, where supported, UNSIGNED_INT."
     },
     {
-      "code": "GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED",
-      "title": "Glb multi accessor mesh unsupported",
+      "code": "GLB_NORMAL_COUNT_MISMATCH",
+      "title": "Glb normal count mismatch",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The glb normal count evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "GLB_POSITION_ACCESSOR_MISSING",
+      "title": "Glb position accessor missing",
       "subsystem": "glb",
       "defaultSeverity": "error",
       "errorClass": "configuration",
       "retryable": false,
-      "meaning": "One GLB mesh contains primitives that do not share the same POSITION and NORMAL accessor tables.",
+      "meaning": "The glb position accessor input does not satisfy the required deterministic contract.",
       "causes": [
-        "the exporter wrote independent vertex tables for material or group primitives",
-        "the asset requires a full scene-graph loader outside the dashboard's lightweight contract"
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
       ],
-      "impact": "The dashboard refuses to combine incompatible vertex tables and shows fallback geometry instead of a distorted mesh.",
-      "resolution": "Run the project's deterministic mesh converter or re-export the GLB with shared POSITION/NORMAL accessors across primitives; otherwise split it into separately bound assets."
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "GLB_PRIMITIVE_MODE_UNSUPPORTED",
+      "title": "Glb primitive mode unsupported",
+      "subsystem": "glb",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the glb primitive mode unsupported condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "GLB_UINT_INDEX_EXTENSION_UNAVAILABLE",
@@ -6368,6 +6443,21 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "PHYSICAL_SOURCE_REFERENCE_MISSING",
+      "title": "Physical source reference missing",
+      "subsystem": "physical",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The physical source reference input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
       "code": "PRESENTATION_CAMERA_INVALID",
       "title": "Presentation camera invalid",
       "subsystem": "presentation",
@@ -7313,6 +7403,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "REFERENCE_GEOMETRY_SUBSTITUTE",
+      "title": "Reference geometry substitute",
+      "subsystem": "reference",
+      "defaultSeverity": "warning",
+      "errorClass": "evidence",
+      "retryable": false,
+      "meaning": "The dashboard renders a licensed reference model whose function or product class matches the component, but the model does not prove the installed/as-built device.",
+      "causes": [
+        "the specification permits a class of equipment without selecting an exact product",
+        "the selected model is a documented implementation or compatible open-hardware reference, not surveyed site geometry"
+      ],
+      "impact": "Visual detail is improved without promoting the reference to as-built evidence; project integrity remains explicitly incomplete.",
+      "resolution": "Keep geometryRepresentationClass and limitations visible. Replace the reference only after manufacturer, user-uploaded or surveyed geometry passes identity, license, hash, unit and placement validation."
+    },
+    {
       "code": "REQUEST_BODY_TOO_LARGE",
       "title": "Request body too large",
       "subsystem": "request",
@@ -7380,6 +7485,21 @@
       "errorClass": "configuration",
       "retryable": false,
       "meaning": "The resource source input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "RUNTIME_EVIDENCE_MISSING",
+      "title": "Runtime evidence missing",
+      "subsystem": "runtime",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The runtime evidence input does not satisfy the required deterministic contract.",
       "causes": [
         "a required field or resource is missing",
         "a value, key, type, identifier or schema version is invalid"
@@ -7840,6 +7960,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "SCENE_COMPONENT_UNKNOWN",
+      "title": "Scene component unknown",
+      "subsystem": "scene",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the scene component unknown condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "SCENE_INVALID",
       "title": "Scene invalid",
       "subsystem": "scene",
@@ -7915,6 +8050,21 @@
       "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
     },
     {
+      "code": "SCENE_TWIN_REVISION_MISMATCH",
+      "title": "Scene twin revision mismatch",
+      "subsystem": "scene",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The scene twin evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
       "code": "SCENE_TWIN_URI_NOT_GROUNDED",
       "title": "Scene twin uri not grounded",
       "subsystem": "scene",
@@ -7973,6 +8123,21 @@
       ],
       "impact": "The server refuses the source bytes and does not interpret the request as a filesystem path.",
       "resolution": "Follow the href emitted in analysis-trace.md/json or pass its exact artifactUri and revisionHash to /api/source."
+    },
+    {
+      "code": "SOURCE_CONVERSION_FAILED",
+      "title": "Source conversion failed",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source conversion failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "SOURCE_COVERAGE_CONVERTER_INVALID",
@@ -8440,6 +8605,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "SOURCE_EXCLUDED_BY_POLICY",
+      "title": "Source excluded by policy",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The source excluded by policy operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
       "code": "SOURCE_NOT_A_DIRECTORY",
       "title": "Source not a directory",
       "subsystem": "source",
@@ -8468,6 +8648,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SOURCE_QUARANTINED",
+      "title": "Source quarantined",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source quarantined condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "SOURCE_REVISION_CHANGED",
@@ -8597,6 +8792,66 @@
       "errorClass": "state",
       "retryable": false,
       "meaning": "The runtime stopped because it detected the source selection symlink escape condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SOURCE_TREE_UNLINKED",
+      "title": "Source tree unlinked",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source tree unlinked condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SOURCE_TWIN_USAGE_UNEVALUATED",
+      "title": "Source twin usage unevaluated",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source twin usage unevaluated condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SOURCE_UNSUPPORTED",
+      "title": "Source unsupported",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source unsupported condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SOURCE_UNUSED_BY_TWIN",
+      "title": "Source unused by twin",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source unused by twin condition.",
       "causes": [
         "the named runtime invariant was not satisfied",
         "an upstream stage supplied incomplete or inconsistent state"
@@ -9286,6 +9541,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "TWIN_COMPONENT_UNGROUNDED",
+      "title": "Twin component ungrounded",
+      "subsystem": "twin",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the twin component ungrounded condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "TWIN_ID_OVERRIDE",
       "title": "Twin id override",
       "subsystem": "twin",
@@ -9554,6 +9824,221 @@
       ],
       "impact": "The affected operation does not complete and must not be reported as successful.",
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "WEB_MODEL_ASSET_HASH_MISMATCH",
+      "title": "Web model asset hash mismatch",
+      "subsystem": "web geometry",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "A downloaded model or retained source no longer matches the immutable digest/size recorded in the web geometry manifest.",
+      "causes": [
+        "the upstream download changed",
+        "a local binary or source file was modified or truncated",
+        "the manifest combines artifacts from different revisions"
+      ],
+      "impact": "The model cannot enter physical-evidence intake or be published as a grounded scene asset.",
+      "resolution": "Do not update the expected digest blindly. Re-download the pinned revision, verify license and source identity, regenerate the derivative, then review and update the manifest hashes."
+    },
+    {
+      "code": "WEB_MODEL_ASSET_SIZE_MISMATCH",
+      "title": "Web model asset size mismatch",
+      "subsystem": "web geometry",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "A downloaded model or retained source no longer matches the immutable digest/size recorded in the web geometry manifest.",
+      "causes": [
+        "the upstream download changed",
+        "a local binary or source file was modified or truncated",
+        "the manifest combines artifacts from different revisions"
+      ],
+      "impact": "The model cannot enter physical-evidence intake or be published as a grounded scene asset.",
+      "resolution": "Do not update the expected digest blindly. Re-download the pinned revision, verify license and source identity, regenerate the derivative, then review and update the manifest hashes."
+    },
+    {
+      "code": "WEB_MODEL_GLB_BOUNDS_MISMATCH",
+      "title": "Web model glb bounds mismatch",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The web model glb bounds evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "WEB_MODEL_GLB_COUNT_MISMATCH",
+      "title": "Web model glb count mismatch",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The web model glb count evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "WEB_MODEL_GLB_HEADER_INVALID",
+      "title": "Web model glb header invalid",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web model glb header input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "WEB_MODEL_GLB_JSON_INVALID",
+      "title": "Web model glb json invalid",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web model glb json input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "WEB_MODEL_GLB_POSITION_INVALID",
+      "title": "Web model glb position invalid",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web model glb position input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "WEB_MODEL_GLB_UNIT_IMPLAUSIBLE",
+      "title": "Web model glb unit implausible",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the web model glb unit implausible condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "WEB_MODEL_INTEGRATION_COMPONENT_MISSING",
+      "title": "Web model integration component missing",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web model integration component input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "WEB_MODEL_INTEGRATION_DRIFT",
+      "title": "Web model integration drift",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The web model integration evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "WEB_MODEL_INTEGRATION_INVALID",
+      "title": "Web model integration invalid",
+      "subsystem": "web",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web model integration input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "WEB_MODEL_MANIFEST_INVALID",
+      "title": "Web model manifest invalid",
+      "subsystem": "web geometry",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web geometry manifest is malformed or lacks required provenance, classification, revision, license or limitations.",
+      "causes": [
+        "a model entry omits source revision or license",
+        "representationClass or limitations are absent",
+        "the manifest schema or root collection is invalid"
+      ],
+      "impact": "Downloaded geometry is rejected before it can be treated as project evidence.",
+      "resolution": "Complete bioxfoundry.web-geometry-manifest/v1 with source URLs, pinned revision, license, hashes, representation class, evidence basis and explicit limitations; rerun make web-models-verify."
+    },
+    {
+      "code": "WEB_MODEL_PROVENANCE_INCOMPLETE",
+      "title": "Web model provenance incomplete",
+      "subsystem": "web geometry",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The web geometry manifest is malformed or lacks required provenance, classification, revision, license or limitations.",
+      "causes": [
+        "a model entry omits source revision or license",
+        "representationClass or limitations are absent",
+        "the manifest schema or root collection is invalid"
+      ],
+      "impact": "Downloaded geometry is rejected before it can be treated as project evidence.",
+      "resolution": "Complete bioxfoundry.web-geometry-manifest/v1 with source URLs, pinned revision, license, hashes, representation class, evidence basis and explicit limitations; rerun make web-models-verify."
+    },
+    {
+      "code": "WEB_MODEL_SOURCE_HASH_MISMATCH",
+      "title": "Web model source hash mismatch",
+      "subsystem": "web geometry",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "A downloaded model or retained source no longer matches the immutable digest/size recorded in the web geometry manifest.",
+      "causes": [
+        "the upstream download changed",
+        "a local binary or source file was modified or truncated",
+        "the manifest combines artifacts from different revisions"
+      ],
+      "impact": "The model cannot enter physical-evidence intake or be published as a grounded scene asset.",
+      "resolution": "Do not update the expected digest blindly. Re-download the pinned revision, verify license and source identity, regenerate the derivative, then review and update the manifest hashes."
     },
     {
       "code": "WRONG_EXPECTED_VERSION",

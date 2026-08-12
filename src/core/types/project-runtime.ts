@@ -227,7 +227,7 @@ export interface AnalysisTraceDecision {
   confidence: "high" | "medium" | "low";
   basis: string;
   citationIds: string[];
-  alternatives: Array<{ value: string; status: "rejected" | "unresolved" | "deferred"; reason: string }>;
+  alternatives: Array<{ value: string; status: "rejected" | "unresolved" | "deferred" | "selected-reference"; reason: string }>;
   gaps: string[];
 }
 export interface AnalysisTraceDocument {

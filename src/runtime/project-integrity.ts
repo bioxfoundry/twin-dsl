@@ -110,6 +110,8 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
     return geometryEvidenceRank(byComponent.get(binding.componentId)?.properties.geometryEvidence)<=geometryEvidenceRank("document");
   }).map(binding=>binding.componentId??binding.scenePath);
   if(placeholders.length) add("CONCEPTUAL_GEOMETRY_ASSUMPTION","warning","ungrounded-assumption","design",`${placeholders.length} rendered object(s) still use conceptual primitive geometry.`,placeholders,[],"replace-conceptual-geometry");
+  const referenceGeometry=components.filter(component=>["functional-reference","model-specific-reference"].includes(String(component.properties.geometryRepresentationClass))).map(component=>component.id);
+  if(referenceGeometry.length) add("REFERENCE_GEOMETRY_SUBSTITUTE","warning","ungrounded-assumption","design",`${referenceGeometry.length} rendered object(s) use licensed reference geometry that does not prove the installed/as-built device.`,referenceGeometry,[],"replace-reference-geometry-with-as-built-evidence");
   const unreferencedEvidence=(input.physicalEvidence?.records??[]).filter(record=>!record.sourceRef).map(record=>record.componentId);
   if(unreferencedEvidence.length) add("PHYSICAL_SOURCE_REFERENCE_MISSING","warning","missing-evidence","validation","Physical evidence must identify its survey, drawing, register row or model object.",unreferencedEvidence,[],"ground-physical-evidence");
   if(!input.geometry.complete) {
@@ -190,7 +192,7 @@ export function analyzeProjectIntegrity(input:ProjectIntegrityInput):ProjectInte
   }
   for(const dependency of dependencies.filter(item=>!item.ok)) add(`DEPENDENCY_${dependency.id.toUpperCase().replaceAll("-","_")}_BROKEN`,"error","broken-dependency",dependency.to,dependency.message,[dependency.id],[],`repair-${dependency.id}`);
 
-  const assumptions=placeholders.length+degraded.length;
+  const assumptions=placeholders.length+referenceGeometry.length+degraded.length;
   const errors=findings.filter(finding=>finding.severity==="error").length;
   const evidencedLayers=layers.filter(layer=>layer.evidenced).length;
   const validatedDependencies=dependencies.filter(dependency=>dependency.ok&&dependency.complete).length;

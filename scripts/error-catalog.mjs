@@ -105,6 +105,12 @@ async function scanErrors() {
     for (const match of body.matchAll(/`([A-Z][A-Z0-9_]{2,})(?=[:$])/g)) {
       add(found, match[1], file, "exception");
     }
+    if (local === "src/runtime/project-integrity.ts") {
+      for (const match of body.matchAll(/\badd\("([A-Z][A-Z0-9_]{2,})"/g)) add(found, match[1], file, "diagnostic");
+    }
+    if (local === "scripts/verify-web-models.mjs" || local === "scripts/install-web-models.mjs") {
+      for (const match of body.matchAll(/\bfail\("([A-Z][A-Z0-9_]{2,})"/g)) add(found, match[1], file, "exception");
+    }
     if (local === "src/runtime/source-coverage.ts") {
       for (const match of body.matchAll(/\binvalid\("([A-Z][A-Z0-9_]+)"\)/g)) {
         add(found, `SOURCE_COVERAGE_${match[1]}`, file, "exception");
@@ -128,7 +134,7 @@ async function scanErrors() {
 const SUFFIXES = [
   "UNKNOWN_KEY", "NOT_CONFIGURED", "NOT_AVAILABLE", "NOT_GROUNDED", "NOT_FOUND",
   "OUTSIDE_PROJECT", "TOO_LARGE", "ALREADY_RUNNING", "ALREADY_STARTED", "IN_PROGRESS",
-  "HASH_MISMATCH", "REVISION_MISMATCH", "VERSION_MISMATCH", "MISMATCH", "CONTRADICTORY",
+  "HASH_MISMATCH", "REVISION_MISMATCH", "VERSION_MISMATCH", "MISMATCH", "DRIFT", "CONTRADICTORY",
   "DUPLICATE", "READ_ONLY", "FORBIDDEN", "UNSAFE_PATH", "REQUIRED", "MISSING", "INVALID",
   "REJECTED", "FAILED", "FAILURE", "LIMIT", "HTTP", "EXIT",
 ];
@@ -177,7 +183,7 @@ function semantics(code) {
     impact: "The operation is not applied; existing accepted state is preserved.",
     resolution: "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation.",
   };
-  if (["MISMATCH", "HASH_MISMATCH", "REVISION_MISMATCH", "VERSION_MISMATCH", "DUPLICATE", "CONTRADICTORY", "NOT_GROUNDED"].includes(suffix)) return {
+  if (["MISMATCH", "HASH_MISMATCH", "REVISION_MISMATCH", "VERSION_MISMATCH", "DRIFT", "DUPLICATE", "CONTRADICTORY", "NOT_GROUNDED"].includes(suffix)) return {
     errorClass: "integrity", retryable: false,
     meaning: `The ${subject} evidence is internally inconsistent or does not match its bound identity.`,
     causes: ["artifacts from different revisions were combined", "an identity, digest, path or relationship is duplicated or inconsistent"],

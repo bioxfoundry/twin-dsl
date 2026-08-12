@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: GEOMETRY_VALIDATION_FAILED
+code: SOURCE_CONVERSION_FAILED
 source: error/catalog.json
 generated: true
 ---
 
-# GEOMETRY_VALIDATION_FAILED — Geometry validation failed
+# SOURCE_CONVERSION_FAILED — Source conversion failed
 
-- Subsystem: `geometry`
+- Subsystem: `source`
 - Severity: `error`
 - Error class: `state`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `response`
+- Surfaces: `diagnostic`
 
 ## Meaning
 
-The runtime stopped because it detected the geometry validation failed condition.
+The runtime stopped because it detected the source conversion failed condition.
 
 ## Likely causes
 
@@ -33,4 +33,3 @@ Inspect the detail appended after the code and the emitting source locations bel
 ## Emitted by
 
 - `src/runtime/project-integrity.ts`
-- `src/serve/dashboard.ts`

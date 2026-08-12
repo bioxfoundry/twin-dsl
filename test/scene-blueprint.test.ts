@@ -178,10 +178,10 @@ test("identity stable when state changes (temperature)", () => {
   );
 });
 
-test("biofoundry live v0.3 blueprint keeps stable IDs and all 64 detailed actors", () => {
+test("biofoundry live v0.3 blueprint keeps stable IDs and adds twelve Syringebot CAD actors", () => {
   const bp = biofoundryLiveBlueprintV02();
-  assert.equal(bp.id, "biofoundry-live-v0.3.1");
-  assert.equal(bp.components.length, 64);
+  assert.equal(bp.id, "biofoundry-live-v0.3.2");
+  assert.equal(bp.components.length, 76);
   assert.equal(bp.components.length, bp.bindings.length);
   for (const id of [
     "facility_shell",
@@ -200,6 +200,9 @@ test("biofoundry live v0.3 blueprint keeps stable IDs and all 64 detailed actors
   assert.equal(bp.components.find((c) => c.id === "biospec_cad_lid_unf")?.parentId, "biospec_bioreactor_01");
   assert.equal(bp.components.find((c) => c.id === "microfluidic_flow_sensor_01")?.parentId, "microfluidic_assembly_01");
   assert.equal(bp.components.find((c) => c.id === "bioprinter_part_plunger_retainer_2ml")?.parentId, "bioprinter_mos3s_01");
+  assert.equal(bp.components.find((c) => c.id === "syringebot_syringe_06")?.parentId, "syringebot_syringe_bank_01");
+  assert.equal(bp.components.find((c) => c.id === "syringebot_valve_block_06")?.parentId, "syringebot_valve_bank_01");
+  assert.equal(bp.bindings.find((b) => b.componentId === "syringebot_syringe_bank_01")?.primitive, "scope");
 });
 
 /**

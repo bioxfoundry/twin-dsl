@@ -67,6 +67,7 @@ deterministic projections enriched with source locations discovered by
 | [COMPOSE_SECRET_LOOKS_LIKE_KEY](./COMPOSE_SECRET_LOOKS_LIKE_KEY.md) | compose | state | false |
 | [COMPOSE_SECRET_VARIABLE_MISSING](./COMPOSE_SECRET_VARIABLE_MISSING.md) | compose | configuration | false |
 | [COMPOSE_TOKEN_MISSING](./COMPOSE_TOKEN_MISSING.md) | compose | configuration | false |
+| [CONCEPTUAL_GEOMETRY_ASSUMPTION](./CONCEPTUAL_GEOMETRY_ASSUMPTION.md) | conceptual | evidence | false |
 | [DASHBOARD_ARGUMENTS_REQUIRED](./DASHBOARD_ARGUMENTS_REQUIRED.md) | dashboard | configuration | false |
 | [DASHBOARD_ASSETS_NOT_FOUND](./DASHBOARD_ASSETS_NOT_FOUND.md) | dashboard | configuration | false |
 | [DASHBOARD_INTERNAL_ERROR](./DASHBOARD_INTERNAL_ERROR.md) | dashboard | state | false |
@@ -84,6 +85,7 @@ deterministic projections enriched with source locations discovered by
 | [DECISION_CHANGED](./DECISION_CHANGED.md) | decision | state | false |
 | [DECISION_REMOVED](./DECISION_REMOVED.md) | decision | state | false |
 | [DETERMINISTIC_VALUE_REQUIRED](./DETERMINISTIC_VALUE_REQUIRED.md) | deterministic | configuration | false |
+| [DEVELOPMENT_EVIDENCE_NOT_ACCEPTED](./DEVELOPMENT_EVIDENCE_NOT_ACCEPTED.md) | development | state | false |
 | [DOCLING_CONVERSION_HTTP](./DOCLING_CONVERSION_HTTP.md) | docling | availability | true |
 | [DOCLING_HEALTH_HTTP](./DOCLING_HEALTH_HTTP.md) | docling | availability | true |
 | [DOCLING_HTTP](./DOCLING_HTTP.md) | docling | availability | true |
@@ -125,6 +127,7 @@ deterministic projections enriched with source locations discovered by
 | [FACTORY_DEMO_ENVIRONMENT_UNREADABLE](./FACTORY_DEMO_ENVIRONMENT_UNREADABLE.md) | factory | configuration | false |
 | [FACTORY_DEMO_TARGET_INVALID](./FACTORY_DEMO_TARGET_INVALID.md) | factory | configuration | false |
 | [FILE_NOT_FOUND](./FILE_NOT_FOUND.md) | file | configuration | false |
+| [GENERATION_FALLBACK_USED](./GENERATION_FALLBACK_USED.md) | generation | state | false |
 | [GENERATOR_CHANGED](./GENERATOR_CHANGED.md) | generator | state | false |
 | [GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID](./GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID.md) | geometry build | configuration | false |
 | [GEOMETRY_BUILD_COORDINATE_SYSTEM_REQUIRED](./GEOMETRY_BUILD_COORDINATE_SYSTEM_REQUIRED.md) | geometry build | configuration | false |
@@ -202,7 +205,9 @@ deterministic projections enriched with source locations discovered by
 | [GLB_ACCESSOR_UNSUPPORTED](./GLB_ACCESSOR_UNSUPPORTED.md) | glb | configuration | false |
 | [GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS](./GLB_INDEX_ACCESSOR_OUT_OF_BOUNDS.md) | glb | integrity | false |
 | [GLB_INDEX_ACCESSOR_UNSUPPORTED](./GLB_INDEX_ACCESSOR_UNSUPPORTED.md) | glb | configuration | false |
-| [GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED](./GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED.md) | glb | configuration | false |
+| [GLB_NORMAL_COUNT_MISMATCH](./GLB_NORMAL_COUNT_MISMATCH.md) | glb | integrity | false |
+| [GLB_POSITION_ACCESSOR_MISSING](./GLB_POSITION_ACCESSOR_MISSING.md) | glb | configuration | false |
+| [GLB_PRIMITIVE_MODE_UNSUPPORTED](./GLB_PRIMITIVE_MODE_UNSUPPORTED.md) | glb | state | false |
 | [GLB_UINT_INDEX_EXTENSION_UNAVAILABLE](./GLB_UINT_INDEX_EXTENSION_UNAVAILABLE.md) | glb | availability | true |
 | [IMPROVEMENT_ACTION_INVALID](./IMPROVEMENT_ACTION_INVALID.md) | improvement | configuration | false |
 | [IMPROVEMENT_ACTION_KIND_INVALID](./IMPROVEMENT_ACTION_KIND_INVALID.md) | improvement | configuration | false |
@@ -451,6 +456,7 @@ deterministic projections enriched with source locations discovered by
 | [PHYSICAL_EVIDENCE_TOLERANCE_INVALID](./PHYSICAL_EVIDENCE_TOLERANCE_INVALID.md) | physical evidence | configuration | false |
 | [PHYSICAL_EVIDENCE_UNKNOWN_KEY](./PHYSICAL_EVIDENCE_UNKNOWN_KEY.md) | physical evidence | configuration | false |
 | [PHYSICAL_EVIDENCE_UNKNOWN_RECORD_KEY](./PHYSICAL_EVIDENCE_UNKNOWN_RECORD_KEY.md) | physical evidence | state | false |
+| [PHYSICAL_SOURCE_REFERENCE_MISSING](./PHYSICAL_SOURCE_REFERENCE_MISSING.md) | physical | configuration | false |
 | [PRESENTATION_CAMERA_INVALID](./PRESENTATION_CAMERA_INVALID.md) | presentation | configuration | false |
 | [PRESENTATION_CAPTURE_DUPLICATE](./PRESENTATION_CAPTURE_DUPLICATE.md) | presentation | integrity | false |
 | [PRESENTATION_CAPTURE_INVALID](./PRESENTATION_CAPTURE_INVALID.md) | presentation | configuration | false |
@@ -514,11 +520,13 @@ deterministic projections enriched with source locations discovered by
 | [PYTHON_F2MD_FAILED](./PYTHON_F2MD_FAILED.md) | python | state | false |
 | [PYTHON_F2MD_INVALID_JSON](./PYTHON_F2MD_INVALID_JSON.md) | python | state | false |
 | [QUERY_HEADER_REQUIRED](./QUERY_HEADER_REQUIRED.md) | query | configuration | false |
+| [REFERENCE_GEOMETRY_SUBSTITUTE](./REFERENCE_GEOMETRY_SUBSTITUTE.md) | reference | evidence | false |
 | [REQUEST_BODY_TOO_LARGE](./REQUEST_BODY_TOO_LARGE.md) | request | state | true |
 | [RESOURCE_DIGEST_INVALID](./RESOURCE_DIGEST_INVALID.md) | resource | configuration | false |
 | [RESOURCE_PLAN_INVALID](./RESOURCE_PLAN_INVALID.md) | resource | configuration | false |
 | [RESOURCE_PLAN_SOURCES_REQUIRED](./RESOURCE_PLAN_SOURCES_REQUIRED.md) | resource | configuration | false |
 | [RESOURCE_SOURCE_INVALID](./RESOURCE_SOURCE_INVALID.md) | resource | configuration | false |
+| [RUNTIME_EVIDENCE_MISSING](./RUNTIME_EVIDENCE_MISSING.md) | runtime | configuration | false |
 | [RUNTIME_PACKAGE_VERSION_MISSING](./RUNTIME_PACKAGE_VERSION_MISSING.md) | runtime | configuration | false |
 | [SCENE_ASSET_NOT_GROUNDED](./SCENE_ASSET_NOT_GROUNDED.md) | scene | integrity | false |
 | [SCENE_BLUEPRINT_BINDING_INVALID](./SCENE_BLUEPRINT_BINDING_INVALID.md) | scene blueprint | configuration | false |
@@ -549,15 +557,18 @@ deterministic projections enriched with source locations discovered by
 | [SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_UNKNOWN_KEY](./SCENE_BLUEPRINT_SPATIAL_REQUIREMENTS_UNKNOWN_KEY.md) | scene blueprint | configuration | false |
 | [SCENE_BLUEPRINT_UNKNOWN_KEY](./SCENE_BLUEPRINT_UNKNOWN_KEY.md) | scene blueprint | configuration | false |
 | [SCENE_COMPONENT_NOT_FOUND](./SCENE_COMPONENT_NOT_FOUND.md) | scene | configuration | false |
+| [SCENE_COMPONENT_UNKNOWN](./SCENE_COMPONENT_UNKNOWN.md) | scene | state | false |
 | [SCENE_INVALID](./SCENE_INVALID.md) | scene | configuration | false |
 | [SCENE_PATH_DUPLICATE](./SCENE_PATH_DUPLICATE.md) | scene | integrity | false |
 | [SCENE_REQUIRED_BINDING_MISSING](./SCENE_REQUIRED_BINDING_MISSING.md) | scene | configuration | false |
 | [SCENE_REVISION_STALE](./SCENE_REVISION_STALE.md) | scene | state | false |
 | [SCENE_SOURCE_TWIN_MISMATCH](./SCENE_SOURCE_TWIN_MISMATCH.md) | scene | integrity | false |
+| [SCENE_TWIN_REVISION_MISMATCH](./SCENE_TWIN_REVISION_MISMATCH.md) | scene | integrity | false |
 | [SCENE_TWIN_URI_NOT_GROUNDED](./SCENE_TWIN_URI_NOT_GROUNDED.md) | scene | integrity | false |
 | [SCENE_UNKNOWN_KEY](./SCENE_UNKNOWN_KEY.md) | scene | configuration | false |
 | [SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN](./SEMANTIC_MATH_AUTHORITY_FIELD_FORBIDDEN.md) | semantic | policy | false |
 | [SOURCE_CITATION_INVALID](./SOURCE_CITATION_INVALID.md) | source | configuration | false |
+| [SOURCE_CONVERSION_FAILED](./SOURCE_CONVERSION_FAILED.md) | source | state | false |
 | [SOURCE_COVERAGE_CONVERTER_INVALID](./SOURCE_COVERAGE_CONVERTER_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_CONVERTER_VERSION_INVALID](./SOURCE_COVERAGE_CONVERTER_VERSION_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_COVERAGE_HASH_INVALID](./SOURCE_COVERAGE_COVERAGE_HASH_INVALID.md) | source coverage | configuration | false |
@@ -589,8 +600,10 @@ deterministic projections enriched with source locations discovered by
 | [SOURCE_COVERAGE_TERMINAL_MISMATCH](./SOURCE_COVERAGE_TERMINAL_MISMATCH.md) | source coverage | integrity | false |
 | [SOURCE_COVERAGE_TREE_REFS_INVALID](./SOURCE_COVERAGE_TREE_REFS_INVALID.md) | source coverage | configuration | false |
 | [SOURCE_COVERAGE_TWIN_REVISION_STATUS_INVALID](./SOURCE_COVERAGE_TWIN_REVISION_STATUS_INVALID.md) | source coverage | configuration | false |
+| [SOURCE_EXCLUDED_BY_POLICY](./SOURCE_EXCLUDED_BY_POLICY.md) | source | policy | false |
 | [SOURCE_NOT_A_DIRECTORY](./SOURCE_NOT_A_DIRECTORY.md) | source | state | false |
 | [SOURCE_NOT_FOUND](./SOURCE_NOT_FOUND.md) | source | configuration | false |
+| [SOURCE_QUARANTINED](./SOURCE_QUARANTINED.md) | source | state | false |
 | [SOURCE_REVISION_CHANGED](./SOURCE_REVISION_CHANGED.md) | source | state | false |
 | [SOURCE_REVISION_NOT_FOUND](./SOURCE_REVISION_NOT_FOUND.md) | source | availability | true |
 | [SOURCE_SELECTION_ENTRY_INVALID](./SOURCE_SELECTION_ENTRY_INVALID.md) | source | configuration | false |
@@ -600,6 +613,10 @@ deterministic projections enriched with source locations discovered by
 | [SOURCE_SELECTION_PATH_UNSAFE](./SOURCE_SELECTION_PATH_UNSAFE.md) | source | state | false |
 | [SOURCE_SELECTION_SOURCE_MISSING](./SOURCE_SELECTION_SOURCE_MISSING.md) | source | configuration | false |
 | [SOURCE_SELECTION_SYMLINK_ESCAPE](./SOURCE_SELECTION_SYMLINK_ESCAPE.md) | source | state | false |
+| [SOURCE_TREE_UNLINKED](./SOURCE_TREE_UNLINKED.md) | source | state | false |
+| [SOURCE_TWIN_USAGE_UNEVALUATED](./SOURCE_TWIN_USAGE_UNEVALUATED.md) | source | state | false |
+| [SOURCE_UNSUPPORTED](./SOURCE_UNSUPPORTED.md) | source | state | false |
+| [SOURCE_UNUSED_BY_TWIN](./SOURCE_UNUSED_BY_TWIN.md) | source | state | false |
 | [SPEC_BLUEPRINT_MISSING](./SPEC_BLUEPRINT_MISSING.md) | spec | configuration | false |
 | [SPEC_DSL_DIR_MISSING](./SPEC_DSL_DIR_MISSING.md) | spec | configuration | false |
 | [SPEC_INTENT_CORRUPTION_DETECTED](./SPEC_INTENT_CORRUPTION_DETECTED.md) | spec | state | false |
@@ -645,6 +662,7 @@ deterministic projections enriched with source locations discovered by
 | [TWIN_COMPONENT_DUPLICATE](./TWIN_COMPONENT_DUPLICATE.md) | twin | integrity | false |
 | [TWIN_COMPONENT_INVALID](./TWIN_COMPONENT_INVALID.md) | twin | configuration | false |
 | [TWIN_COMPONENT_SOURCE_REQUIRED](./TWIN_COMPONENT_SOURCE_REQUIRED.md) | twin | configuration | false |
+| [TWIN_COMPONENT_UNGROUNDED](./TWIN_COMPONENT_UNGROUNDED.md) | twin | state | false |
 | [TWIN_ID_OVERRIDE](./TWIN_ID_OVERRIDE.md) | twin | state | false |
 | [TWIN_KIND_OVERRIDE](./TWIN_KIND_OVERRIDE.md) | twin | state | false |
 | [TWIN_PROBES_EXIT](./TWIN_PROBES_EXIT.md) | twin probes | availability | true |
@@ -663,4 +681,18 @@ deterministic projections enriched with source locations discovered by
 | [WATCH_ALREADY_STARTED](./WATCH_ALREADY_STARTED.md) | watch | state | true |
 | [WATCH_BUILD_ALREADY_RUNNING](./WATCH_BUILD_ALREADY_RUNNING.md) | watch | state | true |
 | [WEAKER_THAN_EXISTING](./WEAKER_THAN_EXISTING.md) | weaker | state | false |
+| [WEB_MODEL_ASSET_HASH_MISMATCH](./WEB_MODEL_ASSET_HASH_MISMATCH.md) | web geometry | integrity | false |
+| [WEB_MODEL_ASSET_SIZE_MISMATCH](./WEB_MODEL_ASSET_SIZE_MISMATCH.md) | web geometry | integrity | false |
+| [WEB_MODEL_GLB_BOUNDS_MISMATCH](./WEB_MODEL_GLB_BOUNDS_MISMATCH.md) | web | integrity | false |
+| [WEB_MODEL_GLB_COUNT_MISMATCH](./WEB_MODEL_GLB_COUNT_MISMATCH.md) | web | integrity | false |
+| [WEB_MODEL_GLB_HEADER_INVALID](./WEB_MODEL_GLB_HEADER_INVALID.md) | web | configuration | false |
+| [WEB_MODEL_GLB_JSON_INVALID](./WEB_MODEL_GLB_JSON_INVALID.md) | web | configuration | false |
+| [WEB_MODEL_GLB_POSITION_INVALID](./WEB_MODEL_GLB_POSITION_INVALID.md) | web | configuration | false |
+| [WEB_MODEL_GLB_UNIT_IMPLAUSIBLE](./WEB_MODEL_GLB_UNIT_IMPLAUSIBLE.md) | web | state | false |
+| [WEB_MODEL_INTEGRATION_COMPONENT_MISSING](./WEB_MODEL_INTEGRATION_COMPONENT_MISSING.md) | web | configuration | false |
+| [WEB_MODEL_INTEGRATION_DRIFT](./WEB_MODEL_INTEGRATION_DRIFT.md) | web | integrity | false |
+| [WEB_MODEL_INTEGRATION_INVALID](./WEB_MODEL_INTEGRATION_INVALID.md) | web | configuration | false |
+| [WEB_MODEL_MANIFEST_INVALID](./WEB_MODEL_MANIFEST_INVALID.md) | web geometry | configuration | false |
+| [WEB_MODEL_PROVENANCE_INCOMPLETE](./WEB_MODEL_PROVENANCE_INCOMPLETE.md) | web geometry | configuration | false |
+| [WEB_MODEL_SOURCE_HASH_MISMATCH](./WEB_MODEL_SOURCE_HASH_MISMATCH.md) | web geometry | integrity | false |
 | [WRONG_EXPECTED_VERSION](./WRONG_EXPECTED_VERSION.md) | wrong | state | false |

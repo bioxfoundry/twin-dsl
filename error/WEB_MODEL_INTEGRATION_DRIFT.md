@@ -1,21 +1,21 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: SCENE_PATH_DUPLICATE
+code: WEB_MODEL_INTEGRATION_DRIFT
 source: error/catalog.json
 generated: true
 ---
 
-# SCENE_PATH_DUPLICATE — Scene path duplicate
+# WEB_MODEL_INTEGRATION_DRIFT — Web model integration drift
 
-- Subsystem: `scene`
+- Subsystem: `web`
 - Severity: `error`
 - Error class: `integrity`
 - Retryable: `false`
-- Surfaces: `diagnostic`, `exception`
+- Surfaces: `exception`
 
 ## Meaning
 
-The scene path evidence is internally inconsistent or does not match its bound identity.
+The web model integration evidence is internally inconsistent or does not match its bound identity.
 
 ## Likely causes
 
@@ -32,5 +32,4 @@ Use the detail after the code to locate the conflicting value, restore one canon
 
 ## Emitted by
 
-- `src/runtime/autonomy.ts`
-- `src/runtime/project-integrity.ts`
+- `scripts/install-web-models.mjs`

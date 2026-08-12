@@ -373,16 +373,29 @@ function loadGlb(bytes){
       const Out=a.componentType===5125?Uint32Array:Uint16Array,out=new Out(a.count);
       for(let i=0;i<a.count;i++){const q=off+i*stride;out[i]=a.componentType===5121?binView.getUint8(q):a.componentType===5123?binView.getUint16(q,true):binView.getUint32(q,true);}return out;
     };
-    const primitives=doc.meshes?.flatMap(mesh=>mesh.primitives||[])||[],prim=primitives[0];if(prim?.attributes?.POSITION===undefined)return null;
-    // The deterministic converter shares POSITION/NORMAL tables between material primitives.
-    // Different accessors require a scene-graph loader and are rejected instead of rendered incorrectly.
-    if(primitives.some(item=>item.attributes?.POSITION!==prim.attributes.POSITION||item.attributes?.NORMAL!==prim.attributes.NORMAL))throw new Error('GLB_MULTI_ACCESSOR_MESH_UNSUPPORTED');
-    const pos=readVec3(prim.attributes.POSITION),nrm=prim.attributes.NORMAL===undefined?new Array(pos.length).fill(0):readVec3(prim.attributes.NORMAL);
+    const primitives=doc.meshes?.flatMap((mesh,meshIndex)=>(mesh.primitives||[]).map((primitive,primitiveIndex)=>({mesh,meshIndex,primitive,primitiveIndex})))||[];
+    if(!primitives.length)return null;
+    const pos=[],nrm=[],parts=[];
+    for(const {mesh,meshIndex,primitive,primitiveIndex} of primitives){
+      if((primitive.mode??4)!==4)throw new Error('GLB_PRIMITIVE_MODE_UNSUPPORTED');
+      if(primitive.attributes?.POSITION===undefined)throw new Error('GLB_POSITION_ACCESSOR_MISSING');
+      const primitivePos=readVec3(primitive.attributes.POSITION),baseVertex=pos.length/3;
+      const primitiveNrm=primitive.attributes.NORMAL===undefined?new Array(primitivePos.length).fill(0):readVec3(primitive.attributes.NORMAL);
+      if(primitiveNrm.length!==primitivePos.length)throw new Error('GLB_NORMAL_COUNT_MISMATCH');
+      for(const value of primitivePos)pos.push(value);for(const value of primitiveNrm)nrm.push(value);
+      const localIndices=primitive.indices===undefined
+        ?(primitivePos.length/3>65535?Uint32Array.from({length:primitivePos.length/3},(_,index)=>index):Uint16Array.from({length:primitivePos.length/3},(_,index)=>index))
+        :readIndices(primitive.indices);
+      let localMax=0;for(const index of localIndices)localMax=Math.max(localMax,index);
+      const maxIndex=baseVertex+localMax,Out=maxIndex>65535?Uint32Array:Uint16Array;
+      if(Out===Uint32Array&&!UINT_INDEX)throw new Error('GLB_UINT_INDEX_EXTENSION_UNAVAILABLE');
+      const indices=Out.from(localIndices,index=>index+baseVertex);
+      parts.push({
+        indices,name:primitive.extras?.group||mesh.name||`mesh-${meshIndex}-primitive-${primitiveIndex}`,
+        color:(doc.materials?.[primitive.material]?.pbrMetallicRoughness?.baseColorFactor||[.62,.64,.66,1]).slice(0,3),
+      });
+    }
     const normalized=normalizeAssetMesh({pos:new Float32Array(pos),nrm:new Float32Array(nrm)});
-    const parts=primitives.filter(item=>item.indices!==undefined).map((item,index)=>({
-      indices:readIndices(item.indices),name:item.extras?.group||`primitive-${index}`,
-      color:(doc.materials?.[item.material]?.pbrMetallicRoughness?.baseColorFactor||[.62,.64,.66,1]).slice(0,3),
-    }));
     return upload({...normalized,parts});
   }catch(error){console.warn('[digital-twin] GLB rejected',error);return null;}
 }

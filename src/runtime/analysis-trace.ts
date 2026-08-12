@@ -117,6 +117,8 @@ function componentIntentRecords(component: TwinComponent, input: AnalysisTraceBu
 function evidenceConfidence(component:TwinComponent,binding:AnalysisTraceBuildInput["scene"]["bindings"][number]|undefined):AnalysisTraceDecision["confidence"] {
   const geometry=String(component.properties.geometryEvidence??"placeholder").toLowerCase();
   const semantic=String(component.properties.semanticEvidence??"").toLowerCase();
+  const representation=String(component.properties.geometryRepresentationClass??"").toLowerCase();
+  if(["functional-reference","model-specific-reference"].includes(representation)) return "medium";
   if(binding?.assetUri||["verified","ifc","measured","cad"].includes(geometry)) return "high";
   if(semantic==="direct"||geometry.includes("document")||geometry.includes("archive")) return "medium";
   return "low";
@@ -126,6 +128,7 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
   const components = flatten(input.twin.components);
   const meshes = input.scene.bindings.filter(binding => Boolean(binding.assetUri));
   const uniqueMeshes = new Set(meshes.map(binding => binding.assetUri));
+  const primitiveFallbacks = input.scene.bindings.filter(binding=>!binding.assetUri&&Boolean(binding.primitive)&&binding.primitive!=="scope").length;
   const citations = new Map<string, AnalysisTraceCitation>();
   const addCitation = (citation: AnalysisTraceCitation | undefined): string | undefined => {
     if (!citation) return undefined;
@@ -134,7 +137,8 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
   };
 
   const canonicalRpi = intentMatching(input, ["raspberry pi 4 / 5"]);
-  const hardwareRpi = intentMatching(input, ["all electronics are controlled by a rpi 3"]);
+  const hardwareRpi = intentMatching(input, ["raspberry pi 3 b", "1 gb ram"])
+    ?? intentMatching(input, ["all electronics are controlled by a rpi 3"]);
   const canonicalRpiCitation = canonicalRpi ? addCitation(citationFromIntent(input, canonicalRpi.record, canonicalRpi.sourceUri)) : undefined;
   const hardwareRpiCitation = hardwareRpi ? addCitation(citationFromIntent(input, hardwareRpi.record, hardwareRpi.sourceUri)) : undefined;
   const controller = components.find(component => component.id === "biospec_controller_01");
@@ -145,7 +149,7 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
   if (controller) decisions.push({
     id: "biospec-controller-identity",
     subject: controller.id,
-    outcome: "Keep the generic BIO-SPEC Raspberry Pi controller identity; exact board revision is unresolved.",
+    outcome: "Keep the generic BIO-SPEC Raspberry Pi controller identity; retain Raspberry Pi 3 B only as the implementation-BOM reference until the installed board is surveyed.",
     ruleId: "DT-EVIDENCE-SPECIFICITY-001",
     confidence: canonicalRpi && hardwareRpi ? "medium" : "low",
     basis: "The canonical specification permits Raspberry Pi 4 or 5, while the cited BIO-SPEC implementation reports Raspberry Pi 3. Conflicting revisions cannot be collapsed into one exact physical asset.",
@@ -153,7 +157,7 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
     alternatives: [
       { value: "Raspberry Pi 5", status: "unresolved", reason: "Allowed by the specification but not confirmed as the installed board." },
       { value: "Raspberry Pi 4 Model B", status: "unresolved", reason: "Allowed by the specification but not confirmed as the installed board." },
-      { value: "Raspberry Pi 3", status: "unresolved", reason: "Reported by the implementation paper but conflicts with the canonical procurement BOM." },
+      { value: "Raspberry Pi 3 B", status: "selected-reference", reason: "Reported exactly by the implementation bill of materials; later planning still permits replacement with Raspberry Pi 4 / 5." },
     ],
     gaps: ["Observed equipment register or user confirmation of board model and revision is missing."],
   });
@@ -163,12 +167,14 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
     outcome: controllerBinding.assetUri ? `Bind grounded asset ${controllerBinding.assetUri}.` : `Render ${controllerBinding.primitive ?? "cube"} fallback; no component-level grounded mesh is available.`,
     ruleId: "DT-GEOMETRY-GROUNDING-001",
     confidence: "high",
-    basis: `Scene assets require an ingested immutable resource URI. ${relatedCad} CAD files matched the broader BIO-SPEC source pack, but no selected asset is specifically evidenced as Raspberry Pi geometry.`,
-    citationIds: [canonicalRpiCitation, hardwareRpiCitation, "external-rpi-hardware-docs", "external-rpi5-product-portal", "external-biospec-osf"].filter((id): id is string => Boolean(id)),
+    basis: controllerBinding.assetUri
+      ? `The immutable asset passed physical-evidence intake. The implementation BOM identifies Raspberry Pi 3 B, while the community OpenSCAD geometry remains a model-specific reference rather than manufacturer/as-built CAD.`
+      : `Scene assets require an ingested immutable resource URI. ${relatedCad} CAD files matched the broader BIO-SPEC source pack, but no selected asset is specifically evidenced as Raspberry Pi geometry.`,
+    citationIds: [canonicalRpiCitation, hardwareRpiCitation, "external-rpi-hardware-docs", "external-rpi-community-model", "external-rpi5-product-portal", "external-biospec-osf"].filter((id): id is string => Boolean(id)),
     alternatives: [
       { value: "Bind related bioreactor CAD candidates", status: "rejected", reason: "The candidates are lids, fittings and sleeves; source-pack proximity is not component identity." },
-      { value: "Download an arbitrary community RPi mesh", status: "rejected", reason: "Model revision, licensing and provenance are not grounded in the project evidence." },
-      { value: "Import a manufacturer/user supplied asset", status: "deferred", reason: "Accept after hash, license, units and component mapping pass physical-evidence intake." },
+      { value: "Use the pinned Raspberry Pi 3 B community model", status: controllerBinding.assetUri?"selected-reference":"deferred", reason: "Permitted only with revision, GPL attribution, metre normalization, content hash and an explicit non-as-built classification." },
+      { value: "Import manufacturer/user supplied or surveyed geometry", status: "deferred", reason: "This would supersede the reference after hash, license, units and component mapping pass physical-evidence intake." },
     ],
     gaps: ["Exact Raspberry Pi model", "Grounded CAD/mesh URI", "License and attribution", "Measured installation pose and enclosure"],
   });
@@ -246,6 +252,14 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
     excerpt: "Manufacturer documentation used only as an external acquisition candidate; it does not prove which board is installed in this project.",
   });
   addCitation({
+    id: "external-rpi-community-model",
+    kind: "external",
+    title: "openscad-rpi-library — Raspberry Pi 3 Model B parametric reference",
+    href: "https://github.com/RigacciOrg/openscad-rpi-library/tree/1279e706cd88bc3f2df6918d7f005bfc0c60cdef",
+    excerpt: "Pinned GPL-3.0 community OpenSCAD reference used after deterministic tessellation, unit normalization and hash verification; not manufacturer or as-built CAD.",
+    license: "GPL-3.0",
+  });
+  addCitation({
     id: "external-rpi5-product-portal",
     kind: "external",
     title: "Raspberry Pi 5 Product Information Portal",
@@ -279,7 +293,7 @@ export function buildAnalysisTrace(input: AnalysisTraceBuildInput): AnalysisTrac
     sceneBindings: input.scene.bindings.length,
     meshBindings: meshes.length,
     uniqueMeshes: uniqueMeshes.size,
-    primitiveFallbacks: input.scene.bindings.length - meshes.length,
+    primitiveFallbacks,
     geometryRequiredChecks: input.geometry.coverage.requiredChecks ?? 0,
     geometryPassedRequiredChecks: input.geometry.coverage.passedRequiredChecks ?? 0,
     completeAssemblies: input.assembly?.coverage.completeAssemblies ?? 0,
@@ -351,7 +365,8 @@ export function validateAnalysisTrace(value: unknown): AnalysisTraceDocument {
   if (citationIds.size !== document.citations.length) throw new Error("ANALYSIS_TRACE_INVALID:duplicate-citation");
   for (const decision of document.decisions) {
     if (!decision.id || !decision.ruleId || !decision.outcome || !["high", "medium", "low"].includes(decision.confidence) ||
-      decision.citationIds.some(id => !citationIds.has(id))) throw new Error(`ANALYSIS_TRACE_INVALID:decision:${decision.id || "missing"}`);
+      decision.citationIds.some(id => !citationIds.has(id)) ||
+      decision.alternatives.some(item=>!["rejected","unresolved","deferred","selected-reference"].includes(item.status))) throw new Error(`ANALYSIS_TRACE_INVALID:decision:${decision.id || "missing"}`);
   }
   if (new Set(document.decisions.map(decision => decision.id)).size !== document.decisions.length) throw new Error("ANALYSIS_TRACE_INVALID:duplicate-decision");
   return document;

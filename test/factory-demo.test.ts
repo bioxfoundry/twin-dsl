@@ -67,13 +67,37 @@ test("factory demo upgrades the valid v0.2 blueprint to device-level process act
     await writeFile(blueprintPath, `${JSON.stringify(blueprint, null, 2)}\n`);
 
     const result = await ensureFactoryDemo(projectDir, projectDir);
-    assert.equal(result.action, "migrated:FACTORY_DEMO_BLUEPRINT_V03");
+    assert.equal(result.action, "migrated:FACTORY_DEMO_BLUEPRINT_V032");
     const migrated = JSON.parse(await readFile(blueprintPath, "utf8"));
-    assert.equal(migrated.id, "biofoundry-live-v0.3.1");
+    assert.equal(migrated.id, "biofoundry-live-v0.3.2");
     assert.ok(migrated.components.some((component: { id: string }) => component.id === "biospec_controller_01"));
     assert.ok(migrated.components.some((component: { id: string }) => component.id === "bioprinter_part_plunger_retainer_2ml"));
-    assert.equal(migrated.components.length, 64);
+    assert.equal(migrated.components.length, 76);
     assert.equal(migrated.components.length, migrated.bindings.length);
+  } finally {
+    await rm(temp, { recursive: true, force: true });
+  }
+});
+
+test("factory demo upgrades v0.3.1 to detailed Syringebot child geometry", async () => {
+  const temp = await mkdtemp(join(tmpdir(), "factory-demo-v032-"));
+  const projectDir = join(temp, "project");
+  try {
+    await createLivingProject({ name: "Biofoundry Factory Floor", outDir: projectDir, profile: "biofoundry" });
+    const blueprintPath = join(projectDir, "baseline/scene-blueprint.json");
+    const blueprint = JSON.parse(await readFile(blueprintPath, "utf8"));
+    blueprint.id = "biofoundry-live-v0.3.1";
+    blueprint.components = blueprint.components.filter((component: { id: string }) => !component.id.startsWith("syringebot_syringe_") && !component.id.startsWith("syringebot_valve_block_"));
+    blueprint.bindings = blueprint.bindings.filter((binding: { componentId: string }) => !binding.componentId.startsWith("syringebot_syringe_") && !binding.componentId.startsWith("syringebot_valve_block_"));
+    await writeFile(blueprintPath, `${JSON.stringify(blueprint, null, 2)}\n`);
+
+    const result = await ensureFactoryDemo(projectDir, projectDir);
+    assert.equal(result.action, "migrated:FACTORY_DEMO_BLUEPRINT_V032");
+    const migrated = JSON.parse(await readFile(blueprintPath, "utf8"));
+    assert.equal(migrated.id, "biofoundry-live-v0.3.2");
+    assert.ok(migrated.components.some((component: { id: string }) => component.id === "syringebot_syringe_06"));
+    assert.ok(migrated.components.some((component: { id: string }) => component.id === "syringebot_valve_block_06"));
+    assert.equal(migrated.components.length, 76);
   } finally {
     await rm(temp, { recursive: true, force: true });
   }
