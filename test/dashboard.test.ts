@@ -7,6 +7,7 @@ import assert from "node:assert/strict";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { Script } from "node:vm";
 import { startDashboard } from "../src/serve/dashboard.js";
 import { createLivingProject } from "../src/project/wizard.js";
 import { LivingProjectRuntime } from "../src/runtime/living-project.js";
@@ -89,6 +90,9 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.equal(state.diagnosticScope, "current");
 
   const dashboardHtml = await (await fetch(server.url)).text();
+  const embeddedScripts = [...dashboardHtml.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((match) => match[1]);
+  assert.ok(embeddedScripts.length > 0, "dashboard has no embedded JavaScript");
+  for (const script of embeddedScripts) assert.doesNotThrow(() => new Script(script), "dashboard JavaScript must parse in a browser");
   assert.match(dashboardHtml, /function highlightJson/);
   assert.match(dashboardHtml, /function highlightDsl/);
   assert.match(dashboardHtml, /escapeCode\(d\.content\)|highlightDsl\(d\.content\)/);

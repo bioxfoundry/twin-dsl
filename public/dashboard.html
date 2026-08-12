@@ -652,7 +652,7 @@ function paintProcessPanel(){
     const sourced=(item.parameters||[]).map(parameter=>`${parameter.name}=${String(parameter.value)}${parameter.unit?' '+parameter.unit:''}`).join(' · ');
     return `<div class="process-step ${cls} ${item.phase==='recover'?'recovery':''}"><b>${index+1}. ${escapeCode(item.label)}</b><span class="process-evidence">${escapeCode(item.phase)} · ${evidence?`source ${escapeCode(locator)} · intent ${escapeCode(evidence.intentId)}`:'evidence missing'}</span>${sourced?`<span class="process-parameters">${escapeCode(sourced)}</span>`:''}</div>`;
   }).join('')||'<div class="process-step">No executable sequence is supported by the source.</div>';
-  $('process-gaps').innerHTML=process.gaps.length?`<div class="warn mono">Known gaps</div>${process.gaps.map(gap=>`<div class="process-step recovery">${escapeCode(gap)}</div>`).join('')}:'';
+  $('process-gaps').innerHTML=process.gaps.length?`<div class="warn mono">Known gaps</div>${process.gaps.map(gap=>`<div class="process-step recovery">${escapeCode(gap)}</div>`).join('')}`:'';
   $('process-timing').textContent=mqttRun?'Step selection follows validated MQTT observations; visual pulse timing remains presentation-only.':(PROCESS_ANIMATION&&PROCESS_ANIMATION.timing&&PROCESS_ANIMATION.timing.disclaimer)||'Domain timing unavailable.';
 }
 
