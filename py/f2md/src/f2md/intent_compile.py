@@ -547,17 +547,9 @@ def _source_policy(
 ) -> tuple[List[Path], List[Dict[str, str]]]:
     included: List[Path] = []
     excluded: List[Dict[str, str]] = []
-    nested_roots = {
-        version.parent.resolve()
-        for version in root.rglob("VERSION")
-        if version.parent.resolve() != root.resolve()
-    }
     for path in sorted(root.rglob("*.md")):
         if (".git" in path.parts or ".living-runtime" in path.parts
                 or any(part.endswith(".artifacts") for part in path.parts)):
-            continue
-        resolved = path.resolve()
-        if any(nested in resolved.parents for nested in nested_roots):
             continue
         frontmatter = _frontmatter(path.read_text(encoding="utf-8", errors="replace"))
         language = frontmatter.get("language", "")
