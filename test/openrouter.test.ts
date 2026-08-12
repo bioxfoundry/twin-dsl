@@ -5,6 +5,7 @@ import { NlDslCompiler } from "../src/llm/nl-dsl-compiler.js";
 import { shouldShortCircuitSceneGeneration } from "../src/runtime/living-project.js";
 import { canonicalJson, sha256 } from "../src/core/canonical.js";
 import type { Todo2CodeAdapter } from "../src/adapters/todo2code.js";
+import { canonicalIntentRecord } from "../src/dsl/intent.js";
 
 function patchEnvelope(target:string,value:unknown,base:unknown={}):string{return JSON.stringify({schema:'subactor.patch-envelope/v1',patchDsl:[
   'PATCHDSL "subactor.patch-dsl/v1"',
@@ -49,14 +50,14 @@ test('prefer-llm short-circuits Scene only after a Twin transport fallback',()=>
 });
 
 test('intent LLM enrichment patches a deterministic todo2code baseline instead of invoking its LLM',async()=>{
-  const records=[{schema:'t2c.intent/v1',id:'intent-1',type:'request',text:'baseline',actor:'operator',targetUris:['urn:test:source']}];
+  const records=[canonicalIntentRecord({seed:'intent-1',type:'request',text:'baseline',actor:'operator',targetUris:['urn:test:source']})];
   let todoMode='';
   const todo={extractNl:async(_text:string,mode:string)=>{todoMode=mode;return records;}} as unknown as Todo2CodeAdapter;
   const base={document:records};
-  const patchDsl=['PATCHDSL "subactor.patch-dsl/v1"','TARGET "intent"',`BASE_SHA256 "${sha256(canonicalJson(base))}"`,'SET "/document/0/text" "refined"','END_PATCH'].join('\n');
+  const patchDsl=['PATCHDSL "subactor.patch-dsl/v1"','TARGET "intent"',`BASE_SHA256 "${sha256(canonicalJson(base))}"`,'SET "/document/0/statement/text" "refined"','END_PATCH'].join('\n');
   const fetcher:typeof fetch=async()=>new Response(JSON.stringify({choices:[{message:{content:JSON.stringify({schema:'subactor.patch-envelope/v1',patchDsl})}}]}),{status:200});
   const compiler=new NlDslCompiler(new OpenRouterStructuredClient(config,fetcher),todo);
   const result=await compiler.compile({kind:'intent',text:'Refine request',mode:'require-llm'});
   assert.equal(todoMode,'deterministic');
-  assert.equal((result.value as any[])[0].text,'refined');
+  assert.equal((result.value as any[])[0].statement.text,'refined');
 });

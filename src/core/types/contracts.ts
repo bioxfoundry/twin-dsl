@@ -90,14 +90,57 @@ export interface SourceCoverageDocument {
 }
 
 export interface IntentRecord {
-  schema: "t2c.intent/v1";
+  schemaVersion: "t2c.intent/v1";
   id: string;
-  type: EpistemicType;
-  text: string;
-  actor: string;
-  ticket?: string;
-  targetUris: string[];
-  source?: SourceAnchor;
+  statement: {
+    kind: string;
+    actor: string | null;
+    action: "add" | "fix" | "remove" | "refactor" | "test" | "document" | "configure" | "analyze" | "validate" | "call" | "depend_on" | "declare" | "release" | "change" | "preserve" | "block" | "approve" | "unknown";
+    subject: string | null;
+    object: string;
+    target: { paths: string[]; symbols: string[]; tickets: string[]; versions: string[] };
+    modality: "required" | "recommended" | "optional" | "observed" | "claimed" | "unknown";
+    polarity: "positive" | "negative";
+    text: string;
+  };
+  lifecycle: { status: "proposed" | "planned" | "in_progress" | "implemented" | "verified" | "released" | "completed" | "blocked" | "unknown" };
+  source: {
+    kind: "nl" | "git" | "ast" | "todo" | "changelog" | "document" | "agent_log" | "test" | "system";
+    path: string | null;
+    lines: { start: number; end: number } | null;
+    revision: string | null;
+    symbol: string | null;
+    commitIndex: number | null;
+    extractor: string;
+    contentHash: string;
+    rawExcerpt: string | null;
+  };
+  epistemic: {
+    class: "declaration" | "plan" | "claim" | "fact" | "inference" | "llm_inference";
+    confidence: number;
+    basis: string[];
+  };
+  observedAt: string | null;
+  metadata: {
+    generation: {
+      generator: string;
+      generatorVersion: string;
+      runtimeVersion: string;
+      requested: "deterministic" | "llm";
+      used: "deterministic" | "llm";
+      degraded: boolean;
+      fallbackReason: string | null;
+      provider: string | null;
+      model: string | null;
+      responseId: string | null;
+    };
+    bioxfoundry?: {
+      legacyType: EpistemicType;
+      targetUris: string[];
+      sourceAnchor: SourceAnchor;
+    };
+    [key: string]: unknown;
+  };
 }
 
 export type QueryOperator = "contains" | "equals" | "prefix" | "regex";

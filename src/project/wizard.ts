@@ -8,6 +8,7 @@ import { biofoundryLiveBlueprintV02 } from "../scene/blueprint.js";
 import { parseLiveBindingDsl } from "../dsl/live-binding.js";
 import { parseAssemblyDsl } from "../dsl/assembly.js";
 import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
+import { canonicalIntentRecord } from "../dsl/intent.js";
 
 export type ProjectProfile = "generic" | "biofoundry";
 export interface CreateProjectOptions { name:string; outDir:string; profile?:ProjectProfile; managerIntent?:string; }
@@ -256,8 +257,8 @@ export async function createLivingProject(options:CreateProjectOptions):Promise<
   await text(join(projectDir,"logs/runtime.jsonl"),JSON.stringify({observedAt:"2026-01-01T00:00:00.000Z",subjectUri:`subactor://project/${id}/runtime`,status:"ready",severity:"info",labels:["bootstrap"]})+"\n");
   await text(join(projectDir,"environment/current.json"),JSON.stringify({observedAt:"2026-01-01T00:00:00.000Z",subjectUri:`subactor://project/${id}/environment`,temperatureC:22,availability:true,severity:"info",units:{temperatureC:"Cel",availability:"none"}},null,2)+"\n");
   await text(join(projectDir,"config/development.intent.fixture.json"),JSON.stringify([
-    {schema:"t2c.intent/v1",id:`${id}-request-1`,type:"request",text:managerIntent,actor:"human:manager",targetUris:[`subactor://project/${id}`]},
-    {schema:"t2c.intent/v1",id:`${id}-plan-1`,type:"plan",text:"Research, develop, validate and publish the next Digital Twin projection.",actor:"agent:project-operator",targetUris:["twin://project/runtime/state/rebuild"]},
+    canonicalIntentRecord({seed:`${id}-request-1`,type:"request",text:managerIntent,actor:"human:manager",targetUris:[`subactor://project/${id}`]}),
+    canonicalIntentRecord({seed:`${id}-plan-1`,type:"plan",text:"Research, develop, validate and publish the next Digital Twin projection.",actor:"agent:project-operator",targetUris:["twin://project/runtime/state/rebuild"]}),
   ],null,2)+"\n");
   await text(join(projectDir,"project/ticket-001/user-manager.md"),`---\ntype: request\n---\n${managerIntent}\n`);
   await text(join(projectDir,"project/ticket-001/ai-agent.md"),"## Execution Plan\n\nRun research → todo2code development evidence → observations → deterministic gates → twin → scene → improvementDSL → feedback.\n");

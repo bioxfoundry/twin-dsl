@@ -212,6 +212,112 @@ def _intent_type(title: str, text: str, *, first: bool = False) -> str:
     return "report" if first else "claim"
 
 
+_INTENT_TYPES = {"request", "plan", "decision", "message", "report", "result", "claim"}
+_ACTION_BY_TYPE = {
+    "request": "analyze",
+    "plan": "change",
+    "decision": "declare",
+    "message": "declare",
+    "report": "document",
+    "result": "validate",
+    "claim": "declare",
+}
+_MODALITY_BY_TYPE = {
+    "request": "recommended",
+    "plan": "recommended",
+    "decision": "required",
+    "message": "claimed",
+    "report": "observed",
+    "result": "observed",
+    "claim": "claimed",
+}
+_LIFECYCLE_BY_TYPE = {
+    "request": "proposed",
+    "plan": "planned",
+    "decision": "proposed",
+    "message": "unknown",
+    "report": "unknown",
+    "result": "verified",
+    "claim": "unknown",
+}
+
+
+def _compiler_version() -> str:
+    from . import __version__
+    return __version__
+
+
+def _canonical_intent(
+    *,
+    seed: str,
+    intent_type: str,
+    text: str,
+    actor: str,
+    target_uri: str,
+    source_path: str,
+    source_digest: str,
+    source_anchor: Dict[str, Any],
+    basis: str,
+) -> Dict[str, Any]:
+    """Materialize the exact canonical todo2code record while retaining rich f2md anchors."""
+    version = _compiler_version()
+    source_lines = source_anchor.get("lines")
+    lines = ({"start": source_lines[0], "end": source_lines[1]}
+             if isinstance(source_lines, list) and len(source_lines) == 2 else None)
+    return {
+        "schemaVersion": "t2c.intent/v1",
+        "id": f"INT-DOC-{_hash(seed)[:20]}",
+        "statement": {
+            "kind": intent_type,
+            "actor": actor,
+            "action": _ACTION_BY_TYPE[intent_type],
+            "subject": None,
+            "object": text,
+            "target": {"paths": [source_path], "symbols": [], "tickets": [], "versions": []},
+            "modality": _MODALITY_BY_TYPE[intent_type],
+            "polarity": "positive",
+            "text": text,
+        },
+        "lifecycle": {"status": _LIFECYCLE_BY_TYPE[intent_type]},
+        "source": {
+            "kind": "document",
+            "path": source_path,
+            "lines": lines,
+            "revision": source_digest,
+            "symbol": None,
+            "commitIndex": None,
+            "extractor": f"f2md.intent_compile@{version}",
+            "contentHash": _hash(text),
+            "rawExcerpt": text,
+        },
+        "epistemic": {
+            "class": "declaration",
+            "confidence": 0.9,
+            "basis": [basis, "source_hash_verified"],
+        },
+        "observedAt": None,
+        "metadata": {
+            "generation": {
+                "generator": "f2md.intent_compile",
+                "generatorVersion": version,
+                "runtimeVersion": version,
+                "requested": "deterministic",
+                "used": "deterministic",
+                "degraded": False,
+                "fallbackReason": None,
+                "provider": None,
+                "model": None,
+                "responseId": None,
+            },
+            "bioxfoundry": {
+                "legacyType": intent_type,
+                "targetUris": [target_uri],
+                "sourceAnchor": source_anchor,
+            },
+        },
+    }
+
+
 def _text_chunks(value: str, limit: int = MAX_INTENT_TEXT) -> List[str]:
     """Split without dropping evidence; the previous ``[:1200]`` silently lost section tails."""
     value = value.strip()
@@ -289,59 +395,147 @@ def _read_structure(markdown_path: Path) -> Optional[Dict[str, Any]]:
     return value
 
 
+def _exact(value: Any, keys: set[str], code: str) -> Dict[str, Any]:
+    if not isinstance(value, dict) or set(value) != keys:
+        raise ValueError(code)
+    return value
+
+
+def _string_list(value: Any, *, nonempty: bool = False) -> bool:
+    return (isinstance(value, list) and (not nonempty or bool(value))
+            and all(isinstance(item, str) and (not nonempty or bool(item)) for item in value))
+
+
+def _validate_source_anchor(value: Any, index: int) -> None:
+    allowed = {
+        "artifactUri", "revisionHash", "fragment", "page", "lines", "bbox", "blockId",
+        "artifactId", "artifactUrn", "evidenceArtifactIds", "evidenceArtifactUrns",
+        "converter", "converterVersion",
+    }
+    if not isinstance(value, dict) or set(value) - allowed:
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    if not all(isinstance(value.get(key), str) and value[key]
+               for key in ("artifactUri", "revisionHash", "converter", "converterVersion")):
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    if not re.fullmatch(r"[a-f0-9]{64}", value["revisionHash"]):
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    if "page" in value and (not isinstance(value["page"], int) or value["page"] < 1):
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    if "lines" in value and (not isinstance(value["lines"], list) or len(value["lines"]) != 2
+            or not all(isinstance(item, int) and item >= 1 for item in value["lines"])
+            or value["lines"][1] < value["lines"][0]):
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    if "bbox" in value and (not isinstance(value["bbox"], list) or len(value["bbox"]) != 4
+            or not all(isinstance(item, (int, float)) and not isinstance(item, bool) for item in value["bbox"])):
+        raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    for key in ("fragment", "blockId", "artifactId", "artifactUrn"):
+        if key in value and not isinstance(value[key], str):
+            raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+    for key in ("evidenceArtifactIds", "evidenceArtifactUrns"):
+        if key in value and not _string_list(value[key]):
+            raise ValueError(f"INVALID_T2C_INTENT_SOURCE_ANCHOR:{index}")
+
+
 def validate_intents(records: Any) -> List[Dict[str, Any]]:
+    """Validate the same exact t2c.intent/v1 file contract as canonical todo2code."""
     if not isinstance(records, list) or not records:
         raise ValueError("T2C_INTENT_ARRAY_REQUIRED")
-    allowed_types = {"request", "plan", "decision", "message", "report", "result", "claim"}
+    actions = {"add", "fix", "remove", "refactor", "test", "document", "configure", "analyze",
+               "validate", "call", "depend_on", "declare", "release", "change", "preserve",
+               "block", "approve", "unknown"}
+    modalities = {"required", "recommended", "optional", "observed", "claimed", "unknown"}
+    lifecycles = {"proposed", "planned", "in_progress", "implemented", "verified", "released",
+                  "completed", "blocked", "unknown"}
+    epistemic_classes = {"declaration", "plan", "claim", "fact", "inference", "llm_inference"}
     seen: set[str] = set()
-    for index, record in enumerate(records):
-        if not isinstance(record, dict):
-            raise ValueError(f"INVALID_INTENT:{index}")
-        required = {"schema", "id", "type", "text", "actor", "targetUris"}
-        if set(record) - required - {"ticket", "source"} or not required.issubset(record):
-            raise ValueError(f"INVALID_INTENT_KEYS:{index}")
-        if record["schema"] != "t2c.intent/v1" or record["type"] not in allowed_types:
-            raise ValueError(f"INVALID_INTENT:{index}")
-        if (not isinstance(record["id"], str) or not record["id"].strip()
-                or record["id"] in seen or not isinstance(record["text"], str)
-                or not record["text"].strip() or not isinstance(record["actor"], str)
-                or not record["actor"].strip()):
-            raise ValueError(f"INVALID_INTENT_ID_OR_TEXT:{index}")
-        if (not isinstance(record["targetUris"], list) or not record["targetUris"]
-                or not all(isinstance(value, str) and value for value in record["targetUris"])):
-            raise ValueError(f"INVALID_INTENT_TARGETS:{index}")
-        if "ticket" in record and not isinstance(record["ticket"], str):
-            raise ValueError(f"INVALID_INTENT_TICKET:{index}")
-        if "source" in record:
-            source = record["source"]
-            allowed_source = {
-                "artifactUri", "revisionHash", "fragment", "page", "lines", "bbox",
-                "blockId", "artifactId", "artifactUrn", "evidenceArtifactIds",
-                "evidenceArtifactUrns", "converter", "converterVersion",
-            }
-            if not isinstance(source, dict) or set(source) - allowed_source:
-                raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            required_source = ("artifactUri", "revisionHash", "converter", "converterVersion")
-            if not all(isinstance(source.get(key), str) and source[key] for key in required_source):
-                raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            if ("fragment" in source and not isinstance(source["fragment"], str)) or (
-                    "page" in source and (not isinstance(source["page"], int) or source["page"] < 1)):
-                raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            if "lines" in source and (not isinstance(source["lines"], list)
-                    or len(source["lines"]) != 2
-                    or not all(isinstance(value, int) and value >= 1 for value in source["lines"])):
-                raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            if "bbox" in source and (not isinstance(source["bbox"], list)
-                    or len(source["bbox"]) != 4
-                    or not all(isinstance(value, (int, float)) for value in source["bbox"])):
-                raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            for key in ("blockId", "artifactId", "artifactUrn"):
-                if key in source and not isinstance(source[key], str):
-                    raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
-            for key in ("evidenceArtifactIds", "evidenceArtifactUrns"):
-                if key in source and (not isinstance(source[key], list)
-                        or not all(isinstance(value, str) for value in source[key])):
-                    raise ValueError(f"INVALID_INTENT_SOURCE:{index}")
+    top_keys = {"schemaVersion", "id", "statement", "lifecycle", "source", "epistemic", "observedAt", "metadata"}
+    for index, raw in enumerate(records):
+        record = _exact(raw, top_keys, f"INVALID_T2C_INTENT_KEYS:{index}")
+        if record["schemaVersion"] != "t2c.intent/v1" or not isinstance(record["id"], str) \
+                or not re.fullmatch(r"INT-[A-Z]+-[a-f0-9]{20}", record["id"]) or record["id"] in seen:
+            raise ValueError(f"INVALID_T2C_INTENT_ID:{index}")
+        statement = _exact(record["statement"],
+                           {"kind", "actor", "action", "subject", "object", "target", "modality", "polarity", "text"},
+                           f"INVALID_T2C_INTENT_STATEMENT:{index}")
+        if (not isinstance(statement["kind"], str) or not statement["kind"]
+                or statement["actor"] is not None and not isinstance(statement["actor"], str)
+                or statement["subject"] is not None and not isinstance(statement["subject"], str)
+                or statement["action"] not in actions or statement["modality"] not in modalities
+                or statement["polarity"] not in {"positive", "negative"}
+                or not isinstance(statement["object"], str) or not statement["object"]
+                or not isinstance(statement["text"], str)):
+            raise ValueError(f"INVALID_T2C_INTENT_STATEMENT:{index}")
+        target = _exact(statement["target"], {"paths", "symbols", "tickets", "versions"},
+                        f"INVALID_T2C_INTENT_TARGET:{index}")
+        if not all(_string_list(target[key]) for key in target):
+            raise ValueError(f"INVALID_T2C_INTENT_TARGET:{index}")
+        lifecycle = _exact(record["lifecycle"], {"status"}, f"INVALID_T2C_INTENT_LIFECYCLE:{index}")
+        if lifecycle["status"] not in lifecycles:
+            raise ValueError(f"INVALID_T2C_INTENT_LIFECYCLE:{index}")
+        source = _exact(record["source"],
+                        {"kind", "path", "lines", "revision", "symbol", "commitIndex", "extractor", "contentHash", "rawExcerpt"},
+                        f"INVALID_T2C_INTENT_SOURCE:{index}")
+        if (source["kind"] != "document" or source["path"] is not None and not isinstance(source["path"], str)
+                or source["revision"] is not None and not isinstance(source["revision"], str)
+                or source["symbol"] is not None and not isinstance(source["symbol"], str)
+                or source["commitIndex"] is not None
+                or not isinstance(source["extractor"], str) or not source["extractor"]
+                or not isinstance(source["contentHash"], str) or not re.fullmatch(r"[a-f0-9]{64}", source["contentHash"])
+                or source["rawExcerpt"] is not None and not isinstance(source["rawExcerpt"], str)):
+            raise ValueError(f"INVALID_T2C_INTENT_SOURCE:{index}")
+        if source["lines"] is not None:
+            lines = _exact(source["lines"], {"start", "end"}, f"INVALID_T2C_INTENT_SOURCE_LINES:{index}")
+            if (not isinstance(lines["start"], int) or lines["start"] < 1
+                    or not isinstance(lines["end"], int) or lines["end"] < lines["start"]):
+                raise ValueError(f"INVALID_T2C_INTENT_SOURCE_LINES:{index}")
+        epistemic = _exact(record["epistemic"], {"class", "confidence", "basis"},
+                           f"INVALID_T2C_INTENT_EPISTEMIC:{index}")
+        if (epistemic["class"] not in epistemic_classes
+                or not isinstance(epistemic["confidence"], (int, float)) or isinstance(epistemic["confidence"], bool)
+                or not 0 <= epistemic["confidence"] <= 1 or not _string_list(epistemic["basis"])):
+            raise ValueError(f"INVALID_T2C_INTENT_EPISTEMIC:{index}")
+        if record["observedAt"] is not None and not isinstance(record["observedAt"], str):
+            raise ValueError(f"INVALID_T2C_INTENT_OBSERVED_AT:{index}")
+        metadata = record["metadata"]
+        if not isinstance(metadata, dict) or not isinstance(metadata.get("generation"), dict):
+            raise ValueError(f"INVALID_T2C_INTENT_METADATA:{index}")
+        generation = _exact(metadata["generation"],
+                            {"generator", "generatorVersion", "runtimeVersion", "requested", "used", "degraded",
+                             "fallbackReason", "provider", "model", "responseId"},
+                            f"INVALID_T2C_INTENT_GENERATION:{index}")
+        extractor_parts = source["extractor"].rsplit("@", 1)
+        if (not all(isinstance(generation[key], str) and generation[key]
+                    for key in ("generator", "generatorVersion", "runtimeVersion"))
+                or generation["requested"] not in {"deterministic", "llm"}
+                or generation["used"] not in {"deterministic", "llm"}
+                or not isinstance(generation["degraded"], bool)
+                or any(generation[key] is not None and not isinstance(generation[key], str)
+                       for key in ("fallbackReason", "provider", "model", "responseId"))
+                or generation["generator"] != extractor_parts[0]
+                or len(extractor_parts) == 2 and generation["generatorVersion"] != extractor_parts[1]):
+            raise ValueError(f"INVALID_T2C_INTENT_GENERATION:{index}")
+        if (generation["used"] == "llm"
+                and not all(isinstance(generation[key], str) and generation[key]
+                            for key in ("provider", "model"))):
+            raise ValueError(f"INVALID_T2C_INTENT_GENERATION:{index}")
+        if (generation["used"] == "deterministic"
+                and any(generation[key] is not None for key in ("provider", "model", "responseId"))):
+            raise ValueError(f"INVALID_T2C_INTENT_GENERATION:{index}")
+        if (generation["degraded"] is True
+                and (generation["requested"] != "llm" or generation["used"] != "deterministic"
+                     or not isinstance(generation["fallbackReason"], str) or not generation["fallbackReason"])):
+            raise ValueError(f"INVALID_T2C_INTENT_GENERATION:{index}")
+        if generation["degraded"] is False and generation["fallbackReason"] is not None:
+            raise ValueError(f"INVALID_T2C_INTENT_GENERATION:{index}")
+        if epistemic["class"] == "llm_inference" and generation["used"] != "llm":
+            raise ValueError(f"INVALID_T2C_INTENT_EPISTEMIC:{index}")
+        bioxfoundry = metadata.get("bioxfoundry")
+        if bioxfoundry is not None:
+            bioxfoundry = _exact(bioxfoundry, {"legacyType", "targetUris", "sourceAnchor"},
+                                  f"INVALID_T2C_INTENT_BIOXFOUNDRY:{index}")
+            if bioxfoundry["legacyType"] not in _INTENT_TYPES or not _string_list(bioxfoundry["targetUris"], nonempty=True):
+                raise ValueError(f"INVALID_T2C_INTENT_BIOXFOUNDRY:{index}")
+            _validate_source_anchor(bioxfoundry["sourceAnchor"], index)
         seen.add(record["id"])
     return records
 
@@ -462,17 +656,18 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
                     record_source = {
                         key: value for key, value in record_source.items() if value is not None
                     }
-                    structured_records.append({
-                        "schema": "t2c.intent/v1",
-                        "id": _hash(
-                            f"{relative}:{block_id}:{content_index}:{chunk_index}:{chunk}"
-                        )[:16],
-                        "type": _intent_type(title, chunk, first=emitted == 0),
-                        "text": text_value,
-                        "actor": "source:markdown",
-                        "targetUris": [source_uri],
-                        "source": record_source,
-                    })
+                    intent_type = _intent_type(title, chunk, first=emitted == 0)
+                    structured_records.append(_canonical_intent(
+                        seed=f"{relative}:{block_id}:{content_index}:{chunk_index}:{chunk}",
+                        intent_type=intent_type,
+                        text=text_value,
+                        actor="source:markdown",
+                        target_uri=source_uri,
+                        source_path=relative,
+                        source_digest=source_digest,
+                        source_anchor=record_source,
+                        basis="f2md_document_structure",
+                    ))
                     emitted += 1
         if not structured_records:
             raise ValueError(f"NO_SEMANTIC_BLOCKS:{source}")
@@ -502,21 +697,33 @@ def compile_markdown(path: str | Path, root: str | Path) -> List[Dict[str, Any]]
             line_end = body.count("\n", 0, end) + 1
             fragment = f"{relative}#{_slug(title)}-{index + 1}"
             for chunk_index, chunk in enumerate(_text_chunks(section)):
-                record_id = _hash(f"{fragment}:{chunk_index}:{chunk}")[:16]
-                records.append({
-                    "schema": "t2c.intent/v1", "id": record_id,
-                    "type": _intent_type(title, chunk, first=not records),
-                    "text": f"{title}: {chunk}", "actor": "source:markdown",
-                    "targetUris": [source_uri],
-                    "source": {**source_anchor, "fragment": fragment, "lines": [line_start, line_end]},
-                })
+                text_value = f"{title}: {chunk}"
+                records.append(_canonical_intent(
+                    seed=f"{fragment}:{chunk_index}:{chunk}",
+                    intent_type=_intent_type(title, chunk, first=not records),
+                    text=text_value,
+                    actor="source:markdown",
+                    target_uri=source_uri,
+                    source_path=relative,
+                    source_digest=source_digest,
+                    source_anchor={**source_anchor, "fragment": fragment, "lines": [line_start, line_end]},
+                    basis="f2md_markdown_heading",
+                ))
     else:
         prose = _clean_semantic_text(body, translated=translated)
         for chunk_index, chunk in enumerate(_text_chunks(prose or f"Evidence exists in {relative}")):
             fragment = f"{relative}#evidence-{chunk_index + 1}"
-            records.append({"schema": "t2c.intent/v1", "id": _hash(fragment + chunk)[:16], "type": "claim",
-                            "text": chunk, "actor": "source:markdown", "targetUris": [source_uri],
-                            "source": {**source_anchor, "fragment": fragment}})
+            records.append(_canonical_intent(
+                seed=fragment + chunk,
+                intent_type="claim",
+                text=chunk,
+                actor="source:markdown",
+                target_uri=source_uri,
+                source_path=relative,
+                source_digest=source_digest,
+                source_anchor={**source_anchor, "fragment": fragment},
+                basis="f2md_markdown_document",
+            ))
     if not records:
         raise ValueError(f"NO_SEMANTIC_BLOCKS:{source}")
     return validate_intents(records)
@@ -612,18 +819,90 @@ def openrouter_proposal(markdown: str, model: Optional[str] = None, target_uri: 
     chosen = model or os.environ.get("OPENROUTER_MODEL", "")
     if not chosen:
         raise RuntimeError("OPENROUTER_MODEL_MISSING")
-    base: Dict[str, Any] = {"records": []}
-    record_schema = {"type": "object", "properties": {"schema": {"const": "t2c.intent/v1"}, "id": {"type": "string"}, "type": {"enum": ["request", "plan", "decision", "message", "report", "result", "claim"]}, "text": {"type": "string"}, "actor": {"type": "string"}, "targetUris": {"type": "array", "items": {"type": "string"}, "minItems": 1}}, "required": ["schema", "id", "type", "text", "actor", "targetUris"], "additionalProperties": False}
-    target_schema = {"type": "object", "properties": {"records": {"type": "array", "items": record_schema, "minItems": 1}}, "required": ["records"], "additionalProperties": False}
-    task = {"task": "Compile evidence into t2c.intent/v1 proposals. Do not publish, mutate, or invent source URIs.", "targetUri": target_uri, "markdown": markdown[:100000]}
-    payload = json.dumps({"model": chosen, "temperature": 0, "messages": patch_messages("intent-compile", task, base, ["records"], target_schema), "response_format": {"type": "json_schema", "json_schema": {"name": "subactor_patch_envelope", "strict": True, "schema": PATCH_ENVELOPE_SCHEMA}}}).encode()
+    if not isinstance(target_uri, str) or not target_uri:
+        raise RuntimeError("OPENROUTER_TARGET_URI_MISSING")
+    # The model proposes only semantic fields. It cannot choose canonical IDs, source hashes,
+    # provenance, generation metadata, or target URIs; those are materialized locally below.
+    base: Dict[str, Any] = {"proposals": []}
+    proposal_schema = {
+        "type": "object",
+        "properties": {
+            "type": {"enum": sorted(_INTENT_TYPES)},
+            "text": {"type": "string", "minLength": 1},
+            "actor": {"type": "string", "minLength": 1},
+        },
+        "required": ["type", "text", "actor"],
+        "additionalProperties": False,
+    }
+    target_schema = {
+        "type": "object",
+        "properties": {"proposals": {"type": "array", "items": proposal_schema, "minItems": 1}},
+        "required": ["proposals"],
+        "additionalProperties": False,
+    }
+    task = {
+        "task": "Propose semantic intent fields from the supplied evidence. Do not publish, mutate, invent source URIs, IDs, hashes, or provenance.",
+        "targetUri": target_uri,
+        "markdown": markdown[:100000],
+    }
+    payload = json.dumps({"model": chosen, "temperature": 0, "messages": patch_messages("intent-compile", task, base, ["proposals"], target_schema), "response_format": {"type": "json_schema", "json_schema": {"name": "subactor_patch_envelope", "strict": True, "schema": PATCH_ENVELOPE_SCHEMA}}}).encode()
     request = urllib.request.Request("https://openrouter.ai/api/v1/chat/completions", data=payload,
                                     headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"})
     with urllib.request.urlopen(request, timeout=180) as response:
         envelope = json.loads(response.read().decode())
     content = str(envelope["choices"][0]["message"]["content"]).strip()
-    patched = apply_patch_envelope(json.loads(content), "intent-compile", base, ["records"])
-    return validate_intents(patched.get("records"))
+    patched = apply_patch_envelope(json.loads(content), "intent-compile", base, ["proposals"])
+    proposals = patched.get("proposals")
+    if not isinstance(proposals, list) or not proposals:
+        raise ValueError("OPENROUTER_PROPOSALS_REQUIRED")
+    source_digest = _hash(markdown)
+    version = _compiler_version()
+    response_id = envelope.get("id") if isinstance(envelope.get("id"), str) else None
+    records: List[Dict[str, Any]] = []
+    for index, proposal in enumerate(proposals):
+        proposal = _exact(proposal, {"type", "text", "actor"}, f"INVALID_OPENROUTER_PROPOSAL:{index}")
+        if (proposal["type"] not in _INTENT_TYPES or not isinstance(proposal["text"], str)
+                or not proposal["text"] or not isinstance(proposal["actor"], str) or not proposal["actor"]):
+            raise ValueError(f"INVALID_OPENROUTER_PROPOSAL:{index}")
+        source_anchor = {
+            "artifactUri": target_uri,
+            "revisionHash": source_digest,
+            "fragment": f"{target_uri}#openrouter-proposal-{index + 1}",
+            "converter": "openrouter-patchdsl-proposal",
+            "converterVersion": version,
+        }
+        record = _canonical_intent(
+            seed=f"{target_uri}:{index}:{proposal['type']}:{proposal['text']}",
+            intent_type=proposal["type"],
+            text=proposal["text"],
+            actor=proposal["actor"],
+            target_uri=target_uri,
+            source_path=target_uri,
+            source_digest=source_digest,
+            source_anchor=source_anchor,
+            basis="openrouter_patchdsl_proposal",
+        )
+        extractor = f"f2md.intent_compile.openrouter@{version}"
+        record["source"]["extractor"] = extractor
+        record["epistemic"] = {
+            "class": "llm_inference",
+            "confidence": 0.5,
+            "basis": ["openrouter_patchdsl_proposal", "unverified"],
+        }
+        record["metadata"]["generation"] = {
+            "generator": "f2md.intent_compile.openrouter",
+            "generatorVersion": version,
+            "runtimeVersion": version,
+            "requested": "llm",
+            "used": "llm",
+            "degraded": False,
+            "fallbackReason": None,
+            "provider": "openrouter",
+            "model": chosen,
+            "responseId": response_id,
+        }
+        records.append(record)
+    return validate_intents(records)
 
 
 def main(argv: Optional[List[str]] = None) -> int:

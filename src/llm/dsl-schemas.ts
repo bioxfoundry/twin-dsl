@@ -19,7 +19,36 @@ const componentSchema:Record<string,unknown>={type:'object',properties:{id:{type
 const twinSchema:Record<string,unknown>={type:'object',properties:{document:{type:'object',properties:{schema:{const:'subactor.twin/v1'},id:{type:'string'},kind:{type:'string',enum:['actor','system','process','physical','conceptual']},observedAt:{type:'string'},sourceSnapshotHash:{type:'string',pattern:'^[a-f0-9]{64}$'},components:{type:'array',items:componentSchema}},required:['schema','id','kind','observedAt','sourceSnapshotHash','components'],additionalProperties:false}},required:['document'],additionalProperties:false};
 const bindingSchema={type:'object',properties:{twinUri:{type:'string'},componentId:{type:'string'},scenePath:{type:'string'},primitive:{type:'string',enum:['cube','cylinder','sphere','scope']},position:{type:'array',items:{type:'number'},minItems:3,maxItems:3},size:{type:'array',items:{type:'number'},minItems:3,maxItems:3},propertyMap:{type:'object',additionalProperties:{type:'string'}},assetUri:{type:'string'}},required:['twinUri','scenePath','propertyMap'],additionalProperties:false};
 const sceneSchema:Record<string,unknown>={type:'object',properties:{document:{type:'object',properties:{schema:{const:'subactor.scene/v1'},id:{type:'string'},format:{type:'string',enum:['openusd','gltf','3dtiles']},sourceTwinId:{type:'string'},bindings:{type:'array',items:bindingSchema,minItems:1}},required:['schema','id','format','bindings'],additionalProperties:false}},required:['document'],additionalProperties:false};
-const intentRecordSchema:Record<string,unknown>={type:'object',properties:{schema:{const:'t2c.intent/v1'},id:{type:'string'},type:{type:'string',enum:['request','plan','decision','message','report','result','claim']},text:{type:'string',minLength:1},actor:{type:'string'},targetUris:{type:'array',items:{type:'string'}},ticket:{type:'string'},source:{type:'object'}},required:['schema','id','type','text','actor','targetUris'],additionalProperties:false};
+const stringArraySchema={type:'array',items:{type:'string'}};
+const nullableStringSchema={type:['string','null']};
+const intentRecordSchema:Record<string,unknown>={
+  type:'object',
+  properties:{
+    schemaVersion:{const:'t2c.intent/v1'},
+    id:{type:'string',pattern:'^INT-[A-Z]+-[a-f0-9]{20}$'},
+    statement:{type:'object',properties:{
+      kind:{type:'string',minLength:1},actor:nullableStringSchema,
+      action:{type:'string',enum:['add','fix','remove','refactor','test','document','configure','analyze','validate','call','depend_on','declare','release','change','preserve','block','approve','unknown']},
+      subject:nullableStringSchema,object:{type:'string',minLength:1},
+      target:{type:'object',properties:{paths:stringArraySchema,symbols:stringArraySchema,tickets:stringArraySchema,versions:stringArraySchema},required:['paths','symbols','tickets','versions'],additionalProperties:false},
+      modality:{type:'string',enum:['required','recommended','optional','observed','claimed','unknown']},
+      polarity:{type:'string',enum:['positive','negative']},text:{type:'string'},
+    },required:['kind','actor','action','subject','object','target','modality','polarity','text'],additionalProperties:false},
+    lifecycle:{type:'object',properties:{status:{type:'string',enum:['proposed','planned','in_progress','implemented','verified','released','completed','blocked','unknown']}},required:['status'],additionalProperties:false},
+    source:{type:'object',properties:{
+      kind:{type:'string',enum:['nl','git','ast','todo','changelog','document','agent_log','test','system']},path:nullableStringSchema,
+      lines:{anyOf:[{type:'null'},{type:'object',properties:{start:{type:'integer',minimum:1},end:{type:'integer',minimum:1}},required:['start','end'],additionalProperties:false}]},
+      revision:nullableStringSchema,symbol:nullableStringSchema,commitIndex:{type:['integer','null'],minimum:1},extractor:{type:'string',minLength:1},
+      contentHash:{type:'string',pattern:'^[a-f0-9]{64}$'},rawExcerpt:nullableStringSchema,
+    },required:['kind','path','lines','revision','symbol','commitIndex','extractor','contentHash','rawExcerpt'],additionalProperties:false},
+    epistemic:{type:'object',properties:{class:{type:'string',enum:['declaration','plan','claim','fact','inference','llm_inference']},confidence:{type:'number',minimum:0,maximum:1},basis:stringArraySchema},required:['class','confidence','basis'],additionalProperties:false},
+    observedAt:nullableStringSchema,
+    metadata:{type:'object',properties:{generation:{type:'object',properties:{
+      generator:{type:'string'},generatorVersion:{type:'string'},runtimeVersion:{type:'string'},requested:{enum:['deterministic','llm']},used:{enum:['deterministic','llm']},degraded:{type:'boolean'},fallbackReason:nullableStringSchema,provider:nullableStringSchema,model:nullableStringSchema,responseId:nullableStringSchema,
+    },required:['generator','generatorVersion','runtimeVersion','requested','used','degraded','fallbackReason','provider','model','responseId'],additionalProperties:false}},required:['generation'],additionalProperties:true},
+  },
+  required:['schemaVersion','id','statement','lifecycle','source','epistemic','observedAt','metadata'],additionalProperties:false,
+};
 const intentSchema:Record<string,unknown>={type:'object',properties:{document:{type:'array',items:intentRecordSchema,minItems:1}},required:['document'],additionalProperties:false};
 
 function obj(x:unknown,name:string):Record<string,unknown>{if(!x||typeof x!=='object'||Array.isArray(x))throw new Error(`DSL_OBJECT_REQUIRED:${name}`);return x as Record<string,unknown>;}

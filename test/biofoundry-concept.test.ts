@@ -14,6 +14,7 @@ import { evaluateMath } from "../src/dsl/math.js";
 import { validateTwin } from "../src/dsl/twin.js";
 import { validateScene } from "../src/dsl/scene.js";
 import { validateTwinGrounding, validateSceneGrounding } from "../src/runtime/autonomy.js";
+import { canonicalIntentRecord } from "../src/dsl/intent.js";
 
 function project(): LivingProjectDocument {
   return {
@@ -207,14 +208,7 @@ test("validated intentDSL evidence is projected into matching Twin zones and tre
   const corpus = resources();
   const intents: GroundedIntentEvidence[] = [{
     sourceUri: corpus[1].uri,
-    record: {
-      schema: "t2c.intent/v1",
-      id: "biosafety-decision",
-      type: "decision",
-      text: "Every biosafety requirement must be audited before deployment.",
-      actor: "source:markdown",
-      targetUris: ["subactor://markdown/study.md"],
-    },
+    record: canonicalIntentRecord({seed:"biosafety-decision",type:"decision",text:"Every biosafety requirement must be audited before deployment.",targetUris:["subactor://markdown/study.md"]}),
   }];
   const twin = biofoundryConceptTwin(
     project(), corpus, observations, "22".repeat(32), development, intents,
@@ -247,25 +241,12 @@ test("intent evidence enriches a blueprint-derived Twin without changing zone ge
   )!.properties.position;
   const genericIntents: GroundedIntentEvidence[] = Array.from({length:13},(_,index)=>({
     sourceUri: corpus[0].uri,
-    record: {
-      schema: "t2c.intent/v1",
-      id: `generic-mission-${index}`,
-      type: "decision",
-      text: `Requirement ${index} defines a policy boundary.`,
-      actor: "source:markdown",
-      targetUris: ["subactor://markdown/other.md"],
-    },
+    record: canonicalIntentRecord({seed:`generic-mission-${index}`,type:"decision",text:`Requirement ${index} defines a policy boundary.`,targetUris:["subactor://markdown/other.md"]}),
   }));
+  const canonicalRecord = canonicalIntentRecord({seed:"mission-plan",type:"plan",text:"The implementation requirement defines a staged deployment plan.",targetUris:["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"]});
   const canonicalIntent: GroundedIntentEvidence = {
     sourceUri: corpus[1].uri,
-    record: {
-      schema: "t2c.intent/v1",
-      id: "mission-plan",
-      type: "plan",
-      text: "The implementation requirement defines a staged deployment plan.",
-      actor: "source:markdown",
-      targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"],
-    },
+    record: canonicalRecord,
   };
   const projected = projectBiofoundryIntentEvidence(baseline, [...genericIntents,canonicalIntent]);
   const mission = projected.components.find((component) => component.id === "mission_requirements")!;
@@ -273,7 +254,7 @@ test("intent evidence enriches a blueprint-derived Twin without changing zone ge
   assert.equal(mission.properties.matchedIntentCount, 14);
   assert.equal(String(mission.properties.intentEvidenceHash).length, 64);
   assert.ok((mission.properties.intentEvidence as Array<{intentId?:string}>).some(
-    (evidence) => evidence.intentId === "mission-plan"),
+    (evidence) => evidence.intentId === canonicalRecord.id),
     "the declared canonical study must survive bounded evidence projection");
   validateTwinGrounding(projected, projected, corpus);
 });
@@ -288,20 +269,14 @@ test("canonical equipment intent is attached to its distinct physical component"
     properties: {label: "Syringebot", geometryEvidence: "document-only"},
     children: [],
   });
+  const syringebotRecord = canonicalIntentRecord({seed:"syringebot-plan",type:"plan",text:"Syringebot is the open-source 3D chemical synthesis robot in the laboratory workflow.",targetUris:["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"]});
   const intent: GroundedIntentEvidence = {
     sourceUri: corpus[1].uri,
-    record: {
-      schema: "t2c.intent/v1",
-      id: "syringebot-plan",
-      type: "plan",
-      text: "Syringebot is the open-source 3D chemical synthesis robot in the laboratory workflow.",
-      actor: "source:markdown",
-      targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"],
-    },
+    record: syringebotRecord,
   };
   const projected = projectBiofoundryIntentEvidence(baseline, [intent]);
   const component = projected.components.find((item) => item.id === "syringebot_01")!;
   assert.equal(component.properties.matchedIntentCount, 1);
-  assert.equal((component.properties.intentEvidence as Array<{intentId: string}>)[0].intentId, "syringebot-plan");
+  assert.equal((component.properties.intentEvidence as Array<{intentId: string}>)[0].intentId, syringebotRecord.id);
   assert.equal(component.properties.geometryEvidence, "document-only");
 });

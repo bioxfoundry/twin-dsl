@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import type { AnalysisTraceBuildInput, IntentRecord, LivingProjectDocument, ProcessDocument } from "../src/core/types.js";
 import { checkJsonSchema } from "../src/core/json-schema.js";
 import { buildAnalysisTrace, parseAnalysisTraceDsl, renderAnalysisTraceDsl, renderAnalysisTraceMarkdown } from "../src/runtime/analysis-trace.js";
+import { canonicalIntentRecord } from "../src/dsl/intent.js";
 
 const hash = (character: string): string => character.repeat(64);
 const project:LivingProjectDocument = {
@@ -12,10 +13,11 @@ const project:LivingProjectDocument = {
   policy: { approved: true, requireResearch: true, requireDevelopmentEvidence: true, requireDevelopmentAcceptance: true, allowDevelopmentFixture: true, requireRuntimeEvidence: true, autoPublishScene: true, allowRuntimeSelfModification: false, autonomyMode: "observe", requireSignedMutationGrant: false, maxIterationsPerHour: 10, maxConsecutiveFailures: 3 },
   scene: { format: "openusd" },
 };
-const intent = (id:string,text:string,artifact:string,revision:string,page?:number,lines?:[number,number]):IntentRecord => ({
-  schema:"t2c.intent/v1",id,type:"report",text,actor:"source:markdown",targetUris:[artifact],
-  source:{artifactUri:artifact,revisionHash:revision,...(page?{page}:{}),...(lines?{lines}:{}),fragment:`${artifact}#section`,converter:"test",converterVersion:"1"},
-});
+const intent = (id:string,text:string,artifact:string,revision:string,page?:number,lines?:[number,number]):IntentRecord =>
+  canonicalIntentRecord({seed:id,type:"report",text,targetUris:[artifact],sourceAnchor:{
+    artifactUri:artifact,revisionHash:revision,...(page?{page}:{}),...(lines?{lines}:{}),
+    fragment:`${artifact}#section`,converter:"test",converterVersion:"1",
+  }});
 
 function fixture(previousTrace?:AnalysisTraceBuildInput["previousTrace"]):AnalysisTraceBuildInput {
   const canonical=intent("canonical-rpi","BOM: Raspberry Pi 4 / 5 plus HAT and relays.","subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md",hash("a"),14);
@@ -39,7 +41,7 @@ test("analysis trace records source-grounded decisions, alternatives and DSL rou
   assert.equal(trace.schema,"subactor.analysis-trace/v1");
   const identity=trace.decisions.find(decision=>decision.id==="biospec-controller-identity");
   assert.equal(identity?.confidence,"medium");
-  assert.deepEqual(identity?.citationIds.sort(),["intent-canonical-rpi","intent-implementation-rpi"]);
+  assert.deepEqual(identity?.citationIds.sort(),fixture().groundedIntents.map(({record})=>`intent-${record.id}`).sort());
   assert.ok(trace.decisions.some(decision=>decision.id==="component-projection:biospec_controller_01"));
   const geometry=trace.decisions.find(decision=>decision.id==="biospec-controller-geometry");
   assert.match(geometry?.outcome??"",/cube fallback/);

@@ -12,6 +12,7 @@ import type {
   TwinComponent,
 } from "../core/types.js";
 import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
+import { intentSourceAnchor, intentTargetUris, intentText } from "../dsl/intent.js";
 
 const MAX_EXCERPT = 800;
 const EXPLANATION_BOUNDARY = "The report records explicit evidence, deterministic rules, outcomes, alternatives and gaps. It does not contain hidden model chain-of-thought.";
@@ -31,9 +32,10 @@ function sourceHref(artifactUri: string, revisionHash: string, fragment?: string
 }
 function sourceResourceUri(input: AnalysisTraceBuildInput, intent: IntentRecord): string | undefined {
   const resources = input.resources;
-  const sourceHash = intent.source?.revisionHash;
-  const target = intent.source?.artifactUri ?? intent.targetUris[0] ?? "";
-  const direct = resources.find(resource => resource.uri === intent.source?.artifactUri || resource.sha256 === sourceHash);
+  const source = intentSourceAnchor(intent);
+  const sourceHash = source?.revisionHash;
+  const target = source?.artifactUri ?? intentTargetUris(intent)[0] ?? "";
+  const direct = resources.find(resource => resource.uri === source?.artifactUri || resource.sha256 === sourceHash);
   if (direct) return direct.uri;
   const targetTail = decodeURIComponent(target.split("/").at(-1) ?? "").replace(/\.md$/, "").toLowerCase();
   const intentPack = resources.find(resource => resource.logicalUri.endsWith(".intent.json") &&
@@ -44,27 +46,28 @@ function sourceResourceUri(input: AnalysisTraceBuildInput, intent: IntentRecord)
   return markdown?.uri;
 }
 function citationFromIntent(input: AnalysisTraceBuildInput, intent: IntentRecord, sourceUri: string): AnalysisTraceCitation | undefined {
-  if (!intent.source) return undefined;
-  const fragment = intent.source.fragment?.includes("#") ? intent.source.fragment.split("#").at(-1) : intent.source.fragment;
+  const source = intentSourceAnchor(intent);
+  if (!source) return undefined;
+  const fragment = source.fragment?.includes("#") ? source.fragment.split("#").at(-1) : source.fragment;
   return {
     id: `intent-${intent.id}`,
     kind: "internal",
-    title: intent.source.artifactUri.split("/").at(-1) ?? intent.source.artifactUri,
-    href: sourceHref(intent.source.artifactUri, intent.source.revisionHash, fragment),
-    artifactUri: intent.source.artifactUri,
+    title: source.artifactUri.split("/").at(-1) ?? source.artifactUri,
+    href: sourceHref(source.artifactUri, source.revisionHash, fragment),
+    artifactUri: source.artifactUri,
     resourceUri: sourceResourceUri(input, intent) ?? sourceUri,
-    revisionHash: intent.source.revisionHash,
-    ...(intent.source.page ? { page: intent.source.page } : {}),
-    ...(intent.source.lines ? { lines: intent.source.lines } : {}),
+    revisionHash: source.revisionHash,
+    ...(source.page ? { page: source.page } : {}),
+    ...(source.lines ? { lines: source.lines } : {}),
     ...(fragment ? { fragment } : {}),
-    excerpt: excerpt(intent.text),
-    converter: intent.source.converter,
-    converterVersion: intent.source.converterVersion,
+    excerpt: excerpt(intentText(intent)),
+    converter: source.converter,
+    converterVersion: source.converterVersion,
   };
 }
 function intentMatching(input: AnalysisTraceBuildInput, includes: string[]): { record: IntentRecord; sourceUri: string } | undefined {
   return input.groundedIntents.find(({ record }) => {
-    const text = clean(record.text).toLowerCase();
+    const text = clean(intentText(record)).toLowerCase();
     return includes.every(part => text.includes(part.toLowerCase()));
   });
 }

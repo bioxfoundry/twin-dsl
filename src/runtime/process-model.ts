@@ -1,5 +1,5 @@
 import type { ProcessDefinition, ProcessDocument, ProcessEvidence, ProcessFinding, ProcessInteraction, ProcessParameter, ProcessStep, TwinDocument } from "../core/types.js";
-import { intentUri } from "../dsl/intent.js";
+import { intentSourceAnchor, intentTargetUris, intentText, intentUri } from "../dsl/intent.js";
 import { processCoverage, validateProcessDocument } from "../dsl/process.js";
 import type { GroundedIntentEvidence } from "./biofoundry-concept.js";
 
@@ -11,6 +11,13 @@ const DEVICE_ARTIFACTS = {
   microfluidic: ["iii. microfluidic assembly", "1-s2.0-s2468067223000329-main.pdf.md"],
   syringebot: ["iv. 3d microfluidic bioprinting", "piis2468067222000554.pdf.md"],
   oscarProtocol: ["0. oscar robot", "sb5c00733_si_002.pdf.md"],
+  pipetteSoftware: ["archive-derived", "0. oscar robot", "pipette-tool-sw-main"],
+  chemosAtlas: ["archive-derived", "chemos2.0-master", "atlas.proto.md"],
+  chemosBatch: ["archive-derived", "chemos2.0-master", "chemspeedoperator.proto.md"],
+  chemosHplc: ["archive-derived", "chemos2.0-master", "hplcms.proto.md"],
+  chemosOptics: ["archive-derived", "chemos2.0-master", "opticstable.proto.md"],
+  mos3sSyringeFirmware: ["archive-derived", "iv. 3d microfluidic bioprinting", "mos3s", "syringe pumps", "configuration.h.md"],
+  mos3sPrintheadFirmware: ["archive-derived", "iv. 3d microfluidic bioprinting", "mos3s", "printhead", "configuration.h.md"],
 } as const;
 
 function normalized(value: string): string {
@@ -18,19 +25,20 @@ function normalized(value: string): string {
 }
 
 function canonicalEvidence(intents: GroundedIntentEvidence[]): GroundedIntentEvidence[] {
-  return intents.filter(({ record }) => [record.source?.artifactUri, ...record.targetUris]
+  return intents.filter(({ record }) => [intentSourceAnchor(record)?.artifactUri, ...intentTargetUris(record)]
     .filter((value): value is string => typeof value === "string")
     .some((value) => normalized(value).includes("atvirojo kodo biofoundry studija")));
 }
 
 function findEvidence(intents: GroundedIntentEvidence[], need: EvidenceNeed): ProcessEvidence | undefined {
   const found = intents.find(({ record }) => {
-    const text = normalized(record.text);
-    const artifactValues = [record.source?.artifactUri, ...record.targetUris].filter((value): value is string => typeof value === "string").map(normalized);
+    const text = normalized(intentText(record));
+    const source = intentSourceAnchor(record);
+    const artifactValues = [source?.artifactUri, ...intentTargetUris(record)].filter((value): value is string => typeof value === "string").map(normalized);
     const allowedArtifact = !need.artifactIncludes?.length || artifactValues.some((value) => need.artifactIncludes!.every((part) => value.includes(normalized(part))));
-    return allowedArtifact && need.includes.every((part) => text.includes(normalized(part))) && (need.page === undefined || record.source?.page === need.page);
+    return allowedArtifact && need.includes.every((part) => text.includes(normalized(part))) && (need.page === undefined || source?.page === need.page);
   });
-  const source = found?.record.source;
+  const source = found ? intentSourceAnchor(found.record) : undefined;
   if (!found || !source) return undefined;
   return {
     intentId: found.record.id,
@@ -41,7 +49,7 @@ function findEvidence(intents: GroundedIntentEvidence[], need: EvidenceNeed): Pr
     ...(source.fragment ? { fragment: source.fragment } : {}),
     ...(source.page ? { page: source.page } : {}),
     ...(source.artifactUrn ? { artifactUrn: source.artifactUrn } : {}),
-    excerpt: found.record.text.slice(0, 800),
+    excerpt: intentText(found.record).slice(0, 800),
   };
 }
 
@@ -121,7 +129,20 @@ export function deriveBiofoundryProcesses(input: {
   const liveStatus = evidence("real-time planner status", ["real-time status source for ai planner"], 28);
   const fullCycle = evidence("full closed cycle", ["full closed cycle", "planning", "execution", "monitoring", "optimization"], 29);
   if (closedCycle || liveStatus || fullCycle) {
-    const steps = [
+    const atlas = deviceEvidence(DEVICE_ARTIFACTS.chemosAtlas, "Atlas recommendation service", ["recommend_intermediate", "recommend_result", "campaign"]);
+    const batch = deviceEvidence(DEVICE_ARTIFACTS.chemosBatch, "ChemSpeed batch service", ["addbatch", "addbatch_intermediate", "addbatch_result"]);
+    const hplc = deviceEvidence(DEVICE_ARTIFACTS.chemosHplc, "HPLCMS job service", ["submitjobautosampler", "submitjobautosampler_intermediate", "submitjobautosampler_result"]);
+    const optics = deviceEvidence(DEVICE_ARTIFACTS.chemosOptics, "optics-table job service", ["submitjob", "submitjob_intermediate", "submitjob_result"]);
+    const detailed = [atlas, batch, hplc, optics].every(Boolean);
+    const steps = detailed ? [
+      step({ id: "recommend_next_experiment", label: "Request the next campaign recommendation from Atlas", phase: "plan", componentIds: ["chemos_planner_01", "sila_orchestrator_01"], interactions: [interaction("command", ["chemos_planner_01", "sila_orchestrator_01"], { fromComponentId: "chemos_planner_01", toComponentId: "sila_orchestrator_01" })], transitions: { success: "queue_chemspeed_batch" }, evidence: atlas, parameters: parameters([parameter(atlas, "request_fields", "Campaign; Config")]) }),
+      step({ id: "queue_chemspeed_batch", label: "Queue the recommended batch on ChemSpeed", phase: "command", componentIds: ["chemos_planner_01", "sila_orchestrator_01"], interactions: [interaction("command", ["chemos_planner_01", "sila_orchestrator_01"], { fromComponentId: "chemos_planner_01", toComponentId: "sila_orchestrator_01" })], transitions: { success: "monitor_chemspeed_operations" }, evidence: batch, parameters: parameters([parameter(batch, "request_fields", "BatchName; Batchfile")]) }),
+      step({ id: "monitor_chemspeed_operations", label: "Stream ChemSpeed batch status and executed operations", phase: "observe", componentIds: ["sila_orchestrator_01", "opentwins_state_01"], interactions: [interaction("observation", ["sila_orchestrator_01", "opentwins_state_01"], { fromComponentId: "sila_orchestrator_01", toComponentId: "opentwins_state_01" })], transitions: { success: "submit_hplcms_characterization" }, evidence: batch }),
+      step({ id: "submit_hplcms_characterization", label: "Submit the autosampler characterization job to HPLCMS", phase: "command", componentIds: ["chemos_planner_01", "sila_orchestrator_01"], interactions: [interaction("command", ["chemos_planner_01", "sila_orchestrator_01"], { fromComponentId: "chemos_planner_01", toComponentId: "sila_orchestrator_01" })], transitions: { success: "submit_optical_measurement" }, evidence: hplc }),
+      step({ id: "submit_optical_measurement", label: "Submit the optical-table measurement job", phase: "command", componentIds: ["chemos_planner_01", "sila_orchestrator_01"], interactions: [interaction("command", ["chemos_planner_01", "sila_orchestrator_01"], { fromComponentId: "chemos_planner_01", toComponentId: "sila_orchestrator_01" })], transitions: { success: "synchronize_characterization_results" }, evidence: optics }),
+      step({ id: "synchronize_characterization_results", label: "Stream intermediate payloads and final characterization results", phase: "observe", componentIds: ["sila_orchestrator_01", "opentwins_state_01"], interactions: [interaction("observation", ["sila_orchestrator_01", "opentwins_state_01"], { fromComponentId: "sila_orchestrator_01", toComponentId: "opentwins_state_01" }), interaction("state-update", ["opentwins_state_01"], { state: "completed" })], transitions: { success: "optimize_next_plan" }, evidence: [hplc, optics, liveStatus ?? fullCycle].filter((item): item is ProcessEvidence => Boolean(item)) }),
+      step({ id: "optimize_next_plan", label: "Return results to Atlas and optimize the next recommendation", phase: "optimize", componentIds: ["opentwins_state_01", "chemos_planner_01"], interactions: [interaction("observation", ["opentwins_state_01", "chemos_planner_01"], { fromComponentId: "opentwins_state_01", toComponentId: "chemos_planner_01" })], transitions: { success: "recommend_next_experiment" }, evidence: [atlas, fullCycle ?? closedCycle].filter((item): item is ProcessEvidence => Boolean(item)) }),
+    ] : [
       step({ id: "plan_experiment", label: "Plan the next experiment", phase: "plan", componentIds: ["chemos_planner_01"], interactions: [interaction("operation", ["chemos_planner_01"])], transitions: { success: "execute_plan" }, evidence: closedCycle }),
       step({ id: "execute_plan", label: "Execute plan through SiLA 2 and connected equipment", phase: "command", componentIds: ["chemos_planner_01", "sila_orchestrator_01", "oscar_robot_01", "biospec_bioreactor_01", "microscope_module_01", "microfluidic_assembly_01", "syringebot_01"], interactions: [interaction("command", ["chemos_planner_01", "sila_orchestrator_01"], { fromComponentId: "chemos_planner_01", toComponentId: "sila_orchestrator_01" }), interaction("operation", ["oscar_robot_01", "biospec_bioreactor_01", "microscope_module_01", "microfluidic_assembly_01", "syringebot_01"])], transitions: { success: "monitor_process" }, evidence: closedCycle }),
       step({ id: "monitor_process", label: "Synchronize telemetry and process status in OpenTwins", phase: "observe", componentIds: ["sila_orchestrator_01", "opentwins_state_01"], interactions: [interaction("observation", ["sila_orchestrator_01", "opentwins_state_01"], { fromComponentId: "sila_orchestrator_01", toComponentId: "opentwins_state_01" })], transitions: { success: "optimize_next_plan" }, evidence: liveStatus ?? fullCycle }),
@@ -129,7 +150,8 @@ export function deriveBiofoundryProcesses(input: {
     ];
     const missing = steps.filter((item) => !item.evidence.length).map((item) => item.id);
     for (const stepId of missing) findings.push(processFinding("PROCESS_EVIDENCE_MISSING", "warning", `Closed-loop step ${stepId} has no canonical intent evidence.`, "Restore canonical closed-cycle intent records before enabling complete-loop status.", "closed_optimization", stepId));
-    processes.push(definition({ id: "closed_optimization", label: "ChemOS–OpenTwins closed optimization cycle", kind: "optimization", completeness: missing.length ? "partial" : "complete", ordering: "source", cyclic: true, entryStepId: "plan_experiment", successStepId: "optimize_next_plan", steps, gaps: missing.map((id) => `missing evidence for ${id}`) }));
+    if (detailed) findings.push(processFinding("PROCESS_COMPONENT_UNMODELLED", "info", "ChemSpeed, HPLCMS and optical-table SiLA endpoints are represented by their orchestrator flow, but do not yet have separate physical scene components.", "Add source-backed geometry and scene components for these instruments before expecting device-specific 3D animation.", "closed_optimization"));
+    processes.push(definition({ id: "closed_optimization", label: "ChemOS–OpenTwins closed optimization cycle", kind: "optimization", completeness: missing.length ? "partial" : "complete", ordering: "source", cyclic: true, entryStepId: detailed ? "recommend_next_experiment" : "plan_experiment", successStepId: "optimize_next_plan", steps, gaps: missing.map((id) => `missing evidence for ${id}`) }));
   }
 
   const processTwinDeclaration = evidence("declared process twins", ["process twins", "cloning", "cultivation", "synthesis"], 25);
@@ -245,6 +267,49 @@ export function deriveBiofoundryProcesses(input: {
     if (detailed) for (const stepId of missing) findings.push(processFinding("PROCESS_EVIDENCE_MISSING", "warning", `Syringebot step ${stepId} lacks its device-source fragment.`, "Restore the corresponding Syringebot operations intent before declaring the sequence complete.", "syringebot_synthesis", stepId));
     if (!detailed) findings.push(processFinding("PROCESS_ORDERING_UNEVIDENCED", "info", "Syringebot dosing hardware is evidenced but the detailed device protocol is unavailable.", "Ingest the Syringebot operations and application-note intents.", "syringebot_synthesis"));
     processes.push(definition({ id: "syringebot_synthesis", label: detailed ? "Syringebot automatic titration" : "Syringebot dosing and synthesis", kind: "synthesis", completeness: detailed && !missing.length ? "complete" : "partial", ordering: detailed ? "source" : "presentation-only", cyclic: false, entryStepId: steps[0]?.id, successStepId: steps.at(-1)?.id, steps, gaps: detailed ? missing.map((id) => `missing evidence for ${id}`) : ["reagent order, volume, timing, setpoints and termination criteria are not specified"] }));
+  }
+
+  const pipetteCalibration = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette volume calibration", ["linear regression", "volume", "distance"]);
+  const pipettePresets = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette encoder presets", ["encoder_pos_top", "encoder_pos_tip", "encoder_pos_bottom"]);
+  const pipetteCommands = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette command register", ["aspirate", "dispense", "homing", "eject_tip"]);
+  const pipetteExample = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette master sequence", ["forward_aspirate", "forward_dispense", "eject"]);
+  const pipetteState = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette state registers", ["pt_error", "position_mm", "nano_liters", "motor_state"]);
+  const pipetteErrors = deviceEvidence(DEVICE_ARTIFACTS.pipetteSoftware, "pipette trajectory errors", ["trajectory_not_implemented", "trajectory_buffer_ovf", "trajectory_params_ovf"]);
+  if ([pipetteCalibration, pipettePresets, pipetteCommands, pipetteExample, pipetteState, pipetteErrors].some(Boolean)) {
+    const steps = [
+      step({ id: "validate_pipette_calibration", label: "Validate piston-volume calibration and encoder end positions", phase: "validate", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("validation", ["oscar_robot_01", "oscar_pipette_tool_01"])], transitions: { success: "home_pipette_piston", failure: "report_pipette_fault" }, evidence: [pipetteCalibration, pipettePresets].filter((item): item is ProcessEvidence => Boolean(item)), parameters: parameters([parameter(pipetteCalibration, "example_volume_formula_multiplier", 12499, "nL/mm"), parameter(pipetteCalibration, "example_volume_formula_offset", -1918, "nL"), parameter(pipettePresets, "encoder_top", -12079), parameter(pipettePresets, "encoder_tip", 118083), parameter(pipettePresets, "encoder_bottom", 157010)]) }),
+      step({ id: "home_pipette_piston", label: "Home the pipette piston before liquid handling", phase: "command", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("command", ["oscar_robot_01", "oscar_pipette_tool_01"], { fromComponentId: "oscar_robot_01", toComponentId: "oscar_pipette_tool_01" })], transitions: { success: "aspirate_liquid", failure: "report_pipette_fault" }, evidence: pipetteCommands }),
+      step({ id: "aspirate_liquid", label: "Aspirate the requested volume with the selected trajectory", phase: "operate", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("operation", ["oscar_robot_01", "oscar_pipette_tool_01"])], transitions: { success: "dispense_liquid", failure: "report_pipette_fault" }, evidence: [pipetteCommands, pipetteExample].filter((item): item is ProcessEvidence => Boolean(item)), parameters: parameters([parameter(pipetteExample, "example_volume", 75000, "nL"), parameter(pipetteExample, "example_speed", 0.02)]) }),
+      step({ id: "dispense_liquid", label: "Dispense the requested volume and configured purge offset", phase: "operate", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("operation", ["oscar_robot_01", "oscar_pipette_tool_01"])], transitions: { success: "eject_pipette_tip", failure: "report_pipette_fault" }, evidence: [pipetteCommands, pipetteExample].filter((item): item is ProcessEvidence => Boolean(item)), parameters: parameters([parameter(pipetteExample, "example_purge_offset", 35000, "nL")]) }),
+      step({ id: "eject_pipette_tip", label: "Eject the pipette tip after the transfer", phase: "operate", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("operation", ["oscar_robot_01", "oscar_pipette_tool_01"])], transitions: { success: "read_pipette_state", failure: "report_pipette_fault" }, evidence: [pipetteCommands, pipetteExample].filter((item): item is ProcessEvidence => Boolean(item)) }),
+      step({ id: "read_pipette_state", label: "Read volume, position, motor and error registers", phase: "observe", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("observation", ["oscar_pipette_tool_01", "oscar_robot_01"], { fromComponentId: "oscar_pipette_tool_01", toComponentId: "oscar_robot_01" })], transitions: {}, evidence: pipetteState }),
+      step({ id: "report_pipette_fault", label: "Stop motion and report protocol or trajectory fault", phase: "recover", componentIds: ["oscar_robot_01", "oscar_pipette_tool_01"], interactions: [interaction("safety", ["oscar_robot_01", "oscar_pipette_tool_01"], { state: "recovering" })], transitions: {}, evidence: [pipetteErrors, pipetteState].filter((item): item is ProcessEvidence => Boolean(item)) }),
+    ];
+    const missing = steps.filter((item) => !item.evidence.length).map((item) => item.id);
+    findings.push(processFinding("PROCESS_LABWARE_BINDING_MISSING", "info", "The pipette software defines motion, volumes and errors, but the archive does not bind the demonstration volumes to verified source/destination labware in the scene.", "Add a reviewed transfer protocol with labware wells and permitted volume ranges before real-device execution.", "oscar_pipette_control"));
+    findings.push(processFinding("PROCESS_KINEMATIC_MAPPING_MISSING", "info", "Encoder positions are sourced, but no verified mapping connects piston coordinates to a movable scene submesh.", "Bind the encoder frame to a pipette piston mesh before displaying literal travel; until then animate the complete pipette-tool group.", "oscar_pipette_control"));
+    processes.push(definition({ id: "oscar_pipette_control", label: "OSCAR digital pipette control", kind: "manipulation", completeness: "partial", ordering: "source", cyclic: false, entryStepId: "validate_pipette_calibration", successStepId: "read_pipette_state", failureStepId: "report_pipette_fault", steps, gaps: [...missing.map((id) => `missing evidence for ${id}`), "source and destination labware plus accepted volume ranges are protocol-specific"] }));
+  }
+
+  const mosMachine = deviceEvidence(DEVICE_ARTIFACTS.mos3sSyringeFirmware, "MOS3S dual-extruder configuration", ["hybrid 3d bioprinter", "extruders 2"]);
+  const mosSafety = deviceEvidence(DEVICE_ARTIFACTS.mos3sSyringeFirmware, "MOS3S thermal protection", ["thermal protection", "damage", "fire"]);
+  const mosAxes = deviceEvidence(DEVICE_ARTIFACTS.mos3sSyringeFirmware, "MOS3S axis envelope", ["x_bed_size 190", "y_bed_size 190", "z_max_pos 200"]);
+  const mosHoming = deviceEvidence(DEVICE_ARTIFACTS.mos3sSyringeFirmware, "MOS3S homing configuration", ["z_safe_homing", "homing_feedrate_xy", "homing_feedrate_z"]);
+  const mosJob = deviceEvidence(DEVICE_ARTIFACTS.mos3sPrintheadFirmware, "MOS3S print job controls", ["print job timer", "m75", "m76", "m77"]);
+  if ([mosMachine, mosSafety, mosAxes, mosHoming, mosJob].some(Boolean)) {
+    const motionGroup = ["bioprinter_mos3s_01", "bioprinter_part_carriage", "bioprinter_part_syringe_clamp", "bioprinter_part_platform_holder"];
+    const syringeGroup = ["bioprinter_mos3s_01", "bioprinter_part_syringe_clamp", "bioprinter_part_syringe_support_1", "bioprinter_part_syringe_support_2", "bioprinter_part_plunger_retainer_2ml"];
+    const steps = [
+      step({ id: "validate_bioprinter_safety", label: "Validate the configured machine, two extruders and thermal protection", phase: "validate", componentIds: ["bioprinter_mos3s_01"], interactions: [interaction("validation", ["bioprinter_mos3s_01"]), interaction("safety", ["bioprinter_mos3s_01"])], transitions: { success: "home_bioprinter_axes" }, evidence: [mosMachine, mosSafety].filter((item): item is ProcessEvidence => Boolean(item)), parameters: parameters([parameter(mosMachine, "extruders", 2)]) }),
+      step({ id: "home_bioprinter_axes", label: "Home X, Y and Z within the configured safe-homing rules", phase: "command", componentIds: motionGroup, interactions: [interaction("command", motionGroup, { fromComponentId: "bioprinter_mos3s_01", toComponentId: "bioprinter_part_carriage" })], transitions: { success: "position_printhead" }, evidence: mosHoming, parameters: parameters([parameter(mosHoming, "xy_homing_feedrate", 3000, "mm/min"), parameter(mosHoming, "z_homing_feedrate", 240, "mm/min")]) }),
+      step({ id: "position_printhead", label: "Position carriage and platform inside the firmware travel envelope", phase: "operate", componentIds: motionGroup, interactions: [interaction("operation", motionGroup)], transitions: { success: "deposit_dual_material" }, evidence: mosAxes, parameters: parameters([parameter(mosAxes, "x_travel", 190, "mm"), parameter(mosAxes, "y_travel", 190, "mm"), parameter(mosAxes, "z_travel", 200, "mm")]) }),
+      step({ id: "deposit_dual_material", label: "Drive the two configured syringe extruders along the job toolpath", phase: "operate", componentIds: syringeGroup, interactions: [interaction("operation", syringeGroup)], transitions: { success: "record_bioprint_job" }, evidence: mosMachine }),
+      step({ id: "record_bioprint_job", label: "Track print-job state and completion counters", phase: "observe", componentIds: ["bioprinter_mos3s_01", "opentwins_state_01"], interactions: [interaction("observation", ["bioprinter_mos3s_01", "opentwins_state_01"], { fromComponentId: "bioprinter_mos3s_01", toComponentId: "opentwins_state_01" })], transitions: {}, evidence: mosJob, parameters: parameters([parameter(mosJob, "start_pause_stop_commands", "M75; M76; M77")]) }),
+    ];
+    const missing = steps.filter((item) => !item.evidence.length).map((item) => item.id);
+    findings.push(processFinding("PROCESS_TOOLPATH_MISSING", "warning", "The firmware configuration exposes machine limits and two extruders, but the selected archive does not provide a reviewed bioprint G-code/toolpath and material protocol.", "Supply and validate the job toolpath, material identities, dispense calibration and acceptance criteria before execution.", "mos3s_bioprinting"));
+    findings.push(processFinding("PROCESS_KINEMATIC_MAPPING_MISSING", "info", "The archive supplies axis limits but not a verified mapping from firmware axes to the imported MOS3S part transforms.", "Create axis-to-subassembly bindings for carriage, platform and syringe plungers before literal transform animation; current animation highlights the affected groups only.", "mos3s_bioprinting"));
+    processes.push(definition({ id: "mos3s_bioprinting", label: "MOS3S dual-syringe bioprint job", kind: "synthesis", completeness: "partial", ordering: "presentation-only", cyclic: false, entryStepId: "validate_bioprinter_safety", successStepId: "record_bioprint_job", steps, gaps: [...missing.map((id) => `missing evidence for ${id}`), "reviewed G-code/toolpath, material recipe, syringe calibration and scene-axis mapping are absent"] }));
   }
 
   const cloningDemo = evidence("plasmid cloning demonstration", ["complete plasmid cloning protocol"], 12);

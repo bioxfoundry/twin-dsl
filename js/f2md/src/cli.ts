@@ -17,6 +17,7 @@ const USAGE = `usage: f2md [options] <file...>
   --docling-url <url> Docling service URL (or set DOCLING_URL)
   --tree <src> <out>  mirror a directory: src/a/b.pdf -> out/a/b.pdf.md with front matter
   --only <kinds>      with --tree, restrict to these kinds, e.g. .pdf,.docx
+  --manifest <json>   with --tree, convert an exact hash-bound source selection
   --quiet             with --tree, suppress per-file progress
   --version
 `;
@@ -36,6 +37,7 @@ export async function main(argv: string[]): Promise<number> {
   let doclingUrl: string | undefined;
   let tree: [string, string] | undefined;
   let only: string[] | undefined;
+  let manifestPath: string | undefined;
   let quiet = false;
 
   for (let i = 0; i < argv.length; i++) {
@@ -46,6 +48,7 @@ export async function main(argv: string[]): Promise<number> {
     else if (arg === "--docling-url") doclingUrl = argv[++i];
     else if (arg === "--tree") tree = [argv[++i], argv[++i]];
     else if (arg === "--only") only = (argv[++i] ?? "").split(",").map((k) => k.trim()).filter(Boolean);
+    else if (arg === "--manifest") manifestPath = argv[++i];
     else if (arg === "--quiet") quiet = true;
     else if (arg === "--version") { console.log(`f2md ${VERSION}`); return 0; }
     else if (arg === "--help" || arg === "-h") { console.log(USAGE); return 0; }
@@ -59,6 +62,7 @@ export async function main(argv: string[]): Promise<number> {
       const result = await convertTree(src, out, {
         doclingUrl,
         only,
+        manifestPath,
         onProgress: quiet ? undefined : (i, total, rel, note) => console.error(`[${i}/${total}] ${rel} -> ${note}`),
       });
       console.log(JSON.stringify(result, null, 2));

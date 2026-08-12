@@ -288,7 +288,8 @@ def test_intent_compile_hashes_source_bytes_without_normalizing_crlf(tmp_path) -
     assert summary["eligibleFiles"] == 1
     assert summary["excludedFiles"] == 0
     assert pack["sourceHash"] == expected
-    assert pack["records"][0]["source"]["revisionHash"] == expected
+    assert pack["records"][0]["source"]["revision"] == expected
+    assert pack["records"][0]["metadata"]["bioxfoundry"]["sourceAnchor"]["revisionHash"] == expected
 
 
 def test_intent_compile_removes_navigation_repairs_translated_terms_and_preserves_full_sections(
@@ -340,7 +341,7 @@ sila_ros is the bridge identifier.
     summary = compile_tree(source, output)
     pack = json.loads(output.joinpath("study.md.intent.json").read_text(encoding="utf-8"))
     records = pack["records"]
-    combined = " ".join(record["text"] for record in records)
+    combined = " ".join(record["statement"]["text"] for record in records)
 
     assert summary["failures"] == []
     assert "Contents" not in combined and "Part III: Part III" not in combined
@@ -350,10 +351,10 @@ sila_ros is the bridge identifier.
     assert "-----" not in combined
     assert combined.count("X") == len(opaque)
     assert tail in combined, "long sections must be split, never truncated"
-    assert any(record["type"] == "decision" for record in records)
-    assert any(record["type"] == "plan" for record in records)
-    assert all("#" in record["source"]["fragment"] for record in records)
-    assert all(len(record["text"]) <= MAX_INTENT_TEXT + len("Implementation plan: ") for record in records)
+    assert any(record["metadata"]["bioxfoundry"]["legacyType"] == "decision" for record in records)
+    assert any(record["metadata"]["bioxfoundry"]["legacyType"] == "plan" for record in records)
+    assert all("#" in record["metadata"]["bioxfoundry"]["sourceAnchor"]["fragment"] for record in records)
+    assert all(len(record["statement"]["text"]) <= MAX_INTENT_TEXT + len("Implementation plan: ") for record in records)
 
 
 def test_legacy_structure_retains_explicit_artifact_anchor_and_page(tmp_path) -> None:
@@ -853,6 +854,37 @@ def test_source_coverage_accounts_for_every_terminal_state_and_is_idempotent(tmp
     )
 
 
+def test_tree_selection_manifest_converts_only_hash_bound_files_and_rejects_drift(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "markdown"
+    (source / "device").mkdir(parents=True)
+    selected = b'syntax = "proto3";\n'
+    (source / "device" / "control.proto").write_bytes(selected)
+    (source / "raw.csv").write_text("measurement\n", encoding="utf-8")
+    manifest = tmp_path / "selection.json"
+    manifest.write_text(json.dumps({
+        "schema": "bioxfoundry.source-selection/v1",
+        "id": "device-evidence",
+        "entries": [{
+            "path": "device/control.proto",
+            "sha256": hashlib.sha256(selected).hexdigest(),
+            "family": "device",
+            "expectedUse": "interface",
+            "reason": "Defines the device RPC contract.",
+        }],
+    }), encoding="utf-8")
+
+    result = convert_tree(str(source), str(output), manifest_path=str(manifest))
+    assert result.converted == 1
+    assert detect_document_kind("control.proto") == ".proto"
+    assert media_type_for("control.proto") == "text/x-protobuf"
+    assert "```proto" in (output / "device" / "control.proto.md").read_text(encoding="utf-8")
+    assert not (output / "raw.csv.md").exists()
+
+    (source / "device" / "control.proto").write_text("changed\n", encoding="utf-8")
+    with pytest.raises(ConversionError, match="SOURCE_SELECTION_HASH_MISMATCH"):
+        convert_tree(str(source), str(tmp_path / "drifted"), manifest_path=str(manifest))
+
+
 class _PdfQualityFixture:
     name = "pdf-quality-fixture"
 
@@ -901,9 +933,9 @@ def test_tree_emits_quality_structure_and_intent_uses_only_semantic_blocks(tmp_p
     admitted = compile_tree(markdown_root, intent_root, only_english=False, allow_degraded=True)
     pack = json.loads((intent_root / "study.pdf.md.intent.json").read_text(encoding="utf-8"))
     assert admitted["files"] == 1
-    assert "Verified statement" in pack["records"][0]["text"]
-    assert all("low confidence OCR" not in record["text"] for record in pack["records"])
-    assert pack["records"][0]["source"]["blockId"].startswith("block-")
+    assert "Verified statement" in pack["records"][0]["statement"]["text"]
+    assert all("low confidence OCR" not in record["statement"]["text"] for record in pack["records"])
+    assert pack["records"][0]["metadata"]["bioxfoundry"]["sourceAnchor"]["blockId"].startswith("block-")
 
 
 def test_tree_materializes_pdf_figure_with_bbox_hash_and_ocr_region(tmp_path) -> None:
@@ -987,7 +1019,7 @@ def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
     compile_tree(source, output)
     pack_path = output / "note.md.intent.json"
     pack = json.loads(pack_path.read_text(encoding="utf-8"))
-    pack["records"].append({**pack["records"][0], "id": "specialised-record"})
+    pack["records"].append({**pack["records"][0], "id": "INT-DOC-" + "f" * 20})
     pack_path.write_text(json.dumps(pack), encoding="utf-8")
 
     summary = refresh_contract(source, output)
@@ -1006,8 +1038,10 @@ def test_refresh_output_identity_tracks_normalized_pack_bytes(tmp_path) -> None:
     pack = json.loads(pack_path.read_text(encoding="utf-8"))
     pack["source"] = "dodsl://project/device/source-md/README.md"
     for record in pack["records"]:
-        if isinstance(record.get("source"), dict):
-            record["source"]["artifactUri"] = pack["source"]
+        bioxfoundry = record.get("metadata", {}).get("bioxfoundry", {})
+        if isinstance(bioxfoundry.get("sourceAnchor"), dict):
+            bioxfoundry["sourceAnchor"]["artifactUri"] = pack["source"]
+            bioxfoundry["targetUris"] = [pack["source"]]
     pack_path.write_text(json.dumps(pack, indent=2) + "\n", encoding="utf-8")
 
     first = refresh_output_identity(output)

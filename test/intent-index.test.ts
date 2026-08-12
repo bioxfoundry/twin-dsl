@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { indexIntentDsl } from "../src/runtime/living-project.js";
 import type { ResourceRecord } from "../src/core/types.js";
+import { canonicalIntentRecord } from "../src/dsl/intent.js";
 
 test("canonical study records precede generic decisions in the bounded priority index", async () => {
   const root = await mkdtemp(join(tmpdir(), "intent-index-"));
@@ -15,8 +16,8 @@ test("canonical study records precede generic decisions in the bounded priority 
       source: "study.md",
       sourceHash: "a".repeat(64),
       records: [
-        {schema: "t2c.intent/v1", id: "generic-decision", type: "decision", text: "Generic decision", actor: "source:markdown", targetUris: ["subactor://markdown/other.md"]},
-        {schema: "t2c.intent/v1", id: "canonical-plan", type: "plan", text: "Canonical equipment plan", actor: "source:markdown", targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"]},
+        canonicalIntentRecord({seed:"generic-decision",type:"decision",text:"Generic decision",targetUris:["subactor://markdown/other.md"]}),
+        canonicalIntentRecord({seed:"canonical-plan",type:"plan",text:"Canonical equipment plan",targetUris:["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"]}),
       ],
     }));
     const resource: ResourceRecord = {
@@ -27,6 +28,7 @@ test("canonical study records precede generic decisions in the bounded priority 
     };
     const result = await indexIntentDsl([resource], new Map());
     assert.equal(result.index.invalid, 0);
-    assert.equal(result.index.highPriority[0].id, "canonical-plan");
+    assert.match(result.index.highPriority[0].id, /^INT-DOC-/);
+    assert.equal(result.index.highPriority[0].text, "Canonical equipment plan");
   } finally { await rm(root, {recursive: true, force: true}); }
 });

@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { validateSpecificationDsl } from "../src/runtime/specification-dsl-validation.js";
 import { matchesJsonSchema } from "../src/core/json-schema.js";
+import { canonicalIntentRecord } from "../src/dsl/intent.js";
 
 const canonical = "Atvirojo kodo biofoundry studija.pdf";
 const required = [
@@ -32,10 +33,10 @@ async function fixture(): Promise<{root: string; source: string; markdown: strin
   await writeFile(join(markdown, `${canonical}.structure.json`), JSON.stringify(structure));
   await writeFile(join(markdown, `${canonical}.lt.quality.mdqldsl`), "MARKDOWN_QUALITY biofoundry.markdown-quality/v1\nSTATUS PASS\n");
   await writeFile(join(markdown, `${canonical}.quality.mdqldsl`), "MARKDOWN_QUALITY biofoundry.markdown-quality/v1\nSTATUS PASS\n");
-  const records = pages.map((page) => ({
-    schema: "t2c.intent/v1", id: `page-${page}`, type: "plan", text: `Evidence from page ${page}`,
-    actor: "source:markdown", targetUris: [`subactor://markdown/${canonical}.md`],
-    source: {page, fragment: `#page-${page}`, revisionHash: sha(body), artifactUri: `subactor://markdown/${canonical}.md`},
+  const records = pages.map((page) => canonicalIntentRecord({
+    seed:`page-${page}`,type:"plan",text:`Evidence from page ${page}`,
+    targetUris:[`subactor://markdown/${canonical}.md`],
+    sourceAnchor:{page,fragment:`#page-${page}`,revisionHash:sha(body),artifactUri:`subactor://markdown/${canonical}.md`,converter:"fixture",converterVersion:"1"},
   }));
   await writeFile(join(dsl, `${canonical}.md.intent.json`), JSON.stringify({
     schema: "t2c.intent-pack/v1", source: canonical, sourceHash: sha(body), records,

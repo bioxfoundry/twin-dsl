@@ -16,6 +16,7 @@ TEXT_EXTENSIONS: Tuple[str, ...] = (
     ".toml", ".ini", ".cfg", ".csv", ".tsv", ".xml", ".html", ".htm", ".svg", ".tex", ".rst",
     ".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".py", ".rb", ".php", ".go", ".rs", ".java",
     ".kt", ".c", ".h", ".cpp", ".hpp", ".cs", ".sh", ".bash", ".zsh", ".sql", ".graphql",
+    ".proto",
     ".dockerfile", ".env", ".properties", ".gradle", ".make", ".cmake",
     ".dsl", ".projectdsl", ".mathdsl", ".treedsl", ".twindsl", ".scenedsl", ".resourcedsl", ".dql",
 )
@@ -63,6 +64,7 @@ MEDIA_TYPES: Dict[str, str] = {
     ".c": "text/x-c", ".h": "text/x-c", ".cpp": "text/x-c++", ".hpp": "text/x-c++", ".cs": "text/x-csharp",
     ".sh": "application/x-sh", ".bash": "application/x-sh", ".zsh": "application/x-sh",
     ".sql": "application/sql", ".graphql": "application/graphql", ".rst": "text/x-rst",
+    ".proto": "text/x-protobuf",
     ".tex": "application/x-tex", ".ini": "text/plain", ".cfg": "text/plain", ".env": "text/plain",
 }
 

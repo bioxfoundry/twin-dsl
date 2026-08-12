@@ -10,8 +10,8 @@
  * a tree that silently disagrees with its source, which is worse than an explicit "no text here".
  */
 import { createHash } from "node:crypto";
-import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
-import { basename, dirname, join, relative, resolve, sep } from "node:path";
+import { mkdir, readdir, readFile, realpath, stat, writeFile } from "node:fs/promises";
+import { basename, dirname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { ConverterChain, defaultChain } from "./chain.js";
 import { detectDocumentKind, mediaTypeFor } from "./detect.js";
 import { VERSION } from "./index.js";
@@ -210,7 +210,56 @@ export interface TreeOptions {
   doclingUrl?: string;
   /** Restrict the run to these detected kinds, e.g. `[".pdf"]`. */
   only?: string[];
+  /** Exact hash-bound selection manifest (`bioxfoundry.source-selection/v1`). */
+  manifestPath?: string;
   onProgress?: (index: number, total: number, relativePath: string, note: string) => void;
+}
+
+async function selectedFiles(source: string, manifestPath: string): Promise<string[]> {
+  const manifestKeys = new Set(["schema", "id", "entries"]);
+  const entryKeys = new Set(["path", "sha256", "family", "expectedUse", "reason"]);
+  const expectedUses = new Set(["behavior", "interface", "safety", "telemetry", "geometry", "documentation"]);
+  let value: unknown;
+  try { value = JSON.parse(await readFile(resolve(manifestPath), "utf8")); }
+  catch (error) { throw new ConversionError(`SOURCE_SELECTION_JSON_INVALID:${String(error)}`); }
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new ConversionError("SOURCE_SELECTION_INVALID");
+  const manifest = value as Record<string, unknown>;
+  if (manifest.schema !== "bioxfoundry.source-selection/v1" || typeof manifest.id !== "string" || !manifest.id ||
+      !Array.isArray(manifest.entries) || !manifest.entries.length ||
+      Object.keys(manifest).some((key) => !manifestKeys.has(key))) throw new ConversionError("SOURCE_SELECTION_INVALID");
+  const root = await realpath(source);
+  const paths: string[] = [];
+  const seen = new Set<string>();
+  for (let index = 0; index < manifest.entries.length; index++) {
+    const raw = manifest.entries[index];
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new ConversionError(`SOURCE_SELECTION_ENTRY_INVALID:${index}`);
+    const entry = raw as Record<string, unknown>;
+    if (typeof entry.path !== "string" || !entry.path || isAbsolute(entry.path) || entry.path.includes("\\") ||
+        entry.path.split("/").some((part) => !part || part === "." || part === "..") ||
+        typeof entry.sha256 !== "string" || !/^[a-f0-9]{64}$/.test(entry.sha256) ||
+        typeof entry.family !== "string" || !entry.family ||
+        typeof entry.expectedUse !== "string" || !expectedUses.has(entry.expectedUse) ||
+        typeof entry.reason !== "string" || !entry.reason ||
+        Object.keys(entry).some((key) => !entryKeys.has(key))) {
+      throw new ConversionError(`SOURCE_SELECTION_ENTRY_INVALID:${index}`);
+    }
+    if (seen.has(entry.path)) throw new ConversionError(`SOURCE_SELECTION_PATH_DUPLICATE:${entry.path}`);
+    seen.add(entry.path);
+    const candidate = resolve(root, entry.path);
+    const rel = relative(root, candidate);
+    if (rel === ".." || rel.startsWith(`..${sep}`) || isAbsolute(rel)) throw new ConversionError(`SOURCE_SELECTION_PATH_UNSAFE:${entry.path}`);
+    const info = await stat(candidate).catch(() => null);
+    if (!info?.isFile()) throw new ConversionError(`SOURCE_SELECTION_SOURCE_MISSING:${entry.path}`);
+    const actual = await realpath(candidate);
+    const actualRel = relative(root, actual);
+    if (actualRel === ".." || actualRel.startsWith(`..${sep}`) || isAbsolute(actualRel)) {
+      throw new ConversionError(`SOURCE_SELECTION_SYMLINK_ESCAPE:${entry.path}`);
+    }
+    const digest = createHash("sha256").update(await readFile(actual)).digest("hex");
+    if (digest !== entry.sha256) throw new ConversionError(`SOURCE_SELECTION_HASH_MISMATCH:${entry.path}`);
+    paths.push(actual);
+  }
+  return paths.sort((left, right) => Buffer.compare(Buffer.from(relative(root, left)), Buffer.from(relative(root, right))));
 }
 
 /** Mirror `src` into `out`, converting every file to `<name>.<ext>.md`. */
@@ -236,7 +285,7 @@ export async function convertTree(src: string, out: string, options: TreeOptions
     sourceCoverageJson: "source-coverage.json",
     sourceCoverageDsl: "source-coverage.dsl",
   };
-  const paths = await walkFiles(source);
+  const paths = options.manifestPath ? await selectedFiles(source, options.manifestPath) : await walkFiles(source);
   const coverageRecords: SourceCoverageRecord[] = [];
 
   for (let index = 0; index < paths.length; index++) {

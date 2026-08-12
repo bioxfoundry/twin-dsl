@@ -5,6 +5,7 @@ import { validateSceneBlueprint } from "../scene/blueprint.js";
 import { flattenTwin, validateTwin as validateTwinDocument } from "../dsl/twin.js";
 import { validateScene as validateSceneDocument } from "../dsl/scene.js";
 import type { SceneDocument, TwinDocument } from "../core/types.js";
+import { intentSourceAnchor, intentTargetUris, intentText, intentType, validateT2cIntent } from "../dsl/intent.js";
 
 const REPORT_SCHEMA = "bioxfoundry.specification-dsl-validation/v1" as const;
 const INTENT_TYPES = new Set(["claim", "decision", "message", "plan", "report", "request", "result"]);
@@ -362,20 +363,19 @@ async function validateIntentPack(input: {
   const texts: string[] = [];
   const invalidRecordIds: string[] = [];
   for (const raw of pack.records) {
-    if (!object(raw) || raw.schema !== "t2c.intent/v1" || typeof raw.id !== "string" || ids.has(raw.id) ||
-      typeof raw.text !== "string" || !raw.text.trim() || typeof raw.type !== "string" || !INTENT_TYPES.has(raw.type) ||
-      typeof raw.actor !== "string" || !raw.actor || !Array.isArray(raw.targetUris) || !raw.targetUris.length ||
-      !raw.targetUris.every((target) => typeof target === "string" && target.length > 0) ||
-      !object(raw.source) || !Number.isInteger(raw.source.page) || !validPages.has(Number(raw.source.page)) ||
-      typeof raw.source.fragment !== "string" || !raw.source.fragment.includes("#") ||
-      raw.source.revisionHash !== expectedHash || typeof raw.source.artifactUri !== "string" ||
-      !raw.targetUris.includes(raw.source.artifactUri)) {
+    try {
+      const [record] = validateT2cIntent([raw]);
+      const anchor = intentSourceAnchor(record);
+      const targets = intentTargetUris(record);
+      if (ids.has(record.id) || !INTENT_TYPES.has(intentType(record)) || !anchor || !Number.isInteger(anchor.page) ||
+        !validPages.has(Number(anchor.page)) || typeof anchor.fragment !== "string" || !anchor.fragment.includes("#") ||
+        anchor.revisionHash !== expectedHash || !targets.includes(anchor.artifactUri)) throw new Error("INVALID_SPEC_INTENT_PROVENANCE");
+      ids.add(record.id);
+      pages.add(Number(anchor.page));
+      texts.push(intentText(record));
+    } catch {
       invalidRecordIds.push(object(raw) && typeof raw.id === "string" ? raw.id : "<unknown>");
-      continue;
     }
-    ids.add(raw.id);
-    pages.add(Number(raw.source.page));
-    texts.push(raw.text);
   }
   if (invalidRecordIds.length) finding(findings, {
     code: "SPEC_INTENT_PROVENANCE_INVALID", severity: "error", path: dslPath, document,

@@ -24,10 +24,10 @@ test("SCAD intent conversion keeps repeated local variable assignments uniquely 
   await writeFile(source, "angle = base_a + i;\nangle = base_b + i;\ncylinder(h=1,r=2);\n");
   await writeFile(report, JSON.stringify({ schema: "subactor.intent-compile-report/v1", source: root, output: root, files: 0, records: 0, failures: [] }));
   await run("python3", ["scripts/scad-to-markdown.py", source, markdown, intent, "--compile-report", report], { cwd: process.cwd() });
-  const pack = JSON.parse(await readFile(intent, "utf8")) as { records: Array<{ id: string; source: { fragment: string } }> };
+  const pack = JSON.parse(await readFile(intent, "utf8")) as { records: Array<{ id: string; metadata: { bioxfoundry: { sourceAnchor: { fragment: string } } } }> };
   const summary = JSON.parse(await readFile(report, "utf8")) as { files: number; records: number };
   assert.equal(new Set(pack.records.map((record) => record.id)).size, pack.records.length);
-  assert.notEqual(pack.records[0].source.fragment, pack.records[1].source.fragment);
+  assert.notEqual(pack.records[0].metadata.bioxfoundry.sourceAnchor.fragment, pack.records[1].metadata.bioxfoundry.sourceAnchor.fragment);
   assert.equal(summary.files, 1);
   assert.equal(summary.records, pack.records.length);
 });

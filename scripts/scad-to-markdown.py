@@ -1,6 +1,8 @@
 """Fallback SCAD source converter when Docling/OpenSCAD is unavailable."""
-import argparse, hashlib, json, re
+import argparse, hashlib, json, re, sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "py" / "f2md" / "src"))
 
 def main():
     ap=argparse.ArgumentParser(); ap.add_argument("source"); ap.add_argument("markdown"); ap.add_argument("intent"); ap.add_argument("--compile-report"); ap.add_argument("--preserve-markdown",action="store_true"); a=ap.parse_args()
@@ -17,10 +19,19 @@ def main():
         md=markdown_path.read_text(encoding="utf-8")
     else:
         markdown_path.parent.mkdir(parents=True,exist_ok=True); markdown_path.write_text(md,encoding="utf-8")
+    from f2md.intent_compile import _canonical_intent, validate_intents
+    target_uri=f"urn:subactor:resource:sha256:{digest}"
+    anchor=lambda fragment:{"artifactUri":target_uri,"revisionHash":digest,"fragment":fragment,"converter":"scad-source","converterVersion":"1.1.0"}
     records=[]
-    for index,item in enumerate(params): records.append({"schema":"t2c.intent/v1","id":hashlib.sha256((f"param:{index}:{item['name']}:{item['value']}:{digest}").encode()).hexdigest()[:16],"type":"claim","text":f"SCAD parameter {item['name']} = {item['value']}","actor":"scad-parser","targetUris":[f"urn:subactor:resource:sha256:{digest}"],"source":{"artifactUri":f"urn:subactor:resource:sha256:{digest}","revisionHash":digest,"fragment":f"scad://{src.name}#parameter={item['name']}-{index + 1}","converter":"scad-source","converterVersion":"1.1.0"}})
-    for dep in includes: records.append({"schema":"t2c.intent/v1","id":hashlib.sha256(("dep:"+dep+digest).encode()).hexdigest()[:16],"type":"claim","text":f"SCAD dependency use <{dep}>","actor":"scad-parser","targetUris":[f"urn:subactor:resource:sha256:{digest}"],"source":{"artifactUri":f"urn:subactor:resource:sha256:{digest}","revisionHash":digest,"fragment":f"scad://{src.name}#dependency={dep}","converter":"scad-source","converterVersion":"1.1.0"}})
-    records.append({"schema":"t2c.intent/v1","id":hashlib.sha256(("geometry:"+digest).encode()).hexdigest()[:16],"type":"claim","text":f"SCAD geometry operators: {', '.join(primitives) or 'none'}; modules: {', '.join(modules) or 'none'}; source lines: {len(text.splitlines())}","actor":"scad-parser","targetUris":[f"urn:subactor:resource:sha256:{digest}"],"source":{"artifactUri":f"urn:subactor:resource:sha256:{digest}","revisionHash":digest,"fragment":f"scad://{src.name}#geometry","converter":"scad-source","converterVersion":"1.1.0"}})
+    for index,item in enumerate(params):
+        statement=f"SCAD parameter {item['name']} = {item['value']}"
+        records.append(_canonical_intent(seed=f"param:{index}:{item['name']}:{item['value']}:{digest}",intent_type="claim",text=statement,actor="scad-parser",target_uri=target_uri,source_path=src.name,source_digest=digest,source_anchor=anchor(f"scad://{src.name}#parameter={item['name']}-{index + 1}"),basis="scad_parameter_parser"))
+    for dep in includes:
+        statement=f"SCAD dependency use <{dep}>"
+        records.append(_canonical_intent(seed="dep:"+dep+digest,intent_type="claim",text=statement,actor="scad-parser",target_uri=target_uri,source_path=src.name,source_digest=digest,source_anchor=anchor(f"scad://{src.name}#dependency={dep}"),basis="scad_dependency_parser"))
+    statement=f"SCAD geometry operators: {', '.join(primitives) or 'none'}; modules: {', '.join(modules) or 'none'}; source lines: {len(text.splitlines())}"
+    records.append(_canonical_intent(seed="geometry:"+digest,intent_type="claim",text=statement,actor="scad-parser",target_uri=target_uri,source_path=src.name,source_digest=digest,source_anchor=anchor(f"scad://{src.name}#geometry"),basis="scad_geometry_parser"))
+    validate_intents(records)
     pack={"schema":"t2c.intent-pack/v1","source":str(markdown_path.resolve()),"sourceHash":hashlib.sha256(markdown_path.read_bytes()).hexdigest(),"records":records}
     Path(a.intent).parent.mkdir(parents=True,exist_ok=True); Path(a.intent).write_text(json.dumps(pack,indent=2)+"\n",encoding="utf-8")
     if a.compile_report:

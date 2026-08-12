@@ -23,6 +23,7 @@ import type {
 import { canonicalJson, contentUri, sha256 } from "../core/canonical.js";
 import { observationHorizon } from "../dsl/observation.js";
 import { intentUri } from "../dsl/intent.js";
+import { intentActor, intentTargetUris, intentText, intentType } from "../dsl/intent.js";
 
 export interface GroundedIntentEvidence {
   record: IntentRecord;
@@ -152,7 +153,7 @@ export function matchZoneResources(zone: BiofoundryZoneSpec, resources: Resource
 }
 
 const GENERIC_INTENT_KEYWORDS = new Set(["biofoundry", "specifikacija", "study", "manager"]);
-const INTENT_EPISTEMIC_PRIORITY: Record<IntentRecord["type"], number> = {
+const INTENT_EPISTEMIC_PRIORITY: Record<ReturnType<typeof intentType>, number> = {
   decision: 0,
   request: 1,
   plan: 2,
@@ -196,7 +197,7 @@ function matchIntents(
   intents: GroundedIntentEvidence[],
 ): GroundedIntentEvidence[] {
   return intents.filter(({ record }) => {
-    const text = [record.text, ...record.targetUris].join(" ").toLowerCase();
+    const text = [intentText(record), ...intentTargetUris(record)].join(" ").toLowerCase();
     return keywords.some((keyword) => intentKeywordMatches(text, keyword));
   });
 }
@@ -222,13 +223,14 @@ function zoneSourceUris(
 
 function intentTypeCounts(intents: GroundedIntentEvidence[]): Record<string, number> {
   return intents.reduce<Record<string, number>>((counts, { record }) => {
-    counts[record.type] = (counts[record.type] ?? 0) + 1;
+    const type = intentType(record);
+    counts[type] = (counts[type] ?? 0) + 1;
     return counts;
   }, {});
 }
 
 function canonicalStudyRank(intent: GroundedIntentEvidence): number {
-  return intent.record.targetUris.some((target) =>
+  return intentTargetUris(intent.record).some((target) =>
     target.toLowerCase().includes("atvirojo kodo biofoundry studija")) ? 0 : 1;
 }
 
@@ -239,14 +241,14 @@ function intentEvidenceHash(intents: GroundedIntentEvidence[]): string {
 function intentTwinEvidence(keywords: readonly string[], intents: GroundedIntentEvidence[]): Array<Record<string, unknown>> {
   return [...matchIntents(keywords, intents)]
     .sort((left,right)=>canonicalStudyRank(left)-canonicalStudyRank(right)
-      ||INTENT_EPISTEMIC_PRIORITY[left.record.type]-INTENT_EPISTEMIC_PRIORITY[right.record.type]
+      ||INTENT_EPISTEMIC_PRIORITY[intentType(left.record)]-INTENT_EPISTEMIC_PRIORITY[intentType(right.record)]
       ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
     .slice(0, 12).map(({ record, sourceUri }) => ({
     intentId: record.id,
     intentUri: intentUri(record),
-    epistemicType: record.type,
-    text: record.text.slice(0, 500),
-    targetUris: record.targetUris,
+    epistemicType: intentType(record),
+    text: intentText(record).slice(0, 500),
+    targetUris: intentTargetUris(record),
     sourceUri,
   }));
 }
@@ -324,12 +326,12 @@ export function biofoundryConceptTree(
         ...matchedIntents.slice(0, 20).map(({ record, sourceUri }) => ({
           id: `${zone.id}-intent-${record.id}`,
           uri: intentUri(record),
-          label: record.text.slice(0, 160),
+          label: intentText(record).slice(0, 160),
           kind: "intent-evidence",
           parentId: zone.id,
           relation: "specifies",
           sourceUris: [sourceUri],
-          properties: { intentId: record.id, epistemicType: record.type, actor: record.actor },
+          properties: { intentId: record.id, epistemicType: intentType(record), actor: intentActor(record) },
           children: [],
         })),
       ],

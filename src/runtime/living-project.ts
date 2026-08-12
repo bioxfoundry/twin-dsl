@@ -50,7 +50,7 @@ import { renderOpenUsd, sceneDiff } from "../scene/openusd.js";
 import { renderGeometryValidationDsl } from "../scene/geometry-validation.js";
 import { validateScene } from "../dsl/scene.js";
 import { validateTwin } from "../dsl/twin.js";
-import { validateT2cIntent } from "../dsl/intent.js";
+import { intentTargetUris, intentText, intentType, validateT2cIntent } from "../dsl/intent.js";
 import {
   acquireProjectLease,
   appendJsonLine,
@@ -120,18 +120,18 @@ function evidenceSet(id:string,memberUris:string[]):EvidenceSetRecord {
 function renderEvidenceSets(sets:EvidenceSetRecord[]):string {
   return sets.map(set=>["```evidencesetdsl",`EVIDENCE_SET ${set.id}`,`URI ${set.uri}`,`QUERY ${set.queryUri}`,`MEMBERS ${set.members}`,`HASH ${set.membersHash}`,"END_EVIDENCE_SET","```"].join("\n")).join("\n\n")+"\n";
 }
-type IntentDslSample = Pick<IntentRecord,"id"|"type"|"text"|"targetUris"> & {sourceUri:string};
+type IntentDslSample = {id:string;type:ReturnType<typeof intentType>;text:string;targetUris:string[];sourceUri:string};
 type IntentDslIndex = {
   packs:number;
   records:number;
   invalid:number;
   sourceUris:string[];
-  byType:Partial<Record<IntentRecord["type"],number>>;
+  byType:Partial<Record<ReturnType<typeof intentType>,number>>;
   semanticHash:string;
   highPriority:IntentDslSample[];
 };
 type IntentDslLoad = {index:IntentDslIndex;evidence:GroundedIntentEvidence[]};
-const INTENT_PRIORITY:Record<IntentRecord["type"],number> = {
+const INTENT_PRIORITY:Record<ReturnType<typeof intentType>,number> = {
   decision:0,
   request:1,
   plan:2,
@@ -141,7 +141,7 @@ const INTENT_PRIORITY:Record<IntentRecord["type"],number> = {
   claim:6,
 };
 function canonicalIntentRank(intent:GroundedIntentEvidence):number {
-  return intent.record.targetUris.some(target=>
+  return intentTargetUris(intent.record).some(target=>
     target.toLowerCase().includes("atvirojo kodo biofoundry studija")) ? 0 : 1;
 }
 export async function indexIntentDsl(resources:ResourceRecord[], texts:Map<string,string>):Promise<IntentDslLoad> {
@@ -173,7 +173,8 @@ export async function indexIntentDsl(resources:ResourceRecord[], texts:Map<strin
       result.records += records.length;
       result.sourceUris.push(resource.uri);
       for(const record of records) {
-        result.byType[record.type] = (result.byType[record.type]??0)+1;
+        const type=intentType(record);
+        result.byType[type] = (result.byType[type]??0)+1;
         evidence.push({record,sourceUri:resource.uri});
       }
     } catch { result.invalid++; }
@@ -182,16 +183,16 @@ export async function indexIntentDsl(resources:ResourceRecord[], texts:Map<strin
   result.sourceUris = [...new Set(result.sourceUris)].sort();
   result.semanticHash = sha256(canonicalJson(evidence));
   result.highPriority = evidence
-    .filter(({record})=>record.type!=="claim")
+    .filter(({record})=>intentType(record)!=="claim")
     .sort((left,right)=>canonicalIntentRank(left)-canonicalIntentRank(right)
-      ||INTENT_PRIORITY[left.record.type]-INTENT_PRIORITY[right.record.type]
+      ||INTENT_PRIORITY[intentType(left.record)]-INTENT_PRIORITY[intentType(right.record)]
       ||left.sourceUri.localeCompare(right.sourceUri)||left.record.id.localeCompare(right.record.id))
     .slice(0,40)
     .map(({record,sourceUri})=>({
       id:record.id,
-      type:record.type,
-      text:record.text.slice(0,500),
-      targetUris:record.targetUris,
+      type:intentType(record),
+      text:intentText(record).slice(0,500),
+      targetUris:intentTargetUris(record),
       sourceUri,
     }));
   return {index:result,evidence};

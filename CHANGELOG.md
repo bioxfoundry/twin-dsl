@@ -41,6 +41,36 @@
 - Fix string-concat-fstring issues (ticket-92889f14)
 - Fix pylint-string-concat issues (ticket-14b31a93)
 
+## [0.5.35] - 2026-08-12
+
+### Docs
+- Update README.md
+
+### Test
+- Update test/analysis-trace.test.ts
+- Update test/biofoundry-concept.test.ts
+- Update test/fixtures/process-fixture.ts
+- Update test/geometry-build.test.ts
+- Update test/intent-index.test.ts
+- Update test/intent-validation.test.ts
+- Update test/openrouter.test.ts
+- Update test/process-model.test.ts
+- Update test/specification-dsl-validation.test.ts
+- Update test/todo2code-adapter.test.ts
+
+### Other
+- Update examples/nl-to-dsl/intent.fixture.json
+- Update img_8.png
+- Update js/f2md/src/cli.ts
+- Update js/f2md/src/detect.ts
+- Update js/f2md/src/tree.ts
+- Update js/f2md/test/f2md.test.ts
+- Update py/f2md/src/f2md/cli.py
+- Update py/f2md/src/f2md/detect.py
+- Update py/f2md/src/f2md/intent_compile.py
+- Update py/f2md/src/f2md/tree.py
+- ... and 12 more files
+
 ## [0.5.21] - 2026-08-09
 
 ### Fixed

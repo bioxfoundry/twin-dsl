@@ -55,10 +55,10 @@ test("todo2code NL extraction is forced deterministic before local patchDSL enri
   const directory=await mkdtemp(join(tmpdir(),"t2c-adapter-nl-"));
   try{
     const bin=join(directory,"fake-t2c.mjs");
-    await writeFile(bin,`import{writeFile}from'node:fs/promises';const a=process.argv.slice(2);if(a[0]!=='extract'||a[1]!=='nl'||process.env.T2C_NL_MODE!=='deterministic')process.exit(2);const out=a[a.indexOf('--out')+1];await writeFile(out,JSON.stringify({schema:'t2c.intent/v1',id:'i-1',type:'request',text:'baseline',actor:'test',targetUris:['urn:test']})+'\\n');`);
+    await writeFile(bin,`import{writeFile}from'node:fs/promises';import{createHash}from'node:crypto';const a=process.argv.slice(2);if(a[0]!=='extract'||a[1]!=='nl'||process.env.T2C_NL_MODE!=='deterministic')process.exit(2);const out=a[a.indexOf('--out')+1];const h=v=>createHash('sha256').update(v).digest('hex');const record={schemaVersion:'t2c.intent/v1',id:'INT-NL-'+h('i-1').slice(0,20),statement:{kind:'declared_intent',actor:'test',action:'analyze',subject:null,object:'baseline',target:{paths:[],symbols:[],tickets:[],versions:[]},modality:'unknown',polarity:'positive',text:'baseline'},lifecycle:{status:'proposed'},source:{kind:'nl',path:'request.md',lines:{start:1,end:1},revision:null,symbol:null,commitIndex:null,extractor:'t2c/nl-heuristic@1',contentHash:h('baseline'),rawExcerpt:'baseline'},epistemic:{class:'declaration',confidence:0.9,basis:['fixture']},observedAt:null,metadata:{generation:{generator:'t2c/nl-heuristic',generatorVersion:'1',runtimeVersion:'0.5.1',requested:'deterministic',used:'deterministic',degraded:false,fallbackReason:null,provider:null,model:null,responseId:null}}};await writeFile(out,JSON.stringify(record)+'\\n');`);
     const adapter=new Todo2CodeAdapter(directory,bin);
     const records=await adapter.extractNl("request","require-llm");
-    assert.equal((records[0] as {text:string}).text,"baseline");
+    assert.equal((records[0] as {statement:{text:string}}).statement.text,"baseline");
   }finally{
     await rm(directory,{recursive:true,force:true});
   }

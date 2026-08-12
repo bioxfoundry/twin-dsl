@@ -2,7 +2,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { parseProcessDsl, renderProcessDsl, validateProcessDocument } from "../src/dsl/process.js";
 import { deriveBiofoundryProcesses } from "../src/runtime/process-model.js";
-import { canonicalIntents, COMPONENT_IDS, deviceIntents, twin } from "./fixtures/process-fixture.js";
+import { archiveDeviceIntents, canonicalIntents, COMPONENT_IDS, deviceIntents, twin } from "./fixtures/process-fixture.js";
+import { intentSourceAnchor } from "../src/dsl/intent.js";
+import { intentText } from "../src/dsl/intent.js";
 
 test("canonical intent evidence derives complete control loops and honest partial device processes", () => {
   const document = deriveBiofoundryProcesses({ projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64), intents: canonicalIntents(), twin: twin() });
@@ -68,7 +70,7 @@ test("device intent packs produce sourced parameters, ordered device actors and 
 });
 
 test("a missing device fragment downgrades only its workflow instead of inventing completeness", () => {
-  const intents = [...canonicalIntents(), ...deviceIntents().filter(({ record }) => record.id !== "mic-preflight")];
+  const intents = [...canonicalIntents(), ...deviceIntents().filter(({ record }) => !intentText(record).includes("all units must be synchronized"))];
   const document = deriveBiofoundryProcesses({ projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64), intents, twin: twin() });
   const microscopy = document.processes.find((process) => process.id === "microscopy_acquisition");
   assert.equal(microscopy?.completeness, "partial");
@@ -77,10 +79,34 @@ test("a missing device fragment downgrades only its workflow instead of inventin
   assert.equal(document.processes.find((process) => process.id === "syringebot_synthesis")?.completeness, "complete");
 });
 
+test("archive code contracts add sourced ChemOS, pipette and MOS3S process detail without inventing kinematics", () => {
+  const document = deriveBiofoundryProcesses({
+    projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64),
+    intents: [...canonicalIntents(), ...deviceIntents(), ...archiveDeviceIntents()], twin: twin(),
+  });
+  assert.deepEqual(document.coverage, {
+    processes: 9, complete: 5, partial: 4, declaredOnly: 0,
+    steps: 65, evidencedSteps: 65, missingEvidence: 0, missingComponents: 0,
+  });
+  const closed = document.processes.find((process) => process.id === "closed_optimization");
+  assert.deepEqual(closed?.steps.map((item) => item.id), [
+    "recommend_next_experiment", "queue_chemspeed_batch", "monitor_chemspeed_operations",
+    "submit_hplcms_characterization", "submit_optical_measurement", "synchronize_characterization_results",
+    "optimize_next_plan",
+  ]);
+  const pipette = document.processes.find((process) => process.id === "oscar_pipette_control");
+  assert.equal(pipette?.steps.find((item) => item.id === "aspirate_liquid")?.parameters.find((item) => item.name === "example_volume")?.value, 75000);
+  assert.equal(pipette?.failureStepId, "report_pipette_fault");
+  const mos3s = document.processes.find((process) => process.id === "mos3s_bioprinting");
+  assert.equal(mos3s?.steps.find((item) => item.id === "position_printhead")?.parameters.find((item) => item.name === "z_travel")?.value, 200);
+  assert.equal(mos3s?.ordering, "presentation-only");
+  assert.ok(document.findings.some((finding) => finding.code === "PROCESS_KINEMATIC_MAPPING_MISSING" && finding.processId === "mos3s_bioprinting"));
+});
+
 test("device evidence is accepted only from its allowlisted source pack", () => {
   const impostor = structuredClone(deviceIntents()[0]);
-  impostor.record.targetUris = ["subactor://markdown/unrelated/report.pdf.md"];
-  if (impostor.record.source) impostor.record.source.artifactUri = "subactor://markdown/unrelated/report.pdf.md";
+  impostor.record.metadata.bioxfoundry!.targetUris = ["subactor://markdown/unrelated/report.pdf.md"];
+  intentSourceAnchor(impostor.record)!.artifactUri = "subactor://markdown/unrelated/report.pdf.md";
   const document = deriveBiofoundryProcesses({ projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64), intents: [...canonicalIntents(), impostor], twin: twin() });
   const cultivation = document.processes.find((process) => process.id === "cultivation_monitoring");
   assert.equal(cultivation?.ordering, "presentation-only");
@@ -88,7 +114,7 @@ test("device evidence is accepted only from its allowlisted source pack", () => 
 });
 
 test("missing sequence evidence keeps the process partial instead of fabricating a step fact", () => {
-  const intents = canonicalIntents().filter(({ record }) => record.id !== "seq4");
+  const intents = canonicalIntents().filter(({ record }) => !intentText(record).includes("MoveIt 2 verify the trajectory"));
   const document = deriveBiofoundryProcesses({ projectId: "biofoundry", sourceSnapshotHash: "d".repeat(64), intents, twin: twin() });
   const manipulation = document.processes.find((process) => process.id === "laboratory_manipulation");
   assert.equal(manipulation?.completeness, "partial");

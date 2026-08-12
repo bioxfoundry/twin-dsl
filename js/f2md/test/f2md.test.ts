@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { createServer, type Server } from "node:http";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -367,6 +368,38 @@ test("tree mode mirrors structure and keeps the original extension", async (t) =
   assert.equal(coverage.summary.byState.converted, 2);
   assert.equal(coverage.summary.byState.unsupported, 1);
   assert.match(await readFile(join(out, "source-coverage.dsl"), "utf8"), /RESULT COMPLETE/);
+});
+
+test("tree selection manifest converts only hash-bound files and rejects drift", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src");
+  const out = join(dir, "out");
+  await mkdir(join(src, "device"), { recursive: true });
+  const selected = Buffer.from("syntax = \"proto3\";\n");
+  await writeFile(join(src, "device", "control.proto"), selected);
+  await writeFile(join(src, "raw.csv"), "measurement\n");
+  const manifestPath = join(dir, "selection.json");
+  await writeFile(manifestPath, JSON.stringify({
+    schema: "bioxfoundry.source-selection/v1",
+    id: "device-evidence",
+    entries: [{
+      path: "device/control.proto",
+      sha256: createHash("sha256").update(selected).digest("hex"),
+      family: "device",
+      expectedUse: "interface",
+      reason: "Defines the device RPC contract.",
+    }],
+  }));
+
+  const result = await convertTree(src, out, { manifestPath });
+  assert.equal(result.converted, 1);
+  assert.equal(detectDocumentKind("control.proto"), ".proto");
+  assert.equal(mediaTypeFor("control.proto"), "text/x-protobuf");
+  assert.match(await readFile(join(out, "device", "control.proto.md"), "utf8"), /```proto/);
+  assert.rejects(() => readFile(join(out, "raw.csv.md")), /ENOENT/);
+
+  await writeFile(join(src, "device", "control.proto"), "changed\n");
+  await assert.rejects(() => convertTree(src, join(dir, "drifted"), { manifestPath }), /SOURCE_SELECTION_HASH_MISMATCH/);
 });
 
 test("source coverage is byte-stable and a filtered source is explicitly excluded", async (t) => {

@@ -1,11 +1,45 @@
 [
   {
-    "schema":"t2c.intent/v1",
-    "id":"INT-DEMO-BIOFOUNDRY",
-    "type":"request",
-    "text":"Research the Biofoundry project and build a validated conceptual Digital Twin.",
-    "actor":"human:manager",
-    "ticket":"PLF-BIO-001",
-    "targetUris":["subactor://project/biofoundry"]
+    "schemaVersion": "t2c.intent/v1",
+    "id": "INT-NL-a7d2fcdafdc418a640d2",
+    "statement": {
+      "kind": "declared_intent",
+      "actor": "human:manager",
+      "action": "analyze",
+      "subject": null,
+      "object": "Research the Biofoundry project and build a validated conceptual Digital Twin.",
+      "target": {"paths": [], "symbols": [], "tickets": ["PLF-BIO-001"], "versions": []},
+      "modality": "required",
+      "polarity": "positive",
+      "text": "Research the Biofoundry project and build a validated conceptual Digital Twin."
+    },
+    "lifecycle": {"status": "proposed"},
+    "source": {
+      "kind": "nl",
+      "path": "request.md",
+      "lines": {"start": 1, "end": 1},
+      "revision": null,
+      "symbol": null,
+      "commitIndex": null,
+      "extractor": "t2c/nl-heuristic@1",
+      "contentHash": "ced2f05e71db01d8dc4d08dc90b78e1b7b666d8e777309c606e605590c732d0e",
+      "rawExcerpt": "Research the Biofoundry project and build a validated conceptual Digital Twin."
+    },
+    "epistemic": {"class": "declaration", "confidence": 0.9, "basis": ["deterministic_fixture"]},
+    "observedAt": null,
+    "metadata": {
+      "generation": {
+        "generator": "t2c/nl-heuristic",
+        "generatorVersion": "1",
+        "runtimeVersion": "0.5.34",
+        "requested": "deterministic",
+        "used": "deterministic",
+        "degraded": false,
+        "fallbackReason": null,
+        "provider": null,
+        "model": null,
+        "responseId": null
+      }
+    }
   }
 ]

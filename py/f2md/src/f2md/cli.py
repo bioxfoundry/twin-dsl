@@ -51,6 +51,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         help="mirror a directory tree: SRC/a/b.pdf -> OUT/a/b.pdf.md, with provenance front matter",
     )
     parser.add_argument("--only", default=None, help="with --tree, restrict to these kinds, e.g. .pdf,.docx")
+    parser.add_argument(
+        "--manifest", default=None,
+        help="with --tree, convert an exact hash-bound bioxfoundry.source-selection/v1 subset",
+    )
     parser.add_argument("--quiet", action="store_true", help="with --tree, suppress per-file progress")
     parser.add_argument(
         "--relative-prefix", default=None, metavar="PATH",
@@ -99,6 +103,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                 only=only, secret_pattern=args.secret_pattern,
                 translate_to=args.translate, translation_policy=args.translation_policy,
                 relative_prefix=args.relative_prefix,
+                manifest_path=args.manifest,
             )
         except ConversionError as error:
             print(f"f2md: {error}", file=sys.stderr)

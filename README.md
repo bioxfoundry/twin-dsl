@@ -26,6 +26,9 @@
 ### 8
 ![img_7.png](img_7.png)
 
+### 9
+![img_8.png](img_8.png)
+
 Uruchamialny starter ciągłej, audytowalnej pętli Digital Twin:
 
 ```text

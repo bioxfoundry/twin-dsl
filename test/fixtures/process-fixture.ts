@@ -1,5 +1,6 @@
 import type { IntentRecord, TwinDocument } from "../../src/core/types.js";
 import type { GroundedIntentEvidence } from "../../src/runtime/biofoundry-concept.js";
+import { canonicalIntentRecord } from "../../src/dsl/intent.js";
 
 export const COMPONENT_IDS = [
   "opentwins_state_01", "oscar_robot_01", "cleanroom_base_01", "sila_orchestrator_01", "ros2_robotics_01",
@@ -9,6 +10,8 @@ export const COMPONENT_IDS = [
   "microfluidic_pressure_controller_01", "microfluidic_mux_valve_01", "microfluidic_flow_sensor_01", "microfluidic_flow_chamber_01",
   "syringebot_controller_01", "syringebot_syringe_bank_01", "syringebot_valve_bank_01",
   "oscar_pipette_tool_01", "oscar_thermocycler_01", "oscar_gel_electrophoresis_01", "oscar_colony_camera_01",
+  "bioprinter_mos3s_01", "bioprinter_part_carriage", "bioprinter_part_syringe_clamp", "bioprinter_part_platform_holder",
+  "bioprinter_part_syringe_support_1", "bioprinter_part_syringe_support_2", "bioprinter_part_plunger_retainer_2ml",
 ];
 
 export function twin(ids = COMPONENT_IDS): TwinDocument {
@@ -19,19 +22,14 @@ export function twin(ids = COMPONENT_IDS): TwinDocument {
   };
 }
 
-function intent(id: string, page: number, text: string, type: IntentRecord["type"] = "plan"): GroundedIntentEvidence {
+function intent(id: string, page: number, text: string, type: "request"|"plan"|"decision"|"message"|"report"|"result"|"claim" = "plan"): GroundedIntentEvidence {
+  const artifactUri = "subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md";
   return {
     sourceUri: `urn:subactor:resource:sha256:${"b".repeat(64)}`,
-    record: {
-      schema: "t2c.intent/v1", id, type, text, actor: "source:markdown",
-      targetUris: ["subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md"],
-      source: {
-        artifactUri: "subactor://markdown/A. SPECIFIKACIJA/Atvirojo kodo biofoundry studija.pdf.md",
-        revisionHash: "c".repeat(64), fragment: `canonical#${id}`, page,
-        artifactUrn: `urn:subactor:artifact:sha256:${id.padEnd(64, "0")}`,
-        converter: "fixture", converterVersion: "1",
-      },
-    },
+    record: canonicalIntentRecord({ seed:id, type, text, targetUris:[artifactUri], sourceAnchor: {
+      artifactUri, revisionHash:"c".repeat(64), fragment:`canonical#${id}`, page,
+      artifactUrn:`urn:subactor:artifact:sha256:${id.padEnd(64, "0")}`, converter:"fixture", converterVersion:"1",
+    }}),
   };
 }
 
@@ -39,13 +37,10 @@ function deviceIntent(id: string, artifactPath: string, text: string): GroundedI
   const artifactUri = `subactor://markdown/${artifactPath}`;
   return {
     sourceUri: `urn:subactor:resource:sha256:${"e".repeat(64)}`,
-    record: {
-      schema: "t2c.intent/v1", id, type: "plan", text, actor: "source:markdown", targetUris: [artifactUri],
-      source: {
-        artifactUri, revisionHash: "f".repeat(64), fragment: `${artifactPath}#${id}`,
-        artifactUrn: `urn:subactor:artifact:sha256:${id.padEnd(64, "0")}`, converter: "fixture", converterVersion: "1",
-      },
-    },
+    record: canonicalIntentRecord({ seed:id, type:"plan", text, targetUris:[artifactUri], sourceAnchor: {
+      artifactUri, revisionHash:"f".repeat(64), fragment:`${artifactPath}#${id}`,
+      artifactUrn:`urn:subactor:artifact:sha256:${id.padEnd(64, "0")}`, converter:"fixture", converterVersion:"1",
+    }}),
   };
 }
 
@@ -115,5 +110,29 @@ export function deviceIntents(): GroundedIntentEvidence[] {
     deviceIntent("oscar-verify", oscar, "Perform PCR reaction for R_1 => R_5, changing tip for each sample."),
     deviceIntent("oscar-load2", oscar, "Transfer prepared samples from R_1 through R_5 to Well #2 => Well #6."),
     deviceIntent("oscar-gel2", oscar, "Start the electrophoresis at 120V for 40min."),
+  ];
+}
+
+export function archiveDeviceIntents(): GroundedIntentEvidence[] {
+  const archive = "archive-derived";
+  const pipette = `${archive}/0. OSCAR robot/pipette-tool-sw-main`;
+  const chemos = `${archive}/0. OSCAR robot/Chem OS 2.0/ChemOS2.0-master`;
+  const mos3s = `${archive}/IV. 3D microfluidic bioprinting/Development of a Microfluidic Open Source 3D bioprinting System (MOS3S) for the engineering of hierarchical tissues`;
+  return [
+    deviceIntent("pip-cal", `${pipette}/README.md.md`, "Calibration uses linear regression between volume and distance. Example f(x)=12499x-1918 nL."),
+    deviceIntent("pip-preset", `${pipette}/README.md.md`, "Encoder presets are ENCODER_POS_TOP=-12079, ENCODER_POS_TIP=118083 and ENCODER_POS_BOTTOM=157010."),
+    deviceIntent("pip-command", `${pipette}/include/robotic_tool/pipette_tool/protocol/pt_protocol_base.h.md`, "Commands include ASPIRATE, DISPENSE, HOMING and EJECT_TIP."),
+    deviceIntent("pip-example", `${pipette}/examples/posix/pipette_tool_master_protocol.cpp.md`, "The client calls forward_aspirate, forward_dispense and eject with 75000 nL, offset 35000 nL and speed 0.02."),
+    deviceIntent("pip-state", `${pipette}/include/robotic_tool/pipette_tool/protocol/pt_protocol_base.h.md`, "Data registers include PT_ERROR, POSITION_MM, NANO_LITERS and MOTOR_STATE."),
+    deviceIntent("pip-errors", `${pipette}/include/robotic_tool/error_handle/error_code.h.md`, "Errors include TRAJECTORY_NOT_IMPLEMENTED, TRAJECTORY_BUFFER_OVF and TRAJECTORY_PARAMS_OVF."),
+    deviceIntent("atlas", `${chemos}/ChemOS2.0-deploy/sila-atlas/SilaAtlas/generated/atlas/Atlas.proto.md`, "Recommend accepts Campaign and Config; Recommend_Intermediate streams status and Recommend_Result returns termination."),
+    deviceIntent("batch", `${chemos}/ChemOS2.0-deploy/chemspeed/chmspd_sila2_pkg/generated/chemspeedoperator/ChemSpeedOperator.proto.md`, "Addbatch accepts BatchName and Batchfile; Addbatch_Intermediate returns status and operations; Addbatch_Result completes."),
+    deviceIntent("hplc", `${chemos}/ChemOS2.0-deploy/hplc/Sila2HPLCMS/generated/hplcms/HPLCMS.proto.md`, "SubmitJobAutosampler accepts JobFile; SubmitJobAutosampler_Intermediate streams payload; SubmitJobAutosampler_Result completes."),
+    deviceIntent("optics", `${chemos}/ChemOS2.0-deploy/opticaltable/sila2OpticsTable/generated/opticstable/OpticsTable.proto.md`, "SubmitJob accepts JobFile; SubmitJob_Intermediate streams payload; SubmitJob_Result returns termination."),
+    deviceIntent("mos-machine", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "CUSTOM_MACHINE_NAME Hybrid 3D Bioprinter and EXTRUDERS 2."),
+    deviceIntent("mos-safety", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "Thermal Protection protects the printer from damage and fire."),
+    deviceIntent("mos-axes", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "X_BED_SIZE 190, Y_BED_SIZE 190 and Z_MAX_POS 200."),
+    deviceIntent("mos-home", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "Z_SAFE_HOMING with HOMING_FEEDRATE_XY (50*60) and HOMING_FEEDRATE_Z (4*60)."),
+    deviceIntent("mos-job", `${mos3s}/Marlin Firmware- Printhead/Configuration.h.md`, "Print Job Timer commands M75 start, M76 pause and M77 stop."),
   ];
 }

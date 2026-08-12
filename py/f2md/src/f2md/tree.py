@@ -202,6 +202,54 @@ def walk_files(root: str) -> Iterator[str]:
             yield os.path.join(directory, name)
 
 
+def selected_files(source: str, manifest_path: str) -> List[str]:
+    """Load an exact hash-bound source subset; refuse drift and path escapes."""
+    try:
+        with open(os.path.abspath(manifest_path), encoding="utf-8") as handle:
+            manifest = json.load(handle)
+    except (OSError, json.JSONDecodeError) as error:
+        raise ConversionError(f"SOURCE_SELECTION_JSON_INVALID:{error}") from error
+    if (not isinstance(manifest, dict) or manifest.get("schema") != "bioxfoundry.source-selection/v1"
+            or not isinstance(manifest.get("id"), str) or not manifest["id"]
+            or not isinstance(manifest.get("entries"), list) or not manifest["entries"]
+            or set(manifest) != {"schema", "id", "entries"}):
+        raise ConversionError("SOURCE_SELECTION_INVALID")
+    root = os.path.realpath(source)
+    paths: List[str] = []
+    seen: set[str] = set()
+    for index, entry in enumerate(manifest["entries"]):
+        if not isinstance(entry, dict):
+            raise ConversionError(f"SOURCE_SELECTION_ENTRY_INVALID:{index}")
+        relative_path, expected = entry.get("path"), entry.get("sha256")
+        if (not isinstance(relative_path, str) or not relative_path or os.path.isabs(relative_path)
+                or "\\" in relative_path or any(part in ("", ".", "..") for part in relative_path.split("/"))
+                or not isinstance(expected, str) or not re.fullmatch(r"[a-f0-9]{64}", expected)
+                or not isinstance(entry.get("family"), str) or not entry["family"]
+                or entry.get("expectedUse") not in {"behavior", "interface", "safety", "telemetry", "geometry", "documentation"}
+                or not isinstance(entry.get("reason"), str) or not entry["reason"]
+                or set(entry) != {"path", "sha256", "family", "expectedUse", "reason"}):
+            raise ConversionError(f"SOURCE_SELECTION_ENTRY_INVALID:{index}")
+        if relative_path in seen:
+            raise ConversionError(f"SOURCE_SELECTION_PATH_DUPLICATE:{relative_path}")
+        seen.add(relative_path)
+        candidate = os.path.abspath(os.path.join(root, *relative_path.split("/")))
+        if os.path.commonpath((root, candidate)) != root:
+            raise ConversionError(f"SOURCE_SELECTION_PATH_UNSAFE:{relative_path}")
+        if not os.path.isfile(candidate):
+            raise ConversionError(f"SOURCE_SELECTION_SOURCE_MISSING:{relative_path}")
+        actual = os.path.realpath(candidate)
+        if os.path.commonpath((root, actual)) != root:
+            raise ConversionError(f"SOURCE_SELECTION_SYMLINK_ESCAPE:{relative_path}")
+        digest = hashlib.sha256()
+        with open(actual, "rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+        if digest.hexdigest() != expected:
+            raise ConversionError(f"SOURCE_SELECTION_HASH_MISMATCH:{relative_path}")
+        paths.append(actual)
+    return sorted(paths, key=lambda path: os.path.relpath(path, root).encode("utf-8"))
+
+
 def convert_tree(
     src: str,
     out: str,
@@ -213,6 +261,7 @@ def convert_tree(
     translate_to: Optional[str] = None,
     translation_policy: str = "hybrid",
     relative_prefix: Optional[str] = None,
+    manifest_path: Optional[str] = None,
 ) -> TreeResult:
     """Mirror ``src`` into ``out``, converting every file to ``<name>.<ext>.md``.
 
@@ -239,7 +288,7 @@ def convert_tree(
 
     chain = chain or default_chain(docling_url)
     result = TreeResult()
-    paths = list(walk_files(src))
+    paths = selected_files(src, manifest_path) if manifest_path else list(walk_files(src))
     coverage_records: List[Dict[str, Any]] = []
     for index, path in enumerate(paths, 1):
         relative = os.path.relpath(path, src)
