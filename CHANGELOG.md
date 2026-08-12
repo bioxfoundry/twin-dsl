@@ -41,6 +41,30 @@
 - Fix string-concat-fstring issues (ticket-92889f14)
 - Fix pylint-string-concat issues (ticket-14b31a93)
 
+## [0.5.36] - 2026-08-12
+
+### Docs
+- Update docs/F2MD_ARTIFACT_PIPELINE.md
+- Update docs/PROCESS_DSL_AND_ANIMATION.md
+- Update docs/SPECIFICATION_DSL_VALIDATION.md
+- Update error/ARCHIVE_ENTRY_LIMIT.md
+- Update error/ARCHIVE_ENTRY_READ_FAILED.md
+- Update error/ARCHIVE_FINDING_SUMMARY.md
+- Update error/ARCHIVE_READ_PARTIAL.md
+- Update error/ARCHIVE_SELECTED_TEXT_BINARY_CONTENT.md
+- Update error/BINARY_STREAM_HASHED.md
+- Update error/BINARY_STUB.md
+- ... and 59 more files
+
+### Test
+- Update test/fixtures/process-fixture.ts
+
+### Other
+- Update error/catalog.json
+- Update scripts/error-catalog.mjs
+- Update src/core/generation.ts
+- Update src/runtime/process-model.ts
+
 ## [0.5.35] - 2026-08-12
 
 ### Docs

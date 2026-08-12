@@ -19,18 +19,20 @@ The model never fills a missing protocol step, duration, setpoint, reagent quant
 
 ## Source used by the biofoundry compiler
 
-The current deterministic compiler starts from `Atvirojo kodo biofoundry studija.pdf` and follows its named equipment into allowlisted device-source packs: BIO-SPEC, microscopy synchronization, automated microfluidics, Syringebot and the OSCAR supplementary protocol. It retains the intent id, intent URI, source and artifact URIs, source revision, page or fragment, and a bounded excerpt for every evidenced step. Text copied into an unrelated artifact is not accepted as device evidence.
+The current deterministic compiler starts from `Atvirojo kodo biofoundry studija.pdf` and follows its named equipment into allowlisted device-source packs: BIO-SPEC, microscopy synchronization, automated microfluidics, Syringebot and the OSCAR supplementary protocol. A hash-bound selection manifest also admits 21 exact files recovered from recursively unpacked source archives: ChemOS SiLA protobuf services, pipette control software, ImSwitch control modules and MOS3S firmware configuration. It retains the intent id, intent URI, source and artifact URIs, source revision, page or fragment, and a bounded excerpt for every evidenced step. Text copied into an unrelated artifact is not accepted as device evidence.
 
 The study currently supports the following process detail:
 
 | Process | Status | Source-grounded behavior | Explicit limitation |
 | --- | --- | --- | --- |
 | OSCAR laboratory manipulation | complete | state preflight; high-level command; SiLA/ROS validation; MoveIt verification and motion; progress observations; state update; safe recovery | completeness applies to the documented control sequence, not to a wet-lab SOP |
-| ChemOS–OpenTwins optimization | complete | plan; execute; monitor; optimize; return to planning | step durations and experiment-specific parameters are not supplied |
+| ChemOS–OpenTwins optimization | complete | Atlas `Recommend`; ChemSpeed `Addbatch`; intermediate operations; HPLCMS autosampler job; optical-table job; payload/result synchronization; return to optimization | ChemSpeed, HPLCMS and optical-table endpoints do not yet have separate source-backed scene geometry |
 | BIO-SPEC cultivation | partial | GPIO/probe dry-run; fail-closed gas preflight; growth and scheduled phases; gas/feed/stir/condenser actuation; GUI/twin monitoring; safe power-loss state | phase intervals, experiment setpoints and biological termination criteria remain configurable |
 | microscopy acquisition | complete | synchronize watchers; queue scripts; acquire raw tiles; reconstruct; napari post-process; repeat/stitch; publish TIFF/Zarr, metadata and log | completeness covers the documented dataflow, not sample-specific imaging acceptance |
 | microfluidic preparation | partial | device preflight; DI-water/isopropanol/dry-air flush; air removal at 200 mbar; 500 µL/min feedback; passivation; immobilization; imaging-buffer exchange | buffer identities, incubations and contamination acceptance thresholds remain protocol-specific |
 | Syringebot automatic titration | complete | home; calibrate; prime; configure the documented HCl/KOH run; execute 20 measured additions; purge; close valves and log | completeness applies to the documented demonstration, not arbitrary chemical synthesis |
+| OSCAR digital pipette control | partial | validate volume/encoder calibration; home; aspirate; dispense and purge; eject; read position/volume/motor/error registers; fault recovery | source/destination labware and accepted protocol volumes are not bound; piston encoder coordinates are not mapped to a movable submesh |
+| MOS3S dual-syringe bioprinting | partial | validate dual-extruder and thermal configuration; safe home; respect the 190 × 190 × 200 mm travel envelope; activate syringe subassembly; observe print-job state | reviewed G-code/toolpath, material recipe, syringe calibration and axis-to-submesh mapping are absent |
 | OSCAR plasmid cloning | complete | fragment PCR and gel; Gibson assembly; heat-shock, recovery and plating; colony image/pick; verification PCR and gel | completeness applies to the supplied three-protocol demonstration |
 
 `complete` means that every step in the particular modeled sequence has source evidence. It does not mean that the source is a deployment-ready SOP. `partial` means that useful behavior is evidenced but the listed gaps prevent an executable interpretation. `declared-only` preserves a capability claim without fabricating a workflow.
@@ -62,6 +64,8 @@ The accepted runtime also publishes `current/process-animation.json` and `curren
 | state update or safety | show completed or recovering state |
 
 Every effect is validated against a component binding in the accepted SceneDSL. Device-level actors include controllers, pumps, valves, stirrers, sensors, flow chambers, compute units, thermocycler, gel station and colony camera. Their existence and function are source-backed; their compact dashboard placement and primitive envelopes are explicitly presentation-only. The dashboard never moves geometry to invent a physical trajectory. It changes only presentation state such as color and scale, while the process panel identifies the active step, relevant actors, evidence page or fragment, intent id, source-valued parameters and unresolved gaps.
+
+For MOS3S, available STL parts let animation address the carriage, syringe clamp, platform holder, supports and plunger retainer as one logical group. Firmware values prove limits and operations, but do not prove CAD joint frames. Consequently the compiler emits `PROCESS_KINEMATIC_MAPPING_MISSING` and uses group highlights/pulses. Literal translation becomes valid only after a reviewed mapping identifies the firmware axis, CAD frame origin, direction, joint limits and the component transform. The same rule applies to the pipette piston.
 
 The success path follows `success` transitions. When a documented failure transition exists, the failure control follows it to the recovery step. A process without steps is visible but its animation is unavailable with a stable explanation code.
 

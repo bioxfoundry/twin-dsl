@@ -11,7 +11,7 @@ generated: true
 - Severity: `error`
 - Error class: `policy`
 - Retryable: `false`
-- Surfaces: `response`
+- Surfaces: `exception`, `response`
 
 ## Meaning
 
@@ -32,4 +32,5 @@ Do not bypass the boundary. Correct the request or provide the required scoped a
 
 ## Emitted by
 
+- `src/runtime/living-project.ts`
 - `src/serve/dashboard.ts`

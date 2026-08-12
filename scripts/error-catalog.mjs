@@ -100,6 +100,11 @@ async function scanErrors() {
         add(found, match[1], file, "diagnostic");
       }
     }
+    // Validators append record indexes to stable codes through template literals.  Retain the
+    // code prefix in the catalog instead of making an indexed validation error undocumented.
+    for (const match of body.matchAll(/`([A-Z][A-Z0-9_]{2,})(?=[:$])/g)) {
+      add(found, match[1], file, "exception");
+    }
     if (local === "src/runtime/source-coverage.ts") {
       for (const match of body.matchAll(/\binvalid\("([A-Z][A-Z0-9_]+)"\)/g)) {
         add(found, `SOURCE_COVERAGE_${match[1]}`, file, "exception");

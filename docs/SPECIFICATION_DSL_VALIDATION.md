@@ -48,13 +48,21 @@ Missing spatial evidence is not replaced with invented dimensions or coordinates
 physical component such as Syringebot may therefore exist as a `scope` binding until measured or
 source-backed geometry becomes available.
 
+Archive-derived behavior is a separate, narrower intake. The source selection file records exact
+relative paths, SHA-256 digests and intended use. The converter rejects unknown manifest keys,
+duplicates, traversal, symlink escape, missing files and hash drift. This prevents an unpacked
+software tree from silently becoming authoritative in full: only selected interfaces, behavior,
+safety or telemetry enter the Markdown and intentDSL mirrors.
+
 Every stable finding code has a companion `error/<CODE>.md` page containing meaning, likely causes,
 impact and deterministic resolution steps. `error/catalog.json` is the machine-readable index.
 
 ## Intent validation with todo2code
 
-The canonical installation is `~/github/semcod/todo2code`. Requirements are first recorded as
-atomic `t2c.intent/v1` task records. The implementation is then extracted independently from Git,
+The canonical installation is `~/github/semcod/todo2code`. Generated document records use its exact
+`t2c.intent/v1` contract (`schemaVersion`, structured statement/lifecycle/source/epistemic fields and
+generation metadata), not only a similarly named local envelope. Requirements are first recorded as
+atomic task records. The implementation is then extracted independently from Git,
 AST and documentation, linked with `todo2code link`, checked by `todo2code diagnose`, and summarized
 by `todo2code reality`. The resulting graph fingerprint is the auditable connection between the
 requested intent and the committed implementation; it is evidence, not permission to mutate files.

@@ -59,6 +59,12 @@ additional derivative (including table CSV), and records all materialized URIs. 
 source drift, AST/structure disagreement, missing entries, path escape, missing files and hash
 drift in content, preview, original or additional derivative bytes.
 
+For a deliberately selected subset of an unpacked archive, both Node and Python converters accept
+the same `bioxfoundry.source-selection/v1` manifest. Every entry carries an exact relative path,
+source SHA-256 and expected use. The manifest is validated before conversion and selection never
+falls back to scanning the rest of the tree. Protobuf (`.proto`) is treated as deterministic text,
+so SiLA service definitions preserve their callable methods and streaming response contracts.
+
 ## Deterministic classification
 
 - Repeated blocks in page margins are excluded from semantic artifacts; page numbers are retained

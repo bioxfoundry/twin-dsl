@@ -14,4 +14,4 @@
  * a needless bump costs every project a full regeneration.
  */
 export const RUNTIME_PACKAGE_VERSION = "0.5.34";
-export const RUNTIME_GENERATION = "2026-08-12.archive-process-v9";
+export const RUNTIME_GENERATION = "2026-08-12.archive-process-v10";

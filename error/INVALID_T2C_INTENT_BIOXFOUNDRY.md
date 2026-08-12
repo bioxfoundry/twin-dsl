@@ -1,11 +1,11 @@
 ---
 schema: bioxfoundry.error-page/v1
-code: INVALID_T2C_INTENT_TICKET
+code: INVALID_T2C_INTENT_BIOXFOUNDRY
 source: error/catalog.json
 generated: true
 ---
 
-# INVALID_T2C_INTENT_TICKET — Invalid t2c intent ticket
+# INVALID_T2C_INTENT_BIOXFOUNDRY — Invalid t2c intent bioxfoundry
 
 - Subsystem: `invalid`
 - Severity: `error`
@@ -15,7 +15,7 @@ generated: true
 
 ## Meaning
 
-The runtime stopped because it detected the invalid t2c intent ticket condition.
+The runtime stopped because it detected the invalid t2c intent bioxfoundry condition.
 
 ## Likely causes
 

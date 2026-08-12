@@ -131,7 +131,8 @@ export function archiveDeviceIntents(): GroundedIntentEvidence[] {
     deviceIntent("optics", `${chemos}/ChemOS2.0-deploy/opticaltable/sila2OpticsTable/generated/opticstable/OpticsTable.proto.md`, "SubmitJob accepts JobFile; SubmitJob_Intermediate streams payload; SubmitJob_Result returns termination."),
     deviceIntent("mos-machine", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "CUSTOM_MACHINE_NAME Hybrid 3D Bioprinter and EXTRUDERS 2."),
     deviceIntent("mos-safety", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "Thermal Protection protects the printer from damage and fire."),
-    deviceIntent("mos-axes", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "X_BED_SIZE 190, Y_BED_SIZE 190 and Z_MAX_POS 200."),
+    deviceIntent("mos-axes-xy", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "X_BED_SIZE 190 and Y_BED_SIZE 190."),
+    deviceIntent("mos-axes-z", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "Z_MAX_POS 200 with Software Endstops."),
     deviceIntent("mos-home", `${mos3s}/Marlin Firmware-1.1.9.1 Syringe pumps/Marlin/Configuration.h.md`, "Z_SAFE_HOMING with HOMING_FEEDRATE_XY (50*60) and HOMING_FEEDRATE_Z (4*60)."),
     deviceIntent("mos-job", `${mos3s}/Marlin Firmware- Printhead/Configuration.h.md`, "Print Job Timer commands M75 start, M76 pause and M77 stop."),
   ];

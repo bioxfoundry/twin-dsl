@@ -11,7 +11,7 @@ generated: true
 - Severity: `error`
 - Error class: `state`
 - Retryable: `false`
-- Surfaces: `diagnostic`
+- Surfaces: `diagnostic`, `exception`
 
 ## Meaning
 

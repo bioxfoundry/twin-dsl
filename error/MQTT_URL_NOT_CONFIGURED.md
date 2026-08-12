@@ -32,4 +32,5 @@ Inspect the detail following the code, verify service/tool health and configurat
 
 ## Emitted by
 
+- `src/runtime/mqtt-process-controller.ts`
 - `src/runtime/mqtt-process-demo.ts`

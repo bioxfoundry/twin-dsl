@@ -32,4 +32,5 @@ Wait for the active operation to finish or reduce the bounded input; change limi
 
 ## Emitted by
 
+- `src/ingestion/archive-project.ts`
 - `src/ingestion/archive.ts`

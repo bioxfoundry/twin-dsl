@@ -77,6 +77,21 @@
       "resolution": "Wait for the active operation to finish or reduce the bounded input; change limits only through an explicit reviewed configuration."
     },
     {
+      "code": "ARCHIVE_ENTRY_READ_FAILED",
+      "title": "Archive entry read failed",
+      "subsystem": "archive",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the archive entry read failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "ARCHIVE_FILE_LIMIT",
       "title": "Archive file limit",
       "subsystem": "archive",
@@ -90,6 +105,21 @@
       ],
       "impact": "The current request is delayed or refused without replacing accepted state.",
       "resolution": "Wait for the active operation to finish or reduce the bounded input; change limits only through an explicit reviewed configuration."
+    },
+    {
+      "code": "ARCHIVE_FINDING_SUMMARY",
+      "title": "Archive finding summary",
+      "subsystem": "archive",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the archive finding summary condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "ARCHIVE_GEOMETRY_SELECTION_LIMIT",
@@ -135,6 +165,36 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "ARCHIVE_READ_PARTIAL",
+      "title": "Archive read partial",
+      "subsystem": "archive",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the archive read partial condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "ARCHIVE_SELECTED_TEXT_BINARY_CONTENT",
+      "title": "Archive selected text binary content",
+      "subsystem": "archive",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the archive selected text binary content condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "ARCHIVE_TEXT_SELECTION_LIMIT",
@@ -587,6 +647,36 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "BINARY_STREAM_HASHED",
+      "title": "Binary stream hashed",
+      "subsystem": "binary",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the binary stream hashed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "BINARY_STUB",
+      "title": "Binary stub",
+      "subsystem": "binary",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the binary stub condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "BIOFOUNDRY_REQUIRED_RESOURCE_MISSING",
       "title": "Biofoundry required resource missing",
       "subsystem": "biofoundry",
@@ -872,6 +962,21 @@
       "resolution": "Inspect the response detail and dashboard server log, fix the originating failure and give it a specific catalogued code where possible, then retry the request."
     },
     {
+      "code": "DASHBOARD_LISTEN_FAILED",
+      "title": "Dashboard listen failed",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the dashboard listen failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "DASHBOARD_PORT_CONFLICT",
       "title": "Dashboard port conflict",
       "subsystem": "dashboard",
@@ -888,6 +993,21 @@
       "resolution": "Read expected= and actual= from the error detail. Stop the conflicting process or choose a free PORT; reuse is allowed only when the reported twin id matches the configured project."
     },
     {
+      "code": "DASHBOARD_PORT_FREE",
+      "title": "Dashboard port free",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the dashboard port free condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "DASHBOARD_PORT_INVALID",
       "title": "Dashboard port invalid",
       "subsystem": "dashboard",
@@ -901,6 +1021,36 @@
       ],
       "impact": "The dashboard is not started and no socket is opened.",
       "resolution": "Set PORT to an unused integer from 1 through 65535, for example make dashboard PORT=7332."
+    },
+    {
+      "code": "DASHBOARD_PORT_IN_USE",
+      "title": "Dashboard port in use",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the dashboard port in use condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "DASHBOARD_PORT_REUSE",
+      "title": "Dashboard port reuse",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the dashboard port reuse condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "DASHBOARD_PROJECT_ID_MISSING",
@@ -965,6 +1115,51 @@
       "resolution": "Open /api/state, inspect the dashboard server log and browser network response, restart or reload the dashboard if needed, then retry."
     },
     {
+      "code": "DECISION_ADDED",
+      "title": "Decision added",
+      "subsystem": "decision",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the decision added condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "DECISION_CHANGED",
+      "title": "Decision changed",
+      "subsystem": "decision",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the decision changed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "DECISION_REMOVED",
+      "title": "Decision removed",
+      "subsystem": "decision",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the decision removed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "DETERMINISTIC_VALUE_REQUIRED",
       "title": "Deterministic value required",
       "subsystem": "deterministic",
@@ -1002,6 +1197,21 @@
       "errorClass": "availability",
       "retryable": true,
       "meaning": "The docling health dependency or operation was unavailable at the runtime boundary.",
+      "causes": [
+        "the service or executable is not running",
+        "configuration, network access or the selected adapter is unavailable"
+      ],
+      "impact": "The requested stage cannot complete, but persisted accepted artifacts remain unchanged.",
+      "resolution": "Inspect the detail following the code, verify service/tool health and configuration, then retry when the dependency is available."
+    },
+    {
+      "code": "DOCLING_HTTP",
+      "title": "Docling http",
+      "subsystem": "docling",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The docling dependency or operation was unavailable at the runtime boundary.",
       "causes": [
         "the service or executable is not running",
         "configuration, network access or the selected adapter is unavailable"
@@ -1461,6 +1671,21 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "EXTERNAL_CONVERTER_REQUIRED",
+      "title": "External converter required",
+      "subsystem": "external",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The external converter input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
       "code": "FACTORY_DEMO_BLUEPRINT_IDENTITY_INVALID",
       "title": "Factory demo blueprint identity invalid",
       "subsystem": "factory",
@@ -1549,6 +1774,36 @@
       ],
       "impact": "The script exits before reading or writing the requested directory.",
       "resolution": "Run the script without a custom target for the generated demo. Migrate real projects with their explicit project workflow instead of the demo bootstrap."
+    },
+    {
+      "code": "FILE_NOT_FOUND",
+      "title": "File not found",
+      "subsystem": "file",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The file input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "GENERATOR_CHANGED",
+      "title": "Generator changed",
+      "subsystem": "generator",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the generator changed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "GEOMETRY_BUILD_COORDINATE_SYSTEM_INVALID",
@@ -1774,6 +2029,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "GEOMETRY_BUILD_FAILED",
+      "title": "Geometry build failed",
+      "subsystem": "geometry build",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the geometry build failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "GEOMETRY_BUILD_FA_INVALID",
@@ -2827,6 +3097,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "INTENT_DSL_INVALID_PACKS",
+      "title": "Intent dsl invalid packs",
+      "subsystem": "intent",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the intent dsl invalid packs condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "INVALID_PROCESS_URI",
       "title": "Invalid process uri",
       "subsystem": "invalid",
@@ -2948,6 +3233,21 @@
       "resolution": "Inspect the /api/iterate response and dashboard server log, confirm /api/state returns JSON, restart matching client/server versions if needed and retry."
     },
     {
+      "code": "INVALID_SPEC_INTENT_PROVENANCE",
+      "title": "Invalid spec intent provenance",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid spec intent provenance condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "INVALID_T2C_INTENT",
       "title": "Invalid t2c intent",
       "subsystem": "invalid",
@@ -2963,6 +3263,51 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "INVALID_T2C_INTENT_BIOXFOUNDRY",
+      "title": "Invalid t2c intent bioxfoundry",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent bioxfoundry condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_EPISTEMIC",
+      "title": "Invalid t2c intent epistemic",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent epistemic condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_GENERATION",
+      "title": "Invalid t2c intent generation",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent generation condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "INVALID_T2C_INTENT_KEYS",
       "title": "Invalid t2c intent keys",
       "subsystem": "invalid",
@@ -2970,6 +3315,51 @@
       "errorClass": "state",
       "retryable": false,
       "meaning": "The runtime stopped because it detected the invalid t2c intent keys condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_LIFECYCLE",
+      "title": "Invalid t2c intent lifecycle",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent lifecycle condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_METADATA",
+      "title": "Invalid t2c intent metadata",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent metadata condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_OBSERVED_AT",
+      "title": "Invalid t2c intent observed at",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent observed at condition.",
       "causes": [
         "the named runtime invariant was not satisfied",
         "an upstream stage supplied incomplete or inconsistent state"
@@ -3008,13 +3398,43 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
-      "code": "INVALID_T2C_INTENT_TICKET",
-      "title": "Invalid t2c intent ticket",
+      "code": "INVALID_T2C_INTENT_SOURCE_ANCHOR",
+      "title": "Invalid t2c intent source anchor",
       "subsystem": "invalid",
       "defaultSeverity": "error",
       "errorClass": "state",
       "retryable": false,
-      "meaning": "The runtime stopped because it detected the invalid t2c intent ticket condition.",
+      "meaning": "The runtime stopped because it detected the invalid t2c intent source anchor condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_STATEMENT",
+      "title": "Invalid t2c intent statement",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent statement condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "INVALID_T2C_INTENT_TARGET",
+      "title": "Invalid t2c intent target",
+      "subsystem": "invalid",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the invalid t2c intent target condition.",
       "causes": [
         "the named runtime invariant was not satisfied",
         "an upstream stage supplied incomplete or inconsistent state"
@@ -3411,6 +3831,51 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "LLM_SCENE_PROPOSAL_REJECTED",
+      "title": "Llm scene proposal rejected",
+      "subsystem": "llm",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The llm scene proposal operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
+      "code": "LLM_TWIN_PROPOSAL_REJECTED",
+      "title": "Llm twin proposal rejected",
+      "subsystem": "llm",
+      "defaultSeverity": "error",
+      "errorClass": "policy",
+      "retryable": false,
+      "meaning": "The llm twin proposal operation was refused by an explicit safety or authority boundary.",
+      "causes": [
+        "the requested action is outside the allowed policy",
+        "required approval, grounding or mutation authority is absent"
+      ],
+      "impact": "The operation is not applied; existing accepted state is preserved.",
+      "resolution": "Do not bypass the boundary. Correct the request or provide the required scoped authority and repeat validation."
+    },
+    {
+      "code": "MAMMOTH_FAILED",
+      "title": "Mammoth failed",
+      "subsystem": "mammoth",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the mammoth failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "MANIFEST_INVALID",
@@ -5138,6 +5603,36 @@
       "resolution": "Inspect the detail following the code, verify service/tool health and configuration, then retry when the dependency is available."
     },
     {
+      "code": "OUTPUT_CHANGED",
+      "title": "Output changed",
+      "subsystem": "output",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the output changed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "OUTPUT_INSIDE_SOURCE",
+      "title": "Output inside source",
+      "subsystem": "output",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the output inside source condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "PATCH_ARRAY_INDEX_INVALID",
       "title": "Patch array index invalid",
       "subsystem": "patch",
@@ -6158,6 +6653,21 @@
       "resolution": "Add the evidenced component to TwinDSL or correct the stale actor id, then regenerate ProcessDSL against the accepted twin."
     },
     {
+      "code": "PROCESS_COMPONENT_UNMODELLED",
+      "title": "Process component unmodelled",
+      "subsystem": "process",
+      "defaultSeverity": "info",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A sourced process endpoint exists in ProcessDSL but has no distinct physical component in TwinDSL and SceneDSL.",
+      "causes": [
+        "the source archive defines a software or network endpoint without source-backed geometry",
+        "the current scene groups multiple logical endpoints under one orchestrator component"
+      ],
+      "impact": "The logical flow remains visible, but dashboard animation cannot identify a separate physical instrument for that endpoint.",
+      "resolution": "Add a source-backed Twin component and scene binding when verified geometry or measured dimensions become available."
+    },
+    {
       "code": "PROCESS_DETAIL_DECLARED_ONLY",
       "title": "Process detail declared only",
       "subsystem": "process",
@@ -6231,6 +6741,36 @@
       ],
       "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
       "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "PROCESS_KINEMATIC_MAPPING_MISSING",
+      "title": "Process kinematic mapping missing",
+      "subsystem": "process",
+      "defaultSeverity": "info",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "Source-backed machine coordinates are not yet bound to the transforms of movable scene subassemblies.",
+      "causes": [
+        "firmware describes axes or encoder positions without identifying the corresponding imported mesh frames",
+        "CAD parts exist, but their joints, pivots, travel directions or coordinate origins are not documented"
+      ],
+      "impact": "Animation highlights the affected assembly group but does not fabricate literal translations or rotations.",
+      "resolution": "Create and validate axis-to-subassembly bindings with frame origin, direction, joint limits and source evidence before enabling transform animation."
+    },
+    {
+      "code": "PROCESS_LABWARE_BINDING_MISSING",
+      "title": "Process labware binding missing",
+      "subsystem": "process",
+      "defaultSeverity": "info",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "A liquid-handling operation is sourced, but its sample, source well or destination well is not bound to scene labware.",
+      "causes": [
+        "the software example demonstrates device commands rather than a reviewed laboratory protocol",
+        "the selected evidence omits labware identifiers and accepted volume ranges"
+      ],
+      "impact": "The device sequence can be demonstrated graphically but cannot authorize or route a real sample transfer.",
+      "resolution": "Provide a reviewed transfer protocol and bind its labware wells, samples and permitted volumes before real-device execution."
     },
     {
       "code": "PROCESS_ORDERING_UNEVIDENCED",
@@ -6336,6 +6876,21 @@
       ],
       "impact": "Animation uses normalized display timing that must not be interpreted as real execution time or device control.",
       "resolution": "Add reviewed timing evidence to the process source; until then preserve factualProcessDuration=false and the dashboard disclaimer."
+    },
+    {
+      "code": "PROCESS_TOOLPATH_MISSING",
+      "title": "Process toolpath missing",
+      "subsystem": "process",
+      "defaultSeverity": "warning",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "Firmware and machine limits are available, but no reviewed executable toolpath is present for the modeled job.",
+      "causes": [
+        "the archive contains controller configuration without the experiment-specific G-code or path",
+        "material recipe, syringe calibration or job acceptance criteria are absent"
+      ],
+      "impact": "The dashboard may present the sourced process phases, but the process remains partial and cannot drive real equipment.",
+      "resolution": "Supply and validate the job toolpath, material identities, dispense calibration and acceptance criteria before execution."
     },
     {
       "code": "PROCESS_TRANSITION_INVALID",
@@ -6696,6 +7251,51 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "PYTHON_F2MD_BACKEND_TYPE_INVALID",
+      "title": "Python f2md backend type invalid",
+      "subsystem": "python",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The python f2md backend type input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "PYTHON_F2MD_FAILED",
+      "title": "Python f2md failed",
+      "subsystem": "python",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the python f2md failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "PYTHON_F2MD_INVALID_JSON",
+      "title": "Python f2md invalid json",
+      "subsystem": "python",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the python f2md invalid json condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "QUERY_HEADER_REQUIRED",
@@ -7840,6 +8440,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "SOURCE_NOT_A_DIRECTORY",
+      "title": "Source not a directory",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source not a directory condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "SOURCE_NOT_FOUND",
       "title": "Source not found",
       "subsystem": "source",
@@ -7855,6 +8470,21 @@
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
     },
     {
+      "code": "SOURCE_REVISION_CHANGED",
+      "title": "Source revision changed",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source revision changed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "SOURCE_REVISION_NOT_FOUND",
       "title": "Source revision not found",
       "subsystem": "source",
@@ -7868,6 +8498,111 @@
       ],
       "impact": "The citation remains recorded, but the dashboard refuses to show unverified or drifted source text.",
       "resolution": "Restore or mount the artifact bytes whose SHA-256 equals revision, or regenerate and validate intentDSL plus the Twin analysis from the new source revision."
+    },
+    {
+      "code": "SOURCE_SELECTION_ENTRY_INVALID",
+      "title": "Source selection entry invalid",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The source selection entry input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SOURCE_SELECTION_HASH_MISMATCH",
+      "title": "Source selection hash mismatch",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The source selection evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SOURCE_SELECTION_JSON_INVALID",
+      "title": "Source selection json invalid",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The source selection json input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SOURCE_SELECTION_PATH_DUPLICATE",
+      "title": "Source selection path duplicate",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The source selection path evidence is internally inconsistent or does not match its bound identity.",
+      "causes": [
+        "artifacts from different revisions were combined",
+        "an identity, digest, path or relationship is duplicated or inconsistent"
+      ],
+      "impact": "The runtime cannot prove that the candidate describes one coherent project state.",
+      "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
+    },
+    {
+      "code": "SOURCE_SELECTION_PATH_UNSAFE",
+      "title": "Source selection path unsafe",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source selection path unsafe condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
+      "code": "SOURCE_SELECTION_SOURCE_MISSING",
+      "title": "Source selection source missing",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The source selection source input does not satisfy the required deterministic contract.",
+      "causes": [
+        "a required field or resource is missing",
+        "a value, key, type, identifier or schema version is invalid"
+      ],
+      "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
+      "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "SOURCE_SELECTION_SYMLINK_ESCAPE",
+      "title": "Source selection symlink escape",
+      "subsystem": "source",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the source selection symlink escape condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "SPEC_BLUEPRINT_MISSING",
@@ -8401,6 +9136,21 @@
       "resolution": "Use the detail after the code to locate the conflicting value, restore one canonical source and regenerate dependent artifacts."
     },
     {
+      "code": "TEXT_FALLBACK",
+      "title": "Text fallback",
+      "subsystem": "text",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the text fallback condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
+    },
+    {
       "code": "TODO2CODE_APPROVAL_HASH_REQUIRED",
       "title": "Todo2code approval hash required",
       "subsystem": "todo2code",
@@ -8459,6 +9209,21 @@
       ],
       "impact": "Validation stops before the malformed input can mutate or publish runtime state.",
       "resolution": "Inspect the code detail and the corresponding JSON/DSL schema, correct the named input, then validate again."
+    },
+    {
+      "code": "TURNDOWN_FAILED",
+      "title": "Turndown failed",
+      "subsystem": "turndown",
+      "defaultSeverity": "error",
+      "errorClass": "state",
+      "retryable": false,
+      "meaning": "The runtime stopped because it detected the turndown failed condition.",
+      "causes": [
+        "the named runtime invariant was not satisfied",
+        "an upstream stage supplied incomplete or inconsistent state"
+      ],
+      "impact": "The affected operation does not complete and must not be reported as successful.",
+      "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
       "code": "TWIN_CHILDREN_ARRAY_REQUIRED",
