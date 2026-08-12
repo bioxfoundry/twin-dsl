@@ -5,3 +5,4 @@ export * from "./types/geometry.js";
 export * from "./types/runtime-state.js";
 export * from "./types/project-runtime.js";
 export * from "./types/process.js";
+export * from "./types/project-documentation.js";

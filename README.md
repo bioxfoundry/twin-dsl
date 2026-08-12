@@ -78,9 +78,9 @@ node dist/src/cli/main.js dashboard \
   deterministic
 ```
 
-The dashboard exposes the accepted Twin, Scene, OpenUSD, validation reports, process state, MQTT observations, and rejected-candidate diagnostics. Selection and active-process labels identify individual scene actors. The top toolbar can copy the complete stage state as JSON for debugging.
+The dashboard exposes the accepted Twin, Scene, OpenUSD, validation reports, process state, MQTT observations, and rejected-candidate diagnostics. Selection and active-process labels identify individual scene actors. The top toolbar can copy the complete stage state as JSON for debugging and download the active project description as Markdown, standalone HTML or PDF.
 
-See [Dashboard](docs/DASHBOARD.md) and [Process DSL and animation](docs/PROCESS_DSL_AND_ANIMATION.md).
+See [Dashboard](docs/DASHBOARD.md), [project documentation export](docs/PROJECT_DOCUMENTATION_EXPORT.md), and [Process DSL and animation](docs/PROCESS_DSL_AND_ANIMATION.md).
 
 ## Convert source material to Markdown
 
@@ -146,7 +146,18 @@ node dist/src/cli/main.js project-watch \
 
 Every accepted revision records stable component identities, source snapshots, generated artifacts, validation results, and an analysis trace. Rejected candidates remain separate from the active revision.
 
-See [project wizard](docs/PROJECT_WIZARD.md), [continuous loop](docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md), and [analysis trace](docs/ANALYSIS_TRACE.md).
+Generate a portable project report from the accepted artifact set:
+
+```bash
+node dist/src/cli/main.js project-documentation \
+  /path/to/project.projectdsl \
+  /path/to/.living-runtime \
+  /path/to/.living-runtime/current/documentation
+```
+
+This writes a revision-bound JSON contract, Markdown, standalone HTML, PDF and SHA-256 manifest.
+
+See [project wizard](docs/PROJECT_WIZARD.md), [continuous loop](docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md), [analysis trace](docs/ANALYSIS_TRACE.md), and [project documentation export](docs/PROJECT_DOCUMENTATION_EXPORT.md).
 
 ## Physical evidence and geometry
 

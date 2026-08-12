@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.project-documentation-manifest/v1",
+  "title": "Digital Twin project documentation export manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "projectId", "generatedAt", "documentUri", "activeRevision", "artifacts"],
+  "properties": {
+    "schema": {"const": "subactor.project-documentation-manifest/v1"},
+    "projectId": {"type": "string", "minLength": 1},
+    "generatedAt": {"type": "string", "minLength": 20},
+    "documentUri": {"type": "string", "pattern": "^urn:subactor:project-documentation:sha256:[a-f0-9]{64}$"},
+    "activeRevision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["iterationUri", "twinUri", "sceneUri", "analysisTraceUri", "sourceSnapshotHash", "runtimeGeneration", "acceptedAt"],
+      "properties": {
+        "iterationUri": {"type": ["string", "null"]},
+        "twinUri": {"type": "string", "minLength": 1},
+        "sceneUri": {"type": "string", "minLength": 1},
+        "analysisTraceUri": {"type": "string", "minLength": 1},
+        "sourceSnapshotHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "runtimeGeneration": {"type": "string", "minLength": 1},
+        "acceptedAt": {"type": "string", "minLength": 20}
+      }
+    },
+    "artifacts": {
+      "type": "object",
+      "required": ["project-documentation.json", "project-documentation.md", "project-documentation.html", "project-documentation.pdf"],
+      "additionalProperties": {
+        "type": "object", "additionalProperties": false,
+        "required": ["mediaType", "sha256", "bytes"],
+        "properties": {
+          "mediaType": {"type": "string", "minLength": 1},
+          "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "bytes": {"type": "integer", "minimum": 1}
+        }
+      }
+    }
+  }
+}

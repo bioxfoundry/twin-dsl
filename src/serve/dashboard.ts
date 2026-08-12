@@ -17,6 +17,7 @@ import { MqttProcessController, mqttNotConfiguredState, type MqttDashboardState,
 import { applyPhysicalEvidence, validatePhysicalEvidence } from "../scene/physical-evidence.js";
 import { renderOpenUsd } from "../scene/openusd.js";
 import { evaluateTwinStateFreshness } from "../runtime/twin-state.js";
+import { generateProjectDocumentation, projectDocumentationFiles } from "../runtime/project-documentation.js";
 
 /** Locate `public/` from either the compiled (dist/src/serve) or source layout. */
 async function assetRoot(): Promise<string> {
@@ -172,12 +173,13 @@ async function ingestedResourceUris(currentDir: string): Promise<string[]> {
   return Array.isArray(resources) ? resources.map((r) => r?.uri).filter((u): u is string => Boolean(u)) : [];
 }
 
-function send(response: ServerResponse, status: number, body: string | Buffer, type: string): void {
+function send(response: ServerResponse, status: number, body: string | Buffer, type: string, headers: Record<string, string> = {}): void {
   response.writeHead(status, {
     "content-type": type,
     "cache-control": "no-store",
     // Local inspection tool: no third-party origins are involved.
     "x-content-type-options": "nosniff",
+    ...headers,
   });
   response.end(body);
 }
@@ -487,6 +489,32 @@ export async function startDashboard(options: DashboardOptions): Promise<{ url: 
             const type = format === "json" ? "application/json; charset=utf-8" : format === "md" ? "text/markdown; charset=utf-8" : "text/plain; charset=utf-8";
             return send(response, 200, content, type);
           } catch { return sendError(response, 404, "ANALYSIS_TRACE_NOT_AVAILABLE"); }
+        }
+        if (request.method === "GET" && url.pathname === "/api/documentation") {
+          const format = url.searchParams.get("format") ?? "md";
+          if (!["md", "html", "pdf", "json", "manifest"].includes(format)) return sendError(response, 400, "PROJECT_DOCUMENTATION_FORMAT_INVALID", { requestedFormat: format });
+          try {
+            const generated = await generateProjectDocumentation({
+              configPath: options.configPath,
+              runtimeDir: options.outDir,
+            });
+            const exportByFormat = {
+              md: { body: generated.files.markdown, type: "text/markdown; charset=utf-8", name: projectDocumentationFiles.markdown },
+              html: { body: generated.files.html, type: "text/html; charset=utf-8", name: projectDocumentationFiles.html },
+              pdf: { body: generated.files.pdf, type: "application/pdf", name: projectDocumentationFiles.pdf },
+              json: { body: generated.files.json, type: "application/json; charset=utf-8", name: projectDocumentationFiles.json },
+              manifest: { body: generated.files.manifest, type: "application/json; charset=utf-8", name: projectDocumentationFiles.manifest },
+            } as const;
+            const exported = exportByFormat[format as keyof typeof exportByFormat];
+            return send(response, 200, exported.body, exported.type, {
+              "content-disposition": `attachment; filename="${generated.document.project.id}-${exported.name}"`,
+              "x-subactor-project-documentation-uri": generated.manifest.documentUri,
+              "x-subactor-twin-revision-uri": generated.document.activeRevision.twinUri,
+            });
+          } catch (error) {
+            const code = codeFromError(error);
+            return sendError(response, code === "PROJECT_DOCUMENTATION_NOT_AVAILABLE" ? 404 : 409, code, { detail: error instanceof Error ? error.message : String(error) });
+          }
         }
         if (request.method === "GET" && url.pathname === "/api/source") {
           const artifact = url.searchParams.get("artifact") ?? "";

@@ -2,16 +2,16 @@
 
 **Project:** `@subactor/digital-twin-runtime-starter` / `bioxfoundry/twin-dsl`
 **Scope:** Planned and executed work in the operational session (2026-08-06) and the state of Twin's autonomous evolution.
-**Aktor sesji:** agent Grok Build (xAI) w workspace `/home/tom/github/bioxfoundry/twin-dsl`  
+**Session actor:** Grok Build agent (xAI) in workspace `/home/tom/github/bioxfoundry/twin-dsl`
 **Reuse resources:** `~/github/semcod/*`, `~/github/subactor/*` (incl. runtime apply-grant, todo2code, twin-probes, autonomy-lab)
-**Indeks kodu:** `project/map.toon.yaml`  
+**Code index:** `project/map.toon.yaml`
 **Nanobionic Laboratory living-project status:** **created and iterated** (`/home/tom/github/bioxfoundry/projects/nanobionic-laboratory`)
 
 ---
 
 ## 0. Event Legend
 
-| Status | Znaczenie |
+| Status | Meaning |
 |--------|-----------|
 | `PLANNED` | planned during the session / in autonomy gaps |
 | `EXECUTED` | implemented or verified during this session / in baseline 0.4.0 |
@@ -62,7 +62,7 @@ research sources
 
 ### 2.2 Authority — LLM is not the source of gates
 
-Runtime generuje i broni m.in.:
+The runtime generates and protects, among other bindings:
 
 ```mathdsl
 MATH authority-gates
@@ -124,7 +124,7 @@ POLICY_ALLOW_DEVELOPMENT_FIXTURE false
 |-----------|--------|
 | Persistent project lease | `AUTONOMOUS` |
 | Iteration limit / hour | `AUTONOMOUS` |
-| Bounded exponential retry watchera | `AUTONOMOUS` |
+| Bounded exponential watcher retry | `AUTONOMOUS` |
 | Failure receipt + `dead-letter.jsonl` | `AUTONOMOUS` |
 | Event envelope, idempotency key, trace ID | `AUTONOMOUS` |
 | Last-known-good Scene | `AUTONOMOUS` |
@@ -175,13 +175,13 @@ todo2code diagnostics
 |------|--------|------------|
 | Diagnostics / plan (contract) | `EXECUTED` (adapter + examples) | `Todo2CodeAdapter`, `code-change-plan.example.json` |
 | Source-patch proposal | `EXECUTED` | `proposeSourcePatch` or a local empty proposal |
-| Krypto grant HS256 | `EXECUTED` + `VERIFIED` | `src/runtime/mutation-grant.ts` (port z `subactor/runtime`) |
-| Izolowany worktree / copy | `EXECUTED` + `VERIFIED` | `src/runtime/isolated-worktree.ts` |
-| Apply w izolacji | `EXECUTED` (fail-closed) | `mutation-apply` + jti consume |
+| Cryptographic HS256 grant | `EXECUTED` + `VERIFIED` | `src/runtime/mutation-grant.ts` (ported from `subactor/runtime`) |
+| Isolated worktree / copy | `EXECUTED` + `VERIFIED` | `src/runtime/isolated-worktree.ts` |
+| Apply in isolation | `EXECUTED` (fail-closed) | `mutation-apply` + jti consume |
 | Tests after apply | `PENDING` | requires real t2c + suite |
 | Re-analysis / close-code-change | `PENDING` | semcod/todo2code |
 | Independent evaluator | `PENDING` | autonomy contract `require_distinct_identity` |
-| Canary / rollback | `PENDING` | wzorce w `subactor/autonomy-lab` |
+| Canary / rollback | `PENDING` | patterns in `subactor/autonomy-lab` |
 | Isolation → main promotion | `PENDING` | intentionally outside 0.5.0 |
 
 ---
@@ -192,7 +192,7 @@ todo2code diagnostics
 
 **Status:** `EXECUTED`  
 **Reuse source:** `/home/tom/github/subactor/runtime/src/apply-grant.mjs`
-**Artefakty:**
+**Artifacts:**
 
 - `src/runtime/mutation-grant.ts`
 - `schemas/signed-mutation-grant.schema.json`
@@ -240,7 +240,7 @@ node dist/src/cli/main.js grant-verify grant.json <projectId> <planHash>
 ### EVT-0502 — Isolated workspace
 
 **Status:** `EXECUTED`  
-**Artefakt:** `src/runtime/isolated-worktree.ts`
+**Artifact:** `src/runtime/isolated-worktree.ts`
 
 ```text
 IF developmentRoot is git toplevel
@@ -255,7 +255,7 @@ ELSE
 ### EVT-0503 — Mutation pipeline (propose / apply)
 
 **Status:** `EXECUTED`  
-**Artefakty:**
+**Artifacts:**
 
 - `src/runtime/mutation-pipeline.ts`
 - `schemas/mutation-proposal-receipt.schema.json`
@@ -320,7 +320,7 @@ node dist/src/cli/main.js mutation-apply project.projectdsl plan.json source-pat
 
 **Status:** `EXECUTED`  
 **Source:** `/home/tom/github/subactor/twin-probes`
-**Artefakt:** `src/adapters/twin-probes.ts`
+**Artifact:** `src/adapters/twin-probes.ts`
 
 **Cycle contract (must have `watches`):**
 
@@ -348,7 +348,7 @@ node dist/src/cli/main.js probes-ingest cycle.json .living-runtime/candidate/pro
 ### EVT-0505 — todo2code adapter extension
 
 **Status:** `EXECUTED`  
-**Artefakt:** `src/adapters/todo2code.ts`
+**Artifact:** `src/adapters/todo2code.ts`
 
 ```text
 extract / readLatestAnalysis / extractNl   (0.4.0)
@@ -366,7 +366,7 @@ npm run demo:autonomy    → PASS (authority, fixture gate, failure)
 npm run demo:mutation    → PASS (grant ok, proposal proposed, directory-copy)
 ```
 
-Nowe testy:
+New tests:
 
 - `test/mutation-grant.test.ts` (HMAC, tamper, jti, isolation, propose, probes)
 
@@ -446,7 +446,7 @@ candidate/twin.json
 candidate/scene.* / OpenUSD
 candidate/improvement.json     # improvementDSL
 candidate/development.evidence.json
-current/                       # last-known-good po ok validation
+current/                       # last-known-good after successful validation
 failures/                      # living-failure
 dead-letter.jsonl
 events.jsonl
@@ -471,11 +471,11 @@ mutations/                     # 0.5.0: propose/apply receipts (when used)
 | Path | Role |
 |---------|------|
 | `"/home/tom/github/bioxfoundry/idea/Atvirojo kodo biofoundry studija-1.pdf"` | strategic intent + customer evidence |
-| `/home/tom/github/bioxfoundry/nanobionic-laboratory/**` | korpus: SiLA/ROS/OpenTwins, OSCAR, BIO-SPEC, CAD, software |
+| `/home/tom/github/bioxfoundry/nanobionic-laboratory/**` | corpus: SiLA/ROS/OpenTwins, OSCAR, BIO-SPEC, CAD, software |
 
 ### 6.2 Where the intent should live (not in PDF)
 
-| Artefakt | Rola |
+| Artifact | Role |
 |----------|------|
 | `data/manager/policy.md` | **authority** — concise operational intent |
 | `project.projectdsl` → `MANAGER_INTENT` | project contract |
@@ -549,7 +549,7 @@ $CLI project-iterate $PROJ/project.projectdsl $PROJ/.living-runtime deterministi
 $CLI project-status $PROJ/.living-runtime
 ```
 
-**Status katalogu living project:**  
+**Living project directory status:**
 `/home/tom/github/bioxfoundry/projects/nanobionic-laboratory` — **EXISTS** (bootstrap + iterate 2026-08-06).
 
 ### 6.6 First iteration (EXECUTED)
@@ -621,7 +621,7 @@ schemas/signed-mutation-grant.schema.json
 schemas/mutation-proposal-receipt.schema.json
 scripts/demo-mutation.mjs
 examples/autonomy/code-change-plan.example.json
-docs/EVENT_HISTORY_AUTONOMY.md          # ten plik
+docs/EVENT_HISTORY_AUTONOMY.md          # this file
 ```
 
 ### Modified (main)
@@ -657,13 +657,13 @@ subactor/autonomy-lab   canary/promotion patterns (docs only)
 After creating a living project and starting `project-watch`, the system autonomously:
 
 1. scans manager/customer/project/archive/development/runtime sources
-2. buduje resource / tree / observation  
+2. builds resource / tree / observation artifacts
 3. invokes development evidence (todo2code or fixture according to policy)
-4. scales mathDSL with authority protection
-5. buduje twin + scene (OpenUSD)  
+4. recalculates mathDSL with authority protection
+5. builds the Twin and Scene (OpenUSD)
 6. validates URI grounding;
-7. publikuje candidate lub current (last-known-good)  
-8. generuje `improvementDSL` propose-only  
+7. publishes the candidate or current revision (last-known-good)
+8. generates propose-only `improvementDSL`
 9. records receipt, events, failures, dead-letter
 10. limits tempo and blocks parallel iterations with a lease
 
@@ -681,8 +681,8 @@ After creating a living project and starting `project-watch`, the system autonom
 | Area | Status |
 |--------|--------|
 | Knowledge loop (research → resource → tree/query/math) | `AUTONOMOUS` |
-| Development loop (todo2code evidence) | `AUTONOMOUS` (fixture/real wg policy) |
-| Execution loop (twin/scene/publish) | `AUTONOMOUS` w granicach gates |
+| Development loop (todo2code evidence) | `AUTONOMOUS` (fixture/real according to policy) |
+| Execution loop (twin/scene/publish) | `AUTONOMOUS` within the gates |
 | Authority vs LLM | `VERIFIED` + `AUTONOMOUS` |
 | Improvement proposals | `AUTONOMOUS` (propose-only) |
 | Mutation control plane 0.5.0 | `EXECUTED` + `VERIFIED` |
@@ -700,12 +700,12 @@ After creating a living project and starting `project-watch`, the system autonom
 | `docs/AUTONOMY_MODEL.md` | gate and mutation model |
 | `docs/FULL_AUTONOMY_GAPS.md` | gaps to full code autonomy |
 | `docs/AUTONOMY_FINDINGS.md` | findings from 0.4.0 tests |
-| `docs/PROJECT_WIZARD.md` | kreator living project |
+| `docs/PROJECT_WIZARD.md` | living project wizard |
 | `docs/QUICK_SOURCE_RECIPES.md` | adding PDF/ZIP/code |
 | `docs/CONTINUOUS_DIGITAL_TWIN_LOOP.md` | continuous loop |
 | `VERIFICATION.md` | 0.5.0 verification report |
 | `CHANGELOG.md` | 0.4.0 / 0.5.0 |
-| `examples/autonomy/` | scenariusze i grant/plan examples |
+| `examples/autonomy/` | scenarios and grant/plan examples |
 
 ---
 

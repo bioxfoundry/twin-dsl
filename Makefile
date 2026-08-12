@@ -25,7 +25,7 @@ endif
 export DOCKER_BUILDKIT = 1
 export COMPOSE_DOCKER_CLI_BUILD = 1
 
-.PHONY: verify demo research biofoundry realtime nl-dsl clean \
+.PHONY: verify demo research biofoundry realtime nl-dsl clean documentation \
         up down down-clean restart build logs ps status service-check endpoints dashboard dashboard-demo mqtt-demo \
         specification-validate prune-cache env
 
@@ -112,6 +112,11 @@ realtime:
 
 nl-dsl:
 	npm run demo:nl-dsl
+
+## Generate Markdown, standalone HTML, PDF, JSON and a SHA-256 manifest for the active project.
+documentation:
+	@npm run build
+	@node dist/src/cli/main.js project-documentation "$(DASHBOARD_PROJECT)" "$(DASHBOARD_RUNTIME)" "$(DASHBOARD_RUNTIME)/current/documentation"
 
 ## Validate the key specification PDF family through Markdown, intentDSL and the active Twin.
 specification-validate:

@@ -91,6 +91,7 @@ import { deriveBiofoundryProcesses } from "./process-model.js";
 import { compileProcessAnimation, renderProcessAnimationDsl } from "./process-animation.js";
 import { renderProcessDsl } from "../dsl/process.js";
 import { buildAnalysisTrace, renderAnalysisTraceDsl, renderAnalysisTraceMarkdown, runtimeSourceRevision } from "./analysis-trace.js";
+import { generateProjectDocumentation } from "./project-documentation.js";
 
 async function startDocumentCli(projectRoot:string):Promise<string> {
   const vendored = join(projectRoot,"vendor/runtime/dist/src/cli/main.js");
@@ -526,6 +527,9 @@ export class LivingProjectRuntime {
         iterationPublished:previous.validation.ok,latestTwinState,latestAssemblyReport,
         validation:validationSummary,presentationEvidence,feedbackPath:resolve(base,"feedback/latest.md"),
       }),"utf8");
+      if(previous.validation.ok) {
+        await generateProjectDocumentation({configPath,runtimeDir:outDir,outputDir:join(outDir,"current/documentation")});
+      }
       return {...previous,noChange:true,diff};
     }
 
@@ -913,6 +917,12 @@ export class LivingProjectRuntime {
     await writeJson(join(outDir,"state/key.json"),{stableKey});
     await writeJson(join(outDir,"receipts",`${iterationId}.json`),receipt);
     await writeJson(join(outDir,"latest.json"),receipt);
+    if(publish) {
+      // Documentation is derived after the accepted receipt exists, so its revision and timestamp
+      // are exactly the ones clients see in latest.json. A failed export is explicit and cannot
+      // retroactively invalidate or replace the otherwise accepted Twin revision.
+      await generateProjectDocumentation({configPath,runtimeDir:outDir,outputDir:join(outDir,"current/documentation")});
+    }
     const event:DomainEvent = {
       eventId:randomUUID(),
       streamId:`living-project-${project.id}`,

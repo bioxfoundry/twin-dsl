@@ -97,6 +97,7 @@ export function renderStartDocument(input:StartDocumentInput):string {
     `- API event log: http://127.0.0.1:${dashboardPort}/api/events`,
     `- API DSL log: http://127.0.0.1:${dashboardPort}/api/dsl`,
     `- API analysis trace: http://127.0.0.1:${dashboardPort}/api/analysis?format=md`,
+    `- Project documentation: http://127.0.0.1:${dashboardPort}/api/documentation?format=md (also html, pdf, json and manifest)`,
     `- Component inspection URL pattern: http://127.0.0.1:${dashboardPort}/?focus=<componentId>`,
     "",
     "```bash",

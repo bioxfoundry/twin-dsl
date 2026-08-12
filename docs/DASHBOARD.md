@@ -77,6 +77,11 @@ triggered from the page run under.
 - **Video capture** — `Record 3D video` records the WebGL canvas locally at 30 FPS and downloads a
   `.webm` file when stopped. It negotiates VP9/VP8/WebM, requests one-second encoder chunks and
   reports `EMPTY_VIDEO_BLOB` when the browser cannot encode. No frames are sent to the server.
+- **Project documentation export** — the top bar downloads Markdown, standalone HTML or PDF from
+  one revision-bound `subactor.project-documentation/v1` model. The Analysis & provenance panel
+  also exposes JSON and its SHA-256 manifest. Components, sources, processes, animation, MQTT,
+  live state, validation findings, deterministic decisions and citations are included; host paths
+  and credentials are excluded. See [project documentation export](PROJECT_DOCUMENTATION_EXPORT.md).
 
 The recording is intentionally canvas-only: it captures exactly the rendered Digital Twin view,
 including orbit/zoom and live updates. Add the downloaded file to the iteration presentation or
@@ -110,6 +115,7 @@ Details and required gates are documented in
 | `GET` | `/api/events` | bounded view of the latest 100 append-only iteration events |
 | `GET` | `/api/dsl` | current DSL artifacts plus failed candidate geometry/integrity receipts |
 | `GET` | `/api/analysis?format=json|md|dsl` | active revision's versioned analysis trace, citations and deterministic decisions |
+| `GET` | `/api/documentation?format=md|html|pdf|json|manifest` | downloadable active project description and revision/hash manifest |
 | `GET` | `/api/source?artifact=<uri>&revision=<sha256>` | hash-verified internal Markdown cited by the active analysis trace; paths are never accepted from HTTP |
 | `GET` | `/api/scene.usda` | the scene rendered to OpenUSD |
 | `POST` | `/api/iterate` | run one iteration; returns 422 with exact failures when authority blocks publication |

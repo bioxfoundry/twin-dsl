@@ -23,7 +23,7 @@ try {
 await mkdir(vendorParent,{recursive:true});
 const staging=await mkdtemp(join(vendorParent,".runtime-sync-"));
 try {
-  for(const entry of ["dist","schemas","proto","deploy","public","error"]) {
+  for(const entry of ["dist","schemas","proto","deploy","public","error","docs"]) {
     await cp(join(sourceRoot,entry),join(staging,entry),{recursive:true});
   }
   await mkdir(join(staging,"scripts"),{recursive:true});

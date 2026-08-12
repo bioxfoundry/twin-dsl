@@ -499,6 +499,10 @@ deterministic projections enriched with source locations discovered by
 | [PROJECT_DIRECTORY_NOT_EMPTY](./PROJECT_DIRECTORY_NOT_EMPTY.md) | project | state | false |
 | [PROJECT_DOCUMENT_INVALID](./PROJECT_DOCUMENT_INVALID.md) | project | configuration | false |
 | [PROJECT_DOCUMENT_REQUIRED](./PROJECT_DOCUMENT_REQUIRED.md) | project | configuration | false |
+| [PROJECT_DOCUMENTATION_FORMAT_INVALID](./PROJECT_DOCUMENTATION_FORMAT_INVALID.md) | project | configuration | false |
+| [PROJECT_DOCUMENTATION_INVALID](./PROJECT_DOCUMENTATION_INVALID.md) | project | configuration | false |
+| [PROJECT_DOCUMENTATION_NOT_AVAILABLE](./PROJECT_DOCUMENTATION_NOT_AVAILABLE.md) | project | availability | true |
+| [PROJECT_DOCUMENTATION_REVISION_MISMATCH](./PROJECT_DOCUMENTATION_REVISION_MISMATCH.md) | project | integrity | false |
 | [PROJECT_FAILURE_LIMIT_INVALID](./PROJECT_FAILURE_LIMIT_INVALID.md) | project | configuration | false |
 | [PROJECT_HEADER_REQUIRED](./PROJECT_HEADER_REQUIRED.md) | project | configuration | false |
 | [PROJECT_ITERATION_LIMIT_INVALID](./PROJECT_ITERATION_LIMIT_INVALID.md) | project | configuration | false |

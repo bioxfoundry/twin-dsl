@@ -91,6 +91,9 @@
     <button id="btn-iterate" class="primary">Run iteration</button>
     <button id="btn-record">Record 3D video</button>
     <button id="btn-copy-json" title="Copy the complete #stage debug snapshot as JSON">Copy JSON</button>
+    <a href="/api/documentation?format=md" download><button>Project MD</button></a>
+    <a href="/api/documentation?format=html" download><button>Project HTML</button></a>
+    <a href="/api/documentation?format=pdf" download><button>Project PDF</button></a>
     <a href="/api/analysis?format=md" target="_blank" rel="noopener"><button>Analysis report</button></a>
     <a id="usd" href="/api/scene.usda" download="scene.usda"><button>Export USD</button></a>
   </header>
@@ -206,6 +209,10 @@
     </div>
     <div class="card">
       <h2>Analysis &amp; provenance</h2>
+      <div class="kv"><span>project documentation</span><a href="/api/documentation?format=md" download>Markdown</a></div>
+      <div class="kv"><span>portable document</span><a href="/api/documentation?format=pdf" download>PDF</a></div>
+      <div class="kv"><span>offline web document</span><a href="/api/documentation?format=html" download>HTML</a></div>
+      <div class="kv"><span>documentation manifest</span><a href="/api/documentation?format=manifest" download>manifest.json</a></div>
       <div class="kv"><span>human report</span><a href="/api/analysis?format=md" target="_blank" rel="noopener">analysis-trace.md</a></div>
       <div class="kv"><span>machine contract</span><a href="/api/analysis?format=json" target="_blank" rel="noopener">analysis-trace.json</a></div>
       <div class="kv"><span>DSL</span><a href="/api/analysis?format=dsl" target="_blank" rel="noopener">analysis-trace.dsl</a></div>

@@ -1,0 +1,378 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "subactor.project-documentation/v1",
+  "title": "Accepted Digital Twin project documentation data",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "project", "generatedAt", "generationMethod", "explanationBoundary", "activeRevision", "summary", "inputs", "components", "assemblies", "processes", "animations", "mqtt", "liveState", "validation", "decisions", "citations"],
+  "properties": {
+    "schema": {"const": "subactor.project-documentation/v1"},
+    "project": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "name", "profile", "managerIntent"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "name": {"type": "string", "minLength": 1},
+        "profile": {"type": "string", "minLength": 1},
+        "managerIntent": {"type": "string"}
+      }
+    },
+    "generatedAt": {"type": "string", "minLength": 20},
+    "generationMethod": {"const": "deterministic-from-accepted-artifacts"},
+    "explanationBoundary": {"type": "string", "minLength": 1},
+    "activeRevision": {
+      "type": "object", "additionalProperties": false,
+      "required": ["iterationUri", "twinUri", "sceneUri", "analysisTraceUri", "sourceSnapshotHash", "runtimeGeneration", "acceptedAt"],
+      "properties": {
+        "iterationUri": {"type": ["string", "null"]},
+        "twinUri": {"type": "string", "pattern": "^urn:subactor:twin:sha256:[a-f0-9]{64}$"},
+        "sceneUri": {"type": "string", "pattern": "^urn:subactor:scene:sha256:[a-f0-9]{64}$"},
+        "analysisTraceUri": {"type": "string", "pattern": "^urn:subactor:analysis-trace:sha256:[a-f0-9]{64}$"},
+        "sourceSnapshotHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "runtimeGeneration": {"type": "string", "minLength": 1},
+        "acceptedAt": {"type": "string", "minLength": 20}
+      }
+    },
+    "summary": {
+      "type": "object", "additionalProperties": false,
+      "required": ["resources", "resourceBytes", "components", "sceneBindings", "meshBindings", "primitiveFallbacks", "assemblies", "completeAssemblies", "processes", "completeProcesses", "processSteps", "evidencedProcessSteps", "geometryRequiredChecks", "geometryPassedRequiredChecks", "integrityOk", "integrityComplete"],
+      "properties": {
+        "resources": {"type": "integer", "minimum": 0},
+        "resourceBytes": {"type": "integer", "minimum": 0},
+        "components": {"type": "integer", "minimum": 0},
+        "sceneBindings": {"type": "integer", "minimum": 0},
+        "meshBindings": {"type": "integer", "minimum": 0},
+        "primitiveFallbacks": {"type": "integer", "minimum": 0},
+        "assemblies": {"type": "integer", "minimum": 0},
+        "completeAssemblies": {"type": "integer", "minimum": 0},
+        "processes": {"type": "integer", "minimum": 0},
+        "completeProcesses": {"type": "integer", "minimum": 0},
+        "processSteps": {"type": "integer", "minimum": 0},
+        "evidencedProcessSteps": {"type": "integer", "minimum": 0},
+        "geometryRequiredChecks": {"type": "integer", "minimum": 0},
+        "geometryPassedRequiredChecks": {"type": "integer", "minimum": 0},
+        "integrityOk": {"type": "boolean"},
+        "integrityComplete": {"type": "boolean"}
+      }
+    },
+    "inputs": {
+      "type": "object", "additionalProperties": false,
+      "required": ["sources", "resourcesByRole", "resourcesByMediaType", "intentDsl", "sourceCoverage"],
+      "properties": {
+        "sources": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["role", "logicalRoot", "labels"],
+            "properties": {
+              "role": {"enum": ["manager", "customer", "project", "internet", "archive", "derived", "runtime", "development"]},
+              "logicalRoot": {"type": "string", "minLength": 1},
+              "labels": {"type": "array", "items": {"type": "string"}}
+            }
+          }
+        },
+        "resourcesByRole": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "resourcesByMediaType": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "intentDsl": {
+          "type": "object", "additionalProperties": false,
+          "required": ["semanticHash", "packs", "records", "invalid"],
+          "properties": {
+            "semanticHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+            "packs": {"type": "integer", "minimum": 0},
+            "records": {"type": "integer", "minimum": 0},
+            "invalid": {"type": "integer", "minimum": 0}
+          }
+        },
+        "sourceCoverage": {
+          "type": "object", "additionalProperties": false,
+          "required": ["reports", "invalidReports", "discovered", "terminal", "byState"],
+          "properties": {
+            "reports": {"type": "integer", "minimum": 0},
+            "invalidReports": {"type": "integer", "minimum": 0},
+            "discovered": {"type": "integer", "minimum": 0},
+            "terminal": {"type": "integer", "minimum": 0},
+            "byState": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}}
+          }
+        }
+      }
+    },
+    "components": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "label", "type", "parentId", "scenePath", "representation", "geometryEvidence", "semanticEvidence", "sourceCount"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "type": {"type": "string", "minLength": 1},
+          "parentId": {"type": ["string", "null"]},
+          "scenePath": {"type": ["string", "null"]},
+          "representation": {"type": "string", "minLength": 1},
+          "geometryEvidence": {"type": "string", "minLength": 1},
+          "semanticEvidence": {"type": "string", "minLength": 1},
+          "sourceCount": {"type": "integer", "minimum": 0},
+          "position": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+          "size": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}}
+        }
+      }
+    },
+    "assemblies": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "kind", "rootComponentId", "complete", "parts"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["device", "assembly", "module"]},
+          "rootComponentId": {"type": "string", "minLength": 1},
+          "complete": {"type": "boolean"},
+          "parts": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["id", "componentId", "required", "complete", "assetUri", "scenePath", "findingCodes"],
+              "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "componentId": {"type": "string", "minLength": 1},
+                "required": {"type": "boolean"},
+                "complete": {"type": "boolean"},
+                "assetUri": {"type": ["string", "null"]},
+                "scenePath": {"type": ["string", "null"]},
+                "findingCodes": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "processes": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "label", "kind", "completeness", "ordering", "cyclic", "componentIds", "gaps", "steps"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "label": {"type": "string", "minLength": 1},
+          "kind": {"type": "string", "minLength": 1},
+          "completeness": {"enum": ["complete", "partial", "declared-only"]},
+          "ordering": {"enum": ["source", "presentation-only", "declared-only"]},
+          "cyclic": {"type": "boolean"},
+          "componentIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["id", "label", "phase", "componentIds", "interactions", "parameters", "success", "failure", "citationIds", "gaps"],
+              "properties": {
+                "id": {"type": "string", "minLength": 1},
+                "label": {"type": "string", "minLength": 1},
+                "phase": {"type": "string", "minLength": 1},
+                "componentIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "interactions": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "parameters": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "success": {"type": ["string", "null"]},
+                "failure": {"type": ["string", "null"]},
+                "citationIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+                "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "animations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["processId", "available", "unavailableReason", "timingMode", "factualProcessDuration", "clips"],
+        "properties": {
+          "processId": {"type": "string", "minLength": 1},
+          "available": {"type": "boolean"},
+          "unavailableReason": {"type": ["string", "null"]},
+          "timingMode": {"const": "normalized-presentation"},
+          "factualProcessDuration": {"const": false},
+          "clips": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["stepId", "startMs", "endMs", "effects"],
+              "properties": {
+                "stepId": {"type": "string", "minLength": 1},
+                "startMs": {"type": "integer", "minimum": 0},
+                "endMs": {"type": "integer", "minimum": 1},
+                "effects": {"type": "array", "items": {"type": "string", "minLength": 1}}
+              }
+            }
+          }
+        }
+      }
+    },
+    "mqtt": {
+      "type": "object", "additionalProperties": false,
+      "required": ["configured", "revisionBound", "bindingSha256", "authority", "defaultMode", "brokers", "routes"],
+      "properties": {
+        "configured": {"type": "boolean"},
+        "revisionBound": {"type": "boolean"},
+        "bindingSha256": {"anyOf": [{"type": "string", "pattern": "^[a-f0-9]{64}$"}, {"type": "null"}]},
+        "authority": {"enum": ["observe-only", null]},
+        "defaultMode": {"type": ["string", "null"]},
+        "brokers": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "clientId", "urlEnv", "keepAliveSeconds"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "clientId": {"type": "string", "minLength": 1},
+              "urlEnv": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+              "keepAliveSeconds": {"type": "integer", "minimum": 1}
+            }
+          }
+        },
+        "routes": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["id", "brokerId", "topic", "qos", "processId", "processUri", "modes"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "brokerId": {"type": "string", "minLength": 1},
+              "topic": {"type": "string", "minLength": 1},
+              "qos": {"enum": [0, 1]},
+              "processId": {"type": "string", "minLength": 1},
+              "processUri": {"type": "string", "pattern": "^twin://"},
+              "modes": {"type": "array", "items": {"enum": ["simulation", "shadow", "hardware"]}}
+            }
+          }
+        }
+      }
+    },
+    "liveState": {
+      "type": "object", "additionalProperties": false,
+      "required": ["available", "evaluatedAt", "coverage", "components"],
+      "properties": {
+        "available": {"type": "boolean"},
+        "evaluatedAt": {"type": ["string", "null"]},
+        "coverage": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+        "components": {
+          "type": "array",
+          "items": {
+            "type": "object", "additionalProperties": false,
+            "required": ["componentId", "properties"],
+            "properties": {
+              "componentId": {"type": "string", "minLength": 1},
+              "properties": {
+                "type": "array",
+                "items": {
+                  "type": "object", "additionalProperties": false,
+                  "required": ["property", "value", "unit", "state", "quality", "observedAt"],
+                  "properties": {
+                    "property": {"type": "string", "minLength": 1},
+                    "value": {"type": "string"},
+                    "unit": {"type": ["string", "null"]},
+                    "state": {"type": "string", "minLength": 1},
+                    "quality": {"enum": ["fresh", "stale", "expired", "unknown"]},
+                    "observedAt": {"type": ["string", "null"]}
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object", "additionalProperties": false,
+      "required": ["geometry", "integrity"],
+      "properties": {
+        "geometry": {
+          "type": "object", "additionalProperties": false,
+          "required": ["ok", "complete", "requiredChecks", "passedRequiredChecks", "failures"],
+          "properties": {
+            "ok": {"type": "boolean"}, "complete": {"type": "boolean"},
+            "requiredChecks": {"type": "integer", "minimum": 0}, "passedRequiredChecks": {"type": "integer", "minimum": 0},
+            "failures": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "integrity": {
+          "type": "object", "additionalProperties": false,
+          "required": ["ok", "complete", "coverage", "findings"],
+          "properties": {
+            "ok": {"type": "boolean"}, "complete": {"type": "boolean"},
+            "coverage": {"type": "object", "additionalProperties": {"type": "integer", "minimum": 0}},
+            "findings": {
+              "type": "array",
+              "items": {
+                "type": "object", "additionalProperties": false,
+                "required": ["code", "severity", "category", "layer", "message", "subjects", "evidenceUris", "repairProcess"],
+                "properties": {
+                  "code": {"type": "string", "minLength": 1},
+                  "severity": {"enum": ["info", "warning", "error"]},
+                  "category": {"type": "string", "minLength": 1},
+                  "layer": {"type": "string", "minLength": 1},
+                  "message": {"type": "string", "minLength": 1},
+                  "subjects": {"type": "array", "items": {"type": "string"}},
+                  "evidenceUris": {"type": "array", "items": {"type": "string"}},
+                  "repairProcess": {"type": "string", "minLength": 1}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "decisions": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "subject", "outcome", "ruleId", "confidence", "basis", "citationIds", "alternatives", "gaps"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "subject": {"type": "string", "minLength": 1},
+          "outcome": {"type": "string", "minLength": 1},
+          "ruleId": {"type": "string", "minLength": 1},
+          "confidence": {"enum": ["high", "medium", "low"]},
+          "basis": {"type": "string", "minLength": 1},
+          "citationIds": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "alternatives": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["value", "status", "reason"],
+              "properties": {
+                "value": {"type": "string", "minLength": 1},
+                "status": {"enum": ["rejected", "unresolved", "deferred", "selected-reference"]},
+                "reason": {"type": "string", "minLength": 1}
+              }
+            }
+          },
+          "gaps": {"type": "array", "items": {"type": "string", "minLength": 1}}
+        }
+      }
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["id", "kind", "title", "href"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "kind": {"enum": ["internal", "external"]},
+          "title": {"type": "string", "minLength": 1},
+          "href": {"type": "string", "minLength": 1},
+          "artifactUri": {"type": "string", "minLength": 1},
+          "resourceUri": {"type": "string", "minLength": 1},
+          "revisionHash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+          "page": {"type": "integer", "minimum": 1},
+          "lines": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}},
+          "fragment": {"type": "string", "minLength": 1},
+          "excerpt": {"type": "string", "minLength": 1},
+          "license": {"type": "string", "minLength": 1},
+          "converter": {"type": "string", "minLength": 1},
+          "converterVersion": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

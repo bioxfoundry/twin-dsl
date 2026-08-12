@@ -7058,6 +7058,66 @@
       "resolution": "Inspect the detail appended after the code and the emitting source locations below, correct the cause and rerun the deterministic check."
     },
     {
+      "code": "PROJECT_DOCUMENTATION_FORMAT_INVALID",
+      "title": "Project documentation format invalid",
+      "subsystem": "project",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "The dashboard documentation endpoint received an unsupported export format.",
+      "causes": [
+        "the format query parameter is not md, html, pdf, json or manifest",
+        "a client constructed the download URL with a stale or misspelled format"
+      ],
+      "impact": "No documentation file is returned; accepted runtime artifacts remain unchanged.",
+      "resolution": "Request /api/documentation with format=md, html, pdf, json or manifest."
+    },
+    {
+      "code": "PROJECT_DOCUMENTATION_INVALID",
+      "title": "Project documentation invalid",
+      "subsystem": "project",
+      "defaultSeverity": "error",
+      "errorClass": "configuration",
+      "retryable": false,
+      "meaning": "One of the accepted runtime artifacts cannot be projected into subactor.project-documentation/v1.",
+      "causes": [
+        "project, resource or integrity artifact shape does not match its declared schema",
+        "a required documentation field is missing or has the wrong type"
+      ],
+      "impact": "No misleading report is generated; the accepted Twin and Scene are not changed.",
+      "resolution": "Inspect the detail after the code, validate current/ artifacts and regenerate the accepted iteration before exporting again."
+    },
+    {
+      "code": "PROJECT_DOCUMENTATION_NOT_AVAILABLE",
+      "title": "Project documentation not available",
+      "subsystem": "project",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The active current/ directory does not contain the accepted artifacts required to describe a Digital Twin project.",
+      "causes": [
+        "the project has not completed an accepted trace-enabled iteration",
+        "project.json, resources.json, twin.json, scene.json, analysis-trace.json, geometry-validation.json or project-integrity.json is missing"
+      ],
+      "impact": "The documentation download cannot be produced; rejected candidate data is not substituted for the missing active revision.",
+      "resolution": "Run one validated project iteration, confirm the required files exist under .living-runtime/current, then retry the export."
+    },
+    {
+      "code": "PROJECT_DOCUMENTATION_REVISION_MISMATCH",
+      "title": "Project documentation revision mismatch",
+      "subsystem": "project",
+      "defaultSeverity": "error",
+      "errorClass": "integrity",
+      "retryable": false,
+      "meaning": "The current project, Twin, Scene, Process or analysis trace does not describe one content-addressed accepted revision.",
+      "causes": [
+        "current/ contains artifacts copied from different iterations",
+        "the analysis trace URI, source snapshot hash or Scene source Twin identity no longer matches the accepted bytes"
+      ],
+      "impact": "Export fails closed instead of presenting a mixed or stale project description.",
+      "resolution": "Do not edit current/ manually. Restore it from one accepted receipt or run a validated iteration so all dependent artifacts are published together."
+    },
+    {
       "code": "PROJECT_DOCUMENT_INVALID",
       "title": "Project document invalid",
       "subsystem": "project",

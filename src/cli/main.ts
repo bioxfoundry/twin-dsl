@@ -35,6 +35,7 @@ import { validateSpecificationDsl, writeSpecificationDslValidation } from "../ru
 import { parseMqttBindingDsl } from "../dsl/mqtt-binding.js";
 import { runMqttProcessDemo } from "../runtime/mqtt-process-demo.js";
 import type { MqttSourceMode, ProcessDocument } from "../core/types.js";
+import { generateProjectDocumentation } from "../runtime/project-documentation.js";
 
 async function json(path:string):Promise<unknown>{return JSON.parse(await readFile(path,'utf8'));}
 async function save(path:string,value:unknown):Promise<void>{await mkdir(dirname(path),{recursive:true});await writeFile(path,JSON.stringify(value,null,2));}
@@ -75,6 +76,11 @@ async function main():Promise<void>{
   if(cmd==='project-sync'){const[config='project.projectdsl']=args;console.log(JSON.stringify(await syncProjectMirror(config),null,2));return;}
   if(cmd==='project-verify'){const[config='project.projectdsl']=args;const result=await verifyLivingProject(config);console.log(JSON.stringify(result,null,2));if(!result.ok)process.exitCode=1;return;}
   if(cmd==='project-status'){const[out='.living-runtime']=args;const latest=await json(`${out}/latest.json`).catch(()=>null),failures=await readFile(`${out}/dead-letter.jsonl`,'utf8').then(x=>x.trim().split(/\r?\n/).filter(Boolean).slice(-10).map(line=>JSON.parse(line))).catch(()=>[]),improvement=await json(`${out}/candidate/improvement.json`).catch(()=>null),mutation=await json(`${out}/mutations/latest.json`).catch(()=>null);console.log(JSON.stringify({latest,failures,improvement,mutation},null,2));return;}
+  if(cmd==='project-documentation'){
+    const[config='project.projectdsl',runtimeDir='.living-runtime',outputDir=`${runtimeDir}/current/documentation`]=args;
+    const result=await generateProjectDocumentation({configPath:resolve(config),runtimeDir:resolve(runtimeDir),outputDir:resolve(outputDir)});
+    console.log(JSON.stringify({schema:result.manifest.schema,projectId:result.manifest.projectId,documentUri:result.manifest.documentUri,activeRevision:result.manifest.activeRevision,outputDir:resolve(outputDir),artifacts:result.manifest.artifacts},null,2));return;
+  }
   if(cmd==='project-diagnose'){
     const[sourceRoot,markdownRoot,dslRoot,runtimeRoot=`.living-runtime`,out=`${runtimeRoot}/current/digital-twin-diagnostics.json`]=args;
     if(!sourceRoot||!markdownRoot||!dslRoot)throw new Error('CLI_ARGUMENTS_REQUIRED:project-diagnose:usage=project-diagnose <source-root> <markdown-root> <dsl-root> [runtime-root] [report.json]');
@@ -219,7 +225,7 @@ async function main():Promise<void>{
     console.log(JSON.stringify({source:resolve(source),out:resolve(out),archives:analyses.length,coverage:analyses.reduce((sum,item)=>({entries:sum.entries+item.coverage.entries,geometryEntries:sum.geometryEntries+item.coverage.geometryEntries,materializableGeometryEntries:sum.materializableGeometryEntries+item.coverage.materializableGeometryEntries,unsupportedCadEntries:sum.unsupportedCadEntries+item.coverage.unsupportedCadEntries}),{entries:0,geometryEntries:0,materializableGeometryEntries:0,unsupportedCadEntries:0}),materialized:receipts.reduce((sum,item)=>sum+item.coverage.materialized,0),failed:receipts.reduce((sum,item)=>sum+item.coverage.failed,0)},null,2));return;
   }
   if(cmd==='crawl'){const[dql,out='.research-crawl']=args;if(!dql)throw new Error('CLI_ARGUMENTS_REQUIRED:crawl:usage=crawl <plan.dql> [out]');const plan=parseDql(await readFile(dql,'utf8')),result=await new DqlCrawler().crawl(plan);await save(`${out}/result.json`,result);console.log(JSON.stringify({pages:result.pages.length,warnings:result.warnings},null,2));return;}
-  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | mqtt-demo | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-diagnose | specification-dsl-validate | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
+  console.error('usage: doctor | service-check | demo | researcher-demo | nl-to-dsl | dashboard | mqtt-demo | scene-render | physical-intake | geometry-build | archive-analyze | crawl | biofoundry-build | biofoundry-watch | project-create | project-add-source | project-add-website | project-sync | project-verify | project-status | project-documentation | project-diagnose | specification-dsl-validate | project-autonomous | project-iterate | project-watch | grant-issue | grant-verify | mutation-propose | mutation-apply | probes-run | probes-ingest');process.exitCode=2;
 }
 main().catch((error: unknown) => {
   console.error(error instanceof Error ? error.message : String(error));
