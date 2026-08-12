@@ -119,6 +119,13 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /Success path/);
   assert.match(dashboardHtml, /Failure path/);
   assert.match(dashboardHtml, /function processVisual/);
+  assert.match(dashboardHtml, /id="stage-labels"/);
+  assert.match(dashboardHtml, /function activeProcessLabelContext/);
+  assert.match(dashboardHtml, /function stationForObject/);
+  assert.match(dashboardHtml, /function projectStagePoint/);
+  assert.match(dashboardHtml, /paintStageLabels\(vp,w,h,now\)/);
+  assert.match(dashboardHtml, /context\.step\.label/);
+  assert.match(dashboardHtml, /selected element/);
   assert.match(dashboardHtml, /presentation only/);
   assert.match(dashboardHtml, /process-parameters/);
   assert.match(dashboardHtml, /fragment\.split\('#'\)\.pop\(\)/);
