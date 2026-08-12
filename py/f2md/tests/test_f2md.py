@@ -1011,6 +1011,32 @@ def test_tree_materializes_pdf_figure_with_bbox_hash_and_ocr_region(tmp_path) ->
     assert any(finding.code == "DOCUMENT_ASSET_HASH_MISMATCH" for finding in tampered.findings)
 
 
+def test_archive_manifest_excludes_only_new_materializations_from_default_tree(tmp_path) -> None:
+    source, output = tmp_path / "source", tmp_path / "output"
+    (source / "existing").mkdir(parents=True)
+    (source / "new-pack" / "nested.zip.extracted").mkdir(parents=True)
+    (source / "root.md").write_text("# Root\n", encoding="utf-8")
+    (source / "existing" / "source.md").write_text("# Existing\n", encoding="utf-8")
+    (source / "new-pack" / "selected.md").write_text("# Selected only\n", encoding="utf-8")
+    (source / "new-pack" / "nested.zip.extracted" / "nested.md").write_text("# Nested\n", encoding="utf-8")
+    (source / "ARCHIVE_EXTRACTION_REPORT.md").write_text("operational report\n", encoding="utf-8")
+    (source / "ARCHIVE_EXTRACTION_MANIFEST.json").write_text(json.dumps({
+        "schema": "bioxfoundry.archive-extraction-manifest/v1",
+        "archives": [
+            {"target": "existing", "targetPreexisted": True},
+            {"target": "new-pack", "targetPreexisted": False},
+        ],
+    }), encoding="utf-8")
+
+    result = convert_tree(source, output)
+
+    assert result.converted == 2
+    assert (output / "root.md.md").is_file()
+    assert (output / "existing" / "source.md.md").is_file()
+    assert not (output / "new-pack" / "selected.md.md").exists()
+    assert "SOURCE_FILES=2" in (output / "VERSION").read_text(encoding="utf-8")
+
+
 def test_refresh_contract_recounts_a_specialised_intent_pack(tmp_path) -> None:
     source, output = tmp_path / "source", tmp_path / "dsl"
     source.mkdir()

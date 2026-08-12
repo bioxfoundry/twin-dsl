@@ -162,10 +162,11 @@ Inspect the detailed asset directly:
 http://127.0.0.1:7445/?focus=oscar_pipette_tool_01
 ```
 
-The inspection screenshot is written to:
+After an operator captures presentation evidence, the inspection screenshot is written below.
+The placeholder uses a logical runtime root because the file does not exist before capture:
 
 ```text
-/home/tom/github/bioxfoundry/projects/nanobionic-laboratory-md/.living-runtime/current/presentation/oscar-pipette-tool-inspection.png
+<runtime>/current/presentation/oscar-pipette-tool-inspection.png
 ```
 
 ## Remaining gaps and repair order

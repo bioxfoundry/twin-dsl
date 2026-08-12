@@ -65,6 +65,13 @@ source SHA-256 and expected use. The manifest is validated before conversion and
 falls back to scanning the rest of the tree. Protobuf (`.proto`) is treated as deterministic text,
 so SiLA service definitions preserve their callable methods and streaming response contracts.
 
+If the source root contains `ARCHIVE_EXTRACTION_MANIFEST.json`, a normal full-tree pass excludes
+targets marked `targetPreexisted: false`, nested `*.extracted` directories and the operational
+manifest/report themselves. Pre-existing source directories remain part of the main mirror. Files
+inside excluded materializations may enter only through the explicit hash-bound selection above.
+This prevents unpacking from silently changing a 134-file corpus into thousands of apparently
+required conversions while retaining auditable access to selected implementation evidence.
+
 ## Deterministic classification
 
 - Repeated blocks in page margins are excluded from semantic artifacts; page numbers are retained

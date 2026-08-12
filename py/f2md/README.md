@@ -131,6 +131,11 @@ manifest with the f2md version plus SHA-256 snapshots of the complete source tre
 Markdown/structure/quality/figure artifacts. It deliberately contains no timestamp, absolute path,
 credential or machine-specific value, so it can be committed and compared across runs.
 
+For a corpus with `ARCHIVE_EXTRACTION_MANIFEST.json`, "complete source tree" means the logical
+source set: pre-existing directories plus archive files, excluding newly materialized targets,
+nested `*.extracted` trees and extraction bookkeeping. Files inside those materializations enter
+through `--manifest selection.json`, which validates their exact relative paths and SHA-256 hashes.
+
 The same run writes `source-coverage.json` and `source-coverage.dsl`. Every discovered source has
 exactly one terminal state: `converted`, `binary-provenance`, `excluded-by-policy`, `unsupported`,
 `quarantined` or `failed`. A filtered `--only` input is therefore recorded rather than disappearing.

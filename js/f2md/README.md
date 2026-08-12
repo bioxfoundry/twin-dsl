@@ -28,6 +28,11 @@ Tree conversion writes a deterministic `VERSION` manifest beside the Markdown mi
 the Node f2md version and SHA-256 snapshots of the input tree and generated Markdown only; it has
 no timestamp, absolute path or secret, so the same conversion has the same version everywhere.
 
+An unpacked archive corpus can declare `ARCHIVE_EXTRACTION_MANIFEST.json`. Newly materialized
+targets (`targetPreexisted: false`), nested `*.extracted` trees and the extraction report are then
+excluded from a normal full-tree pass. Select implementation evidence from those trees with
+`--manifest selection.json`; each selected path is bound to its expected SHA-256.
+
 It also writes the versioned `source-coverage.json` and `source-coverage.dsl` file contract. Every
 discovered input receives exactly one terminal state (`converted`, `binary-provenance`,
 `excluded-by-policy`, `unsupported`, `quarantined` or `failed`), including files omitted by

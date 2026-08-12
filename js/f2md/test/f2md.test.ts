@@ -402,6 +402,34 @@ test("tree selection manifest converts only hash-bound files and rejects drift",
   await assert.rejects(() => convertTree(src, join(dir, "drifted"), { manifestPath }), /SOURCE_SELECTION_HASH_MISMATCH/);
 });
 
+test("archive extraction manifest keeps new materializations out of the default logical corpus", async (t) => {
+  const dir = await workspace(t);
+  const src = join(dir, "src");
+  const out = join(dir, "out");
+  await mkdir(join(src, "existing"), { recursive: true });
+  await mkdir(join(src, "new-pack", "nested.zip.extracted"), { recursive: true });
+  await writeFile(join(src, "root.md"), "# Root\n");
+  await writeFile(join(src, "existing", "source.md"), "# Existing\n");
+  await writeFile(join(src, "new-pack", "selected.md"), "# Selected only\n");
+  await writeFile(join(src, "new-pack", "nested.zip.extracted", "nested.md"), "# Nested\n");
+  await writeFile(join(src, "ARCHIVE_EXTRACTION_REPORT.md"), "operational report\n");
+  await writeFile(join(src, "ARCHIVE_EXTRACTION_MANIFEST.json"), JSON.stringify({
+    schema: "bioxfoundry.archive-extraction-manifest/v1",
+    archives: [
+      { target: "existing", targetPreexisted: true },
+      { target: "new-pack", targetPreexisted: false },
+    ],
+  }));
+
+  const result = await convertTree(src, out);
+  assert.equal(result.converted, 2);
+  assert.match(await readFile(join(out, "root.md.md"), "utf8"), /# Root/);
+  assert.match(await readFile(join(out, "existing", "source.md.md"), "utf8"), /# Existing/);
+  await assert.rejects(() => readFile(join(out, "new-pack", "selected.md.md")), /ENOENT/);
+  const version = await readFile(join(out, "VERSION"), "utf8");
+  assert.match(version, /SOURCE_FILES=2\n/);
+});
+
 test("source coverage is byte-stable and a filtered source is explicitly excluded", async (t) => {
   const dir = await workspace(t);
   const src = join(dir, "src");
