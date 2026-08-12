@@ -583,6 +583,7 @@ deterministic projections enriched with source locations discovered by
 | [SPEC_TWIN_COMPONENT_BASELINE_REDUCED](./SPEC_TWIN_COMPONENT_BASELINE_REDUCED.md) | spec | state | false |
 | [SPEC_TWIN_MISSING](./SPEC_TWIN_MISSING.md) | spec | configuration | false |
 | [SPEC_TWIN_REQUIREMENT_UNMAPPED](./SPEC_TWIN_REQUIREMENT_UNMAPPED.md) | spec | state | false |
+| [STAGE_JSON_CLIPBOARD_FAILED](./STAGE_JSON_CLIPBOARD_FAILED.md) | dashboard | availability | true |
 | [T2C_INTENT_ARRAY_REQUIRED](./T2C_INTENT_ARRAY_REQUIRED.md) | t2c | configuration | false |
 | [T2C_INTENT_ID_DUPLICATE](./T2C_INTENT_ID_DUPLICATE.md) | t2c | integrity | false |
 | [TODO2CODE_APPROVAL_HASH_REQUIRED](./TODO2CODE_APPROVAL_HASH_REQUIRED.md) | todo2code | policy | false |

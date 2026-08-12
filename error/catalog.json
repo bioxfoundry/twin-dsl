@@ -8355,6 +8355,22 @@
       "resolution": "Add a distinct source-grounded component and scene binding; leave position and dimensions missing when the source does not provide them."
     },
     {
+      "code": "STAGE_JSON_CLIPBOARD_FAILED",
+      "title": "Stage JSON clipboard export failed",
+      "subsystem": "dashboard",
+      "defaultSeverity": "error",
+      "errorClass": "availability",
+      "retryable": true,
+      "meaning": "The browser could not copy the versioned #stage debug snapshot to the system clipboard.",
+      "causes": [
+        "clipboard access was denied by the browser, page permissions or document context",
+        "both the Clipboard API and the legacy copy fallback were unavailable",
+        "the browser could not serialize or allocate the complete DOM, WebGL frame and runtime snapshot"
+      ],
+      "impact": "No project or twin state is changed, but the requested debug bundle is not placed on the clipboard.",
+      "resolution": "Open the dashboard through localhost, allow clipboard access for the page and press Copy JSON again. If it still fails, inspect the browser console entry stage-json:error; the generated snapshot remains available as window.__TWIN_STAGE_DEBUG__."
+    },
+    {
       "code": "T2C_INTENT_ARRAY_REQUIRED",
       "title": "T2c intent array required",
       "subsystem": "t2c",

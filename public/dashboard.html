@@ -79,6 +79,7 @@
     <button id="btn-intake">Apply floor-plan evidence</button>
     <button id="btn-iterate" class="primary">Run iteration</button>
     <button id="btn-record">Record 3D video</button>
+    <button id="btn-copy-json" title="Copy the complete #stage debug snapshot as JSON">Copy JSON</button>
     <a href="/api/analysis?format=md" target="_blank" rel="noopener"><button>Analysis report</button></a>
     <a id="usd" href="/api/scene.usda" download="scene.usda"><button>Export USD</button></a>
   </header>
@@ -327,6 +328,7 @@ gl.disable(gl.CULL_FACE);
 /* ----------------------------------------------------------- scene data */
 let OBJECTS=[],SELECTED=null,CENTER=[0,0,0],RADIUS=40,SCENE_CENTER=[0,0,0],SCENE_RADIUS=40,framed=false,queryFocusApplied=false,INSPECTION=false,INSPECTION_IDS=null;
 let PROCESS_MODEL=null,PROCESS_ANIMATION=null,PROCESS_SELECTED=null,PROCESS_FRAME_HANDLE=null,MQTT_STATE=null,MQTT_FRAME_HANDLE=null,MQTT_LAST_RUN_KEY=null;
+let DASHBOARD_STATE=null,DASHBOARD_EVENTS=null,DASHBOARD_DSL=null;
 const PROCESS_RUN={playing:false,outcome:'success',stepIndex:0,stepStartedAt:0};
 PROCESS_RUN.started=false;
 const PROCESS_COLORS={active:[1,.72,.16],completed:[.24,.86,.58],observing:[.24,.75,1],error:[1,.25,.28],recovering:[1,.45,.18],flowFrom:[.2,.85,1],flowTo:[.86,.4,1]};
@@ -831,6 +833,71 @@ async function showErrorReference(payload,operation){
 }
 function clearErrorReference(){$('error-card').hidden=true;}
 
+/* A deterministic, versioned snapshot for bug reports. `outerHTML` preserves the exact
+   #stage markup while the element tree adds layout/computed-style evidence that HTML alone
+   cannot carry. The WebGL frame and serializable render objects cover pixels and scene state. */
+function debugRect(rect){return{x:rect.x,y:rect.y,top:rect.top,right:rect.right,bottom:rect.bottom,left:rect.left,width:rect.width,height:rect.height};}
+function debugElementTree(node){
+  if(node.nodeType===Node.TEXT_NODE)return{nodeType:'text',text:node.textContent};
+  if(node.nodeType!==Node.ELEMENT_NODE)return{nodeType:node.nodeName.toLowerCase(),text:node.textContent};
+  const element=node,style=getComputedStyle(element),entry={
+    nodeType:'element',tag:element.tagName.toLowerCase(),
+    attributes:Object.fromEntries([...element.attributes].map(attribute=>[attribute.name,attribute.value])),
+    rect:debugRect(element.getBoundingClientRect()),
+    layout:{display:style.display,position:style.position,visibility:style.visibility,opacity:style.opacity,overflow:style.overflow,zIndex:style.zIndex,transform:style.transform,width:style.width,height:style.height},
+    children:[...element.childNodes].map(debugElementTree),
+  };
+  if('value' in element)entry.value=element.value;
+  if('checked' in element)entry.checked=element.checked;
+  if(element instanceof HTMLCanvasElement)entry.canvas={width:element.width,height:element.height,clientWidth:element.clientWidth,clientHeight:element.clientHeight};
+  return entry;
+}
+function debugRendererObject(object){
+  const {mesh,...serializable}=object;
+  const visual=processVisual(object,performance.now());
+  return{...serializable,selected:SELECTED===object.idx,visible:!INSPECTION||(INSPECTION_IDS&&INSPECTION_IDS.has(object.idx)),visual,
+    mesh:mesh?{source:'asset',vertexCount:mesh.count,indexedParts:(mesh.parts||[]).map(part=>({name:part.name,indexCount:part.count,color:part.color}))}:{source:'primitive-fallback',primitive:object.prim}};
+}
+function captureStageFrame(){
+  try{return{mimeType:'image/png',dataUrl:canvas.toDataURL('image/png')};}
+  catch(error){return{mimeType:'image/png',error:error.message||String(error)};}
+}
+function stageDebugSnapshot(){
+  const stage=$('stage'),selected=SELECTED===null?null:OBJECTS[SELECTED]||null;
+  return{
+    schema:'subactor.dashboard-stage-debug/v1',capturedAt:new Date().toISOString(),
+    page:{url:location.href,title:document.title,userAgent:navigator.userAgent,language:navigator.language,viewport:{width:innerWidth,height:innerHeight,devicePixelRatio}},
+    stage:{selector:'#stage',outerHTML:stage.outerHTML,rect:debugRect(stage.getBoundingClientRect()),scroll:{width:stage.scrollWidth,height:stage.scrollHeight,left:stage.scrollLeft,top:stage.scrollTop},dom:debugElementTree(stage),frame:captureStageFrame()},
+    camera:{...cam,center:[...CENTER],radius:RADIUS,sceneCenter:[...SCENE_CENTER],sceneRadius:SCENE_RADIUS},
+    inspection:{active:INSPECTION,objectIndices:INSPECTION_IDS?[...INSPECTION_IDS]:[],selectedIndex:SELECTED,selectedObject:selected?debugRendererObject(selected):null},
+    renderer:{webgl:{drawingBufferWidth:gl.drawingBufferWidth,drawingBufferHeight:gl.drawingBufferHeight,contextAttributes:gl.getContextAttributes(),vendor:gl.getParameter(gl.VENDOR),renderer:gl.getParameter(gl.RENDERER),version:gl.getParameter(gl.VERSION),shadingLanguageVersion:gl.getParameter(gl.SHADING_LANGUAGE_VERSION),extensions:gl.getSupportedExtensions()||[]},objects:OBJECTS.map(debugRendererObject)},
+    process:{model:PROCESS_MODEL,animation:PROCESS_ANIMATION,selectedProcessId:PROCESS_SELECTED,run:{...PROCESS_RUN},mqtt:MQTT_STATE},
+    runtime:{state:DASHBOARD_STATE,events:DASHBOARD_EVENTS,dsl:DASHBOARD_DSL},
+  };
+}
+async function writeClipboardText(value){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    try{await navigator.clipboard.writeText(value);return'clipboard-api';}
+    catch(error){console.warn('[digital-twin] stage-json:clipboard-api-unavailable',error);}
+  }
+  const field=document.createElement('textarea');field.value=value;field.setAttribute('readonly','');field.style.cssText='position:fixed;left:-9999px;top:0';document.body.append(field);field.select();
+  try{if(!document.execCommand('copy'))throw new Error('STAGE_JSON_CLIPBOARD_FAILED');return'exec-command';}
+  finally{field.remove();}
+}
+async function copyStageJson(){
+  const button=$('btn-copy-json');button.disabled=true;button.textContent='Copying…';
+  try{
+    render();
+    const snapshot=stageDebugSnapshot();window.__TWIN_STAGE_DEBUG__=snapshot;
+    const json=JSON.stringify(snapshot,null,2),bytes=new Blob([json]).size,method=await writeClipboardText(json);
+    console.info('[digital-twin] stage-json:copied',{schema:snapshot.schema,bytes,method,objects:OBJECTS.length});
+    clearErrorReference();notify(`copied #stage JSON · ${bytes.toLocaleString()} bytes · ${OBJECTS.length} objects`,'ok');button.textContent='Copied';
+  }catch(error){
+    console.error('[digital-twin] stage-json:error',{error:'STAGE_JSON_CLIPBOARD_FAILED',detail:error.message||String(error)});
+    await showErrorReference({error:'STAGE_JSON_CLIPBOARD_FAILED',detail:error.message||String(error)},'copy JSON');button.textContent='Copy failed';
+  }finally{button.disabled=false;setTimeout(()=>{button.textContent='Copy JSON';},1800);}
+}
+
 /* Syntax rendering is deliberately local: runtime DSL/log content is escaped
    before token spans are added, so observations cannot inject dashboard HTML. */
 const escapeCode=value=>String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
@@ -845,6 +912,7 @@ async function refresh(){
     fetch('/api/events').then(r=>r.json()),
     fetch('/api/dsl').then(r=>r.json()),
   ]);
+  DASHBOARD_STATE=state;DASHBOARD_EVENTS=events;DASHBOARD_DSL=dsl;
   // Logs are diagnostic evidence: render them before the optional WebGL scene
   // so a graphics-driver failure cannot hide the reason the runtime is red.
   paintDslLog(events,dsl);
@@ -875,6 +943,7 @@ function adoptMqttState(mqtt){
 }
 $('btn-overview').onclick=()=>frameOverview();
 $('btn-focus').onclick=()=>focusObject(SELECTED===null?null:OBJECTS[SELECTED]);
+$('btn-copy-json').onclick=()=>copyStageJson();
 $('process-select').onchange=event=>{PROCESS_SELECTED=event.target.value||null;resetProcessAnimation();};
 $('mqtt-mode').onchange=async event=>{
   const mode=event.target.value;if(!mode)return;

@@ -146,6 +146,17 @@ test("dashboard serves the live twin, scene and USD, and applies intake durably"
   assert.match(dashboardHtml, /Open error\/\$\{code\}\.md/);
   assert.match(dashboardHtml, /Analysis report/);
   assert.match(dashboardHtml, /\/api\/analysis\?format=md/);
+  assert.match(dashboardHtml, /id="btn-copy-json"/);
+  assert.match(dashboardHtml, /subactor\.dashboard-stage-debug\/v1/);
+  assert.match(dashboardHtml, /function stageDebugSnapshot/);
+  assert.match(dashboardHtml, /outerHTML:stage\.outerHTML/);
+  assert.match(dashboardHtml, /dataUrl:canvas\.toDataURL\('image\/png'\)/);
+  assert.match(dashboardHtml, /objects:OBJECTS\.map\(debugRendererObject\)/);
+  assert.match(dashboardHtml, /runtime:\{state:DASHBOARD_STATE,events:DASHBOARD_EVENTS,dsl:DASHBOARD_DSL\}/);
+  assert.match(dashboardHtml, /window\.__TWIN_STAGE_DEBUG__=snapshot/);
+  assert.match(dashboardHtml, /navigator\.clipboard&&navigator\.clipboard\.writeText/);
+  assert.match(dashboardHtml, /document\.execCommand\('copy'\)/);
+  assert.match(dashboardHtml, /STAGE_JSON_CLIPBOARD_FAILED/);
   assert.ok(dashboardHtml.includes("active ${activeRevision.slice(-12)}"));
 
   const errorReferenceResponse = await fetch(`${server.url}api/errors/SCENE_BLUEPRINT_COMPONENT_INVALID`);
