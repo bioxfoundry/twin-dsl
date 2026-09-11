@@ -1,0 +1,28 @@
+<!--
+  The runtime stores a few thousand rows, but the stock server config writes
+  profiler samples and metrics for itself every second. Left on, those tables
+  grew to ~7 GB each and kept the server merging its own logs (~20-70% of a
+  core while idle). Keep only the query and error logs, and bound them.
+-->
+<clickhouse>
+    <trace_log remove="1"/>
+    <text_log remove="1"/>
+    <metric_log remove="1"/>
+    <asynchronous_metric_log remove="1"/>
+    <part_log remove="1"/>
+    <processors_profile_log remove="1"/>
+    <query_thread_log remove="1"/>
+    <query_views_log remove="1"/>
+    <query_metric_log remove="1"/>
+    <latency_log remove="1"/>
+    <background_schedule_pool_log remove="1"/>
+    <opentelemetry_span_log remove="1"/>
+    <session_log remove="1"/>
+
+    <query_log>
+        <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+    </query_log>
+    <error_log>
+        <ttl>event_date + INTERVAL 7 DAY DELETE</ttl>
+    </error_log>
+</clickhouse>
