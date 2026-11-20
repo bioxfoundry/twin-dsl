@@ -50,16 +50,16 @@
   "devDependencies": {
     "@types/node": ">=18",
     "typescript": ">=5.4 <7",
-    "mammoth": ">=1.7",
-    "turndown": ">=7",
-    "@types/turndown": ">=5"
+    "mammoth": ">=1.13.0",
+    "turndown": ">=7.2.5",
+    "@types/turndown": ">=5.0.6"
   },
   "publishConfig": {
     "access": "public"
   },
   "peerDependencies": {
-    "mammoth": ">=1.7",
-    "turndown": ">=7"
+    "mammoth": ">=1.13.0",
+    "turndown": ">=7.2.5"
   },
   "peerDependenciesMeta": {
     "mammoth": {
