@@ -27,25 +27,25 @@ dependencies = []
 
 [project.optional-dependencies]
 # Layout-first DocumentAST from PDFs with a native text layer.
-pymupdf = ["pymupdf>=1.24; python_version>='3.9'"]
+pymupdf = ["pymupdf>=1.26.5; python_version>='3.9'"]
 # Broad format coverage: Office, HTML, spreadsheets, images.
 markitdown = ["markitdown>=0.1; python_version>='3.10'"]
 # Run Docling in-process instead of over HTTP.
-docling = ["docling>=2.0; python_version>='3.10'"]
+docling = ["docling>=2.69.1; python_version>='3.10'"]
 # Offline language detection — without it documents stay untagged rather than being guessed at.
 lang = ["py3langid>=0.3"]
 # Offline neural translation. Nothing leaves the machine, which is what makes it usable for
 # confidential documents; the hosted engine needs no extra (urllib) but does need a key.
-translate = ["argostranslate>=1.9", "py3langid>=0.3"]
+translate = ["argostranslate>=1.11.0", "py3langid>=0.3"]
 # Everything optional at once.
 all = [
-  "pymupdf>=1.24; python_version>='3.9'",
+  "pymupdf>=1.26.5; python_version>='3.9'",
   "markitdown>=0.1; python_version>='3.10'",
-  "docling>=2.0; python_version>='3.10'",
-  "argostranslate>=1.9",
+  "docling>=2.69.1; python_version>='3.10'",
+  "argostranslate>=1.11.0",
   "py3langid>=0.3",
 ]
-dev = ["pytest>=7", "mypy>=1.8,<2", "ruff>=0.5"]
+dev = ["pytest>=7.4.4", "mypy>=1.19.1,<2", "ruff>=0.5.7"]
 
 [project.urls]
 Homepage = "https://github.com/bioxfoundry/twin-dsl/tree/main/py/f2md"
